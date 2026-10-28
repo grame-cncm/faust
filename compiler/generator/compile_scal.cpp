@@ -8310,17 +8310,18 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
 
         case DelayType::kDenseDelay:
 
-            // the window is anchored at Cache + gVecSize - 1 and walks one
-            // slot down per sample : only valid for count <= gVecSize, so
-            // the compute skeleton must chunk (never the flat variant)
+            // the window is anchored at Cache + gVecSize and walks one slot
+            // down per sample : only valid for count <= gVecSize, so the
+            // compute skeleton must chunk (never the flat variant). After a
+            // full block it rests on Cache itself, never before the array
             fClass->setBlockBound();
             fClass->addDeclCode(subst("$0 \t$1State[$2]; // Dense Delay", ctype, vname, T(mxd)));
             fClass->addClearCode(
                 subst("for (int j = 0; j < $0; j++) { $1State[j] = 0; }", T(mxd), vname));
             fClass->addZone2(
-                subst("$0 \t$1Cache[$2+$3];", ctype, vname, T(gGlobal->gVecSize), T(mxd)));
+                subst("$0 \t$1Cache[$2+$3+1];", ctype, vname, T(gGlobal->gVecSize), T(mxd)));
             fClass->addZone3(
-                subst("$0* \t$1 = $1Cache + $2 - 1;", ctype, vname, T(gGlobal->gVecSize)));
+                subst("$0* \t$1 = $1Cache + $2;", ctype, vname, T(gGlobal->gVecSize)));
             fClass->addZone3(
                 subst("for (int j = 0; j < $0; j++) { $1[j+1] = $1State[j]; }", T(mxd), vname));
             fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
