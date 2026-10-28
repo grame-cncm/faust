@@ -49,7 +49,8 @@ check-nocert:
 
 # -mcs : the programs of mcs/ are certified for a duration between 10 and 60 seconds at
 # 48000 Hz : accepted by default (-mcs 10), refused under -mcs 60, accepted again under
-# -mcs 60 -nocert
+# -mcs 60 -nocert. Accepted, they print their certified duration, under -lang cpp and under
+# -lang ocpp, which writes its code without a factory
 check-mcs:
 	@$(FAUST) --version | sed -n 2p
 	@bad=0; n=0; \
@@ -60,6 +61,12 @@ check-mcs:
 	    v=$$(./verdict.sh $(FAUST) $$f $$set); got=$${v%% *}; \
 	    if [ "$$got" = "$$w" ]; then echo "ok        $$f [$$set] $$got"; \
 	    else echo "MISMATCH  $$f [$$set] $$v, expected $$w"; bad=$$((bad+1)); fi; \
+	  done; \
+	  for lang in cpp ocpp; do \
+	    n=$$((n+1)); \
+	    if $(FAUST) -lang $$lang $$f -o /dev/null 2>&1 | grep -q "WARNING : this program is certified for"; then \
+	      echo "ok        $$f [-lang $$lang] duration printed"; \
+	    else echo "MISMATCH  $$f [-lang $$lang] no duration printed"; bad=$$((bad+1)); fi; \
 	  done; \
 	done; \
 	echo "$$n verdicts, $$bad mismatches"; \

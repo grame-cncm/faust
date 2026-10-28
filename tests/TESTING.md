@@ -722,7 +722,9 @@ refused ; with it, the programs of `nocert/` and the delay whose lower
 bound only may be negative (`refused/delay-slider-negative.dsp`) are
 accepted, and every other program of `refused/` stays refused.
 `make check-mcs` compiles every program of `mcs/` under the three option
-sets of its line in the table.
+sets of its line in the table, then checks that the accepted program prints
+its certified duration under `-lang cpp` and under `-lang ocpp` (which
+writes its code without a factory).
 
 ```sh
 make -C tests/acceptance-tests check FAUST=<binary under test>
