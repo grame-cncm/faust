@@ -6,6 +6,20 @@
 
 namespace itv {
 
+// A NaN operand makes min and max return the other operand, with any of its values : the
+// targets differ in which one (std::min and std::max, written as a comparison, return their
+// first operand when the comparison fails ; fmin and fmax return the operand that is not
+// NaN). The enclosure of the valid results therefore holds every value of the other operand
+// when one may be NaN : a guard decided on it (the defined integer conversion) must see them.
+static interval withOperandThroughNaN(const interval& z, const interval& xInput, const interval& yInput)
+{
+    const auto [x, y] = detail::comparisonOperands(xInput, yInput);
+    interval   r      = z;
+    if (yInput.mayBeInvalid()) r = reunion(r, x);
+    if (xInput.mayBeInvalid()) r = reunion(r, y);
+    return r;
+}
+
 // Public API: validity-aware transfers. Numeric kernels retain their existing
 // enclosure algorithms. Sticky alerts are attached AFTER every early return,
 // including an empty result, and domain checks use the original operands.
@@ -534,7 +548,8 @@ interval interval_algebra::Lt(const interval& xInput, const interval& yInput) co
 interval interval_algebra::Max(const interval& xInput, const interval& yInput) const
 {
     if (movesAny(xInput, yInput)) return withMotionFrom(Max(still(xInput), still(yInput)), Max(forAllTime(xInput), forAllTime(yInput)));
-    return flushedToZero(numericMax(xInput, yInput).withInvalid(detail::inputInvalid(xInput, yInput)));
+    const interval z = withOperandThroughNaN(numericMax(xInput, yInput), xInput, yInput);
+    return flushedToZero(z.withInvalid(detail::inputInvalid(xInput, yInput)));
 }
 
 // Public API: Mem encloses valid numeric results and conservatively retains
@@ -550,7 +565,8 @@ interval interval_algebra::Mem(const interval& x) const
 interval interval_algebra::Min(const interval& xInput, const interval& yInput) const
 {
     if (movesAny(xInput, yInput)) return withMotionFrom(Min(still(xInput), still(yInput)), Min(forAllTime(xInput), forAllTime(yInput)));
-    return flushedToZero(numericMin(xInput, yInput).withInvalid(detail::inputInvalid(xInput, yInput)));
+    const interval z = withOperandThroughNaN(numericMin(xInput, yInput), xInput, yInput);
+    return flushedToZero(z.withInvalid(detail::inputInvalid(xInput, yInput)));
 }
 
 // Public API: Mod encloses valid numeric results and conservatively retains
