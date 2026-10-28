@@ -80,8 +80,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     template <class T>
     std::string checkReal(T val)
     {
-        if (std::isinf(val)) {
-            return "inf";
+        if (std::isnan(val)) {
+            return "nan";
+        } else if (std::isinf(val)) {
+            return (val < 0) ? "-inf" : "inf";
         } else {
             return TAux(val);
         }
