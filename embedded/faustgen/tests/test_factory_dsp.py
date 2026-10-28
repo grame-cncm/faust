@@ -120,9 +120,20 @@ public:
     int m_siginlets = 0;
     int m_sigoutlets = 0;
     int json_builds = 0;
+    // The disk cache: restore_from_cache puts the machine code compiled with the current
+    // options in fBitCode when it holds one, save_to_cache stores the code compiled from source
+    bool cache_hit = false;
+    int cache_reads = 0;
+    int cache_writes = 0;
 
     dsp_factory* create_factory_from_bitcode() { ++bitcode_attempts; return bitcode_result; }
     dsp_factory* create_factory_from_sourcecode() { ++source_attempts; return source_result; }
+    bool restore_from_cache() {
+        ++cache_reads;
+        if (cache_hit) fBitCodeSize = 10;
+        return cache_hit;
+    }
+    void save_to_cache() { ++cache_writes; }
     dsp* create_dsp_instance(int = 0);
     dsp* create_dsp_aux();
     void make_json(dsp* value) {
@@ -192,8 +203,21 @@ int main() {
     dsp* from_cache = cache.create_dsp_aux();
     assert(cache.fDSPfactory == &cached);
     assert(cache.bitcode_attempts == 1 && cache.source_attempts == 0);
+    assert(cache.cache_reads == 0 && cache.cache_writes == 0);
     assert(from_cache->getNumOutputs() == 6);
     delete from_cache;
+
+    // Without machine code, the disk cache is looked up before compiling the source.
+    faustgen_factory cached_on_disk;
+    cached_on_disk.fSourceCodeSize = 20;
+    cached_on_disk.cache_hit = true;
+    cached_on_disk.bitcode_result = &cached;
+    cached_on_disk.source_result = &cached;
+    dsp* from_disk = cached_on_disk.create_dsp_aux();
+    assert(cached_on_disk.fDSPfactory == &cached);
+    assert(cached_on_disk.cache_reads == 1 && cached_on_disk.bitcode_attempts == 1);
+    assert(cached_on_disk.source_attempts == 0 && cached_on_disk.cache_writes == 0);
+    delete from_disk;
 
     // A rejected cache falls through to source.
     dsp_factory compiled(7, 8, {{"author", "Faust"}});
@@ -205,7 +229,18 @@ int main() {
     assert(source.fDSPfactory == &compiled);
     assert(source.bitcode_attempts == 1 && source.source_attempts == 1);
     assert(from_source->getNumInputs() == 7 && from_source->getNumOutputs() == 8);
+    // The code compiled from source is stored in the cache
+    assert(source.cache_writes == 1);
     delete from_source;
+
+    // Nothing in the cache: compiled from source, then stored.
+    faustgen_factory not_cached;
+    not_cached.fSourceCodeSize = 20;
+    not_cached.source_result = &compiled;
+    dsp* from_not_cached = not_cached.create_dsp_aux();
+    assert(not_cached.cache_reads == 1 && not_cached.bitcode_attempts == 0);
+    assert(not_cached.source_attempts == 1 && not_cached.cache_writes == 1);
+    delete from_not_cached;
 
     // If neither persisted form compiles, the silent 0-in/0-out fallback is used.
     dsp_factory fallback(0, 0);

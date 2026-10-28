@@ -30,6 +30,7 @@
 #endif
 
 #include "faustgen_factory.h"
+#include "faustgen_cache.h"
 #include "faustgen~.h"
 
 #include <cctype>
@@ -417,8 +418,9 @@ dsp_factory* faustgen_factory::create_factory_from_sourcecode()
         goto end;
     }
     
-    // Tries to create from bitcode
-    if (fBitCodeSize > 0) {
+    // Tries to create from bitcode: the machine code already compiled from this source with
+    // these options, kept in the disk cache by any faustgen~ (faustgen_cache.h)
+    if ((fBitCodeSize > 0) || restore_from_cache()) {
         fDSPfactory = create_factory_from_bitcode();
         if (fDSPfactory) {
             dsp = create_dsp_instance();
@@ -434,6 +436,7 @@ dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     if (fSourceCodeSize > 0) {
         fDSPfactory = create_factory_from_sourcecode();
         if (fDSPfactory) {
+            save_to_cache();
             dsp = create_dsp_instance();
             FaustPluginMeta meta(dsp);
             post("Compilation from source code succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
@@ -652,90 +655,35 @@ void faustgen_factory::load_source_code(t_dictionary* d)
     default_source_code();
 }
 
-// Load factory settings from a saved Max dictionary
+// Load factory settings from a saved Max dictionary: the source, the library paths and the
+// compile options. The compiled code is not in the patch: create_dsp_aux finds it in the disk
+// cache, or compiles the source ('machinecode' keys of older patches are ignored)
 void faustgen_factory::getfromdictionary(t_dictionary* d)
 {
-    const char* serial_number = nullptr;
-    const char* faustgen_version = nullptr;
-    const char* bitcode = nullptr;
-    t_atom_long sample_format = kNone;
-    t_atom_long bit_code_size = 0;
-
-    // A dictionary may be applied repeatedly to an existing named factory.
-    // Never let an older cache survive a failed validation of the new one.
+    // A dictionary may be applied repeatedly to an existing named factory:
+    // never keep the code compiled for the previous one
     free_bitcode();
     fSampleFormat = kNone;
 
-    // The compile options do not depend on the machine: restore them even if the cache is ignored
     load_compile_options(d);
-    
-    // Read machine serial number
-    t_max_err err = dictionary_getstring(d, gensym("serial_number"), &serial_number);
-    if ((err != MAX_ERR_NONE) || (strcmp(serial_number, getSerialNumber().c_str()) != 0)) {
-        post("Patch compiled on another machine or another CPU architecture, so ignore bitcode and force recompilation");
-        goto read_sourcecode;
-    }
-    
-    // Read sourcecode "version" key
-    err = dictionary_getstring(d, gensym("version"), &faustgen_version);
-    
-    if (err != MAX_ERR_NONE) {
-        post("Cannot read \"version\" key, so ignore bitcode and force recompilation");
-        goto read_sourcecode;
-    } else if (strcmp(faustgen_version, FAUSTGEN_VERSION) != 0) {
-        post("Older version of faustgen~/mc.faustgen~ (%s versus %s), so ignore bitcode and force recompilation", FAUSTGEN_VERSION, faustgen_version);
-        goto read_sourcecode;
-    }
-    
-    // Read fSampleFormat version
-    err = dictionary_getlong(d, gensym("sample_format"), &sample_format);
-    if ((err == MAX_ERR_NONE) && (sample_format >= kFloat) && (sample_format <= kNone)) {
-        fSampleFormat = static_cast<sampleFormat>(sample_format);
-    }
-    
-    // Read bitcode size key
-    err = dictionary_getlong(d, gensym("machinecode_size"), &bit_code_size);
-    if ((err != MAX_ERR_NONE) || (bit_code_size < 0)) {
-        goto read_sourcecode;
-    }
-    
-    // Read and validate bitcode before allocating/copying it.
-    err = dictionary_getstring(d, gensym("machinecode"), &bitcode); // The retrieved pointer references the string in the dictionary, it is not a copy.
-    if ((err == MAX_ERR_NONE) && bitcode
-        && (strlen(bitcode) == static_cast<size_t>(bit_code_size))) {
-        fBitCodeSize = bit_code_size;
-        fBitCode = sysmem_newhandleclear(fBitCodeSize + 1);          // Keep room for the null terminator.
-        sysmem_copyptr(bitcode, *fBitCode, fBitCodeSize);
-        // Restore editable source and library paths even when using cached machine code.
-        goto read_sourcecode;
-    }
-    
-read_sourcecode:
     load_source_code(d);
-    
-    // Rebuild the effective option list, shown by 'View compile options' and used to generate codebox,
-    // also when the DSP comes from the cache, whose sample format stays the one it was compiled with
-    sampleFormat cache_sample_format = fSampleFormat;
+
+    // Rebuild the effective option list, shown by 'View compile options', used to generate
+    // codebox, and giving the sample format of the code
     default_compile_options();
-    fSampleFormat = cache_sample_format;
 }
 
 // Called when saving the Max patcher
 // This function saves the necessary data inside the JSON file (Faust sourcecode)
-// Persist factory version, paths, source, and bitcode into the patcher dictionary
+// Persist factory version, paths, compile options and source into the patcher dictionary
+// (the compiled code stays in the disk cache)
 void faustgen_factory::appendtodictionary(t_dictionary* d)
 {
-    post("Saving object version, library_path, compile options, sourcecode and bitcode...");
-    
-    // Write machine serial number
-    dictionary_appendstring(d, gensym("serial_number"), getSerialNumber().c_str());
-    
+    post("Saving object version, library_path, compile options and sourcecode...");
+
     // Write faustgen~ version
     dictionary_appendstring(d, gensym("version"), FAUSTGEN_VERSION);
-    
-    // Write fSampleFormat version
-    dictionary_appendlong(d, gensym("sample_format"), fSampleFormat);
-    
+
     // Write fLibraryPath
     int i = 0;
     for (const auto &it : fLibraryPath) {
@@ -757,17 +705,62 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
         dictionary_appendlong(d, gensym("sourcecode_size"), fSourceCodeSize);
         dictionary_appendstring(d, gensym("sourcecode"), *fSourceCode);
     }
-    
-    // Write bitcode
-    if (fDSPfactory) {
-        // Alternate model using machine code
-    #ifdef INTERP_BACKEND
-        string machinecode = writeInterpreterDSPFactoryToBitcode(static_cast<interpreter_dsp_factory*>(fDSPfactory));
-    #else
-        string machinecode = writeDSPFactoryToMachine(static_cast<llvm_dsp_factory*>(fDSPfactory), getTarget());
-    #endif
-        dictionary_appendlong(d, gensym("machinecode_size"), machinecode.size());
-        dictionary_appendstring(d, gensym("machinecode"), machinecode.c_str());
+}
+
+// The key of the code compiled from fSourceCode with fOptions: everything the machine code
+// depends on (faustgen~, libfaust and LLVM versions, machine and target, backend, source,
+// options, library paths), each field preceded by its length, then hashed
+string faustgen_factory::cache_key()
+{
+    stringstream key;
+    auto field = [&key](const string& value) { key << value.size() << ':' << value << '\n'; };
+    field(FAUSTGEN_VERSION);
+    field(getCLibFaustVersion());
+    field(getSerialNumber());
+    field(getTarget());
+#ifdef INTERP_BACKEND
+    field("interpreter");
+#else
+    field("llvm");
+#endif
+    field(get_sourcecode());
+    for (const auto& it : fOptions) {
+        field(it);
+    }
+    key << "--\n";
+    for (const auto& it : fLibraryPath) {
+        field(it);
+    }
+    return generateSHA1(key.str());
+}
+
+// Use as fBitCode the machine code compiled from this source with fOptions, found in the cache
+bool faustgen_factory::restore_from_cache()
+{
+    // The option list and the sample format of these options
+    default_compile_options();
+    string machine_code;
+    if (!faustgen_cache::read(cache_key(), machine_code)) {
+        return false;
+    }
+    free_bitcode();
+    fBitCodeSize = machine_code.size();
+    fBitCode = sysmem_newhandleclear(fBitCodeSize + 1);
+    sysmem_copyptr(machine_code.c_str(), *fBitCode, fBitCodeSize);
+    post("Machine code compiled with these compile options found in the cache, so no recompilation");
+    return true;
+}
+
+// Keep in the cache the machine code of fDSPfactory, just compiled from source with fOptions
+void faustgen_factory::save_to_cache()
+{
+#ifdef INTERP_BACKEND
+    string machine_code = writeInterpreterDSPFactoryToBitcode(static_cast<interpreter_dsp_factory*>(fDSPfactory));
+#else
+    string machine_code = writeDSPFactoryToMachine(static_cast<llvm_dsp_factory*>(fDSPfactory), getTarget());
+#endif
+    if (!faustgen_cache::write(cache_key(), machine_code, fDSPfactory->getLibraryList())) {
+        post("Compiled code cannot be written in the cache '%s'", faustgen_cache::directory().c_str());
     }
 }
 

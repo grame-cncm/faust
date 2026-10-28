@@ -141,7 +141,7 @@ endif()
 ####################################
 # Add the faustgen target
 ####################################
-add_library(faustgen MODULE ${ROOT}/src/faustgen~.cpp ${ROOT}/src/faustgen_factory.cpp ${WINSRC} ${DSPLIBS})
+add_library(faustgen MODULE ${ROOT}/src/faustgen~.cpp ${ROOT}/src/faustgen_factory.cpp ${ROOT}/src/faustgen_cache.cpp ${WINSRC} ${DSPLIBS})
 target_include_directories(faustgen PRIVATE ${ROOT}/src/ ${MAXINCL} ${FAUSTINC} ${SNDFILE_INCLUDE_DIRS})
 
 if (APPLE)

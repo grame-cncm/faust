@@ -6,7 +6,7 @@ faustgen~/mc.faustgen~
 
 [Faust](https://faust.grame.fr) (Functional Audio Stream) is a functional programming language for sound synthesis and audio processing with a strong focus on the design of synthesizers, musical instruments, audio effects, etc. Faust targets high-performance signal processing applications and audio plug-ins for a variety of platforms and standards, and is distributed with a [huge library](https://faustlibraries.grame.fr) of various DSP algorithms.
 
-**faustgen~/mc.faustgen~** is a Max external prototyping environment for the Faust programming language with an ultra-short edit-compile-run cycle. It is based on the [libfaust](https://faust.grame.fr) library (the embeddable version of the Faust compiler) and on [LLVM](http://llvm.org). The DSP code can be edited in an embedded editor and will be JIT compiled in native code using LLVM when the editor is closed. For faster reloading, the compiled code is saved in the patch and re-loaded when the patch is opened again. The **faustgen~/mc.faustgen~** external contains all standard Faust libraries, but additional ones can be used by adding the `-I <pathname>` option in the `compileoptions` message, or using the `librarypath` message.
+**faustgen~/mc.faustgen~** is a Max external prototyping environment for the Faust programming language with an ultra-short edit-compile-run cycle. It is based on the [libfaust](https://faust.grame.fr) library (the embeddable version of the Faust compiler) and on [LLVM](http://llvm.org). The DSP code can be edited in an embedded editor and will be JIT compiled in native code using LLVM when the editor is closed. For faster reloading, the compiled code is kept in a cache on disk, shared by every **faustgen~/mc.faustgen~** object and every patch: a DSP compiled once with some options is created again from its compiled code, without compiling, whenever the same source is used with the same options (see [Cache of compiled code](#cache-of-compiled-code)). The **faustgen~/mc.faustgen~** external contains all standard Faust libraries, but additional ones can be used by adding the `-I <pathname>` option in the `compileoptions` message, or using the `librarypath` message.
 
 The DSP code can describe generator or effects, and can run in polyphonic mode, when following the [polyphonic convention](https://faustdoc.grame.fr/manual/midi/#midi-polyphony-support) to define instruments.  
 
@@ -63,11 +63,18 @@ The **faustgen~/mc.faustgen~** object can be controlled with the following messa
 - `librarypath <pathname>` to add the folder pathname of additional Faust libraries. Using an empty `librarypath` message will simply clear the librarypath list
 - `compileoptions <options>`: to add most of the Faust [compiler options](https://faustdoc.grame.fr/manual/options/) (like `-vec -lv 1 -vs 8`...). The `-single` option can be used to run the DSP code with float samples (remember that Max7 and later use double samples by default, so does **faustgen~/mc.faustgen~**). Using an empty `compileoptions` message will simply clear the option list. The options are saved in the patch and restored when it is opened again, so each object keeps, for instance, the entry point given with `-pn <name>`.
 - `nc`(for *no compilation*): to avoid automatic DSP recompilation when the `compileoptions` message is triggered.
+- `clearcache`: to empty the cache of compiled code (see below); the DSPs are compiled again from their source the next time they are needed.
 - `osc <IP inport outport xmit[0|1] bundle[0|1]>`: to activate OSC control in input and output mode, possibly generating messages when *xmit = 1*, and in bundle mode when *bundle = 1* 
 - `init`: to reset controllers to init values and generate all inputs and outputs control messages as a message list *[path, init, min, max]* that will be sent on the output messages outlet
 - `dump`: to generate all inputs and outputs control messages as a message list *[path, cur, min, max]* that will be sent on the output messages outlet. 
 - `mute`: to mute audio rendering
 - `polyphony <nvoices>`: to set the DSP in polyphonic mode with *nvoices* 
+
+### Cache of compiled code
+
+Each time a DSP is compiled from its source, its compiled code is stored in a cache on disk: `~/Library/Caches/faustgen~` on macOS, `%LOCALAPPDATA%\faustgen~` on Windows (or the folder given by the `FAUSTGEN_CACHE_DIR` environment variable). Before compiling, an object looks for the code compiled from the same source with the same compile options (`-pn` included) and library paths, by the same version of **faustgen~/mc.faustgen~** and of the Faust compiler on the same machine, and uses it when found. So a patch reopened, an abstraction used several times with different `-pn`, or a `compileoptions` message coming back to options already used, does not compile again, whether or not the patch has been saved.
+
+The patch keeps the source, the library paths and the compile options, not the compiled code: a patch opened on another machine, or after the cache has been emptied, compiles its DSPs once. An entry also records the Faust libraries the DSP was compiled with: if one of them changes, the DSP is compiled again. The cache is bounded (512 MB, or the `FAUSTGEN_CACHE_SIZE` environment variable in bytes): the code used least recently is removed first. The `clearcache` message empties it.
 
 #### Input controllers 
 
