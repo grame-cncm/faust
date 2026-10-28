@@ -271,6 +271,20 @@ int mterm::complexity() const
     return c;
 }
 
+// The largest power a factor carries : the power of a product is the sum of its factors'
+static const int kMaxFactorPower = 1 << 16;
+
+// The power of a factor, summed in 64 bits : a product beyond the 32-bit powers is refused
+// (it needs more than 2^15 factors of the largest power), never left to overflow
+static void addPower(int& e, int64_t d)
+{
+    const int64_t r = int64_t(e) + d;
+    if (r > INT32_MAX || r < -int64_t(INT32_MAX)) {
+        throw faustexception("ERROR : a product has a power beyond the 32-bit integers\n");
+    }
+    e = int(r);
+}
+
 /**
  * Match x^p with p:int, or p a real holding an integer in [1, 8] : the promotion makes the
  * exponent of a real base real (x^2 is pow(x, 2.0)), and the generator writes such a power
@@ -281,7 +295,9 @@ static bool isSigPow(Tree sig, Tree& x, int& n)
     xtended* p = (xtended*)getUserData(sig);
     if (p == gGlobal->gPowPrim) {
         double r;
-        if (isSigInt(sig->branch(1), &n)) {
+        // a factor's power is an int, summed over the product : a larger written power
+        // stays a factor of its own (its negation, or a sum, would overflow)
+        if (isSigInt(sig->branch(1), &n) && n >= -kMaxFactorPower && n <= kMaxFactorPower) {
             x = sig->branch(0);
             return true;
         } else if (isSigReal(sig->branch(1), &r) && r >= 1 && r <= 8 && r == double(int(r))) {
@@ -333,9 +349,9 @@ const mterm& mterm::operator*=(Tree t)
 
     } else {
         if (isSigPow(t, x, n)) {
-            fFactors[x] += n;
+            addPower(fFactors[x], n);
         } else {
-            fFactors[t] += 1;
+            addPower(fFactors[t], 1);
         }
     }
     return *this;
@@ -379,9 +395,9 @@ const mterm& mterm::operator/=(Tree t)
 
     } else {
         if (isSigPow(t, x, n)) {
-            fFactors[x] -= n;
+            addPower(fFactors[x], -int64_t(n));
         } else {
-            fFactors[t] -= 1;
+            addPower(fFactors[t], -1);
         }
     }
     return *this;
@@ -471,7 +487,7 @@ const mterm& mterm::operator*=(const mterm& m)
 {
     foldCoef(fCoef, fLo, m.fCoef, m.fLo, mulNums(fCoef, m.fCoef), itv::ddMul);
     for (const auto& p : m.fFactors) {
-        fFactors[p.first] += p.second;
+        addPower(fFactors[p.first], p.second);
     }
     cleanup();
     return *this;
@@ -490,7 +506,7 @@ const mterm& mterm::operator/=(const mterm& m)
     }
     foldCoef(fCoef, fLo, m.fCoef, m.fLo, divExtendedNums(fCoef, m.fCoef), itv::ddDiv);
     for (const auto& p : m.fFactors) {
-        fFactors[p.first] -= p.second;
+        addPower(fFactors[p.first], -int64_t(p.second));
     }
     cleanup();
     return *this;

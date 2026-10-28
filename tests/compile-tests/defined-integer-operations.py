@@ -10,6 +10,12 @@ analysis allows.
    Compared, for 15 bases and 111 exponents, with the same model computed here.
 3. An integer remainder whose divisor may be 0 or -1 : x % 0 gives 0, and
    -2147483648 % -1 its exact value, 0. Compared with the exact remainder otherwise.
+5. Extreme and negative constant exponents : pow(x, -2147483648), pow(x, 2147483647) * x
+   and pow(x, 65536) * pow(x, 65536) (powers of a product beyond 32 bits, once an assertion
+   of the normal form), and pow(x, k) with k = int(hslider(0..0.5)) - 2, a negative
+   constant that the constant propagation leaves after the normal form (once an invalid C++
+   name, mydsp_faustpower-2_i, and an endless faustpower<-2> in ocpp). Compared with the
+   integer power of the analysis, for x in [-1, 3].
 4. The selector of -selectn, a real converted to the index of a leaf : a value beyond the
    integers saturates into the first or the last leaf, NaN reaches the leaf its failed
    comparisons give it. Compared with the tree of comparisons, for NaN, both infinities,
@@ -42,13 +48,38 @@ process = int(nentry("x", 0, -2147483648, 1000000, 1)) % int(nentry("k", 1, -2, 
 """
 
 REM_DIVIDENDS = [-2147483648, -7, -1, 0, 5, 1000000]
+REM_DIVISORS = [-2, -1, 0, 1, 3, 7]
+
+EXPONENT_DSP = """
+x = int(nentry("x", 2, -10, 10, 1));
+k = int(hslider("a", 0, 0, 0.5, 0.01)) - 2;
+process = pow(x, -2147483648), pow(x, 2147483647) * x, pow(x, 65536) * pow(x, 65536), pow(x, k);
+"""
+
+
+def int_power(x, k):
+    """The integer power of the analysis : products wrapping on 32 bits ; 1/x^k truncated
+    toward 0 for k < 0"""
+    if k < 0:
+        return 1 if x == 1 else ((-1 if k & 1 else 1) if x == -1 else 0)
+    p = pow(x % 2**32, k, 2**32)
+    return p - 2**32 if p >= 2**31 else p
+
+
+def wrapped(v):
+    v %= 2**32
+    return v - 2**32 if v >= 2**31 else v
+
+
+EXPONENT_CASES = [(x, [int_power(x, -2147483648), wrapped(int_power(x, 2147483647) * x),
+                       wrapped(int_power(x, 65536) * int_power(x, 65536)), int_power(x, -2)])
+                  for x in range(-1, 4)]
 
 # a tree whose failed comparisons lead NaN to the second leaf, on the selector a*1e10 + sqrt(b)
 SELECTN_DSP = """
 g(x) = select2(x >= 2, select2(x < 1, 0.2, 0.1), select2(x >= 3, 0.3, 0.4));
 process = _, _ : *(1e10), sqrt : + : g;
 """
-REM_DIVISORS = [-2, -1, 0, 1, 3, 7]
 
 POW_DSP = """
 process = pow(int(nentry("b", 0, -70000, 70000, 1)), int(nentry("k", 0, -40, 70, 1)));
@@ -202,6 +233,28 @@ int main() {
 """
 
 
+EXPONENT_CPP = UI_CPP + """
+int main() {
+    static const int xs[] = {%s};
+    static const double want[][4] = {%s};
+    int bad = 0, n = 0;
+    for (int i = 0; i < %d; i++) {
+        mydsp d; RUI ui; d.init(48000); d.buildUserInterface(&ui);
+        *ui.z["x"] = FAUSTFLOAT(xs[i]);
+        FAUSTFLOAT o[4][1]; FAUSTFLOAT* op[4] = {o[0], o[1], o[2], o[3]};
+        d.compute(1, nullptr, op);
+        for (int j = 0; j < 4; j++) {
+            n++;
+            if (o[j][0] != FAUSTFLOAT(want[i][j])) { printf("x = %%d, output %%d : got %%.17g, want %%.17g\\n", xs[i], j, double(o[j][0]), want[i][j]); bad++; }
+        }
+    }
+    printf("%%d cases, %%d differ\\n", n, bad);
+    return bad != 0;
+}
+""" % (", ".join(str(x) for x, _ in EXPONENT_CASES),
+       ", ".join("{" + ", ".join(str(v) for v in w) + "}" for _, w in EXPONENT_CASES), len(EXPONENT_CASES))
+
+
 def run(command, work):
     result = subprocess.run(command, cwd=work, capture_output=True, text=True)
     if result.returncode != 0:
@@ -258,6 +311,9 @@ def main():
             for lang in ["cpp", "ocpp"]:
                 ok &= leg(args, repo, work, POW_DSP, POW_CPP, lang, precision)
             ok &= leg(args, repo, work, POW_DSP, POW_C, "c", precision)
+            print("extreme and negative constant exponents")
+            for lang in ["cpp", "ocpp"]:
+                ok &= leg(args, repo, work, EXPONENT_DSP, EXPONENT_CPP, lang, precision)
             print("selector of -selectn that may be NaN or beyond the integers")
             ok &= leg(args, repo, work, SELECTN_DSP, SELECTN_CPP, "ocpp", precision, ["-selectn"], "fSel")
     print("all legs passed" if ok else "FAILED")

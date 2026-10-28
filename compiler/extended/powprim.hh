@@ -141,14 +141,16 @@ class PowPrim : public xtendedCodegen {
             name, IB::genFunTyped(named_args, IB::genBasicTyped(Typed::kInt32), FunTyped::kLocal), block);
     }
 
-    // Check that power argument is an integer or possibly represents an integer, up to 8
+    // Check that power argument is an integer or possibly represents an integer, in [0, 8] :
+    // a negative constant (left by the constant propagation, after the normal form that
+    // writes negative powers as divisions) takes the general path
     bool isIntPowArg(::Type ty, ValueInst* val, int& pow_arg)
     {
         if (ty->nature() == kInt) {
             Int32NumInst* int_val = dynamic_cast<Int32NumInst*>(val);
             if (int_val) {
                 pow_arg = int_val->fNum;
-                return (pow_arg <= 8);
+                return (pow_arg >= 0) && (pow_arg <= 8);
             } else {
                 return false;
             }
@@ -269,14 +271,26 @@ class PowPrim : public xtendedCodegen {
         }
     }
 
+    static bool isNonNegativeLiteral(const std::string& s, int& value)
+    {
+        if (s.empty() || s.size() > 9 || s.find_first_not_of("0123456789") != std::string::npos) {
+            return false;
+        }
+        value = std::stoi(s);
+        return true;
+    }
+
     virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
                                      ConstTypes types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
+        // faustpower<N> recurses on N/2 and N - N/2 : a nonnegative literal only (a negative
+        // one, left by the constant propagation, would never reach its base cases)
+        int exponent = -1;
         if ((types[1]->nature() == kInt) && (types[1]->variability() == kKonst) &&
-            (types[1]->computability() == kComp)) {
+            (types[1]->computability() == kComp) && isNonNegativeLiteral(args[1], exponent)) {
             klass->rememberNeedPowerDef();
             return subst("faustpower<$1>($0)", args[0], args[1]);
         } else if ((types[0]->nature() == kInt) && (types[1]->nature() == kInt)) {
