@@ -7,6 +7,14 @@ http://www.grame.fr
 Copyright GRAME (c) 2012-2026
 
 ----------------------------------------------------
+Version 1.87 - 28/10/2026
+
+- keep the compiled code in a cache on disk shared by all objects and patches, instead of the patch:
+  a DSP compiled once with some options (-pn included) is not compiled again, whether or not the
+  patch has been saved; the 'clearcache' message empties the cache.
+- save and restore the 'compileoptions' options, -pn included, with the patch.
+
+----------------------------------------------------
 Version 1.86 - 16/10/2026
 
 - report grouped polyphonic bargraphs from a computing voice.
