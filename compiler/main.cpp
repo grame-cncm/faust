@@ -52,17 +52,22 @@ int main(int argc, const char* argv[])
     string            error_msg;
     dsp_factory_base* factory = createFactory("FaustDSP", "", argc, argv, error_msg, true);
 
+    // The warnings of a compilation that succeeded, whatever carries its result : the old
+    // C++ backend (-lang ocpp) writes its code without a factory, and its warnings are the
+    // same record the factories return
+    const bool           succeeded = factory != nullptr || error_msg == "";
+    const vector<string> warnings  = factory ? factory->getWarningMessages() : gWarningMessages;
+
     // The warnings of the certification, always : a program bounded only for a limited
     // time says for how long, and -fm says what the certification does not cover
-    if (factory) {
-        for (const auto& it : factory->getWarningMessages()) {
+    if (succeeded) {
+        for (const auto& it : warnings) {
             if (isCertificationWarning(it)) cerr << it;
         }
     }
 
     // Possibly print warnings
-    if (factory) {
-        vector<string> warnings = factory->getWarningMessages();
+    if (succeeded) {
         if (gAllWarning && warnings.size() > 0) {
             set<string> warnings_set;
             for (const auto& it : warnings) {
