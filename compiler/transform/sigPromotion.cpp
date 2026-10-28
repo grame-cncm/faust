@@ -839,6 +839,58 @@ bool isAbsDivisor(Tree d)
     return getUserData(d) == gGlobal->gAbsPrim;
 }
 
+// The largest value of the program below 2^31 : INT32_MAX itself is no float (it rounds to
+// 2^31, which overflows) ; -2^31 is exact in every precision. The test is against these
+// bounds themselves : a value within them converts exactly, and the bounded value
+// [-2^31, high] is not bounded again.
+static double intCastHigh()
+{
+    return (gGlobal->gFloatSize == 1) ? 2147483520.0 : double(INT32_MAX);
+}
+
+// an interval that moves holds over the analysis horizon only : the saturation stays
+static bool beyondIntegers(const interval& i)
+{
+    return i.lo() < double(INT32_MIN) || i.hi() > intCastHigh() || i.moves();
+}
+
+// an empty interval has NaN bounds, that no comparison above detects
+static bool mayBeNaN(const interval& i)
+{
+    return i.mayBeInvalid() || i.isEmpty();
+}
+
+Tree definedIntCast(Tree x, const interval& xi, int nan)
+{
+    const double high = intCastHigh();
+    if (mayBeNaN(xi)) {
+        // NaN converts to nan, by a test false for NaN only : min and max give NaN its
+        // value by the order of their operands, which differs from one backend to the
+        // next, and x == x folds to 1. Within the integers, x >= -2^31 is that test ;
+        // beyond them, (x >= -2^31) | (x < -2^31), then the saturation. The interval of
+        // the conversion holds nan, the value of NaN.
+        Tree lo = sigReal(INT32_MIN);
+        Tree k  = sigReal(nan);
+        if (!beyondIntegers(xi)) {
+            Tree above = sigGE(x, lo);
+            Tree v     = sigSelect2(above, k, x);
+            return sigIntCast(v);
+        }
+        Tree above   = sigGE(x, lo);
+        Tree below   = sigLT(x, lo);
+        Tree ordered = sigOR(above, below);
+        Tree v       = sigSelect2(ordered, k, x);
+        Tree low     = sigMax(sigReal(INT32_MIN), v);
+        return sigIntCast(sigMin(sigReal(high), low));
+    }
+    if (beyondIntegers(xi)) {
+        Tree hi = sigReal(high);
+        Tree lo = sigMax(x, sigReal(INT32_MIN));
+        return sigIntCast(sigMin(hi, lo));
+    }
+    return sigIntCast(x);
+}
+
 //-------------------------IntCastPromotionAlgebra------------------------
 // Float to integer conversion, checking the range ; integer remainder, checking the divisor.
 //------------------------------------------------------------------------
@@ -870,45 +922,16 @@ class IntCastPromotionAlgebra final : public TransformAlgebra {
 
     XSig IntCast(const XSig& x) const override
     {
-        // the largest value of the program below 2^31 : INT32_MAX itself is no float
-        // (it rounds to 2^31, which overflows) ; -2^31 is exact in every precision. The
-        // test is against these bounds themselves : a value within them converts exactly,
-        // and the bounded value [-2^31, high] is not bounded again.
-        const double high = (gGlobal->gFloatSize == 1) ? 2147483520.0 : double(INT32_MAX);
-        interval     x_i  = sigInterval(x.orig);
-        // an interval that moves holds over the analysis horizon only : the saturation stays
-        const bool outside = x_i.lo() < double(INT32_MIN) || x_i.hi() > high || x_i.moves();
-        // an empty interval has NaN bounds, that no comparison above detects
-        const bool nan = x_i.mayBeInvalid() || x_i.isEmpty();
-        if (outside && gAllWarning) {
+        interval x_i = sigInterval(x.orig);
+        if (beyondIntegers(x_i) && gAllWarning) {
             stringstream error;
             error << "WARNING : float to integer conversion [" << x_i.lo() << ":" << x_i.hi()
                   << "] is outside of integer range in "
                   << ppsig(fBuild.IntCast(x.orig), MAX_ERROR_SIZE) << endl;
             gWarningMessages.push_back(error.str());
         }
-        if (nan) {
-            // NaN converts to 0, by a test false for NaN only : min and max give NaN its
-            // value by the order of their operands, which differs from one backend to the
-            // next, and x == x folds to 1. Within the integers, x >= -2^31 is that test ;
-            // beyond them, (x >= -2^31) | (x < -2^31), then the saturation. The interval of
-            // the conversion holds 0, the value of NaN.
-            Tree lo   = sigReal(INT32_MIN);
-            Tree zero = sigReal(0.0);
-            if (!outside) {
-                return o(sigIntCast(sigSelect2(sigGE(x.out, lo), zero, x.out)));
-            }
-            Tree above   = sigGE(x.out, lo);
-            Tree below   = sigLT(x.out, lo);
-            Tree ordered = sigOR(above, below);
-            Tree v       = sigSelect2(ordered, zero, x.out);
-            Tree low     = sigMax(sigReal(INT32_MIN), v);
-            return o(sigIntCast(sigMin(sigReal(high), low)));
-        }
-        if (outside) {
-            Tree hi = sigReal(high);
-            Tree lo = sigMax(x.out, sigReal(INT32_MIN));
-            return o(sigIntCast(sigMin(hi, lo)));
+        if (beyondIntegers(x_i) || mayBeNaN(x_i)) {
+            return o(definedIntCast(x.out, x_i));
         }
         return o(fBuild.IntCast(x.out));
     }

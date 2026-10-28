@@ -89,6 +89,11 @@ bool isGuardedDivisor(Tree d, Tree& y);
 // (the absolute value of an integer is 0 or more, or -2147483648)
 bool isAbsDivisor(Tree d);
 
+// The conversion of the real x to an integer, defined for every value of its interval xi :
+// NaN gives nan, 0 for a conversion of the program, a value beyond the integers saturates
+// to their bounds
+Tree definedIntCast(Tree x, const itv::interval& xi, int nan = 0);
+
 // Public API
 Tree signalPromote(Tree sig);
 Tree signalBool2IntPromote(Tree sig);

@@ -28,8 +28,10 @@ conversion to an integer of a value that may be NaN (it gives 0), an integer rem
 divisor that may be 0 or -1 (x % 0 gives 0, -2147483648 % -1 its exact value, 0), and an
 integer power of variable exponent, compared with the integer power of the analysis
 (products wrapping on 32 bits ; for a negative exponent, 1/x^k truncated toward 0, and 0
-for x = 0) on 15 bases and 111 exponents. Legs : `cpp`, `ocpp` and `c`, single and double
-precision :
+for x = 0) on 15 bases and 111 exponents, and the selector of `-selectn` (a real converted
+to the index of a leaf : beyond the integers it saturates, NaN reaches the leaf its failed
+comparisons give it), compared with the tree of comparisons. Legs : `cpp`, `ocpp` and `c`,
+`ocpp -selectn` for the selector, single and double precision :
 
 ```sh
 python3 tests/compile-tests/defined-integer-operations.py --faust build/bin/faust

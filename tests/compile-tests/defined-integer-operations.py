@@ -9,10 +9,15 @@ analysis allows.
    Compared, for 15 bases and 111 exponents, with the same model computed here.
 3. An integer remainder whose divisor may be 0 or -1 : x % 0 gives 0, and
    -2147483648 % -1 its exact value, 0. Compared with the exact remainder otherwise.
+4. The selector of -selectn, a real converted to the index of a leaf : a value beyond the
+   integers saturates into the first or the last leaf, NaN reaches the leaf its failed
+   comparisons give it. Compared with the tree of comparisons, for NaN, both infinities,
+   values beyond the integers and each leaf.
 
 Each program runs under the undefined-behaviour sanitizer (with float-cast-overflow,
 which GCC leaves out of -fsanitize=undefined) : a conversion out of the integers stops it.
-Legs : cpp, ocpp and c (the remainder and the power), single and double precision.
+Legs : cpp, ocpp and c (the remainder and the power), ocpp -selectn (the selector),
+single and double precision.
 """
 
 import argparse
@@ -35,6 +40,12 @@ process = int(nentry("x", 0, -2147483648, 1000000, 1)) % int(nentry("k", 1, -2, 
 """
 
 REM_DIVIDENDS = [-2147483648, -7, -1, 0, 5, 1000000]
+
+# a tree whose failed comparisons lead NaN to the second leaf, on the selector a*1e10 + sqrt(b)
+SELECTN_DSP = """
+g(x) = select2(x >= 2, select2(x < 1, 0.2, 0.1), select2(x >= 3, 0.3, 0.4));
+process = _, _ : *(1e10), sqrt : + : g;
+"""
 REM_DIVISORS = [-2, -1, 0, 1, 3, 7]
 
 POW_DSP = """
@@ -165,6 +176,27 @@ int main() {
 """ % (", ".join(map(str, REM_DIVIDENDS)), ", ".join(map(str, REM_DIVISORS)), len(REM_DIVIDENDS), len(REM_DIVISORS))
 
 
+SELECTN_CPP = "#include <cmath>\n" + UI_CPP + """
+int main() {
+    static const double as[] = {0, 0, 0, 0, 0, 0, 0, 1, -1, INFINITY, -INFINITY};
+    static const double bs[] = {-1, 0, 1, 2.25, 4, 9, 16, 0, 0, 0, 0};
+    const int n = 11;
+    mydsp d; d.init(48000);
+    FAUSTFLOAT a[n], b[n], o[n]; FAUSTFLOAT* ip[2] = {a, b}; FAUSTFLOAT* op[1] = {o};
+    for (int i = 0; i < n; i++) { a[i] = FAUSTFLOAT(as[i]); b[i] = FAUSTFLOAT(bs[i]); }
+    d.compute(n, ip, op);
+    int bad = 0;
+    for (int i = 0; i < n; i++) {
+        FAUSTFLOAT x = a[i] * FAUSTFLOAT(1e10) + std::sqrt(b[i]);
+        double want = (x >= 2) ? ((x >= 3) ? 0.4 : 0.3) : ((x < 1) ? 0.1 : 0.2);
+        if (o[i] != FAUSTFLOAT(want)) { printf("a = %g, b = %g : got %g, want %g\\n", as[i], bs[i], double(o[i]), want); bad++; }
+    }
+    printf("%d cases, %d differ\\n", n, bad);
+    return bad != 0;
+}
+"""
+
+
 def run(command, work):
     result = subprocess.run(command, cwd=work, capture_output=True, text=True)
     if result.returncode != 0:
@@ -173,14 +205,17 @@ def run(command, work):
     return result
 
 
-def leg(args, repo, work, dsp, runner, lang, precision):
+def leg(args, repo, work, dsp, runner, lang, precision, options=[], marker=None):
     flt = "float" if precision == "single" else "double"
     (work / "prog.dsp").write_text(dsp)
     is_c = lang == "c"
     generated = work / ("generated.c" if is_c else "generated.cpp")
     source = work / ("runner.c" if is_c else "runner.cpp")
     source.write_text(runner)
-    if run([args.faust, "-lang", lang, "-" + precision, "prog.dsp", "-o", generated], work).returncode:
+    if run([args.faust, "-lang", lang, "-" + precision, *options, "prog.dsp", "-o", generated], work).returncode:
+        return False
+    if marker and marker not in generated.read_text():
+        print(f"{lang:5} {precision:7} the generated code has no {marker} : -selectn does not take the tree")
         return False
     compiler = [args.cc, "-std=c11"] if is_c else [args.cxx, "-std=c++17"]
     build = compiler + ["-O1", *SANITIZE, "-DFAUSTFLOAT=" + flt, "-I", repo / "architecture",
@@ -189,7 +224,7 @@ def leg(args, repo, work, dsp, runner, lang, precision):
         return False
     result = run([work / "runner"], work)
     lines = (result.stdout + result.stderr).strip().splitlines()
-    print(f"{lang:5} {precision:7} {lines[-1] if lines else 'no output'}")
+    print(f"{' '.join([lang, *options]):5} {precision:7} {lines[-1] if lines else 'no output'}")
     return result.returncode == 0
 
 
@@ -218,6 +253,8 @@ def main():
             for lang in ["cpp", "ocpp"]:
                 ok &= leg(args, repo, work, POW_DSP, POW_CPP, lang, precision)
             ok &= leg(args, repo, work, POW_DSP, POW_C, "c", precision)
+            print("selector of -selectn that may be NaN or beyond the integers")
+            ok &= leg(args, repo, work, SELECTN_DSP, SELECTN_CPP, "ocpp", precision, ["-selectn"], "fSel")
     print("all legs passed" if ok else "FAILED")
     sys.exit(0 if ok else 1)
 
