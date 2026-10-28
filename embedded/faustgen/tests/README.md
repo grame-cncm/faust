@@ -343,14 +343,50 @@ same for any option changing the generated DSP (`-single`, `-vec`, `-I`...).
 **Verified fix.** Each option is saved as `compile_option<i>` (one key per
 option, since an option may contain spaces) and restored whether or not the
 cache is used; older patches have no such key and keep the default options.
-The effective option list is rebuilt after restoring, without changing the
-sample format of the cached code.
+The effective option list is rebuilt after restoring, and gives the sample
+format (the compiled code is no longer in the patch, see FG-017).
 
 **Test.** `test_factory_dictionary.py::DictionaryRestoreTest::test_cached_patch_retains_editable_source`,
 scenarios from “The 'compileoptions' arguments are saved with the patch”:
-valid cache, ignored cache (other machine, other version, no machine code),
+reopened on this machine or another, by this faustgen~ version or another,
 patch without options, six objects with `-pn p2` to `-pn p7`, and the sample
-format of an older `-single` cache.
+format given by `-single` whatever an older `sample_format` key says.
+
+### FG-017 — The compiled code was saved in the patch only
+
+**Symptom.** A DSP was compiled again at each opening unless the patcher holding
+its object had been saved after the compilation: an object inside an abstraction
+is saved only with the abstraction file, not with the patch using it, and one
+abstraction used several times saves the state of one instance. A patch sending
+`compileoptions -pn pN` at load time (`loadmess`) compiled each object at each
+opening, since the message dropped the cached code.
+
+**Cause.** The machine code was kept in the box of the patch (`machinecode`),
+for the current options only.
+
+**Risk.** Slow openings (one compilation per object), and large patches.
+
+**Verified fix.** The compiled code is kept in a cache on disk shared by all
+objects and patches (`faustgen_cache.cpp`): an entry `<key>.fgcache` per
+compilation, the key hashing the faustgen~ and libfaust versions, the machine,
+the target, the backend, the source, the options and the library paths, each
+field preceded by its length. `create_dsp_aux()` looks it up before compiling
+and stores the code it compiles from source. An entry records the SHA1 of each
+library file the DSP was compiled with and is dropped when one changed or
+disappeared, or when it is damaged; it is written aside then renamed; the cache
+is bounded, the entries used least recently going first. Patches no longer hold
+machine code, serial number or sample format, and the `machinecode` key of
+older patches is ignored. The `clearcache` message empties the cache.
+
+**Test.** `test_cache.py`: entries written, read and replaced; refused and
+removed when a library changed or disappeared, when truncated, of another format
+or longer; not written when a library cannot be read; keys that are not plain
+names refused; size bound and least recently used order; `clear`; the factory
+key, restore and save (same source, options and paths only, sample format of the
+options, fields not confused, unwritable cache reported).
+`test_factory_dsp.py` (the cache is looked up before the source, the code
+compiled from source is stored), `test_factory_dictionary.py` (no machine code
+written, an older one ignored, options and `-pn` restored).
 
 ## Important regressions covered
 

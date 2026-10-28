@@ -30,6 +30,7 @@
 #endif
 
 #include "faustgen_factory.h"
+#include "faustgen_cache.h"
 #include "faustgen~.h"
 
 using namespace std;
@@ -365,6 +366,14 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
 void faustgen::compileoptions(long inlet, t_symbol* s, long argc, t_atom* argv)
 {
     fDSPfactory->compileoptions(inlet, s, argc, argv);
+}
+
+// Empty the disk cache of compiled code: the objects compile their source again when
+// they are next compiled (the current DSPs are kept)
+void faustgen::clearcache(long inlet, t_symbol* s, long argc, t_atom* argv)
+{
+    int removed = faustgen_cache::clear();
+    post("Cache of compiled code '%s' cleared, %d entries removed", faustgen_cache::directory().c_str(), removed);
 }
 
 // Load Faust source code from disk
@@ -1010,6 +1019,9 @@ extern "C" void ext_main(void* r)
     // Process the "compileoptions" message, to add optional compilation possibilities
     REGISTER_METHOD_GIMME(faustgen, compileoptions);
     
+    // Process the "clearcache" message, to empty the disk cache of compiled code
+    REGISTER_METHOD_GIMME(faustgen, clearcache);
+
     // Process the "midievent" message
     REGISTER_METHOD_GIMME(faustgen, midievent);
     

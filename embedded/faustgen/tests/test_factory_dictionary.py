@@ -143,19 +143,23 @@ public:
 CASES = r'''
 int main() {
     const string source = u8"declare name \"Mémoire\"; process = _,_;";
+    // A patch saved by an older faustgen~, with its machine code and machine
     t_dictionary saved;
     saved.strings = {{"sourcecode", source}, {"machinecode", "cached-code"},
         {"serial_number", getSerialNumber()}, {"version", FAUSTGEN_VERSION},
         {"library_path0", "/custom/faust-libraries"}};
     saved.numbers = {{"sourcecode_size", long(source.size())},
-        {"machinecode_size", 11}, {"sample_format", 1}};
-    // Cached DSP and editable source must survive repeated save/reopen cycles.
+        {"machinecode_size", 11}, {"sample_format", 0}};
+    // The source and library paths survive repeated save/reopen cycles. The machine code of
+    // an older patch is ignored (the disk cache keeps the compiled code), and no machine
+    // code, serial number or sample format is written any more.
     for (int reopen = 0; reopen < 3; ++reopen) {
         faustgen_factory factory;
         factory.getfromdictionary(&saved);
         assert(string(factory.get_sourcecode()) == source);
         assert(factory.fSourceCodeSize == long(source.size()));
-        assert(factory.fBitCode && string(*factory.fBitCode) == "cached-code");
+        assert(!factory.fBitCode && factory.fBitCodeSize == 0);
+        // The sample format comes from the options (-double by default), not from 'sample_format'
         assert(factory.fSampleFormat == faustgen_factory::kDouble);
         assert(factory.fLibraryPath.count("/custom/faust-libraries"));
         llvm_dsp_factory compiled;
@@ -163,48 +167,38 @@ int main() {
         t_dictionary next;
         factory.appendtodictionary(&next);
         assert(next.strings.at("sourcecode") == source);
-        assert(next.strings.at("machinecode") == "cached-code");
+        assert(next.numbers.at("sourcecode_size") == long(source.size()));
+        assert(next.strings.at("version") == FAUSTGEN_VERSION);
+        assert(next.strings.at("library_path0") == "/custom/faust-libraries");
+        assert(!next.strings.count("machinecode") && !next.strings.count("serial_number"));
+        assert(!next.numbers.count("machinecode_size") && !next.numbers.count("sample_format"));
         saved = next;
     }
-    // Reapplying dictionaries to one named factory replaces, rather than leaks,
-    // source/cache buffers. An invalid replacement cannot retain an older cache.
+    // Reapplying dictionaries to one named factory replaces, rather than leaks, the source
+    // buffer, and drops the code compiled for the previous dictionary.
     {
         faustgen_factory factory;
         factory.getfromdictionary(&saved);
         int live_before = allocations - frees;
         factory.getfromdictionary(&saved);
         assert(allocations - frees == live_before);
-        auto invalid = saved;
-        invalid.strings["serial_number"] = "different-machine";
-        factory.getfromdictionary(&invalid);
+        factory.fBitCode = sysmem_newhandleclear(5);
+        strcpy(*factory.fBitCode, "code");
+        factory.fBitCodeSize = 4;
+        factory.getfromdictionary(&saved);
         assert(!factory.fBitCode && factory.fBitCodeSize == 0);
         assert(string(factory.get_sourcecode()) == source);
         assert(allocations - frees == 1);
     }
-    // Invalid or absent cache must preserve the existing source fallback.
-    for (int fallback = 0; fallback < 5; ++fallback) {
-        auto dictionary = saved;
-        if (fallback == 0) dictionary.strings["serial_number"] = "other-machine";
-        if (fallback == 1) dictionary.strings["version"] = "other-version";
-        if (fallback == 2) dictionary.strings.erase("version");
-        if (fallback == 3) dictionary.numbers.erase("machinecode_size");
-        if (fallback == 4) dictionary.strings.erase("machinecode");
-        faustgen_factory factory;
-        factory.getfromdictionary(&dictionary);
-        assert(string(factory.get_sourcecode()) == source);
-        assert(!factory.fBitCode);
-        assert(factory.fLibraryPath.count("/custom/faust-libraries"));
-    }
     // Legacy dictionaries without source must still get the default DSP text.
-    saved.strings.erase("sourcecode"); saved.numbers.erase("sourcecode_size");
+    auto without_source = saved;
+    without_source.strings.erase("sourcecode"); without_source.numbers.erase("sourcecode_size");
     faustgen_factory legacy;
-    legacy.getfromdictionary(&saved);
+    legacy.getfromdictionary(&without_source);
     assert(string(legacy.get_sourcecode()) == DEFAULT_SOURCE_CODE);
-    assert(legacy.fBitCode);
 
     // Older file imports counted the null terminator in sourcecode_size.
     auto terminated_size = saved;
-    terminated_size.strings["sourcecode"] = source;
     terminated_size.numbers["sourcecode_size"] = long(source.size() + 1);
     faustgen_factory old_file_import;
     old_file_import.getfromdictionary(&terminated_size);
@@ -221,34 +215,20 @@ int main() {
     assert(!inconsistent_saved.numbers.count("sourcecode_size"));
     assert(!inconsistent_saved.strings.count("sourcecode"));
 
-    // Corrupt or inconsistent lengths are rejected before allocation/copying.
-    for (int malformed = 0; malformed < 6; ++malformed) {
+    // Corrupt or inconsistent source lengths are rejected before allocation/copying.
+    for (int malformed = 0; malformed < 2; ++malformed) {
         auto dictionary = saved;
-        dictionary.strings["sourcecode"] = source;
-        dictionary.numbers["sourcecode_size"] = long(source.size());
         if (malformed == 0) dictionary.numbers["sourcecode_size"] = -1;
         if (malformed == 1) dictionary.numbers["sourcecode_size"] += 2;
-        if (malformed == 2) dictionary.numbers["machinecode_size"] = -1;
-        if (malformed == 3) dictionary.numbers["machinecode_size"]++;
-        if (malformed == 4) dictionary.numbers["sample_format"] = -1;
-        if (malformed == 5) dictionary.numbers["sample_format"] = 99;
         faustgen_factory factory;
         factory.getfromdictionary(&dictionary);
-        if (malformed < 2) {
-            assert(string(factory.get_sourcecode()) == DEFAULT_SOURCE_CODE);
-        } else {
-            assert(string(factory.get_sourcecode()) == source);
-        }
-        if (malformed == 2 || malformed == 3) assert(!factory.fBitCode);
-        if (malformed == 4 || malformed == 5) {
-            assert(factory.fSampleFormat == faustgen_factory::kNone);
-        }
+        assert(string(factory.get_sourcecode()) == DEFAULT_SOURCE_CODE);
     }
-    cout << "cached source, repeated loads, corrupt lengths, fallbacks, legacy: OK\n";
+    cout << "source, library paths, repeated loads, corrupt lengths, legacy, no machine code: OK\n";
 
     // The 'compileoptions' arguments are saved with the patch and restored, so a DSP
-    // compiled with an entry point other than 'process' (-pn) keeps it after reopening,
-    // whether the machine code cache is used or ignored.
+    // compiled with an entry point other than 'process' (-pn) keeps it after reopening:
+    // they select the code of the disk cache, or the DSP compiled from source.
     const string program = "import(\"stdfaust.lib\");\nprocess = _;\n"
                            "p2 = _ <: si.bus(2);\np3 = _ <: si.bus(3);";
     const vector<string> options = {"-pn", "myDsp", "--process-name", "p2",
@@ -277,31 +257,18 @@ int main() {
     }
     assert(!with_options.strings.count("compile_option" + to_string(options.size())));
 
-    // A valid cache restores the compiled DSP and the options it was compiled with.
-    {
-        faustgen_factory factory;
-        factory.getfromdictionary(&with_options);
-        assert(factory.fBitCode && string(*factory.fBitCode) == "cached-code");
-        assert(factory.fOptions == options);
-        assert(contains(factory.fCompileOptions, options));
-        assert(factory.fSampleFormat == faustgen_factory::kDouble);
-        // A later recompilation from source keeps the entry point.
-        compiled_arguments.clear();
-        factory.create_factory_from_sourcecode();
-        assert(contains(compiled_arguments, options));
-    }
-
-    // An ignored cache (other machine, other faustgen~ version) recompiles the source
-    // with the saved options rather than with the default 'process' entry point.
-    for (int ignored = 0; ignored < 3; ++ignored) {
+    // Reopened, on this machine or another one, by this faustgen~ or another version: the
+    // options are restored, and a compilation from source keeps the entry point.
+    for (int other = 0; other < 3; ++other) {
         auto dictionary = with_options;
-        if (ignored == 0) dictionary.strings["serial_number"] = "other-machine";
-        if (ignored == 1) dictionary.strings["version"] = "other-version";
-        if (ignored == 2) dictionary.strings.erase("machinecode");
+        if (other == 1) dictionary.strings["serial_number"] = "other-machine";
+        if (other == 2) dictionary.strings["version"] = "other-version";
         faustgen_factory factory;
         factory.getfromdictionary(&dictionary);
         assert(!factory.fBitCode);
         assert(factory.fOptions == options);
+        assert(contains(factory.fCompileOptions, options));
+        assert(factory.fSampleFormat == faustgen_factory::kDouble);
         compiled_arguments.clear();
         factory.create_factory_from_sourcecode();
         assert(contains(compiled_arguments, options));
@@ -344,7 +311,6 @@ int main() {
         }
         vector<faustgen_factory> reopened(6);
         for (int n = 0; n < 6; ++n) {
-            patches[n].strings["version"] = "other-version";
             reopened[n].getfromdictionary(&patches[n]);
         }
         for (int n = 0; n < 6; ++n) {
@@ -360,19 +326,18 @@ int main() {
         }
     }
 
-    // Rebuilding the option list never changes the sample format of the cached code,
-    // even for an older patch whose '-single' option was not saved.
+    // The sample format follows the options: '-single' gives float samples, whatever the
+    // 'sample_format' key of an older patch says.
     for (int with_single = 0; with_single < 2; ++with_single) {
         auto dictionary = with_options;
-        dictionary.numbers["sample_format"] = faustgen_factory::kFloat;
+        dictionary.numbers["sample_format"] = with_single ? faustgen_factory::kDouble : faustgen_factory::kFloat;
         for (size_t i = 0; i < options.size(); ++i) {
             dictionary.strings.erase("compile_option" + to_string(i));
         }
         if (with_single) dictionary.strings["compile_option0"] = "-single";
         faustgen_factory factory;
         factory.getfromdictionary(&dictionary);
-        assert(factory.fBitCode);
-        assert(factory.fSampleFormat == faustgen_factory::kFloat);
+        assert(factory.fSampleFormat == (with_single ? faustgen_factory::kFloat : faustgen_factory::kDouble));
     }
     cout << "compile options and process name saved, restored and recompiled: OK\n";
 }

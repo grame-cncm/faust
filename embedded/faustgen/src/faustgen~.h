@@ -155,6 +155,9 @@ class faustgen : public MspCpp5<faustgen> {
         // Update Faust compiler options from Max messages
         void compileoptions(long inlet, t_symbol* s, long argc, t_atom* argv);
         
+        // Remove the machine code kept in the disk cache by every faustgen~
+        void clearcache(long inlet, t_symbol* s, long argc, t_atom* argv);
+
         // Read Faust source from disk
         void read(long inlet, t_symbol* s);
         

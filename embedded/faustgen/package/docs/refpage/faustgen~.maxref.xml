@@ -85,7 +85,16 @@
 				The list of compile options.
 			</digest>
 			<description>
-				The list of compile options to be given to the Faust compiler (typically : -vec -lv 1, or -vec -lv 0 -vs 32, or -pn name to compile another definition than process). The options are saved in the patch and restored when it is opened again.
+				The list of compile options to be given to the Faust compiler (typically : -vec -lv 1, or -vec -lv 0 -vs 32, or -pn name to compile another definition than process). The options are saved in the patch and restored when it is opened again. The code compiled with each list of options is kept in a cache on disk, shared by all objects and patches: the same source with the same options is not compiled again.
+			</description>
+		</method>
+		<method name="clearcache">
+			<arglist />
+			<digest>
+				Empty the cache of compiled code.
+			</digest>
+			<description>
+				Remove the compiled code kept on disk (~/Library/Caches/faustgen~ on macOS, %LOCALAPPDATA%\faustgen~ on Windows) by all faustgen~ objects: the DSPs are compiled again from their source the next time they are needed.
 			</description>
 		</method>
 		<method name="osc">

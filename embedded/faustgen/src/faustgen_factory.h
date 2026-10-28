@@ -165,7 +165,17 @@ class faustgen_factory {
     
         // Setup default Faust DSP code
         void default_source_code();
-        
+
+        // The cache key of the code compiled from fSourceCode with fOptions and fLibraryPath
+        std::string cache_key();
+
+        // Use as fBitCode the machine code compiled with the current options found in the
+        // disk cache (faustgen_cache.h), if any
+        bool restore_from_cache();
+
+        // Store in the disk cache the machine code of fDSPfactory, just compiled from source
+        void save_to_cache();
+
     public:
         
         // Create a factory bound to a named DSP group
