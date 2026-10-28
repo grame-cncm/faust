@@ -434,7 +434,8 @@ grep -c "ERROR: AddressSanitizer" <log>; grep -c "runtime error" <log>
 ```
 
 then the same with `-O2 -march=native -ffast-math -ffp-contract=fast` in
-place of `-O1`, so that contraction and reassociation act on the code.
+place of `-O1`, so that contraction and reassociation act on the code, and
+the same again with `outdir=ocpp/asan lang=ocpp` for the legacy backend.
 Expected: 100 responses (`prefix` and `osc_enable` are left out, see Gate 1), zero
 AddressSanitizer report, zero `runtime error`. `SAN=asan` in `Make.gcc`
 adds AddressSanitizer only; the explicit `GCCOPTIONS` adds the undefined
