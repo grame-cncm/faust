@@ -118,7 +118,7 @@ json-compare:
 # Node or the Xilinx ap_fixed.h header : SCRIPT_ARGS passes their paths). One verdict per
 # script ; the target fails when one script fails.
 SCRIPTS_CORE := defined-integer-operations display-contexts display-tail-sharing exe-path hoist-negation \
-                infinite-coefficients integer-pow
+                infinite-coefficients integer-pow svg-inner-process
 SCRIPTS_ALL  := $(SCRIPTS_CORE) fixed-point-tables integer-pow-backends java-math \
                 julia-float-to-int math-domain nonfinite-constants
 SCRIPT_ARGS  ?=
