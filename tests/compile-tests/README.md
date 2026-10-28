@@ -16,7 +16,8 @@ Type `make help` for details on the available targets.
 Each script below checks one defect once fixed. `make check-scripts
 FAUST=<binary>` runs those that need only faust and a C/C++ compiler
 (`display-contexts`, `display-tail-sharing`, `exe-path`, `hoist-negation`,
-`infinite-coefficients`, `integer-pow`, `defined-integer-operations`) ;
+`infinite-coefficients`, `integer-pow`, `defined-integer-operations`,
+`svg-inner-process`) ;
 `make check-scripts-all` runs every one, the others needing Java, Julia,
 Cargo, Node or the Xilinx `ap_fixed.h` header (`SCRIPT_ARGS` passes their
 paths). One verdict per script ; the target fails when one script fails.
@@ -205,4 +206,18 @@ must name the `lib` directory next to the binary.
 
 ```sh
 python3 tests/compile-tests/exe-path.py --faust build/bin/faust
+```
+
+### The diagram of a program that calls an inner process
+
+`svg-inner-process.py` draws, with `-svg -f 1`, a program that calls the
+`process` of an environment (`synth.process : *(0.5)`), and one that chains
+the `process` of two environments. `process.svg` must be the diagram of the
+program (the `0.5` included), with one link per inner process to its own
+file `process-<serial>.svg`, which links back to `process.svg` : an inner
+`process` used to be written to `process.svg` too, over the program's
+diagram.
+
+```sh
+python3 tests/compile-tests/svg-inner-process.py --faust build/bin/faust
 ```

@@ -718,6 +718,7 @@ struct global {
     std::string                 gSchemaFileName;  // name of schema file beeing generated
     Tree                        gInverter[6];
     std::map<Tree, std::string, treeorder> gBackLink;  // link to enclosing file for sub schema
+    Tree                        gTopDiagram;      // the root of the drawing, alone in process.<suffix>
 
     // FIR
     std::map<Typed::VarType, BasicTyped*>

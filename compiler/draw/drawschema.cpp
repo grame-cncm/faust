@@ -170,6 +170,9 @@ void drawSchema(Tree bd, const char* projname, const char* dev)
     gGlobal->gBackLink.clear();
     gGlobal->gPendingExp = std::stack<Tree>();
     gGlobal->gSchemaFileName.clear();
+    // the root alone is drawn in process.<suffix> : a definition named process inside it
+    // (env.process, an environment's own process) has its own file
+    gGlobal->gTopDiagram = bd;
 
     // Count how many parents each node has in the hash-consed DAG (linear in
     // the number of distinct nodes), so shared nodes can be folded instead of
@@ -335,11 +338,13 @@ static char* legalFileName(Tree t, int n, char* dst)
         i = int(strlen(dst));
     }
     dst[i] = 0;
-    if (strcmp(dst, "process") != 0) {
-        // if it is not process, add the node's serial number to make the name
-        // unique -- and the same from one run to the next, which an address
-        // is not (the whole set of files, and the links between them, are
-        // then reproducible)
+    if (strcmp(dst, "process") != 0 || t != gGlobal->gTopDiagram) {
+        // if it is not the root process, add the node's serial number to make
+        // the name unique -- and the same from one run to the next, which an
+        // address is not (the whole set of files, and the links between them,
+        // are then reproducible). A process defined inside the program (an
+        // environment's own process) is not the root : named process.svg, it
+        // would overwrite the root's diagram, drawn first
         snprintf(&dst[i], n - i, "-%zu", (size_t)t->serial());
     }
     return dst;
