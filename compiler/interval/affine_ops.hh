@@ -199,7 +199,14 @@ class AffineOps : public Base {
         // truncation keeps affinity with one unit of slack, and marks the chain integer
         return {x.a0 - 1, x.a1, x.b0 + 1, x.b1, 0};
     }
-    AffItv BitCast(const AffItv& x) const override { return x; }
+    // A bitcast reinterprets the IEEE-754 encoding of x: the integer it gives has no
+    // relation to the numeric range of x (0.5f is 0x3F000000, any negative float a
+    // negative integer), so every integer of the width can occur (int64 for -double).
+    AffItv BitCast(const AffItv& x) const override
+    {
+        if (x.isEmpty()) return aempty();
+        return fromItv(interval(-9223372036854775808.0, 9223372036854775807.0, 0));
+    }
     AffItv FloatCast(const AffItv& x) const override
     {
         if (x.isEmpty() || x.isConst()) return x;
