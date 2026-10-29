@@ -163,9 +163,14 @@ void Signal2SDF::sigToSDF(Tree L, ostream& fout)
 /**
  * translate signal binary operations into strings
  */
-static const char* binopname[] = {"add",      "diff",        "prod",     "div", "mod", "l_shift",
-                                  "r_shift",  "greaterthan", "lessthan", "geq", "leq", "equal",
-                                  "notequal", "AND",         "OR",       "XOR"};
+static const char* binopname[] = {"add",      "diff",     "prod",        "div",      "mod",
+                                  "l_shift",  "r_shift",  "lr_shift",    "greaterthan", "lessthan",
+                                  "geq",      "leq",      "equal",       "notequal", "AND",
+                                  "OR",       "XOR"};
+
+// binopname is indexed by SOperator : a missing name reads past the table
+static_assert(sizeof(binopname) / sizeof(binopname[0]) == kXOR + 1,
+              "binopname must have one name per SOperator");
 
 /**
  * traverse tree and perform various actions depending
