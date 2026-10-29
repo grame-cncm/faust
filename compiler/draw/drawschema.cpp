@@ -135,6 +135,7 @@ static schema* generateBargraphSchema(Tree t);
 static schema* generateUserInterfaceSchema(Tree t);
 static schema* generateSoundfileSchema(Tree t);
 static char*   legalFileName(Tree t, int n, char* dst);
+static bool    getDrawnDefName(Tree t, Tree& id);
 
 static schema* addSchemaInputs(int ins, schema* x);
 static schema* addSchemaOutputs(int outs, schema* x);
@@ -348,6 +349,17 @@ static char* legalFileName(Tree t, int n, char* dst)
 //------------------------ generating the schema -------------------------
 
 /**
+ * The definition name drawn around <t>. An ambiguous name is not drawn: <t> is the value
+ * of several definitions with different names (`gain1 = 0.4; gain2 = 0.4;`), the
+ * occurrences of <t> cannot be told apart, and any of these names would be wrong for some
+ * of them.
+ */
+static bool getDrawnDefName(Tree t, Tree& id)
+{
+    return getDefNameProperty(t, id) && !isDefNameAmbiguous(t);
+}
+
+/**
  * isInverter(t) returns true if t == '*(-1)'. This test is used
  * to simplify diagram by using a special symbol for inverters.
  */
@@ -408,7 +420,7 @@ static schema* generateDiagramSchema(Tree t)
         // cerr << t << "\tNAMED : " << s.str() << endl;
     }
 
-    bool named = getDefNameProperty(t, id);
+    bool named = getDrawnDefName(t, id);
     // A shared node (more than one parent in the hash-consed DAG) must be
     // folded even when it has no definition name, otherwise the drawing
     // expands the shared graph as a tree and grows exponentially
@@ -572,7 +584,7 @@ static schema* generateInsideSchema(Tree t)
         return generateOutputSlotSchema(t);
     } else if (isBoxSymbolic(t, a, b)) {
         Tree id;
-        if (getDefNameProperty(t, id)) {
+        if (getDrawnDefName(t, id)) {
             return generateAbstractionSchema(generateInputSlotSchema(a), b);
         } else {
             return makeDecorateSchema(generateAbstractionSchema(generateInputSlotSchema(a), b), 10,

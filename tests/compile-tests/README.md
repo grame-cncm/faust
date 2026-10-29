@@ -103,6 +103,20 @@ in the sample loop, with the cpp, c and ocpp backends:
 python3 tests/compile-tests/hoist-negation.py --faust build/bin/faust
 ```
 
+### Definition names in diagrams
+
+`svg-names.py` checks the definition names that `-svg` draws in
+`process.svg`. Two definitions with the same value (`gain1 = 0.4;
+gain2 = 0.4;`, two functions with the same body, a value reached through a
+simplification) share one tree, so a name drawn around it would be wrong for
+the other occurrences: such a box is drawn without a name (issue #266). A
+definition used twice, an alias, and applications of a function to different
+arguments keep their names:
+
+```sh
+python3 tests/compile-tests/svg-names.py --faust build/bin/faust
+```
+
 ### Java backend execution
 
 `java-math.py` generates Java, compiles it with `javac`, and executes it with

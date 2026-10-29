@@ -51,11 +51,14 @@ void setDefNameProperty(Tree t, Tree id)
 {
     // cerr << "setDefNameProperty : " << *id << " FOR " << t << "#" << boxpp(t) << endl;
     setProperty(t, gGlobal->DEFNAMEPROPERTY, id);
+    // remember when the name was given, see defNameStamp()
+    Tree stamp = tree(Node(int(gGlobal->gDefNameCount++)));
+    setProperty(t, gGlobal->DEFNAMESTAMP, stamp);
 }
 
-void setDefNameProperty(Tree t, const string& name)
+// The name as a tree, reduced when it is too long
+static Tree defNameTree(const string& name)
 {
-    // cerr << "setDefNameProperty : " << name << " FOR " << t << "#" << boxpp(t) << endl;
     int n = (int)name.size();
     int m = std::min<int>(1023, gGlobal->gMaxNameSize);
 
@@ -76,10 +79,81 @@ void setDefNameProperty(Tree t, const string& name)
             buf[i] = name[c];
         }
         buf[i] = 0;
-        setProperty(t, gGlobal->DEFNAMEPROPERTY, tree(buf));
+        return tree(buf);
     } else {
-        setProperty(t, gGlobal->DEFNAMEPROPERTY, tree(name.c_str()));
+        return tree(name.c_str());
     }
+}
+
+void setDefNameProperty(Tree t, const string& name)
+{
+    // cerr << "setDefNameProperty : " << name << " FOR " << t << "#" << boxpp(t) << endl;
+    setDefNameProperty(t, defNameTree(name));
+}
+
+size_t defNameStamp()
+{
+    return gGlobal->gDefNameCount;
+}
+
+// A mark holds the name it was given for: it no longer applies once the tree is renamed
+static bool isMarked(Tree t, Tree mark)
+{
+    Tree marked, id;
+    return getProperty(t, mark, marked) && getDefNameProperty(t, id) && marked == id;
+}
+
+static void markName(Tree t, Tree mark)
+{
+    Tree id;
+    if (getDefNameProperty(t, id)) {
+        setProperty(t, mark, id);
+    }
+}
+
+void setDefNameProperty(Tree t, Tree id, size_t stamp, bool uncertain)
+{
+    // A tree that is the value of independent definitions stays so when it is renamed
+    bool shared = isMarked(t, gGlobal->DEFNAMESHARED);
+    Tree old, given;
+    if (!shared && getDefNameProperty(t, old) && old != id) {
+        // a name given before <stamp> comes from a definition evaluated independently
+        shared = !getProperty(t, gGlobal->DEFNAMESTAMP, given) || size_t(tree2int(given)) < stamp;
+    }
+    // otherwise <t> keeps a name given during its computation, by a definition nested in
+    // the one named <id> : <id> replaces it, and an uncertain old name does not matter
+    setDefNameProperty(t, id);
+    if (shared) {
+        markName(t, gGlobal->DEFNAMESHARED);
+    } else if (uncertain) {
+        markName(t, gGlobal->DEFNAMEUNCERTAIN);
+    }
+}
+
+void setDefNameProperty(Tree t, const string& name, size_t stamp, bool uncertain)
+{
+    setDefNameProperty(t, defNameTree(name), stamp, uncertain);
+}
+
+void transferDefNameProperty(Tree src, Tree dst, size_t stamp)
+{
+    Tree id;
+    if (getDefNameProperty(src, id)) {
+        setDefNameProperty(dst, id, stamp, isDefNameAmbiguous(src));
+    }
+}
+
+void checkDefNameProperty(Tree src, Tree dst)
+{
+    Tree id, old;
+    if (getDefNameProperty(src, id) && getDefNameProperty(dst, old) && old != id) {
+        markName(dst, gGlobal->DEFNAMESHARED);
+    }
+}
+
+bool isDefNameAmbiguous(Tree t)
+{
+    return isMarked(t, gGlobal->DEFNAMESHARED) || isMarked(t, gGlobal->DEFNAMEUNCERTAIN);
 }
 
 LIBFAUST_API bool getDefNameProperty(Tree t, Tree& id)
