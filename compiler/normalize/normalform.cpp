@@ -561,6 +561,11 @@ static Tree simplifyToNormalFormAux(Tree LS)
         endTiming("Freeze values for range UI items");
     }
 
+    // The multiplicative algebra, before the natures : x/x is 1, (n*4)/(n*2) is 2
+    startTiming("Multiplicative algebra");
+    L1 = multiplicativeForm(L1);
+    endTiming("Multiplicative algebra");
+
     // Annotate L1 with type information
     startTiming("L1 typeAnnotation");
     typeAnnotation(L1, gGlobal->gLocalCausalityCheck, false);
