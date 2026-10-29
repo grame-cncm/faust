@@ -544,21 +544,14 @@ static Tree simplifyToNormalFormAux(Tree LS)
     Tree L1 = deBruijn2Sym(LD);
     endTiming("sharing-roundtrip-2/2 deBruijn2Sym");
 */
-    // Annotate L1 with type information
-    startTiming("L1 typeAnnotation");
-    typeAnnotation(L1, gGlobal->gLocalCausalityCheck, false);
-    endTiming("L1 typeAnnotation");
-
+    // The transformations of the source come first : they read no type, and every
+    // decision taken on the types (the natures, then what follows them) is taken once,
+    // on the program they produce. -fui freezes a control as if its value were written.
     if (gGlobal->gRangeUI) {
         // Generate safe values for range UI items (sliders and nentry)
         startTiming("Safe values for range UI items");
         L1 = signalUIPromote(L1);
         endTiming("Safe values for range UI items");
-
-        // Annotate L1 with type information
-        startTiming("L1 typeAnnotation");
-        typeAnnotation(L1, gGlobal->gLocalCausalityCheck, false);
-        endTiming("L1 typeAnnotation");
     }
 
     if (gGlobal->gFreezeUI) {
@@ -566,12 +559,12 @@ static Tree simplifyToNormalFormAux(Tree LS)
         startTiming("Freeze values for range UI items");
         L1 = signalUIFreezePromote(L1);
         endTiming("Freeze values for range UI items");
-
-        // Annotate L1 with type information
-        startTiming("L1 typeAnnotation");
-        typeAnnotation(L1, gGlobal->gLocalCausalityCheck, false);
-        endTiming("L1 typeAnnotation");
     }
+
+    // Annotate L1 with type information
+    startTiming("L1 typeAnnotation");
+    typeAnnotation(L1, gGlobal->gLocalCausalityCheck, false);
+    endTiming("L1 typeAnnotation");
 
     if (gGlobal->gFTZMode > 0) {
         // Wrap real signals with FTZ
@@ -585,7 +578,9 @@ static Tree simplifyToNormalFormAux(Tree LS)
         endTiming("L1 typeAnnotation");
     }
 
-    // Needed before 'simplify' (see sigPromotion.hh)
+    // The explicit conversions are frontiers the identities of the normal form do not
+    // cross : float(e) keeps an integer expression e, which wraps, out of the real
+    // algebra (the noise generators compute modulo 2^32)
     startTiming("Cast and Promotion");
     Tree L2 = signalPromote(L1);
     endTiming("Cast and Promotion");
