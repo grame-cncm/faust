@@ -24,7 +24,6 @@
 
 #include <cctype>
 #include <cmath>
-#include <limits>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -44,20 +43,21 @@ inline std::string cmajorReal(double val)
 }
 
 // The `step` annotation of a slider or a numerical entry, or nothing. A Cmajor host starts an
-// input at its `init` rounded to the nearest multiple of `step` (the grid anchored on 0, not on
-// `min`), and that value overrides the exact one `instanceResetUserInterface` sets: with init =
-// 9.3e-10 and step = 0.001 the input starts at 0. The step is only given when `init` is on that
-// grid, so that the patch starts at its default, as the other backends do.
+// input at its `init` snapped to `step`, and that value overrides the exact one
+// `instanceResetUserInterface` sets. The host (PatchParameterProperties::snapAndConstrainValue)
+// reads both annotations as float and computes std::round(init / step) * step in float, the grid
+// anchored on 0: with init = 9.3e-10 and step = 0.001 the input starts at 0, and with init = 0.2
+// and step = 0.0001 at 2000 * 0.0001f = 0.19999999 (a delay of SR * 0.2 samples is then one
+// sample short). The step is only given when that computation gives `init` back exactly, so that
+// the patch starts at its default, as the other backends do.
 inline std::string cmajorStep(double init, double step)
 {
     if (step <= 0.) {
         return "";
     }
-    double grid = std::round(init / step) * step;
-    // init and step come rounded to float: on the grid up to that rounding (0.3 is a multiple
-    // of 0.1), not 0.9999995 with a step of 0.001
-    double tolerance = 2 * std::numeric_limits<float>::epsilon() * std::abs(init);
-    return (std::abs(grid - init) <= tolerance) ? ", step: " + cmajorReal(step) : "";
+    float finit = float(init);
+    float fstep = float(step);
+    return (std::round(finit / fstep) * fstep == finit) ? ", step: " + cmajorReal(step) : "";
 }
 
 inline std::string buildLabel(const std::string& label)
