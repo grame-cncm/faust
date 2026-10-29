@@ -1,12 +1,19 @@
-# `faust2wwise` static compilation tool
+# `faust2wwise` static compilation tool and dynamic compilation plugin 
+
+#### Static command-line tool
 
 `faust2wwise` is a command-line tool that generates AudioKinetic Wwise plugins from Faust DSP code. It bridges the gap between the FAUST functional DSP programming language and Wwise’s audio middleware, supporting both **Source** and **Effect** (in-place and out-of-place) plugins. 
+
+#### Dynamic compilation plugin 
+
+Additionally, `faust2wwise` ships with the `Faust Interpreter Wwise Plugin`, a Wwise Authoring plugin that provides an integrated dynamic compilation tool that wraps the faust interpreter and provides a code editor to convert Faust DSP code into Wwise plugins, directly throughout the Wwise enviroment. For more details, refer to the [Faust Interpreter Wwise Plugin](Faust_Interpreter_Wwise_Plugin/README.md) page.
 
 ## Description
 
 Following the `faust2xxx` model, Faust-compiled code is integrated into Wwise using the `wp` script and template files provided by the Wwise SDK, along with a patch-based Python method for plugin generation.
 
-Supported platforms include Windows, MSYS2, and macOS (via implicit support for the Sound Engine portion only).
+Supported **host platforms** include Windows, MSYS2, and macOS (via implicit support for the Sound Engine portion only).
+Supported **target platforms** include Windows, macOS and Android.These are the platforms for which Wwise plugins can be generated.
 
 ## Supported Features
 
@@ -18,6 +25,10 @@ Supported platforms include Windows, MSYS2, and macOS (via implicit support for 
 - Error handling
 - Testing script to validate against all Faust example files
 - Support for channel mask selection for explicit speaker configuration
+- Support for Faust effects with mismatched numbers of input and output channels (see the important note in the [in-place vs out-of-place chapter](#in-place-vs-out-of-place-and-channel-setup-effect-plugins-only)).
+
+(i.e. for [examples/SAM/chorus/chorus.dsp](../../examples/SAM/chorus/chorus.dsp)). 
+
 
 ## Pipeline overview
 
@@ -54,7 +65,8 @@ The way this work is orchestrated follows a multi-step process, where each phase
 `faust2wwise` comes with the following requirements: 
 - **FAUST**
   - The `Faust` compiler must be available in your system **PATH**.
-- **Wwise SDK (>=2024.1.0)**
+- **Wwise SDK (Versions >=2024 and <=2026)**
+  - make sure Wwise dependencies are installed (see [Windows-Specific Information](https://www.audiokinetic.com/en/public-library/2025.1.9_9197/?source=SDK&id=windows_specificinfo.html), [Mac-Specific Information](https://www.audiokinetic.com/en/public-library/2025.1.9_9197/?source=SDK&id=mac_specificinfo.html) or [Android-Specific Information](https://www.audiokinetic.com/en/public-library/2025.1.9_9197/?source=SDK&id=android_specificinfo.html), as enlisted in **Release Notes**, under **{Platform} {Wwise-Version}** page. For instance, for the Wwise `2024.1.12` version, see [Windows Release Notes --> Windows 2024.1.12](https://www.audiokinetic.com/en/public-library/2025.1.9_9197/?source=SDK&id=windows_releasenotes_2024_1_12.html).
   - `WWISEROOT` must also be exposed system-wide.
 - **Python (>=3.9)**
 - **Console access with admin rights**
@@ -93,6 +105,39 @@ Additionally, a JSON file named faust2wwise_configuration.json is created in the
 
 ```
 faust2wwise myfilter.dsp -double --out-of-place
+```
+
+*Type `faust2wwise --help` to view all the available command-line options.*
+
+### Specifying target platform and architecture targets (and toolsets) 
+
+Building Wwise projects through `faust2wwise` is automatically configured for **Windows** and **MacOS** using predefined default settings based on the host operating system. This behaviour is implemented for convenience, when the host platform is the same with the target platform, allowing rapid conversions in a non cross-compilation setting. 
+
+However, passing explicit arguments is recommended, especially for custom builds, or when targeting a specific compiler toolset, architecture, or platform.
+
+For example, the following commands all build an **Authoring** plugin on Windows:
+
+```
+# using default settings
+faust2wwise myFaustEffect.dsp
+# using explicit arguments for Visual Studio 2022 (default on Windows)
+faust2wwise myFaustEffect.dsp Authoring --toolset vc170 --arch x64
+# using explicit arguments for Visual Studio 2019
+faust2wwise myFaustEffect.dsp Authoring --toolset vc160 --arch x64
+```
+
+Similarly, building for Android without specifying an architecture:
+
+```
+faust2wwise myFaustEffect.dsp --platform Android
+```
+
+... builds the Wwise project for all supported Android target architectures (armeabi-v7a, x86, arm64-v8a, x86_64).
+
+To build only for a specific Android architecture (i.e. for arm64-v8a):
+
+```
+faust2wwise myFaustEffect.dsp --platform Android --arch arm64-v8a
 ```
 
 *Type `faust2wwise --help` to view all the available command-line options.*
@@ -154,6 +199,29 @@ faust2wwise myGenerator.dsp --spkcfg AK_SPEAKER_SETUP_5POINT1
 ```
 This example shows of how explicit speaker configuration can be provided for a Faust DSP file that generates audio output for 6 channels.
 
+### In-place vs out-of-place and channel setup (Effect plugins only)
+
+For effect plugins, you may explicitly specify the buffer interface you would like to use. Additional information can be found in the [Faust docs]() and the [Wwise docs]().
+
+**Example:**
+
+For **in-place** buffer configuration, where the same buffer is used for both Faust inputs and outputs, you may use the `--in-place` flag, use the `--in-place` flag, or omit the flag completely (this is the default behaviour).
+
+```
+faust2wwise myEffect.dsp
+faust2wwise myEffect2.dsp --in-place
+```
+
+For an **out-of-place** buffer configuration, where separate buffers are used for Faust inputs and outputs, use the `--out-of-place` flag explicitly.
+
+```
+faust2wwise myEffect.dsp --out-of-place
+```
+
+> Important note
+
+The Wwise backend handles Faust channels channel-wise: missing input channels are filled with silence and additional output channels are allocated as needed. No channel mixing or duplication is performed. If an in-place effect is requested, it is automatically generated as an out-of-place effect, since Wwise in-place effects require identical input and output channel counts.
+
 ## Testing
 
 To test `faust2wwise`, a Python test script is provided that runs the conversion script on all `.dsp` files in a given directory. To use it, run `faust2wwise` in test mode using the `test` command-line parameter:
@@ -170,7 +238,7 @@ Test results are stored in the current working directory under the `myF2Wtests/`
 
 > Important: Because `faust2wwise test` make system calls that attempt to access environmental variables that require admin rights and also installs or uninstalls plugins in system-level Wwise directories, it must be run from a console with **administrative rights**.
 
-> Note: Testing on **macOS** is possible but not supported out-of-the-box due to Wwise Authoring plug-in constraints. Running `faust2wwise` requires building parts of the plug-in on Windows and manually copying files between platforms. Additionally, the`--clean` option is currently not supported on **macOS**, as the installation directory cannot be reliably determined. For more details, refer to the [Limitations](#limitations) section on macOS support.
+> Note: Testing on **macOS** is possible but not supported out-of-the-box due to Wwise Authoring plug-in constraints. Running `faust2wwise` requires building parts of the plug-in on Windows and manually copying files between host platforms. Additionally, the`--clean` option is currently not supported on **macOS**, as the installation directory cannot be reliably determined. For more details, refer to the [Limitations](#limitations) section on macOS support.
 
 **Compiling Faust examples from the official Faust repo**
 
@@ -222,15 +290,7 @@ This is a common error and it typically means that the DSP file has already been
 <details>
 <summary>fatal error: <code>faust/dsp/dsp.h</code> file not found</summary>
 <br>
-This error is observed on <strong>macOS</strong> platform and usually occurs when the Faust include path is misconfigured—most often, the leading <code>/</code> is missing  (e.g., <code>usr/local/include</code> instead of <code>/usr/local/include</code>), causing the compiler to fail. To fix this, open the project in Xcode, go to <strong>Build Settings -> Search Paths -> Header Search Paths</strong>, and manually correct the path by ensuring it begins with a <code>/</code>. Then continue building the plugin using Xcode.
-</details>
-
-<br>
-
-<details>
-<summary>Cannot use throw with exceptions disabled</summary>
-<br>
-This error occurs on <strong>macOS</strong> when building with Xcode and using <code>throw</code> in the code, while C++ exceptions are disabled. To fix this, open the project in Xcode, navigate to <strong>Build Settings -> Apple Clang -> Language - C++ -> Enable C++ Exceptions</strong>, and set to <strong>Yes</strong>. Then continue building the plugin using Xcode.
+This error is observed on <strong>macOS</strong> host platform and usually occurs when the Faust include path is misconfigured—most often, the leading <code>/</code> is missing  (e.g., <code>usr/local/include</code> instead of <code>/usr/local/include</code>), causing the compiler to fail. To fix this, open the project in Xcode, go to <strong>Build Settings -> Search Paths -> Header Search Paths</strong>, and manually correct the path by ensuring it begins with a <code>/</code>. Then continue building the plugin using Xcode.
 </details>
 
 <br>

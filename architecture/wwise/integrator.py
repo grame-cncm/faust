@@ -201,6 +201,7 @@ def replace_custom_templates(cfg) -> None:
                 print(f"OK : Replaced: {target} with {template}")
             else:
                 print(f"ERROR: Template file not found: {template_path}")
+                sys.exit(cfg.ERR_INTEGRATION)
         
         print("OK: Custom templates applied successfully!")
     else:
@@ -234,6 +235,9 @@ def modify_lua_build_script(cfg) -> None:
         'Plugin.sdk.shared.includedirs',
         'Plugin.authoring.includedirs'
     ]
+
+    if (cfg.wwise_with_test_project):
+        sections.extend(['Plugin.sdk.test.includedirs'])
     
     new_lines = []
     inside_section = False
@@ -247,30 +251,15 @@ def modify_lua_build_script(cfg) -> None:
             new_lines.append(line)
             continue
         
-        # If inside a section, look for the line that contains just the closing brace '}'
-        if inside_section:
-            if stripped == '}':
+        # If inside a section, inject immediately after the opening brace '{'
+        if inside_section and stripped == '{':
 
-                # Walk backwards to check if faust path exists
-                already_added = False
-                for check_line in reversed(new_lines):
-                    if str(cfg.faust_include_dir) in check_line:
-                        already_added = True
-                        break
-                    if check_line.strip() == '':  # empty line - skip
-                        continue
-                    if check_line.strip() == '{':  # hit start of block, stop checking
-                        break
-                
-                if not already_added:
-                    # Insert with the same indentation as the closing brace
-                    indent = line[:line.index('}')]
-                    insert_line = f'{indent}"{cfg.faust_include_dir.as_posix()}",\n' # convert to posix path before replacing
-                    new_lines.append(insert_line)
-                
-                new_lines.append(line)
-                inside_section = False
-                continue
+            new_lines.append(line)
+
+            insert_line = f'\t"{cfg.faust_include_dir.as_posix()}",\n' # convert to posix path before replacing
+            new_lines.append(insert_line)
+            inside_section = False
+            continue
         
         # Normal line outside or inside section
         new_lines.append(line)
@@ -282,7 +271,7 @@ def modify_lua_build_script(cfg) -> None:
     print("OK : Updated Lua build script with Faust include paths")
     os.chdir(original_dir)
 
-def replace_channel_config_line(cfg) -> bool:
+def replace_channel_config_line(cfg) -> None:
     """
     Replaces the entire line that sets the speaker configuration in the 
     scaffolding.{WwiseVersion_Major}\source\SoundEnginePlugin\ProjectNameSource.cpp file with a provided value.
@@ -302,7 +291,7 @@ def replace_channel_config_line(cfg) -> bool:
         lines = filepath.read_text(encoding="utf-8").splitlines(keepends=True)
     except FileNotFoundError:
         print(f"Error: File not found: {filepath}")
-        return False
+        sys.exit(cfg.ERR_INTEGRATION)
 
     for i, line in enumerate(lines):
         if anchor in line:
@@ -315,7 +304,6 @@ def replace_channel_config_line(cfg) -> bool:
 
     try:
         filepath.write_text("".join(lines), encoding="utf-8")
-        return True
     except Exception as e:
         print(f"Error writing file: {e}")
-        return False
+        sys.exit(cfg.ERR_INTEGRATION)
