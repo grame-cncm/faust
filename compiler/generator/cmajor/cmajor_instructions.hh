@@ -23,6 +23,8 @@
 #define _CMAJ_INSTRUCTIONS_H
 
 #include <cctype>
+#include <cmath>
+#include <limits>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -39,6 +41,23 @@ inline std::string cmajorReal(double val)
 {
     return (strcmp(ifloat(), "float") == 0) ? checkNonFinite(float(val), gCmajorNonFiniteNames)
                                             : checkNonFinite(val, gCmajorNonFiniteNames);
+}
+
+// The `step` annotation of a slider or a numerical entry, or nothing. A Cmajor host starts an
+// input at its `init` rounded to the nearest multiple of `step` (the grid anchored on 0, not on
+// `min`), and that value overrides the exact one `instanceResetUserInterface` sets: with init =
+// 9.3e-10 and step = 0.001 the input starts at 0. The step is only given when `init` is on that
+// grid, so that the patch starts at its default, as the other backends do.
+inline std::string cmajorStep(double init, double step)
+{
+    if (step <= 0.) {
+        return "";
+    }
+    double grid = std::round(init / step) * step;
+    // init and step come rounded to float: on the grid up to that rounding (0.3 is a multiple
+    // of 0.1), not 0.9999995 with a step of 0.001
+    double tolerance = 2 * std::numeric_limits<float>::epsilon() * std::abs(init);
+    return (std::abs(grid - init) <= tolerance) ? ", step: " + cmajorReal(step) : "";
 }
 
 inline std::string buildLabel(const std::string& label)
@@ -145,7 +164,7 @@ struct CmajorInstUIVisitor : public ShortnameInstVisitor {
                      << ", group: " << quote(buildPath(inst->fLabel))
                      << ", min: " << cmajorReal(inst->fMin) << ", max: " << cmajorReal(inst->fMax)
                      << ", init: " << cmajorReal(inst->fInit)
-                     << ", step: " << cmajorReal(inst->fStep);
+                     << cmajorStep(inst->fInit, inst->fStep);
                 addMeta();
                 fOut << " ]];";
             } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
@@ -156,7 +175,7 @@ struct CmajorInstUIVisitor : public ShortnameInstVisitor {
                      << ", group: " << quote(buildPath(inst->fLabel))
                      << ", min: " << cmajorReal(inst->fMin) << ", max: " << cmajorReal(inst->fMax)
                      << ", init: " << cmajorReal(inst->fInit)
-                     << ", step: " << cmajorReal(inst->fStep);
+                     << cmajorStep(inst->fInit, inst->fStep);
                 addMeta();
                 fOut << " ]];";
             } else {
@@ -165,7 +184,7 @@ struct CmajorInstUIVisitor : public ShortnameInstVisitor {
                      << ", group: " << quote(buildPath(inst->fLabel))
                      << ", min: " << cmajorReal(inst->fMin) << ", max: " << cmajorReal(inst->fMax)
                      << ", init: " << cmajorReal(inst->fInit)
-                     << ", step: " << cmajorReal(inst->fStep);
+                     << cmajorStep(inst->fInit, inst->fStep);
                 addMeta();
                 fOut << " ]];";
             }
