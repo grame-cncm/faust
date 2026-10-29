@@ -41,6 +41,7 @@ class Signal2SDF : public TreeTraversal {
     std::string    fMessage;    // trace message
     std::set<Tree, treeorder> fVisited;    // avoid visiting a tree twice
 
+    std::map<Tree, int, treeorder> fActorIds;  // number of the actor of a signal, by first use
     std::map<std::string, Actor>   actorList;
     std::map<std::string, Channel> chList;
     int                            chCount  = 0;
@@ -62,6 +63,7 @@ class Signal2SDF : public TreeTraversal {
     std::string channelNameFromPort(Port port);
     std::string channelNameFromActors(const std::string& srcActor, const std::string& dstActor);
     void        updateArguments(const std::string& oldArg, const std::string& newArg);
+    std::string actorId(Tree sig);
     void        addChannel(Tree sig);
     void        logActor(Tree sig, const std::string& type);
     void        logDelayActor(Tree sig, Tree x, Tree y, const std::string& type);

@@ -53,7 +53,7 @@ void Signal2SDF::sigToSDF(Tree L, ostream& fout)
         string outName("OUTPUT_" + std::to_string(outCount));
         actorList.insert(pair<string, Actor>(outName, Actor(outName, outName)));
         stringstream srcActor;
-        srcActor << hd(L);
+        srcActor << actorId(hd(L));
         string chName("channel_" + std::to_string(chCount) + chAttr(getCertifiedSigType(hd(L))));
         string srcPortName("in_" + chName);
         string dstPortName("out_" + chName);
@@ -568,8 +568,8 @@ void Signal2SDF::addChannel(Tree sig)
                                 chAttr(getCertifiedSigType(subsig[i])));
             stringstream srcActor;
             stringstream dstActor;
-            srcActor << subsig[i];
-            dstActor << sig;
+            srcActor << actorId(subsig[i]);
+            dstActor << actorId(sig);
             string srcPortName("in_" + chName);
             string dstPortName("out_" + chName);
             actorList.at(srcActor.str()).addPort(Port(srcPortName, portType::out, 1));
@@ -592,12 +592,27 @@ void Signal2SDF::addChannel(Tree sig)
 }
 
 /**
+ * Name of the actor associated with sig : its number in the order of first use. The address of the
+ * signal would name the actor differently from one run to the next, and would order actorList (and
+ * the XML) by it.
+ */
+string Signal2SDF::actorId(Tree sig)
+{
+    auto it = fActorIds.find(sig);
+    if (it == fActorIds.end()) {
+        int n = int(fActorIds.size());
+        it    = fActorIds.insert({sig, n}).first;
+    }
+    return "ACTOR_" + std::to_string(it->second);
+}
+
+/**
  * Add the actor associated with sig to the actor list
  */
 void Signal2SDF::logActor(Tree sig, const string& type)
 {
     stringstream actorName;  // get unique actor names from signal
-    actorName << sig;
+    actorName << actorId(sig);
     actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
     addChannel(sig);
 }
@@ -608,7 +623,7 @@ void Signal2SDF::logActor(Tree sig, const string& type)
 void Signal2SDF::logDelayActor(Tree sig, Tree x, Tree y, const string& type)
 {
     stringstream actorName;
-    actorName << sig;
+    actorName << actorId(sig);
     actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
     delayActors.push_back(actorName.str());
 
@@ -630,8 +645,8 @@ void Signal2SDF::logRecActor(Tree sig, Tree le, const string& type)
 {
     stringstream actorName;
     stringstream inputSigName;
-    actorName << sig;
-    inputSigName << hd(le);
+    actorName << actorId(sig);
+    inputSigName << actorId(hd(le));
     actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
     recActors.push_back(actorName.str());
     actorList.at(actorName.str()).addInputSignalName(inputSigName.str());
@@ -647,9 +662,9 @@ void Signal2SDF::logBinopActor(Tree sig, Tree x, Tree y, const string& type)
     stringstream actorName;
     stringstream arg1Name;
     stringstream arg2Name;
-    actorName << sig;
-    arg1Name << x;
-    arg2Name << y;
+    actorName << actorId(sig);
+    arg1Name << actorId(x);
+    arg2Name << actorId(y);
     actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
     // track order of arguments for binary operators
     inputArgTrackedActors.push_back(actorName.str());
@@ -686,7 +701,7 @@ void Signal2SDF::logUISliderActor(Tree sig, const std::string& type, Tree init, 
     std::map<std::string, Tree> parameters = {
         {"init", init}, {"min", min}, {"max", max}, {"step", step}};
     stringstream actorName;  // get unique actor names from signal
-    actorName << sig;
+    actorName << actorId(sig);
     actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
     uiActors.push_back(actorName.str());
 
@@ -721,7 +736,7 @@ void Signal2SDF::logUIGraphActor(Tree sig, const std::string& type, Tree min, Tr
         // {"tzero", t0} // NOTE excluded bargraph as it doesn't seem to relate to parameters
     };
     stringstream actorName;  // get unique actor names from signal
-    actorName << sig;
+    actorName << actorId(sig);
     actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
     uiActors.push_back(actorName.str());
 
@@ -755,9 +770,9 @@ void Signal2SDF::logPowActor(Tree sig, Tree x, Tree y, const string& type)
     stringstream actorName;
     stringstream arg1Name;
     stringstream arg2Name;
-    actorName << sig;
-    arg1Name << x;
-    arg2Name << y;
+    actorName << actorId(sig);
+    arg1Name << actorId(x);
+    arg2Name << actorId(y);
     actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
     // track order of arguments for binary operators
     inputArgTrackedActors.push_back(actorName.str());
@@ -773,8 +788,8 @@ void Signal2SDF::logCastActor(Tree sig, Tree x, const string& type)
 {
     stringstream actorName;  // get unique actor names from signal
     stringstream argName;
-    actorName << sig;
-    argName << x;
+    actorName << actorId(sig);
+    argName << actorId(x);
     actorList.insert(pair<string, Actor>(actorName.str(), Actor(actorName.str(), type)));
     inputArgTrackedActors.push_back(actorName.str());
     actorList.at(actorName.str()).addInputSignalName(argName.str());
