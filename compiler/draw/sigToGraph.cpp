@@ -22,6 +22,7 @@
 #include <stdio.h>
 
 #include <iostream>
+#include <map>
 #include <regex>
 #include <set>
 #include <sstream>
@@ -38,26 +39,30 @@
 
 using namespace std;
 
-static void   recdraw(Tree sig, set<Tree, treeorder>& drawn, ostream& fout);
+// The nodes are named by their order of appearance in the graph : naming them by the address of the
+// signal would change the file from one run to the next.
+typedef map<Tree, int, treeorder> nodeids;
+
+static void   recdraw(Tree sig, nodeids& ids, ostream& fout);
 static string nodeattr(Type t);
 static string edgeattr(Type t);
-static string sigLabel(Tree sig);
+static string sigLabel(Tree sig, int id);
 
 /**
  * Draw a list of signals as a directed graph using graphviz's dot language
  */
 void sigToGraph(Tree L, ostream& fout)
 {
-    set<Tree, treeorder> alreadyDrawn;
+    nodeids ids;
 
     fout << "strict digraph loopgraph {\n"
          << "    rankdir=LR; node [fontsize=10];" << endl;
     int out = 0;
     while (isList(L)) {
-        recdraw(hd(L), alreadyDrawn, fout);
+        recdraw(hd(L), ids, fout);
 
         fout << "OUTPUT_" << out << "[color=\"red2\" style=\"filled\" fillcolor=\"pink\"];" << endl;
-        fout << 'S' << hd(L) << " -> "
+        fout << 'S' << ids.at(hd(L)) << " -> "
              << "OUTPUT_" << out++ << "[" << edgeattr(getCertifiedSigType(hd(L))) << "];" << endl;
         L = tl(L);
     }
@@ -70,22 +75,23 @@ void sigToGraph(Tree L, ostream& fout)
 /**
  * Draw recursively a signal
  */
-static void recdraw(Tree sig, set<Tree, treeorder>& drawn, ostream& fout)
+static void recdraw(Tree sig, nodeids& ids, ostream& fout)
 {
     // cerr << ++gGlobal->TABBER << "ENTER REC DRAW OF " << sig << "$" << *sig << endl;
     tvec subsig;
     int  n;
 
-    if (drawn.count(sig) == 0) {
-        drawn.insert(sig);
+    if (ids.count(sig) == 0) {
+        int id = int(ids.size());
+        ids[sig] = id;
         if (isList(sig)) {
             do {
-                recdraw(hd(sig), drawn, fout);
+                recdraw(hd(sig), ids, fout);
                 sig = tl(sig);
             } while (isList(sig));
         } else {
             // draw the node
-            fout << 'S' << sig << "[label=\"" << sigLabel(sig) << "\""
+            fout << 'S' << id << "[label=\"" << sigLabel(sig, id) << "\""
                  << nodeattr(getCertifiedSigType(sig)) << "];" << endl;
 
             // draw the subsignals
@@ -108,8 +114,8 @@ static void recdraw(Tree sig, set<Tree, treeorder>& drawn, ostream& fout)
                 }
 
                 for (int i = 0; i < n; i++) {
-                    recdraw(subsig[i], drawn, fout);
-                    fout << 'S' << subsig[i] << " -> " << 'S' << sig << "["
+                    recdraw(subsig[i], ids, fout);
+                    fout << 'S' << ids.at(subsig[i]) << " -> " << 'S' << id << "["
                          << edgeattr(getCertifiedSigType(subsig[i])) << "];" << endl;
                 }
             }
@@ -176,7 +182,7 @@ static const char* binopname[] = {"+", "-",  "*",  "/",  "%",  "<<", ">>", ">",
 /**
  * return the label of a signal as a string
  */
-static string sigLabel(Tree sig)
+static string sigLabel(Tree sig, int id)
 {
     int    i;
     double r;
@@ -218,7 +224,7 @@ static string sigLabel(Tree sig)
     }
 
     else if (isSigWRTbl(sig, size, gen, wi, ws)) {
-        fout << "write:" << sig;
+        fout << "write:" << id;
     } else if (isSigRDTbl(sig, tbl, ri)) {
         fout << "read";
     }
