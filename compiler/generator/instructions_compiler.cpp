@@ -2359,6 +2359,24 @@ ValueInst* InstructionsCompiler::generateXtended(Tree sig)
 
  *****************************************************************************/
 
+// A copy delay line holds mxd + 1 values and is read with no mask, but an amount carried in a
+// float can pass mxd at run time (an FMA, a slider read from its FAUSTFLOAT zone, a NaN). For
+// int(x), x a float, the index is kept in [0, mxd] by testing x before the cast : int(NaN) is
+// undefined, and the C++ compiler may drop a test placed after it. A NaN gives mxd.
+ValueInst* InstructionsCompiler::safeDelayIndex(Tree delay, int mxd)
+{
+    Tree x;
+    if (isSigIntCast(delay, x) && getCertifiedSigType(x)->nature() == kReal) {
+        ValueInst* fx    = CS(x);
+        ValueInst* below = IB::genLessThan(fx, IB::genRealNumInst(itfloat(), double(mxd + 1)));
+        ValueInst* pos   = IB::genGreaterEqual(fx, IB::genRealNumInst(itfloat(), 0.0));
+        ValueInst* conv  = IB::genCastInt32Inst(fx);
+        ValueInst* low   = IB::genSelect2Inst(pos, conv, IB::genInt32NumInst(0));
+        return IB::genSelect2Inst(below, low, IB::genInt32NumInst(mxd));
+    }
+    return CS(delay);
+}
+
 /**
  * Generate code for accessing a delayed signal. The generated code depend of
  * the maximum delay attached to exp.
@@ -2418,7 +2436,8 @@ ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, Tree de
         if (isSigInt(delay, &d)) {
             return IB::genLoadArrayStructVar(vname, CS(delay));
         } else {
-            return generateCacheCode(sig, IB::genLoadArrayStructVar(vname, CS(delay)));
+            return generateCacheCode(sig,
+                                     IB::genLoadArrayStructVar(vname, safeDelayIndex(delay, mxd)));
         }
     } else {
         if (mxd < gGlobal->gMaskDelayLineThreshold) {
