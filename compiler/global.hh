@@ -462,7 +462,8 @@ struct global {
     std::map<Tree, std::pair<int, std::string>, treeorder> gBoxTable;
     int                                         gBoxCounter;
 
-    // Creation rank of the loops of the legacy compiler (Loop::fRank)
+    // Creation rank of the loops, per compilation: Loop::fRank (legacy compiler) and
+    // CodeLoop::fRank (FIR backends). A compilation creates only one of the two kinds.
     int gLoopCounter;
     // To keep the box tree traversing trace
     std::vector<std::string> gBoxTrace;

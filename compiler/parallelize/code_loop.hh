@@ -78,8 +78,7 @@ class CodeLoop : public virtual Garbageable {
     int             fSize;           ///< number of iterations of the loop
     int             fOrder;          ///< used during topological sort
     int             fIndex;
-    int             fRank;        // creation order, the key of CodeLoopOrder
-    static int      sNextRank;
+    int             fRank;        // creation order (gLoopCounter), the key of CodeLoopOrder
 
     BlockInst* fPreInst;
     BlockInst* fComputeInst;
@@ -120,7 +119,7 @@ class CodeLoop : public virtual Garbageable {
           fSize(size),
           fOrder(-1),
           fIndex(-1),
-          fRank(sNextRank++),
+          fRank(gGlobal->gLoopCounter++),
           fPreInst(new BlockInst()),
           fComputeInst(new BlockInst()),
           fPostInst(new BlockInst()),
@@ -137,7 +136,7 @@ class CodeLoop : public virtual Garbageable {
           fSize(size),
           fOrder(-1),
           fIndex(-1),
-          fRank(sNextRank++),
+          fRank(gGlobal->gLoopCounter++),
           fPreInst(new BlockInst()),
           fComputeInst(new BlockInst()),
           fPostInst(new BlockInst()),
