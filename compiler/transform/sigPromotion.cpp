@@ -1071,18 +1071,14 @@ Tree signalIntCastPromote(Tree sig)
 
 Tree signalUIPromote(Tree sig)
 {
-    // Check that the root tree is properly type annotated
-    certifySignalsTyped(sig);
-
+    // a transformation of the source : it reads no type, and runs before the typing
     UIPromotionAlgebra A;
     return signalTransform(sig, A);
 }
 
 Tree signalUIFreezePromote(Tree sig)
 {
-    // Check that the root tree is properly type annotated
-    certifySignalsTyped(sig);
-
+    // a transformation of the source : it reads no type, and runs before the typing
     UIFreezePromotionAlgebra A;
     return signalTransform(sig, A);
 }
