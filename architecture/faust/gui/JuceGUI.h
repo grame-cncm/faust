@@ -80,6 +80,8 @@
 
 #define kMargin 4
 
+#define kTabOutline 1  // Outline thickness of a uiTabBox (JUCE TabbedComponent default)
+
 // JUCE 8 introduced shaped text measurement; JUCE 9 removed Font::getStringWidth.
 inline int getJuceStringWidth(const juce::String& text)
 {
@@ -1586,6 +1588,8 @@ public:
     uiTabBox(juce::String label):uiBase(),juce::TabbedComponent(juce::TabbedButtonBar::TabsAtTop)
     {
         setName(label);
+        // Set explicitly, since TabbedComponent has no getter for it, and setRecommendedSize needs it
+        setOutline(kTabOutline);
     }
     
     /**
@@ -1619,8 +1623,10 @@ public:
             fDisplayRectHeight = juce::jmax(fDisplayRectHeight, comp->getTotalHeight());
         }
 
-        fTotalWidth = fDisplayRectWidth;
-        fTotalHeight = fDisplayRectHeight + getTabBarDepth();  // Height of the TabBar
+        // TabbedComponent gives its tabs its bounds less the TabBar and the outline,
+        // which is drawn on every side but the TabBar one (the top)
+        fTotalWidth = fDisplayRectWidth + 2 * kTabOutline;
+        fTotalHeight = fDisplayRectHeight + getTabBarDepth() + kTabOutline;
     }
     
     void add(Component* comp) override
