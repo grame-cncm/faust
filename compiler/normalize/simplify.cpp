@@ -29,6 +29,7 @@
 #include "exception.hh"
 #include "global.hh"
 #include "list.hh"
+#include "mterm.hh"
 #include "normalize.hh"
 #include "num.hh"
 #include "ppsig.hh"
@@ -142,6 +143,127 @@ Tree simplify(Tree sig)
 {
     SimplifyAlgebra A;
     return signalTransform(sig, A, gGlobal->gSimplifiedMemo);
+}
+
+namespace {
+
+// a product, a quotient, or a power of an integer exponent : a monomial
+static bool isMonomial(Tree t)
+{
+    int  op, n;
+    Tree x, y;
+    tvec fs;
+    if (isSigBinOp(t, &op, x, y)) {
+        return op == kMul || op == kDiv;
+    }
+    if (isSigProd(t, fs)) {
+        return true;
+    }
+    return getUserData(t) == gGlobal->gPowPrim && isSigInt(t->branch(1), &n);
+}
+
+// t, a product, holds a division at its multiplicative level
+static bool holdsDivision(Tree t)
+{
+    int  op;
+    Tree x, y;
+    tvec fs;
+    if (isSigBinOp(t, &op, x, y) && op == kDiv) {
+        return true;
+    }
+    if (isSigBinOp(t, &op, x, y) && op == kMul) {
+        return holdsDivision(x) || holdsDivision(y);
+    }
+    if (isSigProd(t, fs)) {
+        for (Tree f : fs) {
+            if (holdsDivision(f)) return true;
+        }
+        return false;
+    }
+    return isSigNeg(t, x) && holdsDivision(x);
+}
+
+// The monomial of t, when the multiplicative algebra changes it : a factor cancels (x/x is
+// 1, (n*4)/(n*2) is 2), or a division disappears into an integer coefficient (n*4/2 is
+// 2*n). Otherwise t is left as it is, to the normal form. The monomial is written
+// coefficient first, then factor by factor :
+// a real coefficient makes the whole product real, and no product of integer factors is
+// created that the program did not write ((k*r)*(k*r) is not k^2 * r^2, an integer square
+// that would wrap). A real coefficient 1.0 keeps the nature of its literal : (n*1.0)/n is
+// 1.0.
+static Tree monomialForm(Tree t)
+{
+    mterm m(t);
+    bool  cancelled = false, negative = false;
+    for (const auto& p : m.factors()) {
+        // a constant factor that is not a number yet (float(2), a sum of numbers) is folded
+        // by the normal form, which writes it into the coefficient
+        if (p.second != 0 && sigs::sigOrder(p.first) == 0) {
+            return t;
+        }
+        cancelled = cancelled || p.second == 0;
+        negative  = negative || p.second < 0;
+    }
+    // a division that disappears into an integer coefficient changes the nature (n*4/2 is
+    // 2*n, an integer) ; into a real one (x/180 is 0.0056*x) it changes nothing
+    Tree k = m.coefficient();
+    int  integer;
+    if (!cancelled && (negative || !isSigInt(k, &integer) || !holdsDivision(t))) {
+        return t;
+    }
+    if (isZero(k)) {
+        return k;
+    }
+    std::vector<Tree> num, den;
+    for (const auto& p : m.factors()) {
+        const int q = std::abs(p.second);
+        auto&     v = (p.second > 0) ? num : den;
+        if (q > 8) {
+            v.push_back(sigPow(p.first, sigInt(q)));
+        } else {
+            for (int i = 0; i < q; i++) v.push_back(p.first);
+        }
+    }
+    int  one;
+    Tree r = (isSigInt(k, &one) && one == 1 && !num.empty()) ? nullptr : k;
+    for (Tree f : num) {
+        r = r ? sigBinOp(kMul, r, f) : f;
+    }
+    if (!den.empty()) {
+        Tree d = den[0];
+        for (size_t i = 1; i < den.size(); i++) d = sigBinOp(kMul, d, den[i]);
+        r = sigBinOp(kDiv, r, d);
+    }
+    return r;
+}
+
+// The multiplicative algebra, before the natures : a monomial is simplified in exact
+// algebra where that changes its nature (x/x is 1, (n*4)/(n*2) is 2), its result typed by
+// its form. A sum is an opaque factor : no distributivity here. The conversions the
+// natures then make explicit are frontiers the identities of the next phases do not cross
+// (float(e) keeps an integer expression, which wraps, out of the real algebra).
+class MultiplicativeAlgebra final : public TransformAlgebra {
+   public:
+    XSig combine(Tree orig, const std::vector<XSig>& c,
+                 FixPointEvaluator<XSig>& ev) const override
+    {
+        XSig r = TransformAlgebra::combine(orig, c, ev);
+        return isMonomial(r.out) ? o(monomialForm(r.out)) : r;
+    }
+
+    XSig xtdApp(Tree orig, xtended* p, const std::vector<XSig>& c) const override
+    {
+        XSig r = TransformAlgebra::xtdApp(orig, p, c);
+        return isMonomial(r.out) ? o(monomialForm(r.out)) : r;
+    }
+};
+
+}  // namespace
+
+Tree multiplicativeForm(Tree sig)
+{
+    MultiplicativeAlgebra A;
+    return signalTransform(sig, A);
 }
 
 Tree simplifyExpression(Tree sig)
