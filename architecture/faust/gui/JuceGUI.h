@@ -1589,36 +1589,38 @@ public:
     }
     
     /**
-     * Initialize all his child ratios (1 uiBox per tabs), the LookAndFeel
-     * and the uiTabBox size to fit the biggest of its child.
+     * Initialize the uiTabBox ratios in its parent box, then its child ratios (1 uiBox per tabs).
+     * The uiTabBox size has already been computed by setRecommendedSize.
      */
     void init(juce::Component* comp = nullptr) override
     {
+        // Without its own ratios, the uiTabBox would take all the space of its parent box,
+        // and the widgets that follow it in this box would get none
+        uiBase::init(this);
+
         for (int i = 0; i < getNumTabs(); i++) {
-            Component* comp = getTabContentComponent(i);
-            uiBase* base_comp = dynamic_cast<uiBase*>(comp);
-            base_comp->init(comp);
-            
-            // The TabbedComponent size should be as big as its bigger child's dimension, done here
-            fTotalWidth = juce::jmax(fTotalWidth, base_comp->getTotalWidth());
-            fTotalHeight = juce::jmax(fTotalHeight, base_comp->getTotalHeight());
+            Component* tab_comp = getTabContentComponent(i);
+            uiBase* base_comp = dynamic_cast<uiBase*>(tab_comp);
+            base_comp->init(tab_comp);
         }
-        
-        fTotalHeight += 30;  // 30 height for the TabBar.
     }
     
     void setRecommendedSize() override
     {
+        // Initialized each time, so that a second call (for a uiTabBox in a uiTabBox) gives the same size
+        fDisplayRectWidth = fDisplayRectHeight = 0;
+
         for (int i = 0; i < getNumTabs(); i++) {
             uiBase* comp = dynamic_cast<uiBase*>(getTabContentComponent(i));
             comp->setRecommendedSize();
             
             // The TabbedComponent size should be as big as its bigger child's dimension, done here
-            fTotalWidth = juce::jmax(fTotalWidth, comp->getTotalWidth());
-            fTotalHeight = juce::jmax(fTotalHeight, comp->getTotalHeight());
+            fDisplayRectWidth = juce::jmax(fDisplayRectWidth, comp->getTotalWidth());
+            fDisplayRectHeight = juce::jmax(fDisplayRectHeight, comp->getTotalHeight());
         }
-        
-        fTotalHeight += 30;  // 30 height for the TabBar
+
+        fTotalWidth = fDisplayRectWidth;
+        fTotalHeight = fDisplayRectHeight + getTabBarDepth();  // Height of the TabBar
     }
     
     void add(Component* comp) override
