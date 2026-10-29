@@ -16,6 +16,7 @@ Type `make help` for details on the available targets.
 Each script below checks one defect once fixed. `make check-scripts
 FAUST=<binary>` runs those that need only faust and a C/C++ compiler
 (`display-contexts`, `display-tail-sharing`, `division-by-zero`, `exe-path`, `hoist-negation`,
+`multiplicative-algebra`,
 `infinite-coefficients`, `integer-pow`, `defined-integer-operations`,
 `svg-inner-process`) ;
 `make check-scripts-all` runs every one, the others needing Java, Julia,
@@ -39,6 +40,19 @@ comparisons give it), compared with the tree of comparisons. Legs : `cpp`, `ocpp
 
 ```sh
 python3 tests/compile-tests/defined-integer-operations.py --faust build/bin/faust
+```
+
+### The multiplicative algebra, before the natures
+
+`multiplicative-algebra.py` checks the values of products and quotients simplified before
+the natures are known, read through `* 2147483647 + 1` (an integer 1 wraps to
+-2147483648, a real 1.0 gives 2147483648.0) : `n/n` and `x/x` are the integer 1,
+`(n*4)/(n*2)` is 2, `n*4/2` is `2*n`, `(n*1.0)/n` is 1.0 ; and `(0.5*r)*(0.5*r)`, r the
+integer state of a noise generator, stays a real product (no integer square of r, which
+would wrap). Legs : `cpp` and `ocpp`, single and double precision :
+
+```sh
+python3 tests/compile-tests/multiplicative-algebra.py --faust build/bin/faust
 ```
 
 ### A certain division by 0
