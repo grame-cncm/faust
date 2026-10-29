@@ -41,6 +41,9 @@ struct Vertex {
     static int input_counter;
     static int output_counter;
     Tree       signal;
+    // Key of the node : the creation serial of its signal. It is not signal->hashkey(), which
+    // hashes the address of the head symbol and so changes from one run to the next : the port maps
+    // are emitted in the order of this key (VhdlCodeContainer::_mappings).
     size_t     node_hash;
     int        nature;
 
@@ -51,7 +54,7 @@ struct Vertex {
 
     Vertex(const Tree& signal)
         : signal(signal),
-          node_hash(signal->hashkey()),
+          node_hash(signal->serial()),
           nature(getCertifiedSigType(signal)->nature()),
           propagation_delay(1),
           pipeline_stages(0),
@@ -289,7 +292,7 @@ class VhdlProducer : public SignalVisitor {
             visit(t);
         } else {
             int  vertex_id   = _vertices.size();
-            auto existing_id = searchNode(t->hashkey());
+            auto existing_id = searchNode(t->serial());
             // If the signal was already seen before and our subtree goes to a recursive output,
             // we add the corresponding recursive input to this node.
             if (existing_id.has_value() && !_virtual_io_stack.empty()) {
