@@ -61,6 +61,7 @@
 #define kRadioButtonWidth 100
 #define kRadioButtonHeight 55
 #define kRadioItemHeight 30  // Height of each item of a radio button
+#define kRadioMaxWidth kHSliderWidth  // A horizontal radio button continues its items on a new row past this width
 
 #define kNumEntryWidth 100
 #define kNumEntryHeight 50
@@ -90,16 +91,6 @@ inline int getJuceStringWidth(const juce::String& text)
     return juce::GlyphArrangement::getStringWidthInt(juce::Font(juce::FontOptions()), text);
 #else
     return juce::Font().getStringWidth(text);
-#endif
-}
-
-// Width of a text drawn with a font of the given height
-inline int getJuceStringWidth(const juce::String& text, float height)
-{
-#if JUCE_MAJOR_VERSION >= 8
-    return juce::GlyphArrangement::getStringWidthInt(juce::Font(juce::FontOptions(height)), text);
-#else
-    return juce::Font(height).getStringWidth(text);
 #endif
 }
 
@@ -892,15 +883,25 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
         juce::OwnedArray<juce::ToggleButton> fButtons;
         std::vector<double> fValues;
         std::vector<int> fItemWidths;
+        std::vector<std::pair<size_t, size_t>> fRows;  // [first, last) items of each row
+        int fRowsWidth = 0;                             // Width of the widest row
 
         /**
-         * Width of an item: LookAndFeel_V4::drawToggleButton draws the tick box from x = 4 and
-         * the text from the tick width + 10 to the width - 2, with a font of min(15, height * 0.75).
+         * Split the items in rows no wider than maxWidth, one item at least per row,
+         * and set the width of the widest row.
          */
-        static int getItemWidth(const juce::String& name)
+        void setRows(int maxWidth)
         {
-            float fontSize = juce::jmin(15.0f, kRadioItemHeight * 0.75f);
-            return juce::roundToInt(fontSize * 1.1f) + 10 + getJuceStringWidth(name, fontSize) + 2 + kMargin;
+            int rowWidth = 0;
+            for (size_t i = 0; i < fItemWidths.size(); i++) {
+                if (fRows.empty() || rowWidth + fItemWidths[i] > maxWidth) {
+                    fRows.push_back({i, i});
+                    rowWidth = 0;
+                }
+                fRows.back().second = i + 1;
+                rowWidth += fItemWidths[i];
+                fRowsWidth = juce::jmax(fRowsWidth, rowWidth);
+            }
         }
 
     public:
@@ -940,7 +941,12 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
                     tb->setTooltip(tooltip);
                     fValues.push_back(v);
                     fButtons.add(tb);
-                    fItemWidths.push_back(getItemWidth(tb->getButtonText()));
+                    // The LookAndFeel measures the item at its height, plus a margin between items.
+                    // The uiRadioButton is not in the JuceGUI component yet: the default
+                    // LookAndFeel measures, a LookAndFeel_V4 as the one of JuceGUI by default.
+                    tb->setSize(0, kRadioItemHeight);
+                    tb->changeWidthToFitText();
+                    fItemWidths.push_back(tb->getWidth() + kMargin);
 
                     // Check if this item is a good candidate to represent the current value
                     double delta = fabs(cur-v);
@@ -955,12 +961,11 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
                 defaultbutton->setToggleState (true, juce::dontSendNotification);
             }
 
-            // The recommended width fits the items, side by side or stacked, so that their labels are not cut
-            int itemsWidth = 0;
-            for (int itemWidth : fItemWidths) {
-                itemsWidth = fIsVertical ? juce::jmax(itemsWidth, itemWidth) : itemsWidth + itemWidth;
-            }
-            fTotalWidth = juce::jmax(fTotalWidth, itemsWidth);
+            // The recommended size fits the items, so that their labels are not cut: side by side,
+            // continued on a new row past kRadioMaxWidth, or one per row for a vertical radio button
+            setRows(fIsVertical ? 0 : kRadioMaxWidth);
+            fTotalWidth = juce::jmax(fTotalWidth, fRowsWidth);
+            fTotalHeight = juce::jmax(fTotalHeight, kNameHeight + int(fRows.size()) * kRadioItemHeight);
         }
      
         virtual void reflectZone() override
@@ -986,38 +991,27 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
 
         /**
          * Handle the placement of each juce::ToggleButton everytime the layout size is changed.
-         * The items keep their size under the title, and are centered as a group: stretching them to
-         * the space of the radio button would scatter them in a big box. They are only reduced when
-         * the radio button gets less space than its recommended size.
+         * The items keep their size and their rows under the title, left aligned in a block centered
+         * in the width: stretching them to the space of the radio button would scatter them in a big box.
+         * They are only reduced when the radio button gets less width than its recommended one. The rows
+         * are as high as the items under the title of a one row radio button at its recommended size.
          */
         virtual void resized() override
         {
-            if (fButtons.size() == 0) return;
-            int count = fButtons.size();
+            if (fRows.empty()) return;
+            float scale = juce::jmin(1.0f, float(getWidth()) / float(fRowsWidth));
+            int x0 = (getWidth() - juce::roundToInt(float(fRowsWidth) * scale)) / 2;
+            int height = juce::jlimit(0, kRadioButtonHeight - kNameHeight, (getHeight() - kNameHeight) / int(fRows.size()));
 
-            if (fIsVertical) {
-                int width = 0;
-                for (int itemWidth : fItemWidths) width = juce::jmax(width, itemWidth);
-                width = juce::jmin(width, getWidth());
-                int height = juce::jlimit(0, kRadioItemHeight, (getHeight() - kNameHeight) / count);
-                int x = (getWidth() - width) / 2;
-                for (int i = 0; i < count; i++) {
-                    // kNameHeight pixels offset for the title
-                    fButtons[i]->setBounds(x, kNameHeight + i * height, width, height);
-                }
-            } else {
-                int itemsWidth = 0;
-                for (int itemWidth : fItemWidths) itemsWidth += itemWidth;
-                float scale = juce::jmin(1.0f, float(getWidth()) / float(itemsWidth));
-                int height = juce::jlimit(0, kRadioItemHeight, getHeight() - kNameHeight);
-                int x0 = (getWidth() - juce::roundToInt(float(itemsWidth) * scale)) / 2;
-                // Rounding the item edges rather than the item widths keeps the group in its width
+            for (size_t row = 0; row < fRows.size(); row++) {
+                // Rounding the item edges rather than the item widths keeps the row in its width
                 int left = 0;
-                for (int i = 0; i < count; i++) {
-                    int right = left + fItemWidths[size_t(i)];
+                for (size_t i = fRows[row].first; i < fRows[row].second; i++) {
+                    int right = left + fItemWidths[i];
                     int x = x0 + juce::roundToInt(float(left) * scale);
                     // kNameHeight pixels offset for the title
-                    fButtons[i]->setBounds(x, kNameHeight, x0 + juce::roundToInt(float(right) * scale) - x, height);
+                    fButtons[int(i)]->setBounds(x, kNameHeight + int(row) * height,
+                                                x0 + juce::roundToInt(float(right) * scale) - x, height);
                     left = right;
                 }
             }
