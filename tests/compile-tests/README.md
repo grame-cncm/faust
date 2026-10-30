@@ -17,7 +17,7 @@ Each script below checks one defect once fixed. `make check-scripts
 FAUST=<binary>` runs those that need only faust and a C/C++ compiler
 (`display-contexts`, `display-tail-sharing`, `division-by-zero`, `exe-path`, `hoist-negation`,
 `multiplicative-algebra`,
-`infinite-coefficients`, `integer-pow`, `defined-integer-operations`,
+`infinite-coefficients`, `integer-pow`, `defined-integer-operations`, `power-nature`,
 `svg-inner-process`) ;
 `make check-scripts-all` runs every one, the others needing Java, Julia,
 Cargo, Node or the Xilinx `ap_fixed.h` header (`SCRIPT_ARGS` passes their
@@ -30,10 +30,10 @@ conversion to an integer of a value that may be NaN (it gives 0 ; a NaN operand 
 `max` makes it return the other one, whose values the conversion then sees), extreme and
 negative constant exponents (powers beyond 32 bits in the normal form, a negative constant
 left by the constant propagation), an integer remainder by a
-divisor that may be 0 or -1 (x % 0 gives 0, -2147483648 % -1 its exact value, 0), and an
-integer power of variable exponent, compared with the integer power of the analysis
-(products wrapping on 32 bits ; for a negative exponent, 1/x^k truncated toward 0, and 0
-for x = 0) on 15 bases and 111 exponents, and the selector of `-selectn` (a real converted
+divisor that may be 0 or -1 (x % 0 gives 0, -2147483648 % -1 its exact value, 0), a
+power of integers whose exponent may be negative, a real (the product of k factors
+wrapping on 32 bits, converted ; for a negative exponent, 1 / the wrapped product of |k|
+factors, +inf when it is 0) on 15 bases and 111 exponents, and the selector of `-selectn` (a real converted
 to the index of a leaf : beyond the integers it saturates, NaN reaches the leaf its failed
 comparisons give it), compared with the tree of comparisons. Legs : `cpp`, `ocpp` and `c`,
 `ocpp -selectn` for the selector, single and double precision :
@@ -53,6 +53,23 @@ would wrap). Legs : `cpp` and `ocpp`, single and double precision :
 
 ```sh
 python3 tests/compile-tests/multiplicative-algebra.py --faust build/bin/faust
+```
+
+### The nature of a power of integers
+
+`power-nature.py` checks that `pow(x, k)` of integers is an integer when the sign of k,
+computed on the structure, proves k >= 0, and a real otherwise (the wrapped product
+converted, its inverse for k < 0), read through `* 2147483647 + 1` : `pow(2, n) * 2`, n in
+[0, 100], is 0 at n = 31 ; `pow(2, m) * 2`, m in [-1, 100], is -4294967296.0 at m = 31 ;
+the same under `-norui` ; `-fui` folds `pow(2, 34 - 3)` as written by hand, an integer ;
+two constants are folded to the value the code computes (`pow(3, 0)` the integer 1,
+`pow(2, -31)` 1 / -2147483648) ; `pow(0, -1)` and `pow(2, -32)` are refused. The sign at run
+time : each rule that proves an exponent >= 0, pushed to NaN, -0.0, the infinities, values
+beyond the integers and divisors 0 and -1, never gives a negative exponent. Legs : `cpp`
+and `ocpp`, single and double precision :
+
+```sh
+python3 tests/compile-tests/power-nature.py --faust build/bin/faust
 ```
 
 ### A certain division by 0
@@ -144,9 +161,9 @@ python3 tests/compile-tests/julia-float-to-int.py --faust build/bin/faust
 
 `integer-pow.py` executes the C++ regression, including `-ffast-math`.
 `integer-pow-backends.py` compiles and executes six integer-power expressions
-in both single and double precision for Rust and Julia. Integer differences
-are checked before conversion to sample floats, including `25^6`, negative bases,
-negative exponents with half-way rounding, and values near the Int32 limit.
+in both single and double precision for Rust and Julia, including `25^6`, negative bases,
+and values near the Int32 limit. An exponent not proven >= 0 (`6*s`, `2*s - 1`) makes the
+power real (`power-nature.py`) : the integer product converted, `2^-1` is 0.5.
 
 ```sh
 python3 tests/compile-tests/integer-pow.py --faust build/bin/faust --cxx clang++

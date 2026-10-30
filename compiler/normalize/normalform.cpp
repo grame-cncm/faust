@@ -571,6 +571,18 @@ static Tree simplifyToNormalFormAux(Tree LS)
     typeAnnotation(L1, gGlobal->gLocalCausalityCheck, false);
     endTiming("L1 typeAnnotation");
 
+    // The nature of the powers of integers, decided once on the natures just computed : an
+    // exponent not proven >= 0 makes the power real
+    {
+        startTiming("Nature of the powers of integers");
+        Tree L1p = signalPowerNaturePromote(L1);
+        endTiming("Nature of the powers of integers");
+        if (L1p != L1) {
+            L1 = L1p;
+            typeAnnotation(L1, gGlobal->gLocalCausalityCheck, false);
+        }
+    }
+
     if (gGlobal->gFTZMode > 0) {
         // Wrap real signals with FTZ
         startTiming("FTZ on recursive signals");
