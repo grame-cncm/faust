@@ -43,7 +43,7 @@ class PowPrim : public xtendedCodegen {
     virtual bool needCache() override { return true; }
 
 
-    // Fast integer based power, for positive exponent
+    // The power by squaring, for an exponent >= 0 ; on uint32_t, the product wrapped on 32 bits
     template <typename Type1, typename Type2>
     Type1 ipow(Type1 a, Type2 ex)
     {
@@ -66,6 +66,12 @@ class PowPrim : public xtendedCodegen {
         }
     }
 
+    // A power of two constants, folded as the code computes it : two integers give the
+    // product of |k| factors wrapped on 32 bits, an integer for k >= 0, the inverse of the
+    // product, a real in the precision of the program, for k < 0 ; a base or an exponent
+    // real gives the real power. A base variable keeps the forms whose nature the folding
+    // cannot tell : pow(x, 0) is the integer 1, written by the multiplicative algebra, and
+    // pow(x, 1.0) a real, x or float(x).
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
         num n, m;
@@ -74,28 +80,34 @@ class PowPrim : public xtendedCodegen {
             // 0 to a negative power is 1 / 0^|k| : a certain division by 0, refused as the
             // constant division it stands for, not folded to an infinity
             if (double(n) == 0.0 && double(m) < 0.0) {
-                std::stringstream error;
-                error << "ERROR : division by 0 in pow(" << ppsig(args[0], MAX_ERROR_SIZE) << ", "
-                      << ppsig(args[1], MAX_ERROR_SIZE) << ")" << std::endl;
-                throw faustexception(error.str());
+                throw faustexception(divisionByZero(args));
             }
-            if (!isfloat(n) && !isfloat(m) && int(m) > 0) {
-                return tree(ipow(int(n), int(m)));
-            } else {
-                return tree(pow(double(n), double(m)));
+            if (!isfloat(n) && !isfloat(m)) {
+                int64_t  k = int(m);
+                uint32_t p = ipow(uint32_t(int(n)), uint64_t(k < 0 ? -k : k));
+                if (k >= 0) {
+                    return tree(int(int32_t(p)));
+                }
+                // a wrapped product of 0 (2^32, for pow(2, -32)) is the same division by 0
+                if (p == 0) {
+                    throw faustexception(divisionByZero(args));
+                }
+                return tree((gGlobal->gFloatSize == 1) ? double(1.0f / float(int32_t(p)))
+                                                       : 1.0 / double(int32_t(p)));
             }
+            return tree(pow(double(n), double(m)));
         } else if (isNum(args[0], n)) {
-            double base = double(n);
-            if ((base == 10.) && gGlobal->gHasExp10) {
-                // pow(10, x) ==> exp10(x)
+            // pow(10, x) ==> exp10(x), a real power : the base 10 of an integer is decided
+            // with the nature of its exponent (signalPowerNaturePromote)
+            if (isfloat(n) && (double(n) == 10.) && gGlobal->gHasExp10) {
                 return tree(::symbol("exp10"), args[1]);
             }
         } else if (isNum(args[1], m)) {
             double exponent = double(m);
-            if (exponent == 0.0) {
-                // pow(x, 0) ==> 1
+            if (isfloat(m) && exponent == 0.0) {
+                // pow(x, 0.0) ==> 1.0
                 return tree(1.0);
-            } else if (exponent == 1.0) {
+            } else if (!isfloat(m) && int(m) == 1) {
                 // pow(x, 1) ==> x
                 return args[0];
             } else if (exponent == 0.5) {
@@ -107,6 +119,14 @@ class PowPrim : public xtendedCodegen {
             }
         }
         return tree(symbol(), args[0], args[1]);
+    }
+
+    static std::string divisionByZero(const std::vector<Tree>& args)
+    {
+        std::stringstream error;
+        error << "ERROR : division by 0 in pow(" << ppsig(args[0], MAX_ERROR_SIZE) << ", "
+              << ppsig(args[1], MAX_ERROR_SIZE) << ")" << std::endl;
+        return error.str();
     }
 
     // The integer power of the analysis, for C and C++ : x^k by squaring, the products

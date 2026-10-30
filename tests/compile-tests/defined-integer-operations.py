@@ -5,9 +5,10 @@ analysis allows.
 1. A conversion to an integer of a value that may be NaN gives 0 : int(fmod(1/x, 7)) and
    int(9*sqrt(x)) at x = 0 and x = -1. A NaN operand makes min return the other one :
    int(min(3e10, sqrt(x))) at x = -1 converts 3e10, which saturates.
-2. An integer power of variable exponent is the integer power of the analysis : x^k by
-   products wrapping on 32 bits ; for k < 0, 1/x^k truncated toward 0, and 0 for x = 0.
-   Compared, for 15 bases and 111 exponents, with the same model computed here.
+2. A power of integers whose exponent may be negative is a real (power-nature.py) : the
+   product of k factors wrapping on 32 bits, converted, for k >= 0 ; 1 / the wrapped
+   product of |k| factors for k < 0, +inf when it is 0. Compared, for 15 bases and 111
+   exponents, with the same model computed here.
 3. An integer remainder whose divisor may be 0 or -1 : x % 0 gives 0, and
    -2147483648 % -1 its exact value, 0. Compared with the exact remainder otherwise.
 5. Extreme and negative constant exponents : pow(x, -2147483648), pow(x, 2147483647) * x
@@ -15,7 +16,7 @@ analysis allows.
    of the normal form), and pow(x, k) with k = int(hslider(0..0.5)) - 2, a negative
    constant that the constant propagation leaves after the normal form (once an invalid C++
    name, mydsp_faustpower-2_i, and an endless faustpower<-2> in ocpp). Compared with the
-   integer power of the analysis, for x in [-1, 3].
+   same model, for x in [-1, 3] : the first and the last are real inverses.
 4. The selector of -selectn, a real converted to the index of a leaf : a value beyond the
    integers saturates into the first or the last leaf, NaN reaches the leaf its failed
    comparisons give it. Compared with the tree of comparisons, for NaN, both infinities,
@@ -29,6 +30,7 @@ single and double precision.
 
 import argparse
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -58,11 +60,9 @@ process = pow(x, -2147483648), pow(x, 2147483647) * x, pow(x, 65536) * pow(x, 65
 
 
 def int_power(x, k):
-    """The integer power of the analysis : products wrapping on 32 bits ; 1/x^k truncated
-    toward 0 for k < 0"""
-    if k < 0:
-        return 1 if x == 1 else ((-1 if k & 1 else 1) if x == -1 else 0)
-    p = pow(x % 2**32, k, 2**32)
+    """The product of |k| factors wrapping on 32 bits : the integer power for k >= 0, the
+    denominator of the real one for k < 0"""
+    p = pow(x % 2**32, abs(k), 2**32)
     return p - 2**32 if p >= 2**31 else p
 
 
@@ -129,9 +129,10 @@ int main() {
 """
 
 MODEL = """
-static int model(int x, int k) {
-    if (k < 0) return (x == 1) ? 1 : (x == -1) ? ((k & 1) ? -1 : 1) : 0;
-    unsigned int p = 1; for (int i = 0; i < k; i++) p *= (unsigned int)x; return (int)p;
+static FAUSTFLOAT model(int x, int k) {
+    unsigned int p = 1; long long n = (k < 0) ? -(long long)k : k;
+    for (long long i = 0; i < n; i++) p *= (unsigned int)x;
+    return (k < 0) ? (FAUSTFLOAT)1 / (FAUSTFLOAT)(int)p : (FAUSTFLOAT)(int)p;
 }
 """
 
@@ -143,7 +144,7 @@ LOOP_HEAD = """
 
 LOOP_TAIL = """
         n++;
-        if (o[0] != (FAUSTFLOAT)model(bases[i], k)) { if (bad < 5) printf("b = %d, k = %d : got %.17g\\n", bases[i], k, (double)o[0]); bad++; }
+        if (o[0] != model(bases[i], k)) { if (bad < 5) printf("b = %d, k = %d : got %.17g\\n", bases[i], k, (double)o[0]); bad++; }
     }
     printf("%ld cases, %ld differ\\n", n, bad);
     return bad != 0;
@@ -163,7 +164,7 @@ POW_C = """
 #include "generated.c"
 """ + MODEL + "int main() {" + LOOP_HEAD + """
         mydsp* d = newmydsp(); initmydsp(d, 48000);
-        d->fEntry0 = bases[i]; d->fEntry1 = k;
+        d->FIELD_b = bases[i]; d->FIELD_k = k;
         FAUSTFLOAT o[1]; FAUSTFLOAT* op[1] = {o}; computemydsp(d, 1, NULL, op);
         deletemydsp(d);
 """ + LOOP_TAIL
@@ -199,7 +200,7 @@ int main() {
     long bad = 0, n = 0;
     for (int i = 0; i < %d; i++) for (int j = 0; j < %d; j++) {
         mydsp* d = newmydsp(); initmydsp(d, 48000);
-        d->fEntry0 = xs[i]; d->fEntry1 = ks[j];
+        d->FIELD_x = xs[i]; d->FIELD_k = ks[j];
         FAUSTFLOAT o[1]; FAUSTFLOAT* op[1] = {o}; computemydsp(d, 1, NULL, op);
         deletemydsp(d);
         long long want = (ks[j] == 0) ? 0 : xs[i] %% ks[j];
@@ -236,7 +237,9 @@ int main() {
 EXPONENT_CPP = UI_CPP + """
 int main() {
     static const int xs[] = {%s};
-    static const double want[][4] = {%s};
+    static const long long want[][4] = {%s};
+    // the real powers of a negative exponent : the inverse of the wrapped product
+    static const bool inverse[4] = {true, false, false, true};
     int bad = 0, n = 0;
     for (int i = 0; i < %d; i++) {
         mydsp d; RUI ui; d.init(48000); d.buildUserInterface(&ui);
@@ -245,7 +248,8 @@ int main() {
         d.compute(1, nullptr, op);
         for (int j = 0; j < 4; j++) {
             n++;
-            if (o[j][0] != FAUSTFLOAT(want[i][j])) { printf("x = %%d, output %%d : got %%.17g, want %%.17g\\n", xs[i], j, double(o[j][0]), want[i][j]); bad++; }
+            FAUSTFLOAT w = inverse[j] ? FAUSTFLOAT(1) / FAUSTFLOAT(want[i][j]) : FAUSTFLOAT(want[i][j]);
+            if (o[j][0] != w) { printf("x = %%d, output %%d : got %%.17g, want %%.17g\\n", xs[i], j, double(o[j][0]), double(w)); bad++; }
         }
     }
     printf("%%d cases, %%d differ\\n", n, bad);
@@ -276,7 +280,11 @@ def leg(args, repo, work, dsp, runner, lang, precision, options=[], marker=None)
         print(f"{lang:5} {precision:7} the generated code has no {marker} : -selectn does not take the tree")
         return False
     compiler = [args.cc, "-std=c11"] if is_c else [args.cxx, "-std=c++17"]
-    build = compiler + ["-O1", *SANITIZE, "-DFAUSTFLOAT=" + flt, "-I", repo / "architecture",
+    # the C runner sets the controls through their fields, named in the order the code
+    # reads them : FIELD_<label>, found from the user interface the code builds
+    fields = ["-DFIELD_%s=%s" % (label, field) for label, field in
+              re.findall(r'add\w+\(ui_interface->uiInterface, "(\w+)", &dsp->(\w+)', generated.read_text())]
+    build = compiler + ["-O1", *SANITIZE, "-DFAUSTFLOAT=" + flt, *fields, "-I", repo / "architecture",
                         source, "-o", work / "runner"] + (["-lm"] if is_c else [])
     if run(build, work).returncode:
         return False
