@@ -2,8 +2,9 @@
 """Compile and execute integer-power regressions in Rust and Julia.
 
 Subtract in integer arithmetic before converting DSP outputs to sample floats:
-25**6 cannot be represented exactly in Float32. Negative exponents also check
-round-to-nearest, ties-to-even (2**-1 and (-2)**-1 must both convert to zero).
+25**6 cannot be represented exactly in Float32. An exponent not proven >= 0 (6*s, a
+product that may wrap ; 2*s - 1) makes the power real (LA-PUISSANCE) : the integer product
+converted, and 2**-1 is 0.5, (-2)**-1 is -0.5.
 """
 import argparse
 from pathlib import Path
@@ -16,8 +17,8 @@ s = ba.period(2) < 1;
 process = pow(250, s) - (1 + 249*s),
           pow(25, 6*s) - (1 + 244140624*s),
           pow(-3, 3*s) - (1 - 28*s),
-          pow(2, 2*s-1) - 2*s,
-          pow(-2, 2*s-1) + 2*s,
+          pow(2, 2*s-1) - (0.5 + 1.5*s),
+          pow(-2, 2*s-1) + (0.5 + 1.5*s),
           pow(46340, 2*s) - (1 + 2147395599*s);
 """
 

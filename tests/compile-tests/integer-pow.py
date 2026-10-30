@@ -6,6 +6,8 @@ signal, the result must be exact:
 1. Under -ffast-math, pow(250, 1) must equal 250 (not truncated to 249).
 2. Beyond 2^24 in single precision, pow(25, 6) must equal 244140625 (not 244140624 or 244140720).
 3. Negative bases like pow(-3, 3) must equal -27.
+6*s and 3*s, products that may wrap, are not proven >= 0 : pow(25, 6*s) and pow(-3, 3*s) are
+real powers of integers (LA-PUISSANCE), the integer product converted, computed at run time.
 """
 
 import argparse
