@@ -60,6 +60,7 @@
 
 #define kRadioButtonWidth 100
 #define kRadioButtonHeight 55
+#define kRadioItemHeight 30  // Height of each item of a radio button
 
 #define kNumEntryWidth 100
 #define kNumEntryHeight 50
@@ -89,6 +90,16 @@ inline int getJuceStringWidth(const juce::String& text)
     return juce::GlyphArrangement::getStringWidthInt(juce::Font(juce::FontOptions()), text);
 #else
     return juce::Font().getStringWidth(text);
+#endif
+}
+
+// Width of a text drawn with a font of the given height
+inline int getJuceStringWidth(const juce::String& text, float height)
+{
+#if JUCE_MAJOR_VERSION >= 8
+    return juce::GlyphArrangement::getStringWidthInt(juce::Font(juce::FontOptions(height)), text);
+#else
+    return juce::Font(height).getStringWidth(text);
 #endif
 }
 
@@ -880,6 +891,17 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
         bool fIsVertical;
         juce::OwnedArray<juce::ToggleButton> fButtons;
         std::vector<double> fValues;
+        std::vector<int> fItemWidths;
+
+        /**
+         * Width of an item: LookAndFeel_V4::drawToggleButton draws the tick box from x = 4 and
+         * the text from the tick width + 10 to the width - 2, with a font of min(15, height * 0.75).
+         */
+        static int getItemWidth(const juce::String& name)
+        {
+            float fontSize = juce::jmin(15.0f, kRadioItemHeight * 0.75f);
+            return juce::roundToInt(fontSize * 1.1f) + 10 + getJuceStringWidth(name, fontSize) + 2 + kMargin;
+        }
 
     public:
         /**
@@ -918,7 +940,8 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
                     tb->setTooltip(tooltip);
                     fValues.push_back(v);
                     fButtons.add(tb);
-      
+                    fItemWidths.push_back(getItemWidth(tb->getButtonText()));
+
                     // Check if this item is a good candidate to represent the current value
                     double delta = fabs(cur-v);
                     if (delta < mindelta) {
@@ -931,6 +954,13 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
             if (defaultbutton) {
                 defaultbutton->setToggleState (true, juce::dontSendNotification);
             }
+
+            // The recommended width fits the items, side by side or stacked, so that their labels are not cut
+            int itemsWidth = 0;
+            for (int itemWidth : fItemWidths) {
+                itemsWidth = fIsVertical ? juce::jmax(itemsWidth, itemWidth) : itemsWidth + itemWidth;
+            }
+            fTotalWidth = juce::jmax(fTotalWidth, itemsWidth);
         }
      
         virtual void reflectZone() override
@@ -954,19 +984,41 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
             }
         }
 
-        /** Handle the placement of each juce::ToggleButton everytime the layout size is changed. */
+        /**
+         * Handle the placement of each juce::ToggleButton everytime the layout size is changed.
+         * The items keep their size under the title, and are centered as a group: stretching them to
+         * the space of the radio button would scatter them in a big box. They are only reduced when
+         * the radio button gets less space than its recommended size.
+         */
         virtual void resized() override
         {
-            int width, height;
             if (fButtons.size() == 0) return;
-            fIsVertical ? (height = (getHeight() - kNameHeight) / fButtons.size()) : (width = getWidth() / fButtons.size());
+            int count = fButtons.size();
 
-            for (size_t i = 0; i < fButtons.size(); i++) {
-                if (fIsVertical) {
-                    fButtons.operator[](int(i))->setBounds(0, int(i) * height + kNameHeight, getWidth(), height);
-                } else {
+            if (fIsVertical) {
+                int width = 0;
+                for (int itemWidth : fItemWidths) width = juce::jmax(width, itemWidth);
+                width = juce::jmin(width, getWidth());
+                int height = juce::jlimit(0, kRadioItemHeight, (getHeight() - kNameHeight) / count);
+                int x = (getWidth() - width) / 2;
+                for (int i = 0; i < count; i++) {
                     // kNameHeight pixels offset for the title
-                    fButtons.operator[](int(i))->setBounds(int(i) * width, kNameHeight, width, getHeight() - kNameHeight);
+                    fButtons[i]->setBounds(x, kNameHeight + i * height, width, height);
+                }
+            } else {
+                int itemsWidth = 0;
+                for (int itemWidth : fItemWidths) itemsWidth += itemWidth;
+                float scale = juce::jmin(1.0f, float(getWidth()) / float(itemsWidth));
+                int height = juce::jlimit(0, kRadioItemHeight, getHeight() - kNameHeight);
+                int x0 = (getWidth() - juce::roundToInt(float(itemsWidth) * scale)) / 2;
+                // Rounding the item edges rather than the item widths keeps the group in its width
+                int left = 0;
+                for (int i = 0; i < count; i++) {
+                    int right = left + fItemWidths[size_t(i)];
+                    int x = x0 + juce::roundToInt(float(left) * scale);
+                    // kNameHeight pixels offset for the title
+                    fButtons[i]->setBounds(x, kNameHeight, x0 + juce::roundToInt(float(right) * scale) - x, height);
+                    left = right;
                 }
             }
         }
@@ -1868,19 +1920,14 @@ class JuceGUI : public GUI, public MetaDataUI, public juce::Component
             std::vector<std::string> names;
             std::vector<double> values;
             parseMenuList(mdescr, names, values); // Set names and values vectors
-            
-            // and not just n checkButtons :
-            // TODO : check currently unused checkButtonWidth...
-            int checkButtonWidth = 0;
-            for (size_t i = 0; i < names.size(); i++) {
-                // Checking the maximum of horizontal space needed to display the radio buttons
-                checkButtonWidth = juce::jmax(getJuceStringWidth(juce::String(names[i])) + 15, checkButtonWidth);
-            }
-            
+
+            // The width of the title: uiRadioButton enlarges it to fit its items
+            int width = getJuceStringWidth(juce::String(label)) + 2 * kMargin;
+
             if (vert) {
-                fCurrentBox->add(new uiRadioButton(this, zone, juce::String(label), kCheckButtonWidth, names.size() * (kRadioButtonHeight - 25) + 25, *zone, min, max, true, names, values, juce::String(fTooltip[zone]), fRadioGroupID++));
+                fCurrentBox->add(new uiRadioButton(this, zone, juce::String(label), width, names.size() * kRadioItemHeight + 25, *zone, min, max, true, names, values, juce::String(fTooltip[zone]), fRadioGroupID++));
             } else {
-                fCurrentBox->add(new uiRadioButton(this, zone, juce::String(label), kCheckButtonWidth, kRadioButtonHeight, *zone, min, max, false, names, values, juce::String(fTooltip[zone]), fRadioGroupID++));
+                fCurrentBox->add(new uiRadioButton(this, zone, juce::String(label), width, kRadioButtonHeight, *zone, min, max, false, names, values, juce::String(fTooltip[zone]), fRadioGroupID++));
             }
         }
         
