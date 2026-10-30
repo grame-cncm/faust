@@ -53,7 +53,7 @@
 
 #define REAL_UI(ui_interface) reinterpret_cast<UIReal<REAL>*>(ui_interface)
 #define REAL_ADR(index)      reinterpret_cast<REAL*>(&memory_block[index])
-#define REAL_EXT_ADR(index)  reinterpret_cast<FAUSTFLOAT*>(&memory_block[index])
+#define REAL_EXT_ADR(index)  reinterpret_cast<EXT_REAL*>(&memory_block[index])
 #define SOUNDFILE_ADR(index) reinterpret_cast<Soundfile**>(&memory_block[index])
 
 typedef std::function<void(FAUSTFLOAT)> ReflectFunction;
@@ -105,12 +105,16 @@ struct FAUST_API JSONUIDecoderBase
     virtual std::string getCompileOption(const std::string& option) = 0;
 };
 
-template <typename REAL>
+// REAL is the type of the DSP zones, EXT_REAL the FAUSTFLOAT of the code that uses the decoder (the
+// type of the UI zones). EXT_REAL is a template parameter rather than FAUSTFLOAT used in the class, so
+// that its specializations do not share a name between libfaust, compiled with its own FAUSTFLOAT, and
+// a client compiled with another one: the linker would keep one of the two definitions for both.
+template <typename REAL, typename EXT_REAL = FAUSTFLOAT>
 struct FAUST_API JSONUIDecoderReal : public JSONUIDecoderBase {
     
     struct ZoneParam : public ExtZoneParam {
         
-        FAUSTFLOAT fZone;
+        EXT_REAL fZone;
         ReflectFunction fReflect;
         ModifyFunction fModify;
         
@@ -121,7 +125,7 @@ struct FAUST_API JSONUIDecoderReal : public JSONUIDecoderBase {
         void reflectZone() { if (fReflect) fReflect(fZone); }
         void modifyZone() { if (fModify) fZone = fModify(); }
     #else
-        ZoneParam(ReflectFunction reflect = [](FAUSTFLOAT value) {}, ModifyFunction modify = []() { return FAUSTFLOAT(-1); })
+        ZoneParam(ReflectFunction reflect = [](EXT_REAL value) {}, ModifyFunction modify = []() { return EXT_REAL(-1); })
         :fReflect(reflect), fModify(modify)
         {}
         void reflectZone() { fReflect(fZone); }
@@ -315,9 +319,9 @@ struct FAUST_API JSONUIDecoderReal : public JSONUIDecoderBase {
                 std::string type = it.type;
                 int index = it.index;
                 if (isInput(type)) {
-                    fPathInputTable[countIn++]->setReflectZoneFun([=](FAUSTFLOAT value) { *REAL_ADR(index) = REAL(value); });
+                    fPathInputTable[countIn++]->setReflectZoneFun([=](EXT_REAL value) { *REAL_ADR(index) = REAL(value); });
                 } else if (isOutput(type)) {
-                    fPathOutputTable[countOut++]->setModifyZoneFun([=]() { return FAUSTFLOAT(*REAL_ADR(index)); });
+                    fPathOutputTable[countOut++]->setModifyZoneFun([=]() { return EXT_REAL(*REAL_ADR(index)); });
                 }
             }
         }
@@ -594,13 +598,9 @@ struct FAUST_API JSONUIDecoderReal : public JSONUIDecoderBase {
     
 };
 
-// FAUSTFLOAT templated decoder
+// FAUSTFLOAT templated decoder: an alias rather than a class, whose name would not depend on FAUSTFLOAT
 
-struct FAUST_API JSONUIDecoder : public JSONUIDecoderReal<FAUSTFLOAT>
-{
-    JSONUIDecoder(const std::string& json):JSONUIDecoderReal<FAUSTFLOAT>(json)
-    {}
-};
+using JSONUIDecoder = JSONUIDecoderReal<FAUSTFLOAT>;
 
 // Generic factory
 

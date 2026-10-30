@@ -74,8 +74,10 @@ struct FAUST_API UIReal {
     
     virtual void declare(REAL* /*zone*/, const char* /*key*/, const char* /*val*/) {}
 
-    // To be used by LLVM client
-    virtual int sizeOfFAUSTFLOAT() { return sizeof(FAUSTFLOAT); }
+    // To be used by LLVM client: the size of the zones of this UI. Not sizeof(FAUSTFLOAT): libfaust,
+    // compiled with its own FAUSTFLOAT, also defines UIReal<float> and UIReal<double>, and the client
+    // can get the libfaust definition of this function.
+    virtual int sizeOfFAUSTFLOAT() { return sizeof(REAL); }
 };
 
 struct FAUST_API UI : public UIReal<FAUSTFLOAT> {
