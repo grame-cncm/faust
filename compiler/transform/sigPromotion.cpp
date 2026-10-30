@@ -29,7 +29,10 @@
 #include "global.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
+#include "fixpoint.hh"
 #include "sigPromotion.hh"
+#include "signalAlgebra.hh"
+#include "simplify.hh"
 #include "sigtransform.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
@@ -977,9 +980,49 @@ class UIPromotionAlgebra final : public TransformAlgebra {
 //-------------------------UIFreezePromotionAlgebra-----------------------
 // Freeze range UI items (sliders and nentry) to their init value. Everything
 // that depends on sliders and nentry will be computed at compile time.
+// The program is the one written with these values : a primitive whose arguments become
+// numbers is folded, as the propagation of the boxes folds it (34 - 3 is 31).
 //------------------------------------------------------------------------
 class UIFreezePromotionAlgebra final : public TransformAlgebra {
+    static bool changed(const std::vector<XSig>& c)
+    {
+        for (const XSig& v : c) {
+            if (v.out != v.orig) return true;
+        }
+        return false;
+    }
+
+    static bool numbers(Tree t)
+    {
+        for (Tree b : t->branches()) {
+            if (!isNum(b)) return false;
+        }
+        return true;
+    }
+
    public:
+    XSig combine(Tree orig, const std::vector<XSig>& c,
+                 FixPointEvaluator<XSig>& ev) const override
+    {
+        XSig r = TransformAlgebra::combine(orig, c, ev);
+        int  op;
+        Tree x, y;
+        bool prim = isSigBinOp(r.out, &op, x, y) || isSigIntCast(r.out) || isSigFloatCast(r.out);
+        return (prim && changed(c) && numbers(r.out)) ? o(simplify(r.out)) : r;
+    }
+
+    XSig xtdApp(Tree orig, xtended* p, const std::vector<XSig>& c) const override
+    {
+        if (!changed(c)) {
+            return TransformAlgebra::xtdApp(orig, p, c);
+        }
+        std::vector<Tree> args;
+        for (const XSig& v : c) {
+            args.push_back(v.out);
+        }
+        return o(p->computeSigOutput(args));
+    }
+
     XSig VSlider(const XSig&, const XSig& i, const XSig&, const XSig&,
                  const XSig&) const override
     {
@@ -1080,6 +1123,227 @@ Tree signalUIFreezePromote(Tree sig)
 {
     // a transformation of the source : it reads no type, and runs before the typing
     UIFreezePromotionAlgebra A;
+    return signalTransform(sig, A);
+}
+
+//-------------------------The nature of a power of integers----------------------------
+// pow(x, k), x and k integers, abbreviates the product x * ... * x for k >= 0, the division
+// 1 / (x * ... * x) for k < 0 : it is an integer when k is proven >= 0, a real otherwise.
+// The proof is the sign of k, computed on the structure, without the intervals (an
+// improvement of the analysis must not change the values a program computes), once,
+// after the transformations of the source and the multiplicative algebra.
+//----------------------------------------------------------------------------------------
+
+namespace {
+
+// The sign of a signal : >= 0 and never NaN, >= 0 or NaN (-0.0 included, since -0.0 >= 0),
+// unknown. The seed of a recursion is the first : its value is 0 at the start.
+enum Sign : int { kPositive = 0, kPositiveOrNaN = 1, kUnknownSign = 2 };
+
+class SignAlgebra final : public SignalAlgebra<int> {
+    static int join2(int x, int y) { return std::max(x, y); }
+
+   public:
+    int  bottom(Tree) const override { return kPositive; }
+    int  top(Tree) const override { return kUnknownSign; }
+    bool lessEqual(const int& x, const int& y) const override { return x <= y; }
+    int  project(Tree, int i, const std::vector<int>& row) const override { return row[i]; }
+
+    int Label(const std::string&) const override { return kPositive; }
+    int IntNum(int x) const override { return x >= 0 ? kPositive : kUnknownSign; }
+    int Int64Num(int64_t x) const override { return x >= 0 ? kPositive : kUnknownSign; }
+    int FloatNum(double x) const override { return x >= 0 ? kPositive : kUnknownSign; }
+    int FixPointUpdate(const int& x, const int& y) const override { return join2(x, y); }
+
+    int Input(const int&) const override { return kUnknownSign; }
+    int Output(const int&, const int& x) const override { return x; }
+
+    // the contract of the controls : within their declared range, buttons at 0 or 1 ; the
+    // same under -rui and -norui
+    int Button(const int&) const override { return kPositive; }
+    int Checkbox(const int&) const override { return kPositive; }
+    int VSlider(const int&, const int&, const int& lo, const int&, const int&) const override { return lo; }
+    int HSlider(const int&, const int&, const int& lo, const int&, const int&) const override { return lo; }
+    int NumEntry(const int&, const int&, const int& lo, const int&, const int&) const override { return lo; }
+    int HBargraph(const int&, const int&, const int&, const int& s) const override { return s; }
+    int VBargraph(const int&, const int&, const int&, const int& s) const override { return s; }
+
+    // transparent constructors : the sign of their value
+    int Attach(const int& x, const int&) const override { return x; }
+    int Enable(const int& x, const int&) const override { return x; }
+    int Control(const int& x, const int&) const override { return x; }
+
+    // a sum or a product of integers wraps (2147483647 + 1, 46341 * 46341), abs(-2^31) is
+    // -2^31, 1 / -0.0 is -inf : unknown, whatever the nature
+    int Abs(const int&) const override { return kUnknownSign; }
+    int Highest(const int&) const override { return kUnknownSign; }
+    int Lowest(const int&) const override { return kUnknownSign; }
+    int Add(const int&, const int&) const override { return kUnknownSign; }
+    int Sub(const int&, const int&) const override { return kUnknownSign; }
+    int Mul(const int&, const int&) const override { return kUnknownSign; }
+    int Div(const int&, const int&) const override { return kUnknownSign; }
+    int Inv(const int&) const override { return kUnknownSign; }
+    int Neg(const int&) const override { return kUnknownSign; }
+    // the remainder has the sign of the dividend ; x % 0 is 0, fmod(x, 0) is NaN
+    int Mod(const int& x, const int&) const override { return x <= kPositiveOrNaN ? kPositiveOrNaN : kUnknownSign; }
+    int Fmod(const int& x, const int&) const override { return x <= kPositiveOrNaN ? kPositiveOrNaN : kUnknownSign; }
+
+    // comparisons and Not : 0 or 1 ; the other boolean operations are bitwise
+    int Gt(const int&, const int&) const override { return kPositive; }
+    int Lt(const int&, const int&) const override { return kPositive; }
+    int Ge(const int&, const int&) const override { return kPositive; }
+    int Le(const int&, const int&) const override { return kPositive; }
+    int Eq(const int&, const int&) const override { return kPositive; }
+    int Ne(const int&, const int&) const override { return kPositive; }
+    int Not(const int&) const override { return kPositive; }
+    int And(const int& x, const int& y) const override
+    {
+        return (x <= kPositiveOrNaN || y <= kPositiveOrNaN) ? kPositive : kUnknownSign;
+    }
+    int Or(const int&, const int&) const override { return kUnknownSign; }
+    int Xor(const int&, const int&) const override { return kUnknownSign; }
+    int Lsh(const int&, const int&) const override { return kUnknownSign; }
+    int ARsh(const int& x, const int&) const override { return x <= kPositiveOrNaN ? kPositive : kUnknownSign; }
+    int LRsh(const int&, const int&) const override { return kUnknownSign; }
+
+    // the defined conversion saturates within the sign and gives 0 for NaN
+    int IntCast(const int& x) const override { return x <= kPositiveOrNaN ? kPositive : kUnknownSign; }
+    int BitCast(const int&) const override { return kUnknownSign; }
+    int FloatCast(const int& x) const override { return x; }
+
+    int Acos(const int&) const override { return kUnknownSign; }
+    int Acosh(const int&) const override { return kUnknownSign; }
+    int Asin(const int&) const override { return kUnknownSign; }
+    int Asinh(const int&) const override { return kUnknownSign; }
+    int Atan(const int&) const override { return kUnknownSign; }
+    int Atan2(const int&, const int&) const override { return kUnknownSign; }
+    int Atanh(const int&) const override { return kUnknownSign; }
+    int Ceil(const int&) const override { return kUnknownSign; }
+    int Cos(const int&) const override { return kUnknownSign; }
+    int Cosh(const int&) const override { return kUnknownSign; }
+    int Exp(const int&) const override { return kUnknownSign; }
+    int Exp10(const int&) const override { return kUnknownSign; }
+    int Floor(const int&) const override { return kUnknownSign; }
+    int Frac(const int&) const override { return kUnknownSign; }
+    int Cfrac(const int&) const override { return kUnknownSign; }
+    int Mix(const int&, const int&, const int&) const override { return kUnknownSign; }
+    int Phase(const int&, const int&) const override { return kUnknownSign; }
+    int Tpt(const int&) const override { return kUnknownSign; }
+    int Sum(const std::vector<int>&) const override { return kUnknownSign; }
+    int Prod(const std::vector<int>&) const override { return kUnknownSign; }
+    int Fir(const int&, const std::vector<int>&) const override { return kUnknownSign; }
+    int Iir(const int&, const std::vector<int>&) const override { return kUnknownSign; }
+    int Irm(const int&, const int&) const override { return kUnknownSign; }
+    int Bpf(const int&, const std::vector<int>&, const std::vector<int>&) const override { return kUnknownSign; }
+    int Log(const int&) const override { return kUnknownSign; }
+    int Log10(const int&) const override { return kUnknownSign; }
+    int Pow(const int&, const int&) const override { return kUnknownSign; }
+    int Remainder(const int&, const int&) const override { return kUnknownSign; }
+    int Rint(const int&) const override { return kUnknownSign; }
+    int Round(const int&) const override { return kUnknownSign; }
+    int Sin(const int&) const override { return kUnknownSign; }
+    int Sinh(const int&) const override { return kUnknownSign; }
+    int Sqrt(const int&) const override { return kPositiveOrNaN; }
+    int Tan(const int&) const override { return kUnknownSign; }
+    int Tanh(const int&) const override { return kUnknownSign; }
+    // max(a, NaN) gives a or NaN, by the target and the order : max(-3, NaN) is -3
+    int Max(const int& x, const int& y) const override
+    {
+        if (x == kPositive && y == kPositive) return kPositive;
+        if (x == kPositive || y == kPositive) return kPositiveOrNaN;
+        return (x <= kPositiveOrNaN && y <= kPositiveOrNaN) ? kPositiveOrNaN : kUnknownSign;
+    }
+    int Min(const int& x, const int& y) const override
+    {
+        return (x <= kPositiveOrNaN && y <= kPositiveOrNaN) ? join2(x, y) : kUnknownSign;
+    }
+
+    int Select2(const int&, const int& x, const int& y) const override { return join2(x, y); }
+
+    // delays : the initial 0 is positive
+    int Mem(const int& x) const override { return x; }
+    int Delay(const int& x, const int&) const override { return x; }
+    int Prefix(const int& x, const int& y) const override { return join2(x, y); }
+    int AssertBounds(const int&, const int&, const int& x) const override { return x; }
+
+    int Table(const int&, const int&) const override { return kUnknownSign; }
+    int WRTbl(const int&, const int&, const int&, const int&) const override { return kUnknownSign; }
+    int RDTbl(const int&, const int&) const override { return kUnknownSign; }
+    int Gen(const int& x) const override { return x; }
+    int Waveform(const std::vector<int>&) const override { return kUnknownSign; }
+
+    int SoundFile(const int&) const override { return kUnknownSign; }
+    int SoundFileRate(const int&, const int&) const override { return kUnknownSign; }
+    int SoundFileLength(const int&, const int&) const override { return kUnknownSign; }
+    int SoundFileBuffer(const int&, const int&, const int&, const int&) const override { return kUnknownSign; }
+
+    int ForeignConst(int, const int&, const int&) const override { return kUnknownSign; }
+    int ForeignVar(int, const int&, const int&) const override { return kUnknownSign; }
+    int ForeignFunction(int, const std::vector<int>&) const override { return kUnknownSign; }
+
+    int DocConstantTbl(const int&, const int&) const override { return kUnknownSign; }
+    int DocWriteTbl(const int&, const int&, const int&, const int&) const override { return kUnknownSign; }
+    int DocAccessTbl(const int&, const int&) const override { return kUnknownSign; }
+    int Register(int, const int& s) const override { return s; }
+};
+
+// The real power of integers : k >= 0 gives the wrapped product converted to a real, k < 0
+// the inverse of the wrapped product of |k| factors, |k| = (-1 - k) + 1 without overflow
+// for k = -2^31. Both powers have an exponent >= 0 ; float(e) keeps the integer products,
+// which wrap, out of the real algebra. A constant k < 0 gives its inverse directly.
+static Tree realIntegerPower(Tree x, Tree k)
+{
+    Tree one = sigReal(1.0);
+    int  i;
+    if (isSigInt(k, &i)) {
+        Tree den = (i == INT32_MIN) ? sigBinOp(kMul, sigPow(x, sigInt(INT32_MAX)), x) : sigPow(x, sigInt(-i));
+        return sigBinOp(kDiv, one, sigFloatCast(den));
+    }
+    Tree zero = sigInt(0);
+    Tree kpos = sigMax(k, zero);
+    Tree pos  = sigPow(x, kpos);
+    Tree real = sigFloatCast(pos);
+    Tree m1   = sigInt(-1);
+    Tree mk   = sigBinOp(kSub, m1, k);
+    Tree mpos = sigMax(mk, zero);
+    Tree part = sigPow(x, mpos);
+    Tree den  = sigBinOp(kMul, part, x);
+    Tree fden = sigFloatCast(den);
+    Tree inv  = sigBinOp(kDiv, one, fden);
+    Tree neg  = sigLT(k, zero);
+    return sigSelect2(neg, real, inv);
+}
+
+class PowerNatureAlgebra final : public TransformAlgebra {
+    FixPointIterator<int>& fSign;
+
+   public:
+    explicit PowerNatureAlgebra(FixPointIterator<int>& sign) : fSign(sign) {}
+
+    XSig xtdApp(Tree orig, xtended* p, const std::vector<XSig>& c) const override
+    {
+        if (p == gGlobal->gPowPrim && c.size() == 2 && typeOf(c[0])->nature() == kInt) {
+            if (typeOf(c[1])->nature() == kInt && fSign.value(c[1].orig) == kUnknownSign) {
+                return o(realIntegerPower(c[0].out, c[1].out));
+            }
+            // pow(10, x) ==> exp10(x), for a real power only (powprim.hh)
+            int ten;
+            if (typeOf(c[1])->nature() == kReal && gGlobal->gHasExp10 && isSigInt(c[0].out, &ten) && ten == 10) {
+                return o(tree(::symbol("exp10"), c[1].out));
+            }
+        }
+        return TransformAlgebra::xtdApp(orig, p, c);
+    }
+};
+
+}  // namespace
+
+Tree signalPowerNaturePromote(Tree sig)
+{
+    certifySignalsTyped(sig);
+    SignAlgebra           S;
+    FixPointIterator<int> sign(getRecPlan(sig), S, /*lazy*/ true);
+    PowerNatureAlgebra    A(sign);
     return signalTransform(sig, A);
 }
 
