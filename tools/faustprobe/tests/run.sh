@@ -104,6 +104,7 @@ check poly_key_off 0 "4,440.0,1.0,0.0" --double --nvoices 1 -n 5 --note 69:127@0
 check poly_two 0 "active_voices=2" --double --nvoices 2 --quiet -n 8 --chord 60,64@0 $DSP/synth.dsp
 check poly_silent 0 "no --note or --chord" --double --nvoices 2 --quiet -n 8 $DSP/synth.dsp
 check poly_broadcast 0 "peak=0.25" --double --nvoices 1 --quiet -n 8 --in dc --note 60:127@0 --set gain=0.25 --effect $DSP/gain.dsp $DSP/gain.dsp
+check jit_max 0 "12,16.0,16.0" --double -n 14 --every 1 $DSP/jit_max.dsp
 
 # --train: the two gains of gain_fit.dsp come out at 0.5 and -0.25
 check fd_check 0 "worst relative error" --double --in white:1 --block 256 --train g1,g2 --fd-check --blocks 0 $DSP/gain_fit.dsp

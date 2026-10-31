@@ -116,6 +116,10 @@ int main(int argc, char* argv[])
     // own takes precedence, and nothing else does.
     setenv("FAUST_OPT", "FAUST_LLVM_NO_FM", 0);
 
+    // The JIT at -O0 folds max(-1, d) to -1 in some programs on AArch64, where the
+    // same module compiled from its own bitcode is correct.
+    setenv("FAUST_LLVM_RELOAD", "1", 0);
+
     Worker worker;
     try {
         worker.args = parseArgs(argc, argv);

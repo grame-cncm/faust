@@ -115,6 +115,18 @@ loses a sample. Of the powers of the first 16 primes up to the 8th, 51 of 144 en
 up one short that way. `reverb_designer.dsp`, whose delay lengths are
 `int(pow(prime, floor(...)) - 1)`, departs from its reference by 0.03 at frame 2195.
 
+### The module is reloaded before the JIT
+
+The tool sets `FAUST_LLVM_RELOAD`, which makes libfaust reload its LLVM module from
+bitcode before the JIT. On AArch64 the JIT at `-O0` miscompiles some programs:
+in `process = d, max(-1, d);` with an integer `d` that depends on a recursion, the
+second output folds to -1, though the IR is correct and the reloaded module gives
+the right samples. Why the reload avoids it is not known. Five `*_jump_test`
+definitions of the Faust libraries depart from faust-rs without it, by up to 28 %.
+
+Any value of the variable turns the reload on, so the tool has no way to turn it
+off. A libfaust older than the commit that added the variable ignores it.
+
 `--opt-level` defaults to 0, as in faust-rs. It renders about eight times slower
 on a small filter: use `-1` for long renders and with `--time`.
 
