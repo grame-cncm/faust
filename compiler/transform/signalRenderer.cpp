@@ -392,6 +392,12 @@ void SignalRenderer<REAL>::visitNode(Tree sig)
             } else {
                 pushRes(gBinOpTable[opt_op]->compute(a, b));
             }
+        } else if (opt_op == kDiv) {
+            // the division of the run time : x / 0 is an infinity or NaN, not the refusal of
+            // the folding of constants
+            pushRes(realValue(v1.getDouble() / v2.getDouble()));
+        } else if (opt_op == kRem) {
+            pushRes(realValue(std::fmod(v1.getDouble(), v2.getDouble())));
         } else {
             // Otherwise REAL binop
             Node res = gBinOpTable[opt_op]->compute(v1.getDouble(), v2.getDouble());
