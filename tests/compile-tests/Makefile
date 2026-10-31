@@ -121,7 +121,7 @@ SCRIPTS_CORE := defined-integer-operations display-contexts display-tail-sharing
                 hoist-negation infinite-coefficients integer-pow multiplicative-algebra power-nature \
                 svg-inner-process
 SCRIPTS_ALL  := $(SCRIPTS_CORE) fixed-point-tables integer-pow-backends java-math \
-                julia-float-to-int math-domain nonfinite-constants
+                julia-float-to-int math-domain nonfinite-constants signal-renderer-pow
 SCRIPT_ARGS  ?=
 SCRIPT_LIB   ?= $(abspath ../../libraries)
 runscripts = test -f $(SCRIPT_LIB)/stdfaust.lib || { echo "NOT A VERDICT : $(SCRIPT_LIB) has no stdfaust.lib"; exit 2; }; \

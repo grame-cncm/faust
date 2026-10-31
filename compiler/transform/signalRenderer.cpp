@@ -24,6 +24,7 @@
 #include "compatibility.hh"  // For basename, pathToContent
 #include "xtended.hh"
 
+#include <cmath>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -265,6 +266,12 @@ void SignalRenderer<REAL>::visit(Tree sig)
         // Integer binop when both arguments are integer
         if (x_type->nature() == kInt && y_type->nature() == kInt) {
             pushRes(gBinOpTable[opt_op]->compute(v1.getInt(), v2.getInt()));
+        } else if (opt_op == kDiv) {
+            // the division of the run time : x / 0 is an infinity or NaN, not the refusal of
+            // the folding of constants
+            pushRes(v1.getDouble() / v2.getDouble());
+        } else if (opt_op == kRem) {
+            pushRes(std::fmod(v1.getDouble(), v2.getDouble()));
         } else {
             // Otherwise REAL binop
             pushRes(gBinOpTable[opt_op]->compute(v1.getDouble(), v2.getDouble()));

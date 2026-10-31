@@ -1290,7 +1290,10 @@ class SignAlgebra final : public SignalAlgebra<int> {
 // The real power of integers : k >= 0 gives the wrapped product converted to a real, k < 0
 // the inverse of the wrapped product of |k| factors, |k| = (-1 - k) + 1 without overflow
 // for k = -2^31. Both powers have an exponent >= 0 ; float(e) keeps the integer products,
-// which wrap, out of the real algebra. A constant k < 0 gives its inverse directly.
+// which wrap, out of the real algebra. A constant k < 0 gives its inverse directly. The
+// divisor of the branch k < 0 is 1 for k >= 0 : the branch is built, and folded, whatever k,
+// and a product folded to 0 (pow(0, k)) is a possible division by 0, +inf at run time, not a
+// certain one.
 static Tree realIntegerPower(Tree x, Tree k)
 {
     Tree one = sigReal(1.0);
@@ -1308,9 +1311,10 @@ static Tree realIntegerPower(Tree x, Tree k)
     Tree mpos = sigMax(mk, zero);
     Tree part = sigPow(x, mpos);
     Tree den  = sigBinOp(kMul, part, x);
-    Tree fden = sigFloatCast(den);
-    Tree inv  = sigBinOp(kDiv, one, fden);
     Tree neg  = sigLT(k, zero);
+    Tree sden = sigSelect2(neg, sigInt(1), den);
+    Tree fden = sigFloatCast(sden);
+    Tree inv  = sigBinOp(kDiv, one, fden);
     return sigSelect2(neg, real, inv);
 }
 
