@@ -343,10 +343,20 @@ class PowPrim : public xtendedCodegen {
     // indicate that we want ^(n) to be equivalent to _^n
     virtual bool isSpecialInfix() override { return true; }
 
+    // The power the code computes, for the interpreter of the signals (signalRenderer) : two
+    // integers give the product wrapped on 32 bits, computed unsigned, for k >= 0 ; for k < 0
+    // (a control out of its contract : a negative exponent is otherwise decided real) the
+    // integer power of the C and C++ helper, 1/x^|k| truncated toward 0. std::pow in double
+    // then converted to int was undefined beyond the integers, and inexact beyond 2^53.
     double compute(const std::vector<Node>& args) override
     {
         if (isInt(args[0]) && isInt(args[1])) {
-            return pow(args[0].getInt(), args[1].getInt());
+            int x = args[0].getInt();
+            int k = args[1].getInt();
+            if (k < 0) {
+                return (x == 1) ? 1 : (x == -1) ? ((k & 1) ? -1 : 1) : 0;
+            }
+            return int32_t(ipow(uint32_t(x), uint32_t(k)));
         } else {
             return pow(args[0].getDouble(), args[1].getDouble());
         }
