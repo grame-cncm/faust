@@ -49,6 +49,11 @@ check block_sizes 0 "# check block=7 out1: identical" --double --quiet -n 256 --
 check reset 0 "# check reset out0: identical" --double --quiet -n 256 --check reset $DSP/filt.dsp
 check vector_mode 0 "# check block=7 out0: identical" --double -vec -vs 16 --quiet -n 256 --check block=7 $DSP/filt.dsp
 
+# The optimiser does not change what a length truncates to: pow(53, 1) is 53
+for level in 0 1 3 -1; do
+    check pow_exact_$level 0 "0,53.0,53.0" --double --opt-level $level -n 1 --in zero $DSP/powint.dsp
+done
+
 # Refusals
 check unknown_control 1 "no control matching" --set nope=1 $DSP/gain.dsp
 check out_of_range 1 "outside the range [0, 1]" --set gain=2 $DSP/gain.dsp

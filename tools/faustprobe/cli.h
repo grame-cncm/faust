@@ -45,7 +45,7 @@ struct Args {
     std::string              file;
     std::vector<std::string> evals;
     std::vector<std::string> importDirs;
-    int                      optLevel = 0;  // see README.md: what a probe owes is the right samples
+    int                      optLevel = 0;
     int                      sr       = 44100;
     size_t                   block    = 64;
     size_t                   render   = 15000;

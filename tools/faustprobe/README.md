@@ -89,15 +89,27 @@ faustprobe --svg figures --fold 3 file.dsp
 The soundfile a program reads is the in-memory fixture of the impulse tests, as
 in faust-rs: the tool does not load audio files for `soundfile`.
 
-### `--opt-level` defaults to 0
+### Fast math is off
 
-LLVM runs no optimisation unless asked, so a render is slower: about an eighth
-of the speed of `--opt-level -1` on a small filter. What the tool owes is the
-right samples: on the `tests/impulse-tests` corpus, in double precision, `--opt-level
-0` gives the reference of all 99 programs; from `--opt-level 1` up,
-`reverb_designer.dsp` departs from its reference by 0.03, from frame 2195 on. The
-cause is not established. Use `--opt-level -1` with `--time` to see what a program
-costs in a real host.
+By default libfaust marks every floating-point call of its LLVM IR `fast`. From
+`-O1` up, LLVM then computes `pow(C, x)` as `exp2(log2(C) * x)`, which is not
+exact: `pow(53, 1)` gives 52.999999999999986 where `-O0` gives 53, and a length made from it by truncation loses a sample. Of the
+powers of the first 16 primes up to the 8th, 51 of 144 end up one short that way.
+`reverb_designer.dsp`, whose delay lengths are `int(pow(prime, floor(...)) - 1)`,
+departs from its reference by 0.03 at frame 2195.
+
+The tool therefore sets `FAUST_OPT=FAUST_LLVM_NO_FM`, as the LLVM rule of
+`tests/impulse-tests/Makefile` does, and every `--opt-level` gives the reference
+of all 99 programs of the impulse-test corpus. What a libfaust host with default
+settings gets is what an empty value shows, a `FAUST_OPT` set by the user being
+left alone:
+
+```sh
+FAUST_OPT= faustprobe --opt-level -1 ...
+```
+
+`--opt-level` defaults to 0, as in faust-rs. It renders about eight times slower
+on a small filter: use `-1` for long renders and with `--time`.
 
 ## How it was checked
 
@@ -108,7 +120,7 @@ costs in a real host.
   apart by 1e-16 in double precision, a level of -334 dB on a null);
 - `--protocol impulse-test --double` against the C++ references of
   `tests/impulse-tests/reference`, compared on the 15000 frames of the scalar pass
-  with an absolute tolerance of 1e-3: 99 programs of 99;
+  with an absolute tolerance of 1e-3: 99 programs of 99, at `--opt-level` 0 and 3;
 - the same commands under AddressSanitizer and UndefinedBehaviorSanitizer.
 
 ## Layout
