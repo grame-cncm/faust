@@ -1,0 +1,4 @@
+build/
+faustprobe
+tests/unit
+tests/out/

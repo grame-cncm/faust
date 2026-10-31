@@ -1,0 +1,6 @@
+// A library has no process.
+import("constants.lib");
+half(x) = x / 2;
+onepole(p) = _ : + ~ *(p);
+pair = 1, 2;
+scaled = hslider("k", 2, 0, 4, 0.1) * 3;

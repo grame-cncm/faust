@@ -17,3 +17,4 @@ The following tools are currently available:
   * several 'waveforms' for separated mono channels
   * a resulting 'processor' that simply output all mono 'waveforms' 
 * `benchmark` folder contains additional tools to test the C++, LLVM, WebAssembly and Interpreter backends, and the performance of their generated code. 
+* `faustprobe` compiles a Faust program with the LLVM JIT, sets its controls from the command line, renders it offline and prints samples, statistics, sweeps, descriptors, frequency responses or block diagrams.
