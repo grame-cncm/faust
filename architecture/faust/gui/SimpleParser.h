@@ -193,9 +193,11 @@ static bool parseDouble(const char*& p, double& x)
     if (valid)  {
         // Correctly rounded, which the sum below is not: it loses the last digits of a
         // value written with all of them. Not strtod: it follows the locale of the host.
+        // The sum remains for what the stream refuses (1e, 1e400) or does not read to the
+        // end: parseChar skips blanks, so that "1 .5" is 1.5, where the stream stops at 1.
         std::istringstream text(std::string(saved, p));
         text.imbue(std::locale::classic());
-        if (!(text >> x)) {
+        if (!(text >> x) || !(text >> std::ws).eof()) {
             x = (sign*(ipart + dpart/dcoef)) * std::pow(10.0, expcoef*expsign);
         }
     } else {
