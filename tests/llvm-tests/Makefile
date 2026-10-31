@@ -76,6 +76,8 @@ help:
 	@echo "  test-c       - test the factory/instance API in C"
 	@echo "  test-poly    - test the polyphonic factory/instance API, then with a gloabl effect"
 	@echo "  check-opt-cache - test JIT optimization levels and factory cache identity"
+	@echo "  check-json-init - test the widget values of the JIT, its JSON and FAUST_LLVM_RELOAD"
+	@echo "  check-parse-double - test the number parser of the JSON decoder"
 	@echo "  help         - Display this help message"
 
 # Use the library and compiler from the same build explicitly in regression gates.
@@ -91,3 +93,23 @@ check-opt-cache:
 	$(CXX) --version
 	$(CXX) -std=c++11 -O1 -ffp-contract=off -DLLVM_TEST_MAX_LEVEL=$(LLVM_TEST_MAX_LEVEL) -I$(OPT_CACHE_INC) llvm-opt-cache-test.cpp $(OPT_CACHE_LIB) -Wl,-rpath,$(abspath $(dir $(OPT_CACHE_LIB))) -o $(OPT_CACHE_TEST)
 	$(OPT_CACHE_TEST)
+
+# Linked statically: libfaust.dylib is not part of every build.
+JSON_INIT_LIB ?= ../../build/lib/libfaust.a
+JSON_INIT_INC ?= ../../architecture
+JSON_INIT_TEST ?= /tmp/faust-llvm-json-init-test
+
+.PHONY: check-json-init
+check-json-init:
+	$(FAUST) --version
+	$(CXX) --version
+	$(CXX) -std=c++11 -O1 -ffp-contract=off -I$(JSON_INIT_INC) llvm-json-init-test.cpp $(JSON_INIT_LIB) -L$(LIB_OPT) $(LIB_OPT1) -lpthread $(LLVM) $(LDFLAGS) -o $(JSON_INIT_TEST)
+	$(JSON_INIT_TEST) $(JSON_INIT_TEST).o
+
+PARSE_DOUBLE_TEST ?= /tmp/faust-parse-double-test
+
+.PHONY: check-parse-double
+check-parse-double:
+	$(CXX) --version
+	$(CXX) -std=c++11 -O1 -ffp-contract=off -I$(JSON_INIT_INC) parse-double-test.cpp -o $(PARSE_DOUBLE_TEST)
+	$(PARSE_DOUBLE_TEST)

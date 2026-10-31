@@ -66,3 +66,28 @@ still generate the initial IR on every request.
 They still set target and optimization level before `initJIT()`.
 The precompiled machine-code reader is unchanged:
 it restores already-generated machine code and has no IR optimization parameter.
+
+## JSON description and FAUST_LLVM_RELOAD
+
+`check-json-init` links the static library, so it needs no shared build:
+
+```sh
+make -C tests/llvm-tests check-json-init FAUST="$(pwd)/build/bin/faust"
+```
+
+Rebuild the library first with `make -C build`: `make` at the root reconfigures
+the build for the regular targets and leaves `libfaust.a` as it is.
+
+- Widget values that need all 17 digits come back exact through the JSON of the
+  factory, in double and in single precision, after `init` and after
+  `instanceResetUserInterface`, and through bitcode.
+- `FAUST_LLVM_RELOAD` gives correct code for a program that the JIT miscompiles
+  on AArch64, at the levels 0, 1 and -1, keeps the samples of an ordinary
+  program, and survives a cross compilation. It prints whether the miscompile
+  is present without the variable; that line is information, not a check, as it
+  depends on the target and on LLVM.
+
+`check-parse-double` needs neither LLVM nor libfaust. It checks `parseDouble` of
+`architecture/faust/gui/SimpleParser.h`: fixed texts, one million round trips of
+normal doubles to the last bit, subnormals, and a comma locale when the host has
+one.
