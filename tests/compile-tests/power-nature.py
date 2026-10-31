@@ -10,6 +10,7 @@ of |k| factors for k < 0, +inf when that product is 0.
 
 1. Variable exponents : pow(2, n) * 2, n in [0, 100], is an integer (0 at n = 31) ;
    pow(2, m) * 2, m in [-1, 100], is a real (-4294967296.0 at m = 31, 0.5 * 2 at m = -1) ;
+   pow(0, m) is a possible division by 0, not a certain one : it compiles, +inf at m = -1 ;
    an attach in the exponent keeps its sign ; the sign of a control is its declared
    minimum under -norui as well.
 2. -fui writes the program with the values of the controls : pow(2, n - 3) * 2, n = 34,
@@ -42,7 +43,7 @@ VARIABLE_DSP = """
 w(v) = v * 2147483647 + 1;
 n = int(hslider("n", 0, 0, 100, 1));
 m = int(hslider("m", 0, -1, 100, 1));
-process = pow(2, n) * 2, pow(2, m) * 2, pow(2, attach(n, n : hbargraph("g", 0, 100))) * 2, w(pow(1, m));
+process = pow(2, n) * 2, pow(2, m) * 2, pow(2, attach(n, n : hbargraph("g", 0, 100))) * 2, w(pow(1, m)), pow(0, m);
 """
 
 # (n, m) -> outputs : pow(2, n) * 2 wraps as an integer, pow(2, m) * 2 is a real
@@ -54,9 +55,14 @@ def wrapped(v):
     return v - 2**32 if v >= 2**31 else v
 
 
+def c_double(v):
+    return "INFINITY" if v == float("inf") else repr(float(v))
+
+
 def variable_want(n, m):
     real_m = 2.0 * (0.5 if m < 0 else float(wrapped(2**m)))
-    return [wrapped(2 * wrapped(2**n)), real_m, wrapped(2 * wrapped(2**n)), 2147483648.0]
+    zero_m = float("inf") if m < 0 else (1.0 if m == 0 else 0.0)
+    return [wrapped(2 * wrapped(2**n)), real_m, wrapped(2 * wrapped(2**n)), 2147483648.0, zero_m]
 
 
 FUI_DSP = """
@@ -122,20 +128,20 @@ static void check(const char* what, int j, double got, double want) {
 VARIABLE_CPP = UI_CPP + """
 int main() {
     static const int cs[][2] = {%s};
-    static const double want[][4] = {%s};
+    static const double want[][5] = {%s};
     for (int c = 0; c < %d; c++) {
         mydsp d; RUI ui; d.init(48000); d.buildUserInterface(&ui);
         *ui.z["n"] = FAUSTFLOAT(cs[c][0]); *ui.z["m"] = FAUSTFLOAT(cs[c][1]);
-        FAUSTFLOAT in[1] = {0}, o[4][1]; FAUSTFLOAT* ip[1] = {in}; FAUSTFLOAT* op[4] = {o[0], o[1], o[2], o[3]};
+        FAUSTFLOAT in[1] = {0}, o[5][1]; FAUSTFLOAT* ip[1] = {in}; FAUSTFLOAT* op[5] = {o[0], o[1], o[2], o[3], o[4]};
         d.compute(1, ip, op);
         char what[64]; snprintf(what, sizeof what, "n = %%d, m = %%d", cs[c][0], cs[c][1]);
-        for (int j = 0; j < 4; j++) check(what, j, double(o[j][0]), double(FAUSTFLOAT(want[c][j])));
+        for (int j = 0; j < 5; j++) check(what, j, double(o[j][0]), double(FAUSTFLOAT(want[c][j])));
     }
     printf("%%d cases, %%d differ\\n", cases, bad);
     return bad != 0;
 }
 """ % (", ".join("{%d, %d}" % c for c in VARIABLE_CASES),
-       ", ".join("{" + ", ".join(repr(float(v)) for v in variable_want(*c)) + "}" for c in VARIABLE_CASES),
+       ", ".join("{" + ", ".join(c_double(v) for v in variable_want(*c)) + "}" for c in VARIABLE_CASES),
        len(VARIABLE_CASES))
 
 FUI_CPP = UI_CPP + """

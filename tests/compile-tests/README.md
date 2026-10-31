@@ -20,8 +20,8 @@ FAUST=<binary>` runs those that need only faust and a C/C++ compiler
 `infinite-coefficients`, `integer-pow`, `defined-integer-operations`, `power-nature`,
 `svg-inner-process`) ;
 `make check-scripts-all` runs every one, the others needing Java, Julia,
-Cargo, Node or the Xilinx `ap_fixed.h` header (`SCRIPT_ARGS` passes their
-paths). One verdict per script ; the target fails when one script fails.
+Cargo, Node, the Xilinx `ap_fixed.h` header or the static libfaust of the build
+(`SCRIPT_ARGS` passes their paths). One verdict per script ; the target fails when one script fails.
 
 ### Defined integer operations
 
@@ -61,6 +61,7 @@ python3 tests/compile-tests/multiplicative-algebra.py --faust build/bin/faust
 computed on the structure, proves k >= 0, and a real otherwise (the wrapped product
 converted, its inverse for k < 0), read through `* 2147483647 + 1` : `pow(2, n) * 2`, n in
 [0, 100], is 0 at n = 31 ; `pow(2, m) * 2`, m in [-1, 100], is -4294967296.0 at m = 31 ;
+`pow(0, m)`, a possible division by 0, compiles and is +inf at m = -1 ;
 the same under `-norui` ; `-fui` folds `pow(2, 34 - 3)` as written by hand, an integer ;
 two constants are folded to the value the code computes (`pow(3, 0)` the integer 1,
 `pow(2, -31)` 1 / -2147483648) ; `pow(0, -1)` and `pow(2, -32)` are refused. The sign at run
@@ -70,6 +71,20 @@ and `ocpp`, single and double precision :
 
 ```sh
 python3 tests/compile-tests/power-nature.py --faust build/bin/faust
+```
+
+### The power in the interpreter of the signals
+
+`signal-renderer-pow.py` links a runner with the static libfaust (`build/lib/libfaust.a`,
+or `--libfaust`) and runs the interpreter of the signals (`signalRenderer`,
+`createSignalDSPFactoryFromString`) on `pow(b, k)` : an integer power for k in [0, 70],
+the product wrapping on 32 bits (it was `std::pow` in double converted to int, undefined
+beyond the integers : INT_MIN for `pow(3, 21)`), a real power for k in [-40, 70], whose
+base 0 gives +inf at run time (the interpreter divided with the folding of constants, which
+refuses a divisor 0). 15 bases, double precision :
+
+```sh
+python3 tests/compile-tests/signal-renderer-pow.py --faust build/bin/faust
 ```
 
 ### A certain division by 0
