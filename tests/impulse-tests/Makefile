@@ -506,7 +506,6 @@ wast:
 #########################################################################
 # llvm backend
 llvm:
-	export FAUST_OPT=FAUST_LLVM_NO_FM; \
 	$(MAKE) -f Make.llvm outdir=llvm/double               FAUSTOPTIONS="-I dsp"
 	$(MAKE) -f Make.llvm outdir=llvm/double/it            FAUSTOPTIONS="-I dsp -it"
 	$(MAKE) -f Make.llvm outdir=llvm/double/ftz1          FAUSTOPTIONS="-I dsp -ftz 1"
@@ -531,7 +530,6 @@ llvm:
 #########################################################################
 # llvm backend in object code mode
 llvm1:
-	export FAUST_OPT=FAUST_LLVM_NO_FM; \
 	$(MAKE) -f Make.llvm1 outdir=llvm1/double               FAUSTOPTIONS="-I dsp -double"
 	$(MAKE) -f Make.llvm1 outdir=llvm1/double/inpl          FAUSTOPTIONS="-I dsp -double -inpl"
 	$(MAKE) -f Make.llvm1 outdir=llvm1/double/dlt0          FAUSTOPTIONS="-I dsp -double -dlt 0"

@@ -84,6 +84,10 @@ void LLVMCodeContainer::init(const string& name, int numInputs, int numOutputs, 
         FastMathFlags FMF;
 #if LLVM_VERSION_MAJOR >= 8
         FMF.setFast();  // has replaced the following function
+        // Not 'afn': it lets LLVM replace a library call by an approximation, pow(C, x) by
+        // exp2(log2(C) * x) for instance, which is not exact on integer values: pow(53.0, 1.0)
+        // gives 52.999999999999986, and a delay length truncated from it loses a sample.
+        FMF.setApproxFunc(false);
 #else
         FMF.setUnsafeAlgebra();
 #endif
