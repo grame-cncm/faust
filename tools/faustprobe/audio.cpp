@@ -25,6 +25,7 @@ static uint16_t u16At(const std::string& b, size_t at)
                                  (static_cast<unsigned char>(b[at + 1]) << 8));
 }
 
+// Two 16-bit reads: the bounds are checked in one place.
 static uint32_t u32At(const std::string& b, size_t at)
 {
     if (at + 4 > b.size()) {
@@ -33,6 +34,8 @@ static uint32_t u32At(const std::string& b, size_t at)
     return u16At(b, at) | (static_cast<uint32_t>(u16At(b, at + 2)) << 16);
 }
 
+// Assembled byte by byte, then given the bits of a float: the file is little-endian
+// and p may be misaligned.
 static float f32At(const char* p)
 {
     uint32_t bits = 0;
@@ -44,6 +47,7 @@ static float f32At(const char* p)
     return value;
 }
 
+// The same for a double.
 static double f64At(const char* p)
 {
     uint64_t bits = 0;
@@ -59,14 +63,17 @@ static double f64At(const char* p)
 static double decodeWav(int format, int bits, const char* p)
 {
     const unsigned char* b = reinterpret_cast<const unsigned char*>(p);
+    // format 3 is IEEE float, stored as it is; format 1 is PCM
     if (format == 3) {
         return bits == 32 ? static_cast<double>(f32At(p)) : f64At(p);
     }
     switch (bits) {
+        // 8-bit WAV is unsigned, around 128
         case 8:
             return (double(b[0]) - 128.0) / 128.0;
         case 16:
             return double(int16_t(b[0] | (b[1] << 8))) / 32768.0;
+        // in the top of an int32, so that the arithmetic shift extends the sign
         case 24:
             return double(int32_t(uint32_t(b[0]) << 8 | uint32_t(b[1]) << 16 | uint32_t(b[2]) << 24) >> 8) /
                    8388608.0;
@@ -84,11 +91,14 @@ static AudioFile readWav(const std::string& bytes)
     if (bytes.size() < 12 || bytes.compare(0, 4, "RIFF") != 0 || bytes.compare(8, 4, "WAVE") != 0) {
         throw Failure("not a RIFF/WAVE file");
     }
+    // the fields of the fmt chunk
     int      format = 0, channels = 0, bits = 0;
     uint32_t rate = 0;
     const char* data = nullptr;
     size_t   dataSize = 0;
     size_t   at = 12;
+    // Chunks are an id, a size, and a body padded to an even length; a truncated last
+    // chunk keeps what the file holds.
     while (at + 8 <= bytes.size()) {
         std::string id   = bytes.substr(at, 4);
         size_t      size = u32At(bytes, at + 4);
@@ -128,6 +138,7 @@ static AudioFile readWav(const std::string& bytes)
         throw Failure("unsupported WAV format " + std::to_string(format) + " at " + std::to_string(bits) +
                       " bits");
     }
+    // interleaved in the file, one vector per channel here
     size_t    frames = dataSize / frame;
     AudioFile file;
     file.channels.assign(channels, std::vector<double>(frames));
@@ -152,6 +163,7 @@ static Channels readNpy(const std::string& bytes)
     }
     size_t headerLength, headerAt;
     int    version = static_cast<unsigned char>(bytes[6]);
+    // version 1 has a 16-bit header length, versions 2 and 3 a 32-bit one
     if (version == 1) {
         headerLength = u16At(bytes, 8), headerAt = 10;
     } else if (version == 2 || version == 3) {
@@ -169,6 +181,7 @@ static Channels readNpy(const std::string& bytes)
     const char* data   = bytes.data() + headerAt + headerLength;
     size_t      size   = bytes.size() - headerAt - headerLength;
 
+    // What follows a key of the dict literal of the header.
     auto field = [&header](const std::string& key) {
         size_t at = header.find(key);
         if (at == std::string::npos) {
@@ -227,6 +240,7 @@ static Channels readNpy(const std::string& bytes)
     return out;
 }
 
+// The format is told by the extension, checked before the file is read.
 AudioFile readChannels(const std::string& path)
 {
     std::string extension = extensionOf(path);
@@ -264,12 +278,14 @@ AudioFile readChannels(const std::string& path)
     }
 }
 
+// Header fields, little-endian.
 static void putU16(std::string& out, uint32_t value)
 {
     out += static_cast<char>(value & 0xFF);
     out += static_cast<char>((value >> 8) & 0xFF);
 }
 
+// Low half first.
 static void putU32(std::string& out, uint32_t value)
 {
     putU16(out, value & 0xFFFF);
@@ -325,6 +341,8 @@ static std::string wavHeader(size_t frames, size_t channels, size_t bytesPerSamp
     return header;
 }
 
+// Everything is refused before the file is created, so that a refused command
+// leaves no file behind. .f64 stores doubles and .f32 floats, whatever the program.
 SampleWriter::SampleWriter(const std::string& path, size_t channels, size_t frames, bool isDouble,
                            int sampleRate)
     : fPath(path), fFile(nullptr), fWide(isDouble), fExpected(frames)
@@ -369,6 +387,7 @@ SampleWriter::SampleWriter(const std::string& path, size_t channels, size_t fram
     }
 }
 
+// Closes the file: finish() is what reports errors.
 SampleWriter::~SampleWriter()
 {
     if (fFile != nullptr) {
@@ -376,6 +395,7 @@ SampleWriter::~SampleWriter()
     }
 }
 
+// Each sample as its bytes, little-endian whatever the machine.
 void SampleWriter::push(const std::vector<double>& samples)
 {
     if (!fError.empty()) {
@@ -409,6 +429,7 @@ void SampleWriter::push(const std::vector<double>& samples)
     fWritten++;
 }
 
+// See audio.h.
 void SampleWriter::finish()
 {
     if (!fError.empty()) {

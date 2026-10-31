@@ -39,6 +39,7 @@ static double irNormalize(double value)
     return (std::isfinite(value) && fabs(value) < 0.000001) ? 0.0 : value;
 }
 
+// The header of an .ir file.
 static std::string irHeader(size_t inputs, size_t outputs, size_t frames)
 {
     char text[128];
@@ -47,6 +48,7 @@ static std::string irHeader(size_t inputs, size_t outputs, size_t frames)
     return text;
 }
 
+// One line of an .ir file: %6d :  %8.6f ..., NaN and inf spelled as faust-rs does.
 static std::string irLine(size_t frame, const std::vector<double>& samples)
 {
     char text[512];  // the largest double has 309 digits before its point
@@ -69,6 +71,7 @@ static std::string irLine(size_t frame, const std::vector<double>& samples)
 // Factories with equal keys are one factory in a process, so a second
 // compilation runs in another one. Samples travel as bit patterns, signed zero
 // included, without decimal rounding.
+// The path of this program, which spawns itself.
 static std::string currentExecutable()
 {
 #if defined(__APPLE__)
@@ -89,6 +92,8 @@ static std::string currentExecutable()
 #endif
 }
 
+// Rebuilds the command line of what is being checked, runs it, and returns the key of
+// the second compilation, with its samples.
 std::string determinismRender(const Args& args, Samples& samples)
 {
     std::vector<std::string> command = {currentExecutable(), "--determinism-worker"};
@@ -135,6 +140,7 @@ std::string determinismRender(const Args& args, Samples& samples)
     argv.push_back(nullptr);
     fflush(stdout);
     fflush(stderr);
+    // flushed above: the child must not repeat what stdout holds
     pid_t child = fork();
     if (child < 0) {
         throw Failure("--check determinism: cannot run independent process: " + std::string(strerror(errno)));
@@ -150,6 +156,7 @@ std::string determinismRender(const Args& args, Samples& samples)
     std::string report, failure;
     char        buffer[65536];
     ssize_t     count;
+    // stdout to its end, then stderr: a failing worker prints little
     while ((count = read(output[0], buffer, sizeof(buffer))) > 0) {
         report.append(buffer, static_cast<size_t>(count));
     }
@@ -186,6 +193,7 @@ std::string determinismRender(const Args& args, Samples& samples)
     return key;
 }
 
+// Compiles, renders, and prints what determinismRender() reads.
 void determinismWorker(const Args& args)
 {
     Compiled compiled = compileProgram(args, args.compile.isDouble);
@@ -212,11 +220,13 @@ void determinismWorker(const Args& args)
 
 namespace {
 
+// An invariant --check verifies on the render.
 struct Check {
     enum class Kind { Block, Reset, Determinism, Width };
     Kind   kind = Kind::Reset;
     size_t size = 0;
 
+    // As it heads the lines: block=N, reset...
     std::string name() const
     {
         switch (kind) {
@@ -286,6 +296,7 @@ static std::vector<Check> parseChecks(const std::vector<std::string>& specs, siz
     return checks;
 }
 
+// See report.h.
 Samples renderForComparison(Probe& probe, const RenderSpec& spec, const Assignments& sets, const std::string& what)
 {
     probe.reset();
@@ -302,6 +313,8 @@ Samples renderForComparison(Probe& probe, const RenderSpec& spec, const Assignme
     return samples;
 }
 
+// One comparison as lines. 'gate' says whether a disagreement fails the command or is
+// only reported, as --check width is without a tolerance.
 static std::vector<std::string> comparisonLines(const std::string& tag, const Comparison& comparison, bool gate,
                                                 const NumberFormat& fmt)
 {
@@ -330,6 +343,7 @@ static std::vector<std::string> comparisonLines(const std::string& tag, const Co
     return lines;
 }
 
+// One comparison for the JSON document.
 static Json comparisonJson(const Comparison& comparison)
 {
     Json channels = Json::array();
@@ -353,6 +367,7 @@ static Json comparisonJson(const Comparison& comparison)
 
 namespace {
 
+// The render that is judged, and what rendering it again takes.
 struct Subject {
     const Args&                     args;
     const std::shared_ptr<Factory>& factory;
@@ -372,8 +387,11 @@ struct Verdict {
 // What --compare, --ref and --check need, settled before any render.
 class Verification {
    public:
+    // Whether any of the three was given.
     bool requested = false;
 
+    // Validates the flags and what they name: the second program is compiled and its own
+    // writes checked, the reference read. 'clamped' receives the clamps of its writes.
     void prepare(const Args& args, Probe& probe, const Schedule& schedule, bool sweeping, std::vector<Clamped>& clamped)
     {
         requested = verificationRequested(args);
@@ -422,6 +440,8 @@ class Verification {
         fOutputs           = args.compareOutputs.empty() ? nullptr : &args.compareOutputs;
     }
 
+    // Judges one render. 'context' explains a frame, as for a failed render. The first
+    // failure is kept, and reported after the output, which carries the details.
     Verdict judge(const Subject& subject, const Samples& render, const FrameContext& context)
     {
         Verdict verdict;
@@ -494,17 +514,18 @@ class Verification {
     }
 
    private:
-    Tolerance                  fTolerance;
-    bool                       fExplicitTolerance = false;
-    const std::vector<size_t>* fOutputs           = nullptr;
-    std::vector<Check>         fChecks;
-    std::unique_ptr<Probe>     fOther;
+    Tolerance                  fTolerance;  // --tolerance, --rel-tolerance
+    bool                       fExplicitTolerance = false;  // makes --check width a gate
+    const std::vector<size_t>* fOutputs           = nullptr;  // --compare-outputs; null for all
+    std::vector<Check>         fChecks;  // --check
+    std::unique_ptr<Probe>     fOther;  // --compare: the second program
     std::string                fOtherPath;
-    Assignments                fOtherSets;
+    Assignments                fOtherSets;  // --set and --set-b
     std::string                fReferencePath;
-    Samples                    fReference;
+    Samples                    fReference;  // --ref: the render saved earlier
     bool                       fHasReference = false;
 
+    // The second program of --compare: compiled, of the same arity, its writes checked.
     void otherProgram(const Args& args, Probe& probe, const Schedule& schedule, std::vector<Clamped>& clamped)
     {
         std::shared_ptr<Factory> factory;
@@ -531,6 +552,8 @@ class Verification {
         }
     }
 
+    // The second render a check compares the first with, whether a disagreement fails the
+    // command, and within what tolerance.
     void renderAgain(const Check& check, const std::string& tag, const Subject& subject, std::vector<std::string>& lines,
                      Samples& samples, bool& gate, Tolerance& limit)
     {
@@ -655,6 +678,7 @@ class Run {
         fSweepCsv = sweeping && args.format == Format::Csv;
     }
 
+    // One render per point, then what closes the output.
     void run()
     {
         const Args& args      = fArgs;
@@ -738,13 +762,14 @@ class Run {
     Schedule          fSchedule;
     Assignments       fFixed;
     Clamps            fClamps;
-    std::vector<std::string> fBargraphPaths;
-    std::vector<std::string> fLabels;
-    std::vector<std::string> fLegend;
+    std::vector<std::string> fBargraphPaths;  // for the headers
+    std::vector<std::string> fLabels;  // what each output is
+    std::vector<std::string> fLegend;  // the # eval lines
     Verification      fVerification;
     RenderSpec        fSpec;
-    bool              fSweepCsv = false;
+    bool              fSweepCsv = false;  // a sweep printed as CSV: the rows are the output, no per-frame dump
 
+    // The swept controls, the measures, the bargraphs.
     std::vector<std::string> sweepHeader() const
     {
         std::vector<std::string> header;
@@ -760,6 +785,7 @@ class Run {
         return header;
     }
 
+    // The header of the per-frame dump.
     void printFramesHeader() const
     {
         if (fArgs.format == Format::Csv) {
@@ -778,6 +804,7 @@ class Run {
         }
     }
 
+    // One frame of the dump.
     void printFrame(size_t frame, const std::vector<double>& samples) const
     {
         if (fArgs.format == Format::Csv) {
@@ -799,6 +826,7 @@ class Run {
         }
     }
 
+    // One render from a cleared instance, its rows streamed as they come; a Failure if it fails.
     Rendered renderPoint(const Point& point)
     {
         const Args& args = fArgs;
@@ -861,11 +889,13 @@ class Run {
         return rendered;
     }
 
+    // What a failure at a frame of this point is explained with.
     std::string context(const Point& point, size_t frame) const
     {
         return failureContext(frame, written(fProbe.controls(), fFixed, point), fSchedule, fProbe.controls());
     }
 
+    // --compare, --ref and --check on one render.
     Verdict verify(const Point& point, const Rendered& rendered)
     {
         if (!fVerification.requested) {
@@ -878,6 +908,7 @@ class Run {
         return fVerification.judge(subject, render, [&](size_t frame) { return context(point, frame); });
     }
 
+    // One render, as an entry of the document's runs.
     Json jsonRun(const Point& point, const Rendered& rendered, const Verdict& verdict) const
     {
         Json entry = verdict.json;
@@ -916,6 +947,7 @@ class Run {
         return entry;
     }
 
+    // One render, as a row of a sweep.
     std::vector<std::string> sweepRow(const Point& point, const Rendered& rendered) const
     {
         // the value the render used: under --clamp the row must not claim the requested one
@@ -934,6 +966,7 @@ class Run {
         return row;
     }
 
+    // One render, as the statistics block.
     void statistics(const Rendered& rendered, const Verdict& verdict) const
     {
         const RenderStats& stats = rendered.stats;
@@ -964,6 +997,8 @@ class Run {
 
 }  // namespace
 
+// Compiled first: --list-params needs nothing else. The points come before the
+// measures, so that the first of two errors does not depend on the program.
 void runRender(const Args& args, bool impulseTest)
 {
     Compiled     compiled = compileTimed(args);

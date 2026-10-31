@@ -12,7 +12,9 @@
 #include <cmath>
 #include <cstdio>
 
+// The magnitude of an int is taken in long long, where that of INT_MIN fits.
 Json::Json() : fKind(Kind::Null) {}
+// One constructor per kind of value.
 Json::Json(bool value) : fKind(Kind::Bool), fBool(value) {}
 Json::Json(int value)
     : fKind(Kind::Integer),
@@ -25,6 +27,7 @@ Json::Json(double value) : fKind(std::isfinite(value) ? Kind::Number : Kind::Nul
 Json::Json(const char* value) : fKind(Kind::String), fString(value) {}
 Json::Json(const std::string& value) : fKind(Kind::String), fString(value) {}
 
+// Containers start from a null, which gets its kind here.
 Json Json::object()
 {
     Json json;
@@ -39,6 +42,7 @@ Json Json::array()
     return json;
 }
 
+// An array of strings, and below of numbers and of sizes.
 Json Json::strings(const std::vector<std::string>& values)
 {
     Json json = array();
@@ -66,12 +70,14 @@ Json Json::sizes(const std::vector<size_t>& values)
     return json;
 }
 
+// Replaces a key already there; std::map keeps the keys sorted.
 Json& Json::set(const std::string& key, const Json& value)
 {
     fObject[key] = value;
     return *this;
 }
 
+// Appends to an array.
 Json& Json::push(const Json& value)
 {
     fArray.push_back(value);
@@ -93,14 +99,19 @@ static std::string numberText(double value)
     }
     ShortestDigits d      = shortestDigits(value);
     int            length = static_cast<int>(d.digits.size());
+    // length digits, the point after the kk-th of them
     int            kk     = d.exponent + 1;  // 10^(kk-1) <= |value| < 10^kk
     std::string    out;
+    // 1234e7 -> 12340000000.0
     if (kk >= length && kk <= 16) {
         out = d.digits + std::string(kk - length, '0') + ".0";
+    // 1234e-2 -> 12.34
     } else if (kk > 0 && kk <= 16) {
         out = d.digits.substr(0, kk) + "." + d.digits.substr(kk);
+    // 1234e-6 -> 0.001234
     } else if (kk > -5 && kk <= 0) {
         out = "0." + std::string(-kk, '0') + d.digits;
+    // 1e30
     } else if (length == 1) {
         out = d.digits + "e" + std::to_string(kk - 1);
     } else {
@@ -109,6 +120,7 @@ static std::string numberText(double value)
     return sign + out;
 }
 
+// A JSON string: quotes, backslashes and control characters escaped, UTF-8 as it is.
 static void writeString(std::string& out, const std::string& text)
 {
     out += '"';
@@ -142,6 +154,7 @@ static void writeString(std::string& out, const std::string& text)
     out += '"';
 }
 
+// inner indents the elements of a container, close its closing bracket.
 void Json::write(std::string& out, int indent) const
 {
     std::string inner(2 * (indent + 1), ' ');

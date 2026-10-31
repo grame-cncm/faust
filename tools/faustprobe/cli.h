@@ -21,6 +21,7 @@
 #include "text.h"
 #include "train.h"
 
+// --format, --protocol and where --fd-check runs.
 enum class Format { Csv, Ir, Json };
 enum class ProtocolKind { Free, ImpulseTest };
 enum class FdWhere { Start, End, Both };
@@ -32,14 +33,16 @@ struct CompileOptions {
     std::string processName = "process";
     bool        vec = false;
     Optional<std::string> vs, lv, scheduling, mcd, dlt, checkTable, ftz;
-    bool externalControl = false;
-    bool oneSample       = false;
-    bool memoryManager   = false;
+    bool externalControl = false;  // -ec, refused: this tool runs compute
+    bool oneSample       = false;  // -os, refused likewise
+    bool memoryManager   = false;  // -mem0, refused: a probe supplies no memory manager
 
     // As the libfaust argv spells them, less the precision.
     std::vector<std::string> argv() const;
 };
 
+// The command line, one field per option, in the order of --help. See kHelp in cli.cpp
+// for what each one does.
 struct Args {
     bool                     determinismWorker = false;
     std::string              file;
@@ -112,13 +115,16 @@ Args parseArgs(int argc, char* argv[]);
 
 // Refuses the first flag that was given, with the message made of it: what a
 // mode does not take is an error, never a flag that is ignored.
+// A flag, and whether it was given.
 struct Refusal {
     std::string flag;
     bool        given;
 };
 void refuse(const std::vector<Refusal>& conflicts, const std::string& before, const std::string& after);
 
+// What --protocol impulse-test does not take.
 void rejectProtocolConflicts(const Args& args);
+// Whether --compare, --ref or --check was given.
 bool verificationRequested(const Args& args);
 
 #endif

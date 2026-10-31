@@ -21,12 +21,14 @@
 #include "faust/gui/Soundfile.h"
 #include "faust/gui/UI.h"
 
+// steady_clock: a render's cost must not move with the wall clock.
 uint64_t nowNanos()
 {
     using namespace std::chrono;
     return static_cast<uint64_t>(duration_cast<nanoseconds>(steady_clock::now().time_since_epoch()).count());
 }
 
+// See engine.h.
 double secondsSince(uint64_t startNanos)
 {
     return double(nowNanos() - startNanos) * 1e-9;
@@ -34,6 +36,7 @@ double secondsSince(uint64_t startNanos)
 
 // ---------------------------------------------------------------- excitation
 
+// Empty files are refused: they would excite nothing and say nothing.
 InputMode InputMode::fromFile(const std::string& path, const Optional<size_t>& channel)
 {
     AudioFile file = readChannels(path);
@@ -66,6 +69,7 @@ static double white(uint64_t seed, size_t channel, size_t frame)
     return std::fma(unit, 2.0, -1.0);
 }
 
+// A file feeds input i from channel i, or from its last channel; silence past its end.
 double InputMode::sample(size_t ch, size_t frame, double sampleRate) const
 {
     switch (kind) {
@@ -116,6 +120,7 @@ static Optional<std::pair<size_t, Located>> earliest(const std::vector<ChannelSt
     return best;
 }
 
+// See earliest() above.
 Optional<std::pair<size_t, Located>> RenderStats::firstNonFinite() const
 {
     return earliest(channels, [](const ChannelStats& c) -> const Optional<Located>& { return c.firstNonFinite; });
@@ -126,6 +131,7 @@ Optional<std::pair<size_t, Located>> RenderStats::firstAbove() const
     return earliest(channels, [](const ChannelStats& c) -> const Optional<Located>& { return c.firstAbove; });
 }
 
+// An empty window says nothing about the program.
 bool RenderStats::isSilent() const
 {
     if (windowLength == 0) {
@@ -139,12 +145,15 @@ bool RenderStats::isSilent() const
     return true;
 }
 
+// Every sum at zero, every location absent.
 StatsAccumulator::StatsAccumulator(size_t channels, size_t start, const Optional<double>& limit, bool isDouble)
     : fChannels(channels), fSumSquares(channels, 0.0), fSum(channels, 0.0), fSingle(!isDouble), fLimit(limit),
       fStart(start)
 {
 }
 
+// A non-finite sample skips the sums, which would be lost to it: what it means is
+// said by firstNonFinite.
 void StatsAccumulator::push(size_t frame, const std::vector<double>& samples)
 {
     bool inside         = frame >= fStart;
@@ -177,6 +186,7 @@ void StatsAccumulator::push(size_t frame, const std::vector<double>& samples)
             located.value      = value;
             channel.firstAbove = located;
         }
+        // fused, as the reference statistics of faust-rs are
         fSumSquares[ch] = std::fma(value, value, fSumSquares[ch]);
         fSum[ch] += value;
         // exact in single precision: the sample was a float
@@ -197,6 +207,7 @@ void StatsAccumulator::push(size_t frame, const std::vector<double>& samples)
     }
 }
 
+// n is at least 1, so that an empty window gives zeros and not NaN.
 RenderStats StatsAccumulator::finish() const
 {
     double      n = double(std::max<size_t>(fCounted, 1));
@@ -214,11 +225,13 @@ RenderStats StatsAccumulator::finish() const
 
 // ---------------------------------------------------------------- schedule
 
+// A frame keeps its events in insertion order.
 void Schedule::push(size_t frame, const Event& event)
 {
     fEvents[frame].push_back(event);
 }
 
+// A reference, so the empty case needs a vector that lives on.
 const std::vector<Event>& Schedule::at(size_t frame) const
 {
     static const std::vector<Event> none;
@@ -226,6 +239,7 @@ const std::vector<Event>& Schedule::at(size_t frame) const
     return found == fEvents.end() ? none : found->second;
 }
 
+// upper_bound: strictly after.
 Optional<size_t> Schedule::nextAfter(size_t frame) const
 {
     auto next = fEvents.upper_bound(frame);
@@ -271,6 +285,7 @@ std::vector<ParamWrite> Schedule::paramWrites() const
 std::vector<std::pair<int, size_t>> Schedule::notesHeldAt(size_t frame) const
 {
     std::vector<std::pair<int, size_t>> held;
+    // Removes a pitch from the notes held.
     auto drop = [&held](int pitch) {
         held.erase(std::remove_if(held.begin(), held.end(),
                                   [pitch](const std::pair<int, size_t>& note) { return note.first == pitch; }),
@@ -292,6 +307,7 @@ std::vector<std::pair<int, size_t>> Schedule::notesHeldAt(size_t frame) const
     return held;
 }
 
+// See engine.h for the three grammars.
 std::pair<size_t, Event> parseAt(const std::string& frameText, const std::string& assignment)
 {
     size_t frame;
@@ -312,6 +328,8 @@ std::pair<size_t, Event> parseAt(const std::string& frameText, const std::string
     return std::make_pair(frame, event);
 }
 
+// Reversed spans and out-of-range values are errors: swapping or clamping them would
+// render something that was not asked for.
 std::vector<std::pair<size_t, Event>> parseNote(const std::string& text)
 {
     size_t at = text.find('@');
@@ -369,6 +387,7 @@ std::vector<std::pair<size_t, Event>> parseNote(const std::string& text)
     return out;
 }
 
+// Everything after the pitches is shared by the notes.
 std::vector<std::pair<size_t, Event>> parseChord(const std::string& text)
 {
     size_t at = text.find(':');
@@ -392,6 +411,7 @@ std::vector<std::pair<size_t, Event>> parseChord(const std::string& text)
     return out;
 }
 
+// See engine.h.
 size_t nextBlock(const Schedule& schedule, size_t block, size_t frames, size_t written)
 {
     size_t           n    = std::min(block, frames - written);
@@ -404,6 +424,7 @@ size_t nextBlock(const Schedule& schedule, size_t block, size_t frames, size_t w
 
 // ---------------------------------------------------------------- sweep
 
+// Each axis multiplies the points so far: the last one varies fastest.
 std::vector<Point> cartesian(const std::vector<Axis>& axes)
 {
     std::vector<Point> points(1);
@@ -421,6 +442,7 @@ std::vector<Point> cartesian(const std::vector<Axis>& axes)
     return points;
 }
 
+// Control paths are not checked here: nothing is compiled yet.
 Axis parseAxis(const std::string& text)
 {
     size_t equal = text.find('=');
@@ -446,6 +468,7 @@ Axis parseAxis(const std::string& text)
     return axis;
 }
 
+// The controls become axes too, each with its column: the range checks read them.
 void parsePoints(const std::string& text, std::vector<Axis>& axes, std::vector<Point>& points)
 {
     std::vector<std::string> lines = split(text, '\n');
@@ -501,6 +524,7 @@ void parsePoints(const std::string& text, std::vector<Axis>& axes, std::vector<P
 
 // ---------------------------------------------------------------- controls
 
+// See engine.h.
 const char* controlKindName(ControlKind kind)
 {
     switch (kind) {
@@ -526,6 +550,7 @@ bool Control::holds(double value) const
     return (min <= value && value <= max) || (min <= narrow && narrow <= max);
 }
 
+// A value it holds is returned as it is, not pulled onto a single-precision bound.
 double Control::clamp(double value) const
 {
     return holds(value) ? value : std::min(std::max(value, min), max);
@@ -545,11 +570,13 @@ const Control* ControlMap::get(const std::string& path) const
     return found == fControls.end() ? nullptr : &found->second;
 }
 
+// An exact path wins over a fragment; several matches are never resolved arbitrarily.
 const Control* ControlMap::resolve(const std::string& query, std::vector<std::string>* candidates) const
 {
     if (const Control* exact = get(query)) {
         return exact;
     }
+    // a fragment matches whole segments: `volume` does not match osc0_volume
     std::string                 suffix = startsWith(query, "/") ? query : "/" + query;
     std::vector<const Control*> matches;
     for (const auto& entry : fControls) {
@@ -590,6 +617,7 @@ const Control& ControlMap::writable(const std::string& query) const
     throw Failure("`" + query + "` is ambiguous, matches: " + join(candidates, ", "));
 }
 
+// NaN is in no range: it is replaced by the initial value, which the clamp notice says.
 Write ControlMap::checkWrite(const std::string& query, double value) const
 {
     const Control& control = writable(query);
@@ -603,6 +631,7 @@ Write ControlMap::checkWrite(const std::string& query, double value) const
 // The in-memory soundfile the reference impulse-test protocol reads: a DSP
 // declaring soundfile(...) gets a pointer the host must fill in, or the first
 // compute dereferences null.
+// The parts of a soundfile URL, {'a';'b'} or a single name.
 static int soundfilePartCount(const std::string& url)
 {
     std::string trimmed = trim(url);
@@ -624,6 +653,8 @@ static int soundfilePartCount(const std::string& url)
     return std::max(count, 1);
 }
 
+// The fixture: real parts of 4096 frames holding a sine, then empty parts up to the
+// fixed count of a Soundfile. REAL is the width of the program.
 template <typename REAL>
 static Soundfile* makeSoundfile(int realParts, bool isDouble)
 {
@@ -704,6 +735,7 @@ class ControlWalker : public UIReal<REAL>, public PathBuilder {
     }
 
    private:
+    // buildPath() is PathBuilder's, what MapUI and a host use: paths agree with theirs.
     void add(const char* label, ControlKind kind, REAL* zone, double init, double min, double max, double step)
     {
         Control control;
@@ -724,6 +756,8 @@ class ControlWalker : public UIReal<REAL>, public PathBuilder {
 
 // ---------------------------------------------------------------- factory
 
+// The argv of libfaust: -I DIR..., the precision, the other options. The returned
+// pointers live in 'storage'.
 static std::vector<const char*> compilerArgv(const std::vector<std::string>& importDirs,
                                              const std::vector<std::string>& extraArgs, bool isDouble,
                                              std::vector<std::string>& storage)
@@ -741,6 +775,7 @@ static std::vector<const char*> compilerArgv(const std::vector<std::string>& imp
     return argv;
 }
 
+// See engine.h.
 std::shared_ptr<Factory> Factory::compileFile(const std::string& path, const std::vector<std::string>& importDirs,
                                               const std::vector<std::string>& extraArgs, bool isDouble, int optLevel)
 {
@@ -762,6 +797,7 @@ std::shared_ptr<Factory> Factory::compileFile(const std::string& path, const std
     return std::shared_ptr<Factory>(new Factory(factory, isDouble));
 }
 
+// See engine.h.
 std::shared_ptr<Factory> Factory::compileString(const std::string& name, const std::string& file,
                                                 const std::string& source, const std::vector<std::string>& importDirs,
                                                 const std::vector<std::string>& extraArgs, bool isDouble, int optLevel)
@@ -782,6 +818,7 @@ std::shared_ptr<Factory> Factory::compileString(const std::string& name, const s
     return std::shared_ptr<Factory>(new Factory(factory, isDouble));
 }
 
+// Instances are gone by now: they hold a shared_ptr to this factory.
 Factory::~Factory()
 {
     deleteDSPFactory(fFactory);
@@ -794,6 +831,7 @@ std::string Factory::shaKey() const
 
 // ---------------------------------------------------------------- instance
 
+// See engine.h.
 Probe::Probe(const std::shared_ptr<Factory>& factory, int sampleRate) : fFactory(factory), fSampleRate(sampleRate)
 {
     fDsp = factory->handle()->createDSPInstance();
@@ -815,6 +853,7 @@ Probe::Probe(const std::shared_ptr<Factory>& factory, int sampleRate) : fFactory
     }
 }
 
+// Deleting an instance leaves its factory to the other instances.
 Probe::~Probe()
 {
     delete fDsp;
@@ -865,18 +904,22 @@ std::vector<std::pair<const Control*, double>> Probe::controlValues() const
     return values;
 }
 
+// instanceResetUserInterface brings the controls back, instanceClear the state.
 void Probe::reset()
 {
     fDsp->instanceResetUserInterface();
     fDsp->instanceClear();
 }
 
+// The value written is the one checkWrite reports as applied: what the command line
+// says of a clamp is what the render runs with.
 void Probe::set(const std::string& query, double value)
 {
     Write write = fControls.checkWrite(query, value);
     setZone(write.control->zone, write.applied);
 }
 
+// See engine.h: a note writes a frequency as computed, whatever the slider declares.
 void Probe::setExact(const std::string& path, double value)
 {
     const Control* control = fControls.get(path);
@@ -886,6 +929,8 @@ void Probe::setExact(const std::string& path, double value)
     setZone(control->zone, value);
 }
 
+// The render loop at the program's width. FAUSTFLOAT** is only the type compute
+// declares: it forwards pointers, which the program reads at its own width.
 template <typename REAL>
 RenderStats Probe::renderAt(const RenderSpec& spec, const FrameCallback& onFrame)
 {
@@ -896,6 +941,7 @@ RenderStats Probe::renderAt(const RenderSpec& spec, const FrameCallback& onFrame
 
     std::vector<std::vector<REAL>> ins(fInputs, std::vector<REAL>(block));
     std::vector<std::vector<REAL>> outs(fOutputs, std::vector<REAL>(block));
+    // the buffers never move: their pointers are taken once
     std::vector<FAUSTFLOAT*>       inputs, outputs;
     for (auto& channel : ins) {
         inputs.push_back(reinterpret_cast<FAUSTFLOAT*>(channel.data()));
@@ -903,6 +949,7 @@ RenderStats Probe::renderAt(const RenderSpec& spec, const FrameCallback& onFrame
     for (auto& channel : outs) {
         outputs.push_back(reinterpret_cast<FAUSTFLOAT*>(channel.data()));
     }
+    // held for the first block only: FUI::setButtons in the impulse-test protocol
     std::vector<void*> buttons;
     if (spec.driveButtons) {
         for (const auto& entry : fControls.all()) {
@@ -960,11 +1007,13 @@ RenderStats Probe::renderAt(const RenderSpec& spec, const FrameCallback& onFrame
     return stats;
 }
 
+// Choosing the buffer type here is what keeps a wrong width from corrupting memory.
 RenderStats Probe::render(const RenderSpec& spec, const FrameCallback& onFrame)
 {
     return isDouble() ? renderAt<double>(spec, onFrame) : renderAt<float>(spec, onFrame);
 }
 
+// The window's samples, in addition to the statistics.
 RenderStats Probe::collect(const RenderSpec& spec, Samples& samples)
 {
     samples.start = spec.skip;
@@ -979,6 +1028,7 @@ RenderStats Probe::collect(const RenderSpec& spec, Samples& samples)
     });
 }
 
+// One compute call, its buffers converted from and to doubles.
 template <typename REAL>
 Channels Probe::computeAt(const Channels& inputs, size_t frames)
 {
@@ -1002,6 +1052,7 @@ Channels Probe::computeAt(const Channels& inputs, size_t frames)
     return result;
 }
 
+// See render(): the width decides the buffers.
 Channels Probe::computeRaw(const Channels& inputs, size_t frames)
 {
     return isDouble() ? computeAt<double>(inputs, frames) : computeAt<float>(inputs, frames);

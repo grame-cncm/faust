@@ -22,10 +22,12 @@ namespace {
 // JSON document is printed once, at the end or with the failure.
 class Report {
    public:
+    // The form of the output comes from --format.
     explicit Report(const Args& args) : fArgs(args), fJson(args.format == Format::Json), fTrain(Json::object()) {}
 
     bool asJson() const { return fJson; }
 
+    // Lines are the output of the text form only.
     void say(const std::string& line) const
     {
         if (!fJson) {
@@ -38,8 +40,10 @@ class Report {
             say(line);
         }
     }
+    // A field of the document's train object.
     void insert(const std::string& key, const Json& value) { fTrain.set(key, value); }
 
+    // Prints the document, under --format json.
     void finish() const
     {
         if (fJson) {
@@ -53,6 +57,7 @@ class Report {
     Json        fTrain;
 };
 
+// What is said of one --fd-check.
 struct FdReport {
     std::vector<std::string> lines;
     Json                     json;
@@ -61,6 +66,8 @@ struct FdReport {
 
 }  // namespace
 
+// One --fd-check at 'place', start or end: its lines, its JSON, and the error when a
+// lane departs from the finite differences.
 static FdReport fdCheckReport(const Args& args, const std::string& place, const std::vector<FdCheck>& checks)
 {
     std::string tag   = place == "start" ? "" : " " + place;
@@ -108,6 +115,7 @@ static FdReport fdCheckReport(const Args& args, const std::string& place, const 
     return report;
 }
 
+// What a host loop does not take.
 static void refuseFlags(const Args& args)
 {
     refuse({{"--reduce", args.reduce.has},
@@ -124,6 +132,7 @@ static void refuseFlags(const Args& args)
            "", " cannot be combined with --train / --fd-check");
 }
 
+// The axes of a grid of starting points: a control, and the values it takes.
 typedef std::vector<std::pair<std::string, std::vector<double>>> GridAxes;
 
 // Checks --set and the values of --sweep against their ranges, says the
@@ -185,6 +194,7 @@ static void gridThenStart(const Args& args, const std::shared_ptr<Factory>& fact
     }
 }
 
+// What being kept in its range did to a control; empty if it never met a bound.
 static std::string boundText(const BoundStats& stats, size_t blocks)
 {
     std::vector<std::string> parts;
@@ -254,6 +264,7 @@ static void summarize(const Args& args, const Trained& trained, const NumberForm
     }
 }
 
+// See the top of this file.
 void runTrain(const Args& args)
 {
     if (args.train.empty()) {

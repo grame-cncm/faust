@@ -19,30 +19,44 @@
 #include <vector>
 
 // An error that ends the command: printed as 'faustprobe: MESSAGE', exit 1.
+// Thrown by any layer; main() catches it, so a mode never has to carry an error by hand.
 struct Failure : public std::runtime_error {
+    // The message printed after "faustprobe: ".
     explicit Failure(const std::string& message) : std::runtime_error(message) {}
 };
 
 // A number the probe writes, or the absence of it.
+// A value that may be absent. Tested as a bool, read with * or .value.
 template <typename T>
 struct Optional {
-    bool has = false;
-    T    value{};
+    bool has = false;  // whether a value is held
+    T    value{};  // the value, default-constructed when absent
     Optional() {}
     Optional(const T& v) : has(true), value(v) {}
+    // Whether a value is held.
     explicit operator bool() const { return has; }
     const T& operator*() const { return value; }
 };
 
+// A size as decimal text.
 std::string              str(size_t value);
+// The parts with the separator between them.
 std::string              join(const std::vector<std::string>& parts, const std::string& separator);
+// Every field between separators, empty ones included: split("a,,b", ',') has three.
 std::vector<std::string> split(const std::string& text, char separator);
+// Without the white space at both ends.
 std::string              trim(const std::string& text);
+// Whether the text begins, or ends, with the fragment.
 bool                     startsWith(const std::string& text, const std::string& prefix);
 bool                     endsWith(const std::string& text, const std::string& suffix);
+// Every occurrence of a fragment replaced; a replacement is not scanned again.
 std::string              replaceAll(std::string text, const std::string& from, const std::string& to);
+// In lower case, ASCII only: for file extensions.
 std::string              lower(std::string text);
+// The whole file, or a Failure naming it.
 std::string              readTextFile(const std::string& path);
+// Parts of a path: the extension in lower case and without its dot ("" for a dot
+// file), the directory ("." when there is none), the name without its extension.
 std::string              extensionOf(const std::string& path);
 std::string              directoryOf(const std::string& path);
 std::string              stemOf(const std::string& path);
@@ -56,8 +70,8 @@ bool parseInt(const std::string& text, int& value);
 // The shortest decimal digits that parse back to the same value, and the
 // exponent of the first digit.
 struct ShortestDigits {
-    std::string digits;
-    int         exponent;
+    std::string digits;  // no sign, no point, no trailing zero
+    int         exponent;  // value = d.ddd x 10^exponent
 };
 ShortestDigits shortestDigits(double value);
 ShortestDigits shortestDigits(float value);
@@ -69,6 +83,8 @@ std::string plainNumber(float value);
 // The shortest digits at the width of the value, plain between 1e-4 and 1e16,
 // with an exponent elsewhere ('1.0', '0.5', '3.3333333333333334e-8', 'NaN', 'inf').
 std::string roundTrip(double value);
+// A float is formatted from the float: its double needs seventeen digits to say
+// what nine say (0.0010000000474974513 for 0.001).
 std::string roundTrip(float value);
 // The shortest digits and an exponent ('1e-9', '3.46e-28').
 std::string scientific(double value);
@@ -81,6 +97,7 @@ std::string fixed(double value, int decimals);
 struct Precision {
     bool roundTrip = true;  // the shortest text that parses back to the same float
     int  decimals  = 0;     // else this many fixed decimals
+    // Parses --precision: `full` or a number of decimals.
     static Precision parse(const std::string& text);
 };
 

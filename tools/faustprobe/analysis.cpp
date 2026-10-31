@@ -15,12 +15,14 @@
 #include <cstring>
 #include <limits>
 
+// What a descriptor without a value, and a silent reference, are worth.
 static const double kNaN      = std::numeric_limits<double>::quiet_NaN();
 static const double kInfinity = std::numeric_limits<double>::infinity();
 static const double kTau      = 6.283185307179586476925286766559;
 
 // ---------------------------------------------------------------- comparison
 
+// Equality of bits tells -0.0 from 0.0, and NaN equals itself.
 static uint64_t bitsOf(double value)
 {
     uint64_t bits;
@@ -28,6 +30,7 @@ static uint64_t bitsOf(double value)
     return bits;
 }
 
+// Only a disagreement beyond the tolerance counts.
 bool Comparison::agrees() const
 {
     for (const auto& channel : channels) {
@@ -54,6 +57,7 @@ Optional<std::pair<size_t, Disagreement>> Comparison::firstBeyond() const
     return best;
 }
 
+// One output. The tolerance is relative to the reference's peak over its finite samples.
 static ChannelDiff compareChannel(const std::vector<double>& a, const std::vector<double>& b, size_t start,
                                   const Tolerance& tolerance)
 {
@@ -92,6 +96,7 @@ static ChannelDiff compareChannel(const std::vector<double>& a, const std::vecto
     return diff;
 }
 
+// See analysis.h.
 Comparison compare(const Samples& render, const Samples& reference, const Tolerance& tolerance,
                    const std::vector<size_t>* outputs)
 {
@@ -125,6 +130,7 @@ Comparison compare(const Samples& render, const Samples& reference, const Tolera
 
 // ---------------------------------------------------------------- reductions
 
+// The name on the command line and in the column headers.
 const char* reductionName(Reduction reduction)
 {
     switch (reduction) {
@@ -145,6 +151,7 @@ const char* reductionName(Reduction reduction)
     }
 }
 
+// Reads back reductionName().
 Reduction parseReduction(const std::string& name)
 {
     const Reduction all[] = {Reduction::Rms, Reduction::Peak, Reduction::Energy, Reduction::Dc,
@@ -157,6 +164,7 @@ Reduction parseReduction(const std::string& name)
     throw Failure("unknown reduction `" + name + "`; expected rms, peak, energy, dc, f0, sfdr or thd");
 }
 
+// The smallest power of two at least n.
 static size_t nextPowerOfTwo(size_t n)
 {
     size_t power = 1;
@@ -166,6 +174,7 @@ static size_t nextPowerOfTwo(size_t n)
     return power;
 }
 
+// What the radix-2 transform needs.
 static bool isPowerOfTwo(size_t n)
 {
     return n != 0 && (n & (n - 1)) == 0;
@@ -174,6 +183,7 @@ static bool isPowerOfTwo(size_t n)
 // In-place iterative radix-2 FFT: re and im have the same power-of-two length.
 void fft(std::vector<double>& re, std::vector<double>& im)
 {
+    // Bit-reversal permutation.
     size_t n = re.size();
     size_t j = 0;
     for (size_t i = 1; i < n; i++) {
@@ -188,6 +198,7 @@ void fft(std::vector<double>& re, std::vector<double>& im)
             std::swap(im[i], im[j]);
         }
     }
+    // Butterflies, doubling the length; the twiddle factor is updated by recurrence.
     for (size_t len = 2; len <= n; len <<= 1) {
         double angle = -2.0 * M_PI / double(len);
         double wr = cos(angle), wi = sin(angle);
@@ -236,6 +247,7 @@ double dominantFrequency(const std::vector<double>& samples, double sampleRate)
 // is four bins wide.
 static const int64_t kHarmonicGuard = 4;
 
+// A windowed magnitude spectrum, and the bin position of the fundamental.
 struct Spectrum {
     std::vector<double> mags;
     double              f0Bin = 0.0;
@@ -251,6 +263,8 @@ static bool prepareSpectrum(const std::vector<double>& samples, double sampleRat
     if (f <= 0.0) {
         return false;
     }
+    // Blackman-Harris 4 terms: its sidelobes are 92 dB down, where the loud fundamental
+    // of a rectangular window would bury what these measures look for.
     static const double a[4] = {0.35875, 0.48829, 0.14128, 0.01168};
     size_t              n    = nextPowerOfTwo(samples.size());
     std::vector<double> re(n, 0.0), im(n, 0.0);
@@ -268,6 +282,7 @@ static bool prepareSpectrum(const std::vector<double>& samples, double sampleRat
     return true;
 }
 
+// Largest magnitude within the guard band around a bin position.
 static double peakNear(const std::vector<double>& mags, double bin)
 {
     int64_t center = static_cast<int64_t>(round(bin));
@@ -283,6 +298,7 @@ static double peakNear(const std::vector<double>& mags, double bin)
     return peak;
 }
 
+// Whether bin k belongs to the harmonic grid of the fundamental.
 static bool onGrid(size_t k, double f0Bin, size_t bins)
 {
     if (f0Bin <= 0.0) {
@@ -294,6 +310,7 @@ static bool onGrid(size_t k, double f0Bin, size_t bins)
     return fabs(position - centre) <= double(kHarmonicGuard) && static_cast<size_t>(nearest) <= bins;
 }
 
+// Infinite when nothing is off the grid, 0 for a window too short or silent.
 double sfdrDb(const std::vector<double>& samples, double sampleRate, double f0)
 {
     Spectrum spectrum;
@@ -313,6 +330,7 @@ double sfdrDb(const std::vector<double>& samples, double sampleRate, double f0)
     return worst <= 0.0 ? kInfinity : 20.0 * log10(fundamental / worst);
 }
 
+// Minus infinity for a pure tone, 0 for a window too short or silent.
 double thdDb(const std::vector<double>& samples, double sampleRate, double f0)
 {
     Spectrum spectrum;
@@ -333,21 +351,25 @@ double thdDb(const std::vector<double>& samples, double sampleRate, double f0)
 
 // ---------------------------------------------------------------- --describe
 
+// Rounded to whole samples; ranges were checked non-negative.
 static size_t secondsToSamples(double seconds, double sr)
 {
     return static_cast<size_t>(std::max(round(seconds * sr), 0.0));
 }
 
+// The samples [from, to) at this rate.
 std::pair<size_t, size_t> DescribeRange::samples(double sr) const
 {
     return std::make_pair(secondsToSamples(from, sr), secondsToSamples(to, sr));
 }
 
+// A..B, in a descriptor's name.
 std::string DescribeRange::text() const
 {
     return plainNumber(from) + ".." + plainNumber(to);
 }
 
+// decay is always decay:30: one descriptor, one column name.
 std::string Descriptor::name() const
 {
     switch (kind) {
@@ -366,14 +388,17 @@ std::string Descriptor::name() const
     }
 }
 
+// Two spellings of one descriptor are the same.
 bool Descriptor::operator==(const Descriptor& other) const
 {
     return name() == other.name();
 }
 
+// For the messages.
 static const char* kAcceptedDescriptors =
     "loudness, attack, decay[:DB], sustain:A..B, centroid[:A..B], width[:A..B]";
 
+// A..B in seconds, with 0 <= A < B.
 static DescribeRange parseDescribeRange(const std::string& item, const std::string& parameter)
 {
     size_t dots = parameter.find("..");
@@ -396,6 +421,7 @@ static DescribeRange parseDescribeRange(const std::string& item, const std::stri
     return range;
 }
 
+// One item of the list: a name, and after a colon its parameter.
 static Descriptor parseDescriptor(const std::string& item)
 {
     size_t      colon        = item.find(':');
@@ -436,6 +462,7 @@ static Descriptor parseDescriptor(const std::string& item)
     return descriptor;
 }
 
+// Items separated by commas; none may be empty, or given twice.
 std::vector<Descriptor> parseDescriptors(const std::string& text)
 {
     std::vector<Descriptor> list;
@@ -459,6 +486,7 @@ static std::pair<size_t, size_t> framesWithin(size_t from, size_t to, size_t hop
     return std::make_pair((from + hop - 1) / hop, to / hop);
 }
 
+// See analysis.h. Each descriptor needs a stretch inside the window and enough of it.
 void checkDescriptors(const std::vector<Descriptor>& descriptors, const DescribeSettings& settings, size_t outputs,
                       size_t window, double sr)
 {
@@ -477,6 +505,7 @@ void checkDescriptors(const std::vector<Descriptor>& descriptors, const Describe
         throw Failure("--describe needs a program with outputs");
     }
     double duration = double(window) / sr;
+    // A stretch in samples, refused when it ends beyond the window.
     auto   within   = [&](const Descriptor& descriptor, const DescribeRange& range) {
         std::pair<size_t, size_t> samples = range.samples(sr);
         if (samples.second > window) {
@@ -529,6 +558,7 @@ void checkDescriptors(const std::vector<Descriptor>& descriptors, const Describe
     }
 }
 
+// 10 log10, minus infinity for zero.
 static double energyDb(double energy)
 {
     return 10.0 * log10(energy);
@@ -559,10 +589,12 @@ static double centroid(const double* signal, size_t size, double sr, size_t n)
     return total > 0.0 ? weighted / total : kNaN;
 }
 
+// The mid signal, its envelope and its loudest frame are what most descriptors share.
 std::vector<double> describe(const Channels& channels, double sr, const std::vector<Descriptor>& descriptors,
                              const DescribeSettings& settings)
 {
     size_t              length = channels.empty() ? 0 : channels[0].size();
+    // the mean of the outputs
     std::vector<double> mid(length);
     for (size_t i = 0; i < length; i++) {
         double sum = 0.0;
@@ -572,6 +604,7 @@ std::vector<double> describe(const Channels& channels, double sr, const std::vec
         mid[i] = sum / double(channels.size());
     }
     size_t              hop = secondsToSamples(settings.hopSeconds, sr);
+    // mean of the mid's square over whole frames: a last partial frame is left out
     std::vector<double> envelope;
     for (size_t start = 0; start + hop <= length; start += hop) {
         double sum = 0.0;
@@ -580,6 +613,7 @@ std::vector<double> describe(const Channels& channels, double sr, const std::vec
         }
         envelope.push_back(sum / double(hop));
     }
+    // the first largest frame
     size_t peakFrame = 0;
     double peak      = 0.0;
     for (size_t k = 0; k < envelope.size(); k++) {
@@ -609,6 +643,7 @@ std::vector<double> describe(const Channels& channels, double sr, const std::vec
                 break;
             case Descriptor::Kind::Decay:
                 if (peak > 0.0) {
+                    // from the loudest frame down; not reached stays NaN, which is not the window's end
                     double floorLevel = peak * pow(10.0, -descriptor.db / 10.0);
                     for (size_t k = peakFrame; k < envelope.size(); k++) {
                         if (envelope[k] <= floorLevel) {
@@ -661,6 +696,7 @@ std::vector<double> describe(const Channels& channels, double sr, const std::vec
 
 // ---------------------------------------------------------------- --freqresp
 
+// N, or N:FMIN:FMAX; a log axis has no 0 Hz.
 FreqGrid FreqGrid::parse(const std::string& spec, double sampleRate)
 {
     double                   nyquist = sampleRate / 2.0;
@@ -727,6 +763,7 @@ static void transform(const std::vector<double>& response, double omega, double&
     }
 }
 
+// 20 log10 of a zero is minus infinity, and atan2(0, 0) a phase of 0 rather than NaN.
 std::vector<FreqPoint> frequencyResponse(const std::vector<double>& samples, double sampleRate,
                                          const std::vector<double>& hz)
 {
@@ -742,6 +779,7 @@ std::vector<FreqPoint> frequencyResponse(const std::vector<double>& samples, dou
     return points;
 }
 
+// At least one frame, even of a short window.
 Optional<double> tailEnergyFraction(const std::vector<double>& samples)
 {
     auto energy = [&samples](size_t from) {
@@ -759,16 +797,19 @@ Optional<double> tailEnergyFraction(const std::vector<double>& samples)
     return energy(samples.size() - tail) / total;
 }
 
+// See analysis.h.
 double defaultLinearityTolerance(bool isDouble)
 {
     return isDouble ? 1e-9 : 1e-4;
 }
 
+// 37 is divided by no block size.
 size_t shiftFor(size_t frames)
 {
     return std::max<size_t>(std::min<size_t>(37, frames / 4), 1);
 }
 
+// See analysis.h.
 const std::vector<Property>& allProperties()
 {
     static const std::vector<Property> all = {Property::Homogeneity, Property::TimeInvariance,
@@ -776,6 +817,7 @@ const std::vector<Property>& allProperties()
     return all;
 }
 
+// The key of the property in the JSON document and in the report.
 const char* propertyName(Property property)
 {
     switch (property) {
@@ -788,6 +830,8 @@ const char* propertyName(Property property)
     }
 }
 
+// Powers of two: in a linear program the first two hold to the bit. The sign catches
+// a rectifier; two adjacent frames catch a rank-order filter, which looks at a short window.
 std::vector<std::pair<size_t, double>> propertyTaps(Property property, size_t shift)
 {
     switch (property) {
@@ -800,11 +844,13 @@ std::vector<std::pair<size_t, double>> propertyTaps(Property property, size_t sh
     }
 }
 
+// What the linear combination of the responses must be, sample by sample.
 Samples propertyExpected(Property property, const Samples& h, size_t shift)
 {
     Samples expected;
     expected.start = h.start;
     for (const std::vector<double>& channel : h.channels) {
+        // the response delayed, zero before it starts
         auto delayed = [&channel](size_t by, size_t k) { return k >= by ? channel[k - by] : 0.0; };
         std::vector<double> out(channel.size());
         for (size_t k = 0; k < channel.size(); k++) {
@@ -824,6 +870,7 @@ Samples propertyExpected(Property property, const Samples& h, size_t shift)
     return expected;
 }
 
+// For the refusal: what is false, at the frames of this render.
 std::string propertyViolation(Property property, size_t at, size_t shift)
 {
     switch (property) {
@@ -838,6 +885,7 @@ std::string propertyViolation(Property property, size_t at, size_t shift)
     }
 }
 
+// For the refusal: what the program most likely does.
 const char* propertyUsualCause(Property property)
 {
     switch (property) {
@@ -860,6 +908,7 @@ Optional<double> Timing::worstBudgetFraction() const
     return worst.value.seconds / budgetSeconds(worst.value.frames);
 }
 
+// A timing without a worst block changes nothing.
 void Timing::absorb(const Timing& other)
 {
     Optional<double> mine   = worstBudgetFraction();
@@ -872,11 +921,13 @@ void Timing::absorb(const Timing& other)
     computeSeconds += other.computeSeconds;
 }
 
+// Any first block is the worst so far.
 BlockTimer::BlockTimer(double sampleRate) : fWorstFraction(-kInfinity)
 {
     fTiming.sampleRate = sampleRate;
 }
 
+// Records the compute call of the block of 'frames' frames starting at 'frame'.
 void BlockTimer::record(size_t frame, size_t frames, double seconds)
 {
     fTiming.frames += frames;

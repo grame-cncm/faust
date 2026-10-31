@@ -16,6 +16,7 @@
 
 #include "faust/dsp/llvm-dsp.h"
 
+// The text of --help.
 static const char* kHelp = R"(Probe a Faust DSP: set controls, render offline, report samples and statistics.
 
 Usage: faustprobe [OPTIONS] <FILE>
@@ -134,6 +135,7 @@ Compiler options (as faust):
   -v, --version                Print the version
 )";
 
+// A command line that was not understood: exit status 2, which no measurement gives.
 [[noreturn]] static void usageError(const std::string& message)
 {
     fprintf(stderr, "error: %s\n\nUsage: faustprobe [OPTIONS] <FILE>\n\nFor more information, try '--help'.\n",
@@ -141,6 +143,7 @@ Compiler options (as faust):
     exit(2);
 }
 
+// Only what differs from the defaults, so that an empty list means default options.
 std::vector<std::string> CompileOptions::argv() const
 {
     std::vector<std::string> out;
@@ -176,10 +179,14 @@ struct Option {
     std::function<void(const std::string&)>  set;
 };
 
+// A table of options filled by declare(), then one pass over the tokens.
 class Parser {
    public:
+    // Fills the table of options, bound to the fields of 'args'.
     explicit Parser(Args& args) : fArgs(args) { declare(); }
 
+    // Long options take --name value or --name=value; faust's single-dash spellings are
+    // aliases of them. What does not start with a dash is the file.
     void parse(int argc, char* argv[])
     {
         std::vector<std::string> tokens(argv + 1, argv + argc);
@@ -268,40 +275,48 @@ class Parser {
     }
 
    private:
-    Args&                         fArgs;
-    std::map<std::string, Option> fOptions;
-    std::map<std::string, std::string> fAliases;
-    std::string                   fCurrent;
+    Args&                         fArgs;  // what is being filled
+    std::map<std::string, Option> fOptions;  // by long name
+    std::map<std::string, std::string> fAliases;  // other spellings, to the long name
+    std::string                   fCurrent;  // the option whose value is being read, for the messages
 
+    // Declares an option without value, then one with.
     void flag(const std::string& name, const std::function<void()>& set)
     {
         fOptions[name] = {false, "", [set](const std::string&) { set(); }};
     }
 
+    // An option with a value; valueName is what messages call it.
     void valued(const std::string& name, const std::string& valueName,
                 const std::function<void(const std::string&)>& set)
     {
         fOptions[name] = {true, valueName, set};
     }
 
+    // A value the option cannot take.
     [[noreturn]] void invalid(const std::string& value, const std::string& why)
     {
         usageError("invalid value '" + value + "' for '" + fCurrent + " <" + fOptions[fCurrent].valueName +
                    ">': " + why);
     }
 
+    // One declaring helper per type of value: text, list, size, number, integer. They
+    // bind to a field of Args, which outlives the parser.
     void text(const std::string& name, const std::string& valueName, std::string& target)
     {
         valued(name, valueName, [&target](const std::string& value) { target = value; });
     }
+    // Text that may be absent.
     void text(const std::string& name, const std::string& valueName, Optional<std::string>& target)
     {
         valued(name, valueName, [&target](const std::string& value) { target = value; });
     }
+    // Repeatable: each occurrence adds to the list.
     void list(const std::string& name, const std::string& valueName, std::vector<std::string>& target)
     {
         valued(name, valueName, [&target](const std::string& value) { target.push_back(value); });
     }
+    // A count.
     void size(const std::string& name, const std::string& valueName, size_t& target)
     {
         valued(name, valueName, [this, &target](const std::string& value) {
@@ -310,6 +325,7 @@ class Parser {
             }
         });
     }
+    // A count that may be absent.
     void size(const std::string& name, const std::string& valueName, Optional<size_t>& target)
     {
         valued(name, valueName, [this, &target](const std::string& value) {
@@ -320,6 +336,7 @@ class Parser {
             target = parsed;
         });
     }
+    // A number.
     void number(const std::string& name, const std::string& valueName, double& target)
     {
         valued(name, valueName, [this, &target](const std::string& value) {
@@ -328,6 +345,7 @@ class Parser {
             }
         });
     }
+    // A number that may be absent.
     void number(const std::string& name, const std::string& valueName, Optional<double>& target)
     {
         valued(name, valueName, [this, &target](const std::string& value) {
@@ -338,6 +356,7 @@ class Parser {
             target = parsed;
         });
     }
+    // A signed integer.
     void integer(const std::string& name, const std::string& valueName, int& target)
     {
         valued(name, valueName, [this, &target](const std::string& value) {
@@ -346,6 +365,7 @@ class Parser {
             }
         });
     }
+    // An integer kept as text: it goes back to libfaust's argv as typed.
     void compilerValue(const std::string& name, Optional<std::string>& target)
     {
         valued(name, "N", [this, &target](const std::string& value) {
@@ -357,6 +377,7 @@ class Parser {
         });
     }
 
+    // --fd-check takes its value after = only: the next token may be the file.
     void fdWhere(const std::string& value)
     {
         if (value == "start") {
@@ -371,6 +392,7 @@ class Parser {
         }
     }
 
+    // Every option of the command line.
     void declare()
     {
         Args& a = fArgs;
@@ -529,14 +551,17 @@ class Parser {
         fAliases["-mem"]                = "--memory-manager";
     }
 
+    // Whether the option was given, even at its default value.
     bool given(const std::string& name) const { return fArgs.given.count(name) > 0; }
 
+    // The option as a message shows it.
     std::string shown(const std::string& name)
     {
         const Option& option = fOptions[name];
         return option.takesValue ? name + " <" + option.valueName + ">" : name;
     }
 
+    // An option that means nothing without another.
     void needs(const std::string& name, const std::string& needed)
     {
         if (given(name) && !given(needed)) {
@@ -544,6 +569,7 @@ class Parser {
         }
     }
 
+    // What the options say of each other, whatever their order.
     void checkRelations()
     {
         if (given("--points") && given("--sweep")) {
@@ -579,6 +605,7 @@ class Parser {
 
 }  // namespace
 
+// See cli.h.
 Args parseArgs(int argc, char* argv[])
 {
     Args   args;
@@ -587,6 +614,7 @@ Args parseArgs(int argc, char* argv[])
     return args;
 }
 
+// See cli.h: before + flag + after is the message.
 void refuse(const std::vector<Refusal>& conflicts, const std::string& before, const std::string& after)
 {
     for (const Refusal& conflict : conflicts) {
@@ -596,6 +624,7 @@ void refuse(const std::vector<Refusal>& conflicts, const std::string& before, co
     }
 }
 
+// See cli.h.
 bool verificationRequested(const Args& args)
 {
     return args.compare.has || args.reference.has || !args.checks.empty();

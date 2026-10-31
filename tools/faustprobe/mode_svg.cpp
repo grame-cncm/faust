@@ -34,12 +34,14 @@
 
 namespace fs = std::filesystem;
 
+// One drawing.
 struct Diagram {
     std::string file;   // its name in the compiler's directory, then in DIR
     std::string name;   // its title
     std::string text;
 };
 
+// The bytes of a drawing.
 static std::string readFile(const fs::path& path)
 {
     std::ifstream     stream(path, std::ios::binary);
@@ -48,6 +50,7 @@ static std::string readFile(const fs::path& path)
     return text.str();
 }
 
+// A text as an SVG holds it.
 static std::string xmlEscape(const std::string& text)
 {
     return replaceAll(replaceAll(replaceAll(replaceAll(text, "&", "&amp;"), "<", "&lt;"), ">", "&gt;"), "\"", "&quot;");
@@ -80,6 +83,7 @@ static std::string baseOf(const std::string& file)
     return replaceAll(base, "__faustprobe_eval", "eval");
 }
 
+// The options of the drawing, as faust spells them.
 static std::vector<std::string> drawArgv(const Args& args, const std::string& directory)
 {
     // the -o is the compiler's generated code, which would otherwise go to stdout
@@ -117,6 +121,9 @@ static std::vector<std::string> drawArgv(const Args& args, const std::string& di
     return argv;
 }
 
+// Draws into a work directory inside DIR, reads the drawings back, renames them and
+// rewrites their links, then writes them into DIR. The work directory is removed
+// whether or not the drawing succeeded.
 void runSvg(const Args& args)
 {
     if (args.format == Format::Ir) {

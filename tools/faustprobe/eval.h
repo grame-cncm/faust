@@ -28,11 +28,15 @@
 #include <string>
 #include <vector>
 
+// A file wrapped for the evaluation of some expressions.
 class EvalProgram {
    public:
+    // Wraps a file's text; refuses an empty expression.
     EvalProgram(const std::string& file, const std::vector<std::string>& exprs);
 
+    // The expressions, flattened to a line and without their trailing semicolon.
     const std::vector<std::string>& exprs() const { return fExprs; }
+    // The 1-based line of the wrapped source that holds expression k.
     size_t                          exprLine(size_t k) const;
     // The program that computes the expressions, their outputs side by side.
     std::string source() const;
@@ -46,9 +50,10 @@ class EvalProgram {
     std::string renameMembers(std::string text) const;
 
    private:
+    // The environment, up to and including its closing brace.
     std::string environment() const;
-    std::vector<std::string> fExprs;
-    std::string              fFile;
+    std::vector<std::string> fExprs;  // as typed, on one line
+    std::string              fFile;  // the file's text, without its trailing blank lines
 };
 
 #endif

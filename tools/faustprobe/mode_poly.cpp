@@ -81,6 +81,7 @@ static std::vector<Clamped> checkWrites(const Args& args, const PolyProbe& poly,
     return clamped;
 }
 
+// The clamps as a JSON array, and as lines.
 static Json clampedJson(const std::vector<Clamped>& clamped)
 {
     Json json = Json::array();
@@ -114,6 +115,7 @@ struct PolySweep {
     const NumberFormat&         fmt;
     double                      compileSeconds;
 
+    // One render per point, then what closes the output.
     void run(const std::vector<Axis>& axes, const std::vector<Point>& points)
     {
         bool csv = args.format == Format::Csv;
@@ -185,6 +187,7 @@ struct PolySweep {
         printJson(document);
     }
 
+    // One point from a reset instrument; a Failure if the render fails.
     RenderStats renderPoint(const Point& point, Measured& values)
     {
         poly.reset();
@@ -233,6 +236,7 @@ struct PolySweep {
         return values;
     }
 
+    // One render, as an entry of the document's runs.
     Json jsonRun(const Assignments& used, const RenderStats& stats, const Measured& values,
                  const std::vector<std::string>& notes) const
     {
@@ -260,6 +264,8 @@ struct PolySweep {
 
 }  // namespace
 
+// What is written is validated before anything is printed. Without a sweep, one render
+// said as a dump and statistics, or as one document.
 void runPoly(const Args& args)
 {
     refuseScalarOnly(args);
@@ -273,6 +279,7 @@ void runPoly(const Args& args)
     }
     NumberFormat fmt = numberFormat(args);
 
+    // the voices and the effect: everything a render of the instrument compiles
     uint64_t  started = nowNanos();
     PolyProbe poly(args.file, args.importDirs, args.sr, args.compile.isDouble, args.optLevel, args.nvoices, args.effect,
                    args.voiceStopLevel);

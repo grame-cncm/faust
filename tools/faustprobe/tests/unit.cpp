@@ -21,6 +21,7 @@
 
 static int gFailures = 0;
 
+// Compares two texts, and two numbers within a tolerance.
 static void same(const std::string& got, const std::string& expected, const char* what)
 {
     if (got != expected) {
@@ -29,6 +30,7 @@ static void same(const std::string& got, const std::string& expected, const char
     }
 }
 
+// tolerance 0 is equality.
 static void near(double got, double expected, double tolerance, const char* what)
 {
     if (!(fabs(got - expected) <= tolerance)) {
@@ -37,6 +39,7 @@ static void near(double got, double expected, double tolerance, const char* what
     }
 }
 
+// The text of numbers: every form a script reads.
 static void numbers()
 {
     const double nan = std::numeric_limits<double>::quiet_NaN();
@@ -76,6 +79,7 @@ static void numbers()
     }
 }
 
+// Keys sorted, numbers as a JSON reader expects, a NaN as null.
 static void json()
 {
     Json object = Json::object().set("b", 0.5).set("a", 1).set("c", Json::array().push(1e-6).push(NAN)).set("d", "x\"");
@@ -86,6 +90,7 @@ static void json()
     same(Json(1e16).pretty(), "1e16", "json large");
 }
 
+// What SampleWriter writes, read back by readChannels, independent code: bit for bit.
 static void audio()
 {
     for (const char* name : {"out/t.npy", "out/t.wav"}) {
@@ -106,6 +111,7 @@ static void audio()
     }
 }
 
+// Each measure against a value known from its definition.
 static void analysis()
 {
     const double sr = 48000.0;
@@ -140,6 +146,7 @@ static void analysis()
     same(str(*comparison.channels[0].second.maxAbsAt), "14", "largest difference");
 }
 
+// Each group counts its failures; the exit status is the verdict.
 int main()
 {
     numbers();

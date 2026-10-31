@@ -13,11 +13,13 @@
 #include <cmath>
 #include <limits>
 
+// The names printed and written to JSON.
 const char* boundName(Bound bound)
 {
     return bound == Bound::Lower ? "lower" : "upper";
 }
 
+// Likewise for a scheme.
 const char* fdSchemeName(FdScheme scheme)
 {
     switch (scheme) {
@@ -30,6 +32,7 @@ const char* fdSchemeName(FdScheme scheme)
     }
 }
 
+// The swept controls at the best point, as --set assignments.
 Assignments TrainGrid::bestAssignments() const
 {
     Assignments assignments;
@@ -39,11 +42,13 @@ Assignments TrainGrid::bestAssignments() const
     return assignments;
 }
 
+// A trained control: its exact path, its range, its starting value.
 struct Param {
     std::string path;
     double      min, max, init;
 };
 
+// The control a query names, a bargraph included.
 static const Control& resolved(const Probe& probe, const std::string& query)
 {
     std::vector<std::string> candidates;
@@ -90,6 +95,7 @@ static std::vector<Param> resolveParams(const Probe& probe, const std::vector<st
     return params;
 }
 
+// The --set values; the trained controls are rewritten by the caller just after.
 static void applySets(Probe& probe, const Assignments& sets)
 {
     for (const auto& set : sets) {
@@ -97,6 +103,7 @@ static void applySets(Probe& probe, const Assignments& sets)
     }
 }
 
+// The lanes must exist: reading past the outputs would be silent.
 static void checkLanes(const Probe& probe, const TrainSpec& spec)
 {
     size_t needed = spec.firstGradLane + spec.params.size();
@@ -107,6 +114,7 @@ static void checkLanes(const Probe& probe, const TrainSpec& spec)
     }
 }
 
+// The excitation of frames start .. start + frames.
 static Channels inputBlock(const InputMode& input, size_t channels, size_t start, size_t frames, double sampleRate)
 {
     Channels block(channels, std::vector<double>(frames));
@@ -118,6 +126,8 @@ static Channels inputBlock(const InputMode& input, size_t channels, size_t start
     return block;
 }
 
+// The sum of each output over the block: the reverse sweep of a block makes that the
+// gradient of the block's loss.
 static std::vector<double> laneSums(const Channels& outs)
 {
     std::vector<double> sums;
@@ -131,6 +141,8 @@ static std::vector<double> laneSums(const Channels& outs)
     return sums;
 }
 
+// Per block: the controls are written, the block computed, the lanes averaged, and the
+// optimizer steps the controls, clamped to their range. Adam has its bias correction.
 Trained train(const std::shared_ptr<Factory>& factory, int sampleRate, const TrainSpec& spec,
               const std::function<void(const TrainStep&)>& onStep)
 {
@@ -233,6 +245,8 @@ Trained train(const std::shared_ptr<Factory>& factory, int sampleRate, const Tra
     return trained;
 }
 
+// Every point from a cleared instance: --set, the trained controls at their start,
+// the swept ones at the point. The best is the lowest finite loss, the first on a tie.
 TrainGrid trainGrid(const std::shared_ptr<Factory>& factory, int sampleRate, const TrainSpec& spec,
                     const std::vector<std::pair<std::string, std::vector<double>>>& axes)
 {
@@ -325,6 +339,10 @@ static bool schemeWithin(double x, double h, double min, double max, FdScheme& s
     return true;
 }
 
+// Differences of the summed loss lane at steps h and h/2, extrapolated to a zero step
+// (Richardson): a plain central difference is off by the third derivative times h^2/6,
+// which does not shrink with the gradient and is all that is left at the end of a
+// descent. A control is never set outside its range.
 std::vector<FdCheck> fdCheck(const std::shared_ptr<Factory>& factory, int sampleRate, const TrainSpec& spec, double h,
                              const std::vector<double>* at)
 {

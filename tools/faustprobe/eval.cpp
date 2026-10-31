@@ -14,9 +14,11 @@
 
 #include "text.h"
 
+// What opens the environment on the file's first line, and the name of its members.
 static const std::string kOpener = "__faustprobe_env = environment{ ";
 static const std::string kMember = "__faustprobe_eval";
 
+// The blank lines at the end of the file are dropped: exprLine() counts its lines.
 EvalProgram::EvalProgram(const std::string& file, const std::vector<std::string>& exprs)
 {
     if (exprs.empty()) {
@@ -58,6 +60,7 @@ std::string EvalProgram::environment() const
     return source + "};\n";
 }
 
+// A .lib and a .dsp are treated alike: the file's own process is not the one evaluated.
 std::string EvalProgram::source() const
 {
     std::vector<std::string> members;
@@ -76,6 +79,7 @@ std::string EvalProgram::aritySource() const
     return environment() + "process = " + join(members, ", ") + ";\n";
 }
 
+// Arities that do not add up would attribute a column to the wrong expression: an error.
 std::vector<std::string> EvalProgram::labels(const std::vector<size_t>& arities, size_t outputs) const
 {
     size_t                   total = 0;
@@ -165,6 +169,7 @@ std::string EvalProgram::explain(const std::string& name, const std::string& err
     return notes.empty() ? text : trim(text) + "\n" + join(notes, "\n");
 }
 
+// From the last: __faustprobe_eval1 must not be read as __faustprobe_eval10's start.
 std::string EvalProgram::renameMembers(std::string text) const
 {
     for (size_t k = fExprs.size(); k-- > 0;) {

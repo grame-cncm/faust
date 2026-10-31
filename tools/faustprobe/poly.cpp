@@ -17,16 +17,19 @@ static const int kFreeVoice    = -1;
 static const int kReleaseVoice = -2;
 static const int kLegatoVoice  = -3;
 
+// dsp_voice::midiToFreq.
 static double midiToFreq(double note)
 {
     return 440.0 * pow(2.0, (note - 69.0) / 12.0);
 }
 
+// What a note writes, by the conversion its control's name selected.
 static double convertKey(KeyConversion conversion, int pitch)
 {
     return conversion == KeyConversion::Freq ? midiToFreq(pitch) : double(pitch);
 }
 
+// And what a velocity is worth: 0..1 for /gain, as it is for /vel.
 static double convertVelocity(VelConversion conversion, int velocity)
 {
     return conversion == VelConversion::Gain ? double(velocity) / 127.0 : double(velocity);
@@ -118,6 +121,7 @@ static double mixCheckVoice(const Channels& voice, Channels& out)
     return total == 0 ? 0.0 : sqrt(sumSquares / double(total));
 }
 
+// fadeOut: a linear fade of the first half, over the outgoing note, across the splice.
 static void fadeOut(Channels& buffer, size_t half)
 {
     if (half == 0) {
@@ -133,6 +137,8 @@ static void fadeOut(Channels& buffer, size_t half)
     }
 }
 
+// A wrapper compiled and instantiated; null when the compiler refuses it, which is
+// what a program without effect looks like.
 static std::unique_ptr<Probe> compileInlineEffect(const std::string& wrapped, const std::string& path,
                                                   const std::vector<std::string>& importDirs, int sampleRate,
                                                   bool isDouble, int optLevel)
@@ -146,6 +152,8 @@ static std::unique_ptr<Probe> compileInlineEffect(const std::string& wrapped, co
     }
 }
 
+// See poly.h. One compilation for every voice; the effect comes after, so that it can
+// be checked against the width of a voice.
 PolyProbe::PolyProbe(const std::string& path, const std::vector<std::string>& importDirs, int sampleRate,
                      bool isDouble, int optLevel, size_t nvoices, const Optional<std::string>& effectPath,
                      double stopLevel)
@@ -158,6 +166,7 @@ PolyProbe::PolyProbe(const std::string& path, const std::vector<std::string>& im
         voice.paths = extractPaths(voice.probe->controls());
         fVoices.push_back(std::move(voice));
     }
+    // the voices are instances of one DSP: the first speaks for all
     fBusOutputs = fVoices[0].probe->outputs();
     fInputs     = fVoices[0].probe->inputs();
     fKeyFun     = fVoices[0].paths.keyFun;
@@ -222,6 +231,7 @@ PolyProbe::PolyProbe(const std::string& path, const std::vector<std::string>& im
     fOutputs = fEffect != nullptr ? fEffect->outputs() : fBusOutputs;
 }
 
+// Releasing voices count: they still sound.
 size_t PolyProbe::activeVoiceCount() const
 {
     size_t count = 0;
@@ -233,6 +243,7 @@ size_t PolyProbe::activeVoiceCount() const
     return count;
 }
 
+// A voice still releasing from one sweep point would otherwise sound in the next.
 void PolyProbe::reset()
 {
     for (Voice& voice : fVoices) {
@@ -272,6 +283,8 @@ std::vector<PolyWrite> PolyProbe::checkWrite(const std::string& query, double va
     return writes;
 }
 
+// The clamp is that of a widget, already in the write. What a note writes is not a
+// widget's doing and goes through writeKeyOn, unclamped, as in poly-dsp.h.
 void PolyProbe::setAll(const std::string& query, double value)
 {
     for (const PolyWrite& write : checkWrite(query, value)) {
@@ -285,6 +298,7 @@ void PolyProbe::setAll(const std::string& query, double value)
     }
 }
 
+// dsp_voice::keyOn: frequency, gate, gain, in that order.
 void PolyProbe::writeKeyOn(size_t voice, double freq, double gain)
 {
     const VoiceControlPaths& paths = fVoices[voice].paths;
@@ -297,6 +311,7 @@ void PolyProbe::writeKeyOn(size_t voice, double freq, double gain)
     }
 }
 
+// Every path ending in /gate.
 void PolyProbe::writeGate(size_t voice, double value)
 {
     for (const std::string& path : fVoices[voice].paths.gate) {
@@ -304,6 +319,7 @@ void PolyProbe::writeGate(size_t voice, double value)
     }
 }
 
+// A free voice sounds at once; a stolen one waits for its tail to be rendered.
 void PolyProbe::keyOn(int pitch, int velocity)
 {
     bool steal = false;
@@ -320,6 +336,7 @@ void PolyProbe::keyOn(int pitch, int velocity)
     }
 }
 
+// Without a voice sounding that pitch, nothing happens.
 void PolyProbe::keyOff(int pitch)
 {
     int voice = getPlayingVoice(fStates, pitch);
@@ -336,6 +353,7 @@ Channels PolyProbe::computeLegato(size_t voice, size_t frames, const Channels& i
 {
     writeGate(voice, 0.0);
     size_t half = frames / 2, rest = frames - half;
+    // each half of the block reads its own half of the inputs
     auto   slice = [&inputs](size_t from, size_t count) {
         Channels part;
         for (const std::vector<double>& channel : inputs) {
@@ -360,6 +378,7 @@ Channels PolyProbe::computeLegato(size_t voice, size_t frames, const Channels& i
 // mydsp_poly::compute: the host's inputs go to every playing voice.
 Channels PolyProbe::computeWithInputs(const Channels& inputs, size_t frames)
 {
+    // the width of a voice: the effect may change it
     Channels mixed(fBusOutputs, std::vector<double>(frames, 0.0));
     for (size_t i = 0; i < fVoices.size(); i++) {
         int curNote = fStates[i].curNote;
@@ -377,6 +396,7 @@ Channels PolyProbe::computeWithInputs(const Channels& inputs, size_t frames)
     return fEffect != nullptr ? fEffect->computeRaw(mixed, frames) : mixed;
 }
 
+// See engine.cpp, Probe::renderAt: the same loop over a whole instrument.
 RenderStats PolyProbe::render(const PolyRenderSpec& spec, const FrameCallback& onFrame)
 {
     StatsAccumulator accumulator(fOutputs, spec.skip, spec.limit, isDouble());

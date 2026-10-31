@@ -20,13 +20,15 @@
 
 namespace {
 
+// The response of one configuration of the controls.
 struct PointResponse {
-    Assignments                                    set;
-    RenderStats                                    stats;
-    std::vector<std::pair<Property, double>>       deviations;
-    std::vector<std::vector<FreqPoint>>            responses;
-    std::vector<Optional<double>>                  tails;
+    Assignments                                    set;  // the swept controls at this point
+    RenderStats                                    stats;  // of the unit impulse response
+    std::vector<std::pair<Property, double>>       deviations;  // measured departure from each property, relative to the peak
+    std::vector<std::vector<FreqPoint>>            responses;  // per output, the response at each frequency
+    std::vector<Optional<double>>                  tails;  // per output, the share of the energy in the last tenth
 
+    // cutoff=200 q=5, empty without a sweep.
     std::string label() const
     {
         std::vector<std::string> parts;
@@ -36,6 +38,7 @@ struct PointResponse {
         return join(parts, " ");
     }
 
+    //  [cutoff=200 q=5], naming the point in a line about it.
     std::string tag() const { return set.empty() ? "" : " [" + label() + "]"; }
 
     // What is said of a response that was cut while it rang.
@@ -55,8 +58,10 @@ struct PointResponse {
     }
 };
 
+// A validated --freqresp: the program, the grid and the points to measure.
 class Family {
    public:
+    // Every check of the command line, before any render.
     explicit Family(const Args& args) : fArgs(args), fFmt(numberFormat(args))
     {
         const std::string spec = args.freqresp.has ? *args.freqresp : "";
@@ -101,6 +106,7 @@ class Family {
         fPoints = cartesian(fAxes);
     }
 
+    // Measures every point, then prints the family.
     void run()
     {
         std::vector<PointResponse> measured;
@@ -125,16 +131,17 @@ class Family {
     Compiled               fCompiled;
     std::unique_ptr<Probe> fProbe;
     FreqGrid               fGrid;
-    std::vector<double>    fHz;
-    double                 fTolerance = 0.0;
-    size_t                 fShift     = 1;
-    Optional<size_t>       fChannel;
-    Assignments            fFixed;
+    std::vector<double>    fHz;  // the grid's frequencies
+    double                 fTolerance = 0.0;  // of the checks, relative to the response's peak
+    size_t                 fShift     = 1;  // the delay of the time-invariance check
+    Optional<size_t>       fChannel;  // the excited input, or all of them
+    Assignments            fFixed;  // --set
     std::vector<Axis>      fAxes;
     Clamps                 fClamps;
-    std::vector<std::string> fLabels;
+    std::vector<std::string> fLabels;  // what each output is, under --eval
     std::vector<Point>     fPoints;
 
+    // What a frequency response is not combined with, and why.
     void refuseFlags() const
     {
         const Args& args = fArgs;
@@ -183,6 +190,7 @@ class Family {
         return fProbe->collect(spec, samples);
     }
 
+    // The response at one point, after the checks that there is one.
     PointResponse measure(const Point& point)
     {
         PointResponse response;
@@ -260,6 +268,7 @@ class Family {
         return error;
     }
 
+    // The JSON document: one run per point.
     void json(const std::vector<PointResponse>& measured) const
     {
         Json runs = Json::array();
@@ -320,6 +329,7 @@ class Family {
         return run;
     }
 
+    // The CSV rows: the swept controls head them, as in a sweep of renders.
     void rows(const std::vector<PointResponse>& measured) const
     {
         std::vector<std::string> header;
@@ -348,6 +358,7 @@ class Family {
         }
     }
 
+    // What is said of the family, and of each of its points.
     void annotations(const std::vector<PointResponse>& measured, const TotalTiming& totalTiming) const
     {
         std::string excited;
@@ -404,6 +415,7 @@ class Family {
 
 }  // namespace
 
+// Validates the command line, measures, prints.
 void runFreqresp(const Args& args)
 {
     Family family(args);

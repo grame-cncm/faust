@@ -80,11 +80,14 @@ static void run(Args args)
     runRender(args, impulseTest);
 }
 
+// What the worker thread is given and answers.
 struct Worker {
     Args args;
     int  status = 0;
 };
 
+// The body of the worker: a failure ends here, with its message and exit status 1.
+// stdout is flushed first, so that what the run printed comes before the verdict.
 static void* work(void* data)
 {
     Worker* worker = static_cast<Worker*>(data);
@@ -102,6 +105,7 @@ static void* work(void* data)
     return nullptr;
 }
 
+// Parses the command line on the main thread, runs on a worker with a large stack.
 int main(int argc, char* argv[])
 {
     // By default libfaust marks every floating-point call of its LLVM IR

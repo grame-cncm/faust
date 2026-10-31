@@ -16,6 +16,7 @@
 
 // ---------------------------------------------------------------- setup
 
+// A compile error under --eval is rewritten for the person who typed the expressions.
 Compiled compileProgram(const Args& args, bool isDouble)
 {
     Compiled compiled;
@@ -35,6 +36,7 @@ Compiled compileProgram(const Args& args, bool isDouble)
     return compiled;
 }
 
+// See report.h.
 Compiled compileTimed(const Args& args)
 {
     uint64_t started  = nowNanos();
@@ -43,6 +45,7 @@ Compiled compileTimed(const Args& args)
     return compiled;
 }
 
+// Splits at the first =: a path holds none, a value may be negative or NaN.
 std::pair<std::string, double> parseAssignment(const std::string& text)
 {
     size_t equal = text.find('=');
@@ -57,6 +60,7 @@ std::pair<std::string, double> parseAssignment(const std::string& text)
     return std::make_pair(text.substr(0, equal), parsed);
 }
 
+// Several of them, the first malformed one reported.
 Assignments parseAssignments(const std::vector<std::string>& texts)
 {
     Assignments assignments;
@@ -66,6 +70,7 @@ Assignments parseAssignments(const std::vector<std::string>& texts)
     return assignments;
 }
 
+// In the order given.
 std::vector<Axis> sweepAxes(const Args& args)
 {
     std::vector<Axis> axes;
@@ -75,16 +80,19 @@ std::vector<Axis> sweepAxes(const Args& args)
     return axes;
 }
 
+// For the messages.
 std::string sweepFlag(const Args& args)
 {
     return args.points.has ? "--points" : "--sweep";
 }
 
+// The points of --points FILE, else the cartesian product of the --sweep axes.
 void sweepPoints(const Args& args, std::vector<Axis>& axes, std::vector<Point>& points)
 {
     if (args.points.has) {
         const std::string& path = *args.points;
         try {
+            // opened first for the system's word on why it cannot be
             FILE* file = fopen(path.c_str(), "rb");
             if (file == nullptr) {
                 throw Failure(strerror(errno));
@@ -100,6 +108,7 @@ void sweepPoints(const Args& args, std::vector<Axis>& axes, std::vector<Point>& 
     }
 }
 
+// MODE or MODE:ARGUMENT. A default pitch or path would measure the wrong thing: refused.
 InputMode parseInput(const std::string& spec)
 {
     size_t      colon   = spec.find(':');
@@ -155,6 +164,7 @@ InputMode parseInput(const std::string& spec)
     return mode;
 }
 
+// See report.h.
 void checkImpulseChannel(const InputMode& input, size_t inputs)
 {
     if (input.kind != InputMode::Kind::ImpulseChannel || input.channel < inputs) {
@@ -171,6 +181,7 @@ void checkImpulseChannel(const InputMode& input, size_t inputs)
     throw Failure("--in impulse:" + str(input.channel) + ": " + says);
 }
 
+// A file at another rate is read as if it were at --sr: said on stderr, not refused.
 InputMode parseInputAt(const std::string& spec, int sr, size_t inputs)
 {
     InputMode input = parseInput(spec);
@@ -184,6 +195,7 @@ InputMode parseInputAt(const std::string& spec, int sr, size_t inputs)
 
 // With several expressions the columns are attributed by the number of outputs
 // of each, which a second, tiny program computes.
+// See report.h.
 std::vector<std::string> outputLabels(const Args& args, const Compiled& compiled, size_t outputs)
 {
     if (compiled.eval == nullptr) {
@@ -219,6 +231,7 @@ std::vector<std::string> outputLabels(const Args& args, const Compiled& compiled
     return eval.labels(arities, outputs);
 }
 
+// Fails on a --precision that is neither `full` nor a count.
 NumberFormat numberFormat(const Args& args)
 {
     NumberFormat format;
@@ -229,6 +242,7 @@ NumberFormat numberFormat(const Args& args)
     return format;
 }
 
+// A frame keeps the order of the flags.
 Schedule buildSchedule(const Args& args)
 {
     Schedule schedule;
@@ -261,6 +275,7 @@ Json Clamped::json() const
     return Json::object().set("path", path).set("requested", requested).set("applied", applied);
 }
 
+// NaN != NaN: a clamp of NaN must still find its point.
 static bool sameBits(double a, double b)
 {
     return memcmp(&a, &b, sizeof(double)) == 0;
@@ -271,6 +286,7 @@ bool Clamped::operator==(const Clamped& other) const
     return path == other.path && requested == other.requested && applied == other.applied;
 }
 
+// See report.h.
 double checkValue(const ControlMap& controls, const std::string& query, double value, bool clamp,
                   std::vector<Clamped>& clamped)
 {
@@ -284,6 +300,7 @@ double checkValue(const ControlMap& controls, const std::string& query, double v
     return write.applied;
 }
 
+// Each control a write reaches is checked against its own range.
 void checkPolyValue(const PolyProbe& poly, const std::string& query, double value, bool clamp,
                     std::vector<Clamped>& clamped)
 {
@@ -303,6 +320,7 @@ void checkPolyValue(const PolyProbe& poly, const std::string& query, double valu
     }
 }
 
+// A clamp remembers the index of its axis: ofPoint() matches it to a point's value.
 void Clamps::checkAxes(const ControlMap& controls, const std::vector<Axis>& sweep, bool clamp)
 {
     for (size_t index = 0; index < sweep.size(); index++) {
@@ -337,6 +355,7 @@ std::vector<Clamped> Clamps::ofPoint(const Point& point) const
     return clamps;
 }
 
+// A query that does not resolve keeps its value: the checks have reported it.
 Assignments applied(const ControlMap& controls, const Point& point)
 {
     Assignments values;
@@ -351,6 +370,7 @@ Assignments applied(const ControlMap& controls, const Point& point)
     return values;
 }
 
+// --set then the point, in order, what does not resolve left out.
 Assignments written(const ControlMap& controls, const Assignments& fixed, const Point& point)
 {
     Assignments all = fixed;
@@ -366,6 +386,7 @@ Assignments written(const ControlMap& controls, const Assignments& fixed, const 
     return values;
 }
 
+// See report.h.
 void prime(Probe& probe, const Assignments& fixed, const Point& point)
 {
     probe.reset();
@@ -379,6 +400,7 @@ void prime(Probe& probe, const Assignments& fixed, const Point& point)
 
 // ---------------------------------------------------------------- said
 
+// fwrite: a line may hold anything, NUL excepted.
 void writeLine(const std::string& line)
 {
     fwrite(line.data(), 1, line.size(), stdout);
@@ -401,12 +423,14 @@ void Sink::sayAll(const std::vector<std::string>& lines) const
     }
 }
 
+// A text in a column of that width.
 static std::string padded(const std::string& text, size_t width, bool left)
 {
     std::string padding(text.size() < width ? width - text.size() : 0, ' ');
     return left ? text + padding : padding + text;
 }
 
+// One row of --list-params.
 static std::string controlRow(const std::string& path, const std::string& kind, const std::string& init,
                               const std::string& min, const std::string& max, const std::string& step)
 {
@@ -414,6 +438,7 @@ static std::string controlRow(const std::string& path, const std::string& kind, 
            padded(min, 10, false) + " " + padded(max, 10, false) + " " + padded(step, 10, false);
 }
 
+// A control's numbers live at the program's width: sample(), not computed().
 void printControls(const std::string& title, const ControlMap& controls, const NumberFormat& fmt)
 {
     writeLine(controlRow(title, "kind", "init", "min", "max", "step"));
@@ -425,6 +450,7 @@ void printControls(const std::string& title, const ControlMap& controls, const N
     }
 }
 
+// peak_at comes after the older fields, for readers keyed on them.
 std::vector<std::string> channelLines(const RenderStats& stats, const NumberFormat& fmt)
 {
     std::vector<std::string> lines;
@@ -443,6 +469,7 @@ std::vector<std::string> channelLines(const RenderStats& stats, const NumberForm
     return lines;
 }
 
+// One object per output.
 Json channelsJson(const RenderStats& stats)
 {
     Json channels = Json::array();
@@ -458,16 +485,19 @@ Json channelsJson(const RenderStats& stats)
     return channels;
 }
 
+// The window the statistics are over.
 Json windowJson(const RenderStats& stats)
 {
     return Json::object().set("start", stats.windowStart).set("frames", stats.windowLength);
 }
 
+// The version of the format, what was probed, at what rate.
 Json documentJson(const Args& args)
 {
     return Json::object().set("schema_version", 1).set("dsp", args.file).set("sr", args.sr);
 }
 
+// See report.h.
 void describeProgram(Json& document, const Args& args, const std::vector<std::string>* evalLabels,
                      double compileSeconds)
 {
@@ -479,11 +509,13 @@ void describeProgram(Json& document, const Args& args, const std::vector<std::st
     }
 }
 
+// See report.h.
 void printJson(const Json& document)
 {
     writeLine(document.pretty());
 }
 
+// See report.h. Nothing computed: the compilation alone.
 std::vector<std::string> timeLines(double compileSeconds, const Timing& timing,
                                    const std::function<std::string(const WorstBlock&)>& worstName)
 {
@@ -505,11 +537,13 @@ std::vector<std::string> timeLines(double compileSeconds, const Timing& timing,
     return lines;
 }
 
+// A render names its worst block by frame.
 std::vector<std::string> renderTimeLines(double compileSeconds, const Timing& timing)
 {
     return timeLines(compileSeconds, timing, [](const WorstBlock& worst) { return "frame " + str(worst.frame); });
 }
 
+// worst_block is null when nothing was computed.
 Json timingJson(const Timing& timing, const Optional<double>& compileSeconds)
 {
     Json json = Json::object()
@@ -535,6 +569,7 @@ Json timingJson(const Timing& timing, const Optional<double>& compileSeconds)
     return json;
 }
 
+// A render that was not timed adds nothing.
 void TotalTiming::add(const Optional<Timing>& timing)
 {
     if (!timing) {
@@ -562,6 +597,7 @@ std::vector<std::string> TotalTiming::lines(double compileSeconds, size_t render
     return lines;
 }
 
+// Facts, not guesses: a gate never pressed, an input never fed.
 std::vector<std::string> silenceNotes(const Probe& probe, const InputMode& input)
 {
     std::vector<std::string> notes = {"every output is exactly zero over the window"};
@@ -583,6 +619,7 @@ std::vector<std::string> silenceNotes(const Probe& probe, const InputMode& input
 
 // ---------------------------------------------------------------- failures
 
+// See report.h.
 Optional<std::string> renderFailure(const RenderStats& stats, const Optional<std::pair<size_t, Located>>& nonFinite,
                                     const Optional<double>& failAbove, size_t frames, const NumberFormat& fmt,
                                     const FrameContext& context)
@@ -617,6 +654,7 @@ struct WrittenBy {
     Assignments           then;
     Optional<std::string> lastEvent;
 
+    // A write before the first frame; the last value of a control given twice wins.
     void record(const std::string& path, double value)
     {
         for (auto& entry : then) {
@@ -628,12 +666,14 @@ struct WrittenBy {
         then.push_back(std::make_pair(path, value));
     }
 
+    // A write of --at.
     void scheduled(size_t at, const std::string& path, double value)
     {
         record(path, value);
         lastEvent = "frame " + str(at) + ", " + path + "=" + plainNumber(value);
     }
 
+    // The lines added to the failure.
     std::string text() const
     {
         std::string out;
@@ -655,6 +695,7 @@ struct WrittenBy {
 
 }  // namespace
 
+// Written controls first, then the scheduled writes up to the frame.
 std::string failureContext(size_t frame, const Assignments& writtenBefore, const Schedule& schedule,
                            const ControlMap& controls)
 {
@@ -675,6 +716,7 @@ std::string failureContext(size_t frame, const Assignments& writtenBefore, const
     return by.text();
 }
 
+// See report.h.
 std::string polyFailureContext(size_t frame, const Assignments& fixed, const Schedule& schedule, const PolyProbe& poly)
 {
     // where a broadcast write lands: every voice's control, the effect's, or both
@@ -718,6 +760,7 @@ std::string polyFailureContext(size_t frame, const Assignments& fixed, const Sch
 
 // ---------------------------------------------------------------- measures
 
+// See report.h.
 Measures::Measures(const Args& args, size_t outputs, size_t window, int sampleRate)
     : fF0(args.f0), fSampleRate(sampleRate)
 {
@@ -732,6 +775,7 @@ Measures::Measures(const Args& args, size_t outputs, size_t window, int sampleRa
     }
 }
 
+// null without a reduction.
 Json Measures::reductionJson() const
 {
     return fReduction ? Json(reductionName(*fReduction)) : Json();
@@ -764,6 +808,7 @@ std::vector<std::string> Measures::header(size_t outputs) const
     return header;
 }
 
+// One output, reduced to one number: the JSON and CSV paths cannot disagree.
 static double reduceChannel(Reduction reduction, const RenderStats& stats, size_t ch, const Channels& collected,
                             double sr, const Optional<double>& f0)
 {
@@ -802,6 +847,7 @@ Measured Measures::measure(const RenderStats& stats, const Channels& collected) 
     return measured;
 }
 
+// See report.h.
 std::vector<std::string> Measures::row(const Measured& measured, const RenderStats& stats,
                                        const NumberFormat& fmt) const
 {
@@ -845,6 +891,7 @@ void Measures::addDescribed(Json& entry, const Measured& measured) const
     entry.set("describe", object);
 }
 
+// Why a descriptor has no value.
 static const char* whyNan(const Descriptor& descriptor)
 {
     switch (descriptor.kind) {
