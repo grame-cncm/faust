@@ -217,9 +217,10 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
                   int size,
                   const PathTableType& path_table,
                   MemoryLayoutType memory_layout,
-                  InstComplexity inst_comp)
+                  InstComplexity inst_comp,
+                  bool extended = false)
         {
-            init(name, filename, inputs, outputs, sr_index, sha_key, dsp_code, version, compile_options, library_list, include_pathnames, size, path_table, memory_layout, inst_comp);
+            init(name, filename, inputs, outputs, sr_index, sha_key, dsp_code, version, compile_options, library_list, include_pathnames, size, path_table, memory_layout, inst_comp, extended);
         }
 
         JSONUIReal(const std::string& name, const std::string& filename, int inputs, int outputs)

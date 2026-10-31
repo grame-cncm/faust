@@ -37,6 +37,7 @@
 #include <string>
 #include <cmath>
 #include <fstream>
+#include <locale>
 #include <sstream>
 #include <stdio.h> // We use the lighter fprintf code
 #include <ctype.h>
@@ -190,7 +191,13 @@ static bool parseDouble(const char*& p, double& x)
     }
     
     if (valid)  {
-        x = (sign*(ipart + dpart/dcoef)) * std::pow(10.0, expcoef*expsign);
+        // Correctly rounded, which the sum below is not: it loses the last digits of a
+        // value written with all of them. Not strtod: it follows the locale of the host.
+        std::istringstream text(std::string(saved, p));
+        text.imbue(std::locale::classic());
+        if (!(text >> x)) {
+            x = (sign*(ipart + dpart/dcoef)) * std::pow(10.0, expcoef*expsign);
+        }
     } else {
         p = saved;
     }

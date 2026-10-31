@@ -78,11 +78,13 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
         faustassert(fStructVisitor.getFieldOffset("fSampleRate") != -1);
 
+        // Extended: the widgets' values are set from this JSON, which has no compiled
+        // instanceResetUserInterface behind it, so they need every digit of REAL
         JSONInstVisitor<REAL> json_visitor2(
             "", "", fNumInputs, fNumOutputs, fStructVisitor.getFieldOffset("fSampleRate"), "", "",
             FAUSTVERSION, gGlobal->printCompilationOptions1(), gGlobal->gReader.listLibraryFiles(),
             gGlobal->gImportDirList, fStructVisitor.getStructSize(), path_index_table,
-            MemoryLayoutType());
+            MemoryLayoutType(), {}, true);
         generateUserInterface(&json_visitor2);
         generateMetaData(&json_visitor2);
 
