@@ -91,23 +91,24 @@ in faust-rs: the tool does not load audio files for `soundfile`.
 
 ### Fast math is off
 
-By default libfaust marks every floating-point call of its LLVM IR `fast`. From
-`-O1` up, LLVM then computes `pow(C, x)` as `exp2(log2(C) * x)`, which is not
-exact: `pow(53, 1)` gives 52.999999999999986 where `-O0` gives 53, and a length
-made from it by truncation loses a sample. Of the powers of the first 16 primes
-up to the 8th, 51 of 144 end up one short that way. `reverb_designer.dsp`, whose
-delay lengths are `int(pow(prime, floor(...)) - 1)`, departs from its reference by
-0.03 at frame 2195.
-
-The tool therefore sets `FAUST_OPT=FAUST_LLVM_NO_FM`, as the LLVM rule of
-`tests/impulse-tests/Makefile` does, and every `--opt-level` gives the reference
-of all 99 programs of the impulse-test corpus. What a libfaust host with default
-settings gets is what an empty value shows, a `FAUST_OPT` set by the user being
-left alone:
+By default libfaust marks the floating-point operations of its LLVM IR with
+fast-math flags, which let LLVM change a result in its last digits. The tool sets
+`FAUST_OPT=FAUST_LLVM_NO_FM`, whatever the libfaust it is linked with: what it owes
+is the samples of the program, and every `--opt-level` gives the reference of all
+99 programs of the impulse-test corpus. What a libfaust host with default settings
+gets is what an empty value shows, a `FAUST_OPT` set by the user being left alone:
 
 ```sh
 FAUST_OPT= faustprobe --opt-level -1 ...
 ```
+
+With a libfaust older than commit `78de467cb`, this also avoids a wrong result.
+Those versions leave the `afn` flag on, and from `-O1` up LLVM then computes
+`pow(C, x)` as `exp2(log2(C) * x)`, which is not exact: `pow(53, 1)` gives
+52.999999999999986 where `-O0` gives 53, and a length made from it by truncation
+loses a sample. Of the powers of the first 16 primes up to the 8th, 51 of 144 end
+up one short that way. `reverb_designer.dsp`, whose delay lengths are
+`int(pow(prime, floor(...)) - 1)`, departs from its reference by 0.03 at frame 2195.
 
 `--opt-level` defaults to 0, as in faust-rs. It renders about eight times slower
 on a small filter: use `-1` for long renders and with `--time`.

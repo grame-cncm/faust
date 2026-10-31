@@ -108,11 +108,12 @@ static void* work(void* data)
 // Parses the command line on the main thread, runs on a worker with a large stack.
 int main(int argc, char* argv[])
 {
-    // By default libfaust marks every floating-point call of its LLVM IR
-    // 'fast', and from -O1 up LLVM then computes pow(C, x) as exp2(log2(C) * x):
+    // By default libfaust marks the floating-point operations of its LLVM IR with
+    // fast-math flags, which let LLVM change a result in its last digits. With an
+    // older libfaust it also computes pow(C, x) as exp2(log2(C) * x) from -O1 up:
     // pow(53, 1) is 52.999999999999986, and a delay length made from it loses a
-    // sample. A probe owes the samples of the program, so a FAUST_OPT of the
-    // user's own takes precedence, and nothing else does.
+    // sample. A probe owes the samples of the program, so a FAUST_OPT of the user's
+    // own takes precedence, and nothing else does.
     setenv("FAUST_OPT", "FAUST_LLVM_NO_FM", 0);
 
     Worker worker;
