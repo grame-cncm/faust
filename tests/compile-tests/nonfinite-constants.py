@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile and execute non-finite constants (C++, Julia, Rust, Java, D, C#, AssemblyScript).
+"""Compile and execute non-finite constants (C++, Julia, Rust, Java, D, C#, AssemblyScript, WAST).
 
 An infinite constant was printed as INFINITY whatever its sign, so the C++
 code computed +inf where the program has -inf. The ocpp backend tested the
@@ -13,13 +13,16 @@ uses its own constants (f32::INFINITY, Float.POSITIVE_INFINITY,
 float.infinity, float.PositiveInfinity, and the double ones).
 AssemblyScript had the same issue; it now uses f32.POSITIVE_INFINITY,
 f32.NEGATIVE_INFINITY, f32.NaN and the f64 ones.
+The WAST backend emitted "inf" for all infinite constants, losing the sign
+of -inf, and printed NaN as "nan.0" which is invalid in WebAssembly text format;
+it now emits inf, -inf and nan in (f32.const ...) and (f64.const ...).
 
 The program outputs +inf, -inf and 1e38 * 10 (+inf in single precision) at
 its first sample, and 0 after; it is generated in single and double
 precision for each backend and run. D is compiled only (--backends dlang,
-with stubs for the dplug imports), C# only generated (--backends csharp):
-the generated names are checked. AssemblyScript (--backends asc) is compiled
-with asc and run with Node, after the same check of the names.
+with stubs for the dplug imports), C# and WAST only generated (--backends csharp,
+--backends wast): the generated names are checked. AssemblyScript (--backends asc)
+is compiled with asc and run with Node, after the same check of the names.
 """
 import re
 import argparse
@@ -153,6 +156,9 @@ void main() {
 CSHARP_NAMES = {"single": ["float.PositiveInfinity", "float.NegativeInfinity"],
                 "double": ["double.PositiveInfinity", "double.NegativeInfinity"]}
 
+WAST_NAMES = {"single": ["(f32.const inf)", "(f32.const -inf)"],
+              "double": ["(f64.const inf)", "(f64.const -inf)"]}
+
 ASC_NAMES = {"single": ["f32.POSITIVE_INFINITY", "f32.NEGATIVE_INFINITY"],
              "double": ["f64.POSITIVE_INFINITY", "f64.NEGATIVE_INFINITY"]}
 
@@ -200,7 +206,7 @@ def main():
     parser.add_argument("--asc", default="asc")
     parser.add_argument("--node", default="node")
     parser.add_argument("--backends", nargs="+",
-                        choices=["cpp", "ocpp", "julia", "rust", "java", "dlang", "csharp", "asc"],
+                        choices=["cpp", "ocpp", "julia", "rust", "java", "dlang", "csharp", "asc", "wast"],
                         default=["cpp", "ocpp", "julia", "rust", "java"])
     args = parser.parse_args()
     faust = args.faust.resolve()
@@ -275,6 +281,24 @@ def main():
             if missing or re.search(r"\bINFINITY\b", code):
                 raise SystemExit(f"FAIL csharp {precision}: missing {missing} or INFINITY left")
             print(f"PASS csharp {precision}: non-finite constants generated", flush=True)
+    for precision in ["single", "double"] if "wast" in args.backends else []:
+        with tempfile.TemporaryDirectory(prefix="faust-nonfinite-wast-") as temp:
+            work = Path(temp)
+            (work / "nonfinite.dsp").write_text(SOURCE)
+            run([faust, "-I", repo / "libraries", "-lang", "wast", "-" + precision,
+                 work / "nonfinite.dsp", "-o", work / "mydsp.wast"], work)
+            code = (work / "mydsp.wast").read_text()
+            missing = [n for n in WAST_NAMES[precision] if n not in code]
+            if missing:
+                raise SystemExit(f"FAIL wast {precision}: missing {missing}")
+            (work / "nan.dsp").write_text("process = (1e308 * 10.0) * 0.0;")
+            run([faust, "-I", repo / "libraries", "-lang", "wast", "-" + precision,
+                 work / "nan.dsp", "-o", work / "nan.wast"], work)
+            nan_code = (work / "nan.wast").read_text()
+            expected_nan = f"({'f32' if precision == 'single' else 'f64'}.const nan)"
+            if expected_nan not in nan_code:
+                raise SystemExit(f"FAIL wast {precision}: missing {expected_nan}")
+            print(f"PASS wast {precision}: non-finite constants generated", flush=True)
     for precision in ["single", "double"] if "asc" in args.backends else []:
         with tempfile.TemporaryDirectory(prefix="faust-nonfinite-asc-") as temp:
             work = Path(temp)
