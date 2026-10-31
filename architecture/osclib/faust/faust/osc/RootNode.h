@@ -110,7 +110,7 @@ class RootNode : public MessageDriven
     private:
         int *fUPDIn, *fUDPOut, *fUDPErr;    // the osc port numbers (required by the hello method)
         OSCIO* fIO;                         // an OSC IO controler
-        JSONUI* fJSON;
+        JSONUIBase* fJSON;
 
         typedef std::map<std::string, std::vector<aliastarget> > TAliasMap;
         TAliasMap fAliases;
@@ -125,11 +125,11 @@ class RootNode : public MessageDriven
         bool aliasError(const Message* msg);
 
     protected:
-        RootNode(const char *name, JSONUI* json, OSCIO* io = NULL) : MessageDriven(name, ""), fUPDIn(0), fUDPOut(0), fUDPErr(0), fIO(io), fJSON(json) {}
+        RootNode(const char *name, JSONUIBase* json, OSCIO* io = NULL) : MessageDriven(name, ""), fUPDIn(0), fUDPOut(0), fUDPErr(0), fIO(io), fJSON(json) {}
         virtual ~RootNode() {}
 
     public:
-        static SRootNode create(const char* name, JSONUI* json, OSCIO* io = NULL) { return new RootNode(name, json, io); }
+        static SRootNode create(const char* name, JSONUIBase* json, OSCIO* io = NULL) { return new RootNode(name, json, io); }
 
         virtual void processMessage(const Message* msg);
         virtual bool accept(const Message* msg);

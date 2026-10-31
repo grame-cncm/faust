@@ -726,11 +726,26 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
     
 };
 
-// Externally available class using FAUSTFLOAT
+// The part of JSONUI that does not depend on FAUSTFLOAT, for the code compiled apart from its users
+// (libOSCFaust), which would otherwise have to name a class that depends on their FAUSTFLOAT.
 
-struct FAUST_API JSONUI : public JSONUIReal<FAUSTFLOAT>, public UI {
+struct FAUST_API JSONUIBase {
+
+    virtual ~JSONUIBase() {}
+
+    virtual std::string JSON(bool flat = false) = 0;
+
+};
+
+// Externally available class using FAUSTFLOAT. EXT_REAL is the FAUSTFLOAT of the code that uses the
+// class. It is a template parameter rather than FAUSTFLOAT used in the class, so that its specializations
+// do not share a name between libfaust, compiled with its own FAUSTFLOAT, and a client compiled with
+// another one: the linker would keep one of the two definitions for both.
+
+template <typename EXT_REAL>
+struct FAUST_API JSONUIExt : public JSONUIReal<EXT_REAL>, public UI, public JSONUIBase {
     
-    JSONUI(const std::string& name,
+    JSONUIExt(const std::string& name,
            const std::string& filename,
            int inputs,
            int outputs,
@@ -745,7 +760,7 @@ struct FAUST_API JSONUI : public JSONUIReal<FAUSTFLOAT>, public UI {
            const PathTableType& path_table,
            MemoryLayoutType memory_layout,
            InstComplexity inst_comp):
-    JSONUIReal<FAUSTFLOAT>(name, filename,
+    JSONUIReal<EXT_REAL>(name, filename,
                           inputs, outputs,
                           sr_index,
                           sha_key, dsp_code,
@@ -755,121 +770,130 @@ struct FAUST_API JSONUI : public JSONUIReal<FAUSTFLOAT>, public UI {
                           memory_layout, inst_comp)
     {}
     
-    JSONUI(const std::string& name, const std::string& filename, int inputs, int outputs):
-    JSONUIReal<FAUSTFLOAT>(name, filename, inputs, outputs)
+    JSONUIExt(const std::string& name, const std::string& filename, int inputs, int outputs):
+    JSONUIReal<EXT_REAL>(name, filename, inputs, outputs)
     {}
     
-    JSONUI(int inputs, int outputs):JSONUIReal<FAUSTFLOAT>(inputs, outputs)
+    JSONUIExt(int inputs, int outputs):JSONUIReal<EXT_REAL>(inputs, outputs)
     {}
     
-    JSONUI():JSONUIReal<FAUSTFLOAT>()
+    JSONUIExt():JSONUIReal<EXT_REAL>()
     {}
 
     virtual void openTabBox(const char* label)
     {
-        JSONUIReal<FAUSTFLOAT>::openTabBox(label);
+        JSONUIReal<EXT_REAL>::openTabBox(label);
     }
     virtual void openHorizontalBox(const char* label)
     {
-        JSONUIReal<FAUSTFLOAT>::openHorizontalBox(label);
+        JSONUIReal<EXT_REAL>::openHorizontalBox(label);
     }
     virtual void openVerticalBox(const char* label)
     {
-        JSONUIReal<FAUSTFLOAT>::openVerticalBox(label);
+        JSONUIReal<EXT_REAL>::openVerticalBox(label);
     }
     virtual void closeBox()
     {
-        JSONUIReal<FAUSTFLOAT>::closeBox();
+        JSONUIReal<EXT_REAL>::closeBox();
     }
     
     // -- active widgets
     
-    virtual void addButton(const char* label, FAUSTFLOAT* zone)
+    virtual void addButton(const char* label, EXT_REAL* zone)
     {
-        JSONUIReal<FAUSTFLOAT>::addButton(label, zone);
+        JSONUIReal<EXT_REAL>::addButton(label, zone);
     }
-    void addButtonVarname(const char* label, const char* varname, FAUSTFLOAT* zone)
+    void addButtonVarname(const char* label, const char* varname, EXT_REAL* zone)
     {
-        JSONUIReal<FAUSTFLOAT>::addButtonVarname(label, varname, zone);
+        JSONUIReal<EXT_REAL>::addButtonVarname(label, varname, zone);
     }
-    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
+    virtual void addCheckButton(const char* label, EXT_REAL* zone)
     {
-        JSONUIReal<FAUSTFLOAT>::addCheckButton(label, zone);
+        JSONUIReal<EXT_REAL>::addCheckButton(label, zone);
     }
-    void addCheckButtonVarname(const char* label, const char* varname, FAUSTFLOAT* zone)
+    void addCheckButtonVarname(const char* label, const char* varname, EXT_REAL* zone)
     {
-        JSONUIReal<FAUSTFLOAT>::addCheckButtonVarname(label, varname, zone);
+        JSONUIReal<EXT_REAL>::addCheckButtonVarname(label, varname, zone);
     }
-    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    virtual void addVerticalSlider(const char* label, EXT_REAL* zone, EXT_REAL init, EXT_REAL min, EXT_REAL max, EXT_REAL step)
     {
-        JSONUIReal<FAUSTFLOAT>::addVerticalSlider(label, zone, init, min, max, step);
+        JSONUIReal<EXT_REAL>::addVerticalSlider(label, zone, init, min, max, step);
     }
-    void addVerticalSliderVarname(const char* label, const char* varname, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    void addVerticalSliderVarname(const char* label, const char* varname, EXT_REAL* zone, EXT_REAL init, EXT_REAL min, EXT_REAL max, EXT_REAL step)
     {
-        JSONUIReal<FAUSTFLOAT>::addVerticalSliderVarname(label, varname, zone, init, min, max, step);
+        JSONUIReal<EXT_REAL>::addVerticalSliderVarname(label, varname, zone, init, min, max, step);
     }
-    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    virtual void addHorizontalSlider(const char* label, EXT_REAL* zone, EXT_REAL init, EXT_REAL min, EXT_REAL max, EXT_REAL step)
     {
-        JSONUIReal<FAUSTFLOAT>::addHorizontalSlider(label, zone, init, min, max, step);
+        JSONUIReal<EXT_REAL>::addHorizontalSlider(label, zone, init, min, max, step);
     }
-    void addHorizontalSliderVarname(const char* label, const char* varname, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    void addHorizontalSliderVarname(const char* label, const char* varname, EXT_REAL* zone, EXT_REAL init, EXT_REAL min, EXT_REAL max, EXT_REAL step)
     {
-        JSONUIReal<FAUSTFLOAT>::addHorizontalSliderVarname(label, varname, zone, init, min, max, step);
+        JSONUIReal<EXT_REAL>::addHorizontalSliderVarname(label, varname, zone, init, min, max, step);
     }
-    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    virtual void addNumEntry(const char* label, EXT_REAL* zone, EXT_REAL init, EXT_REAL min, EXT_REAL max, EXT_REAL step)
     {
-        JSONUIReal<FAUSTFLOAT>::addNumEntry(label, zone, init, min, max, step);
+        JSONUIReal<EXT_REAL>::addNumEntry(label, zone, init, min, max, step);
     }
-    void addNumEntryVarname(const char* label, const char* varname, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    void addNumEntryVarname(const char* label, const char* varname, EXT_REAL* zone, EXT_REAL init, EXT_REAL min, EXT_REAL max, EXT_REAL step)
     {
-        JSONUIReal<FAUSTFLOAT>::addNumEntryVarname(label, varname, zone, init, min, max, step);
+        JSONUIReal<EXT_REAL>::addNumEntryVarname(label, varname, zone, init, min, max, step);
     }
     
     // -- passive widgets
     
-    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    virtual void addHorizontalBargraph(const char* label, EXT_REAL* zone, EXT_REAL min, EXT_REAL max)
     {
-        JSONUIReal<FAUSTFLOAT>::addHorizontalBargraph(label, zone, min, max);
+        JSONUIReal<EXT_REAL>::addHorizontalBargraph(label, zone, min, max);
     }
-    void addHorizontalBargraphVarname(const char* label, const char* varname, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    void addHorizontalBargraphVarname(const char* label, const char* varname, EXT_REAL* zone, EXT_REAL min, EXT_REAL max)
     {
-        JSONUIReal<FAUSTFLOAT>::addHorizontalBargraphVarname(label, varname, zone, min, max);
+        JSONUIReal<EXT_REAL>::addHorizontalBargraphVarname(label, varname, zone, min, max);
     }
-    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    virtual void addVerticalBargraph(const char* label, EXT_REAL* zone, EXT_REAL min, EXT_REAL max)
     {
-        JSONUIReal<FAUSTFLOAT>::addVerticalBargraph(label, zone, min, max);
+        JSONUIReal<EXT_REAL>::addVerticalBargraph(label, zone, min, max);
     }
-    void addVerticalBargraphVarname(const char* label, const char* varname, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    void addVerticalBargraphVarname(const char* label, const char* varname, EXT_REAL* zone, EXT_REAL min, EXT_REAL max)
     {
-        JSONUIReal<FAUSTFLOAT>::addVerticalBargraphVarname(label, varname, zone, min, max);
+        JSONUIReal<EXT_REAL>::addVerticalBargraphVarname(label, varname, zone, min, max);
     }
     
     // -- soundfiles
     
     virtual void addSoundfile(const char* label, const char* url, Soundfile** sf_zone)
     {
-        JSONUIReal<FAUSTFLOAT>::addSoundfile(label, url, sf_zone);
+        JSONUIReal<EXT_REAL>::addSoundfile(label, url, sf_zone);
     }
     void addSoundfileVarname(const char* label, const char* varname, const char* url, Soundfile** sf_zone)
     {
-        JSONUIReal<FAUSTFLOAT>::addSoundfileVarname(label, varname, url, sf_zone);
+        JSONUIReal<EXT_REAL>::addSoundfileVarname(label, varname, url, sf_zone);
     }
     
     // -- metadata declarations
     
-    virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+    virtual void declare(EXT_REAL* zone, const char* key, const char* val)
     {
-        JSONUIReal<FAUSTFLOAT>::declare(zone, key, val);
+        JSONUIReal<EXT_REAL>::declare(zone, key, val);
     }
 
     virtual void declare(const char* key, const char* val)
     {
-        JSONUIReal<FAUSTFLOAT>::declare(key, val);
+        JSONUIReal<EXT_REAL>::declare(key, val);
     }
 
-    virtual ~JSONUI() {}
+    virtual std::string JSON(bool flat = false)
+    {
+        return JSONUIReal<EXT_REAL>::JSON(flat);
+    }
+
+    virtual ~JSONUIExt() {}
     
 };
+
+// An alias rather than a class, whose name would not depend on FAUSTFLOAT
+
+using JSONUI = JSONUIExt<FAUSTFLOAT>;
 
 #endif // FAUST_JSONUI_H
 /**************************  END  JSONUI.h **************************/

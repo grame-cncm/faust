@@ -34,7 +34,7 @@ using namespace std;
 namespace oscfaust
 {
 
-FaustFactory::FaustFactory(GUI* ui, JSONUI* json, OSCIO* io) : fIO(io), fGUI(ui), fJSON(json) {}
+FaustFactory::FaustFactory(GUI* ui, JSONUIBase* json, OSCIO* io) : fIO(io), fGUI(ui), fJSON(json) {}
 FaustFactory::~FaustFactory() {}
 
 /**

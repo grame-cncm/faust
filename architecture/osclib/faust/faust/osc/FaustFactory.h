@@ -55,14 +55,14 @@ class FaustFactory
     SRootNode  fRoot;   ///< keep track of the root node
     OSCIO*     fIO;     ///< hack to support audio IO via OSC, actually the field is given to the root node
     GUI*       fGUI;    ///< a GUI pointer to support updateAllGuis(), required for bi-directionnal OSC
-    JSONUI*    fJSON;
+    JSONUIBase*    fJSON;
     
     private:
         std::string addressFirst(const std::string& address) const;
         std::string addressTail(const std::string& address) const;
         
     public:
-        FaustFactory(GUI* ui, JSONUI* json, OSCIO * io = NULL);
+        FaustFactory(GUI* ui, JSONUIBase* json, OSCIO * io = NULL);
         virtual ~FaustFactory();
         
         template <typename C> void addnode(const char* label, C* zone, C init, C min, C max, bool initZone, bool input);

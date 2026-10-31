@@ -68,7 +68,7 @@ class OSCControler
 		*/
 		enum { kUDPBasePort = 5510 };
             
-        OSCControler(int argc, char* argv[], GUI* ui, JSONUI* json, OSCIO* io = NULL, ErrorCallback errCallback = NULL, void* arg = NULL, bool init = true);
+        OSCControler(int argc, char* argv[], GUI* ui, JSONUIBase* json, OSCIO* io = NULL, ErrorCallback errCallback = NULL, void* arg = NULL, bool init = true);
 
         virtual ~OSCControler();
 	

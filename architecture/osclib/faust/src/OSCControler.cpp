@@ -142,7 +142,7 @@ static void treatXmitFilterOption(int argc, char* argv[], const string& option)
 }
 
 //--------------------------------------------------------------------------
-OSCControler::OSCControler(int argc, char* argv[], GUI* ui, JSONUI* json, OSCIO* io, ErrorCallback errCallback, void* arg, bool init)
+OSCControler::OSCControler(int argc, char* argv[], GUI* ui, JSONUIBase* json, OSCIO* io, ErrorCallback errCallback, void* arg, bool init)
 	: fUDPPort(kUDPBasePort), fUDPOut(kUDPBasePort+1), fUPDErr(kUDPBasePort+2), fIO(io), fInit(init)
 {
 	checkHelp(argc, argv, kHelp);

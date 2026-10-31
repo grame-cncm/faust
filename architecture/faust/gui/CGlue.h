@@ -499,16 +499,22 @@ struct UITemplate : public UIInterface
 
 };
     
-struct UIGlueTemplate : public UIInterface
+// EXT_REAL is the FAUSTFLOAT of the code that uses the glue, the type of the zones and values of the
+// UIGlue functions. It is a template parameter rather than FAUSTFLOAT used in the class, so that its
+// specializations do not share a name between libfaust, compiled with its own FAUSTFLOAT, and a client
+// compiled with another one. UIGlue does not tell the FAUSTFLOAT of the C code that fills it: a glue
+// used by libfaust stays one of the FAUSTFLOAT of libfaust.
+extern "C++" template <typename EXT_REAL>
+struct UIGlueTemplateReal : public UIInterface
 {
     
     UIGlue* fGlue;
     
-    UIGlueTemplate(UIGlue* glue):fGlue(glue)
+    UIGlueTemplateReal(UIGlue* glue):fGlue(glue)
     {}
-    virtual ~UIGlueTemplate() {}
+    virtual ~UIGlueTemplateReal() {}
     
-    virtual int sizeOfFAUSTFLOAT() { return sizeof(FAUSTFLOAT); }
+    virtual int sizeOfFAUSTFLOAT() { return sizeof(EXT_REAL); }
     
     // -- widget's layouts
     
@@ -535,66 +541,66 @@ struct UIGlueTemplate : public UIInterface
     
     void addButton(const char* label, float* zone)
     {
-        fGlue->addButton(fGlue->uiInterface, label, reinterpret_cast<FAUSTFLOAT*>(zone));
+        fGlue->addButton(fGlue->uiInterface, label, reinterpret_cast<EXT_REAL*>(zone));
     }
     void addCheckButton(const char* label, float* zone)
     {
-        fGlue->addCheckButton(fGlue->uiInterface, label, reinterpret_cast<FAUSTFLOAT*>(zone));
+        fGlue->addCheckButton(fGlue->uiInterface, label, reinterpret_cast<EXT_REAL*>(zone));
     }
     
     void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
-        fGlue->addVerticalSlider(fGlue->uiInterface, label, reinterpret_cast<FAUSTFLOAT*>(zone), init, min, max, step);
+        fGlue->addVerticalSlider(fGlue->uiInterface, label, reinterpret_cast<EXT_REAL*>(zone), init, min, max, step);
     }
     void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
-        fGlue->addHorizontalSlider(fGlue->uiInterface, label, reinterpret_cast<FAUSTFLOAT*>(zone), init, min, max, step);
+        fGlue->addHorizontalSlider(fGlue->uiInterface, label, reinterpret_cast<EXT_REAL*>(zone), init, min, max, step);
     }
     void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
     {
-        fGlue->addNumEntry(fGlue->uiInterface, label, reinterpret_cast<FAUSTFLOAT*>(zone), init, min, max, step);
+        fGlue->addNumEntry(fGlue->uiInterface, label, reinterpret_cast<EXT_REAL*>(zone), init, min, max, step);
     }
     
     // -- passive widgets
     
     void addHorizontalBargraph(const char* label, float* zone, float min, float max)
     {
-        fGlue->addHorizontalBargraph(fGlue->uiInterface, label, reinterpret_cast<FAUSTFLOAT*>(zone), min, max);
+        fGlue->addHorizontalBargraph(fGlue->uiInterface, label, reinterpret_cast<EXT_REAL*>(zone), min, max);
     }
     void addVerticalBargraph(const char* label, float* zone, float min, float max)
     {
-        fGlue->addVerticalBargraph(fGlue->uiInterface, label, reinterpret_cast<FAUSTFLOAT*>(zone), min, max);
+        fGlue->addVerticalBargraph(fGlue->uiInterface, label, reinterpret_cast<EXT_REAL*>(zone), min, max);
     }
     
     // -- metadata declarations
     
     void declare(float* zone, const char* key, const char* val)
     {
-        fGlue->declare(fGlue->uiInterface, reinterpret_cast<FAUSTFLOAT*>(zone), key, val);
+        fGlue->declare(fGlue->uiInterface, reinterpret_cast<EXT_REAL*>(zone), key, val);
     }
     
     // double version
     
     void addButton(const char* label, double* zone)
     {
-        fGlue->addButton(fGlue->uiInterface, label, reinterpret_cast<FAUSTFLOAT*>(zone));
+        fGlue->addButton(fGlue->uiInterface, label, reinterpret_cast<EXT_REAL*>(zone));
     }
     void addCheckButton(const char* label, double* zone)
     {
-        fGlue->addCheckButton(fGlue->uiInterface, label, reinterpret_cast<FAUSTFLOAT*>(zone));
+        fGlue->addCheckButton(fGlue->uiInterface, label, reinterpret_cast<EXT_REAL*>(zone));
     }
     
     void addVerticalSlider(const char* label, double* zone, double init, double min, double max, double step)
     {
-        fGlue->addVerticalSlider(fGlue->uiInterface, label, reinterpret_cast<FAUSTFLOAT*>(zone), init, min, max, step);
+        fGlue->addVerticalSlider(fGlue->uiInterface, label, reinterpret_cast<EXT_REAL*>(zone), init, min, max, step);
     }
     void addHorizontalSlider(const char* label, double* zone, double init, double min, double max, double step)
     {
-        fGlue->addHorizontalSlider(fGlue->uiInterface, label, reinterpret_cast<FAUSTFLOAT*>(zone), init, min, max, step);
+        fGlue->addHorizontalSlider(fGlue->uiInterface, label, reinterpret_cast<EXT_REAL*>(zone), init, min, max, step);
     }
     void addNumEntry(const char* label, double* zone, double init, double min, double max, double step)
     {
-        fGlue->addNumEntry(fGlue->uiInterface, label, reinterpret_cast<FAUSTFLOAT*>(zone), init, min, max, step);
+        fGlue->addNumEntry(fGlue->uiInterface, label, reinterpret_cast<EXT_REAL*>(zone), init, min, max, step);
     }
     // -- soundfiles
     
@@ -604,21 +610,23 @@ struct UIGlueTemplate : public UIInterface
     
     void addHorizontalBargraph(const char* label, double* zone, double min, double max)
     {
-        fGlue->addHorizontalBargraph(fGlue->uiInterface, label, reinterpret_cast<FAUSTFLOAT*>(zone), min, max);
+        fGlue->addHorizontalBargraph(fGlue->uiInterface, label, reinterpret_cast<EXT_REAL*>(zone), min, max);
     }
     void addVerticalBargraph(const char* label, double* zone, double min, double max)
     {
-        fGlue->addVerticalBargraph(fGlue->uiInterface, label, reinterpret_cast<FAUSTFLOAT*>(zone), min, max);
+        fGlue->addVerticalBargraph(fGlue->uiInterface, label, reinterpret_cast<EXT_REAL*>(zone), min, max);
     }
     
     // -- metadata declarations
     
     void declare(double* zone, const char* key, const char* val)
     {
-        fGlue->declare(fGlue->uiInterface, reinterpret_cast<FAUSTFLOAT*>(zone), key, val);
+        fGlue->declare(fGlue->uiInterface, reinterpret_cast<EXT_REAL*>(zone), key, val);
     }
     
 };
+
+using UIGlueTemplate = UIGlueTemplateReal<FAUSTFLOAT>;
 
 /*******************************************************************************
  * Meta glue code
