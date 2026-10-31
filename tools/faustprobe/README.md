@@ -16,7 +16,12 @@ headers; `faust -libdir` and `faust -includedir` say where they are.
 ```sh
 make            # FAUST=path/to/faust to use another installation
 make test
+make install    # PREFIX=/usr/local and DESTDIR= as elsewhere
 ```
+
+At the root of the repository, `make benchmark` builds it with the rest of the
+benchmark tools, against the library of the build tree, and `make devinstall`
+installs it.
 
 `make test` runs `tests/unit` (the text of numbers, JSON, audio files, the
 analyses) and `tests/run.sh` (the command line, on small programs in `tests/dsp`

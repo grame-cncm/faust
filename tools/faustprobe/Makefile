@@ -2,6 +2,10 @@
 # already holds LLVM: libfaustwithllvm.a,
 # installed by 'make install' of a build with the LLVM backend (see build/README.md).
 
+DESTDIR   ?=
+PREFIX    ?= /usr/local
+prefix    := $(DESTDIR)$(PREFIX)
+
 FAUST     ?= faust
 INCDIR    ?= $(shell $(FAUST) -includedir)
 LIBDIR    ?= $(shell $(FAUST) -libdir)
@@ -42,7 +46,17 @@ test: faustprobe tests/unit
 	cd tests && ./unit
 	./tests/run.sh
 
+# 'make benchmark' at the root links faustprobe with the library of the build
+# tree: rebuilding it here would link it with the installed one.
+install:
+	@test -x faustprobe || (echo "faustprobe is not built: run 'make benchmark' at the root, or 'make' here"; false)
+	install -d $(prefix)/bin
+	install -m 755 faustprobe $(prefix)/bin
+
+uninstall:
+	rm -f $(prefix)/bin/faustprobe
+
 clean:
 	rm -rf build faustprobe tests/unit tests/out
 
-.PHONY: all test clean
+.PHONY: all test install uninstall clean

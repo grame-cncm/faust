@@ -89,6 +89,7 @@ world : all
 
 benchmark : developer
 	$(MAKE) -C tools/benchmark all
+	$(MAKE) -C tools/faustprobe all LIBFAUST=$(CURDIR)/$(LIBLOCATION)/libfaustwithllvm.a INCDIR=$(CURDIR)/architecture
 
 remote : developer
 	$(MAKE) -C embedded/faustremote/RemoteServer all
@@ -137,7 +138,7 @@ help :
 	@echo "Other targets"
 	@echo " 'debug'         : similar to 'all' target but with debug info. Output is in $(BUILDLOCATION)/$(DEBUGFOLDER)"
 	@echo " 'wasm'          : builds the Faust WebAssembly libraries"
-	@echo " 'benchmark'     : builds the benchmark tools (see tools/benchmark)"
+	@echo " 'benchmark'     : builds the benchmark tools (see tools/benchmark) and faustprobe"
 	@echo " 'remote'        : builds the libfaustremote.a library and the Faust RemoteServer"
 	@echo " 'sound2faust'   : builds the sound2faust utilities (requires libsndfile)"
 	@echo " 'parser'        : generates the parser from the lex and yacc files"
@@ -156,7 +157,7 @@ help :
 	@echo " 'doc'              : generate the documentation using doxygen"
 	@echo " 'doclib'           : generate the documentation of the Faust libraries"
 	@echo " 'updatesubmodules' : update the libraries submodule"
-	@echo " 'devinstall'       : install the benchmark tools"
+	@echo " 'devinstall'       : install the benchmark tools and faustprobe"
 	@echo " 'uninstall'        : undo what install did"
 	@echo " 'dist'             : make a Faust distribution as a .zip file"
 	@echo " 'log'              : make a changelog file"
@@ -182,6 +183,7 @@ clean :
 	$(MAKE) -C embedded/faustremote clean
 	$(MAKE) -C tools/sound2faust clean
 	$(MAKE) -C tools/benchmark clean
+	$(MAKE) -C tools/faustprobe clean
 
 distclean :
 	rm -rf build/faustdir
@@ -213,11 +215,13 @@ install :
 
 uninstall :
 	make -C $(BUILDLOCATION) uninstall
+	$(MAKE) -C tools/faustprobe uninstall
 
 
 # install benchmark tools
 devinstall:
 	$(MAKE) -C tools/benchmark install
+	$(MAKE) -C tools/faustprobe install
 
 # make a Faust distribution tarball
 dist = faust-$(version)
