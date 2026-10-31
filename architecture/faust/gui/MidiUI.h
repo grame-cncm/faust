@@ -28,6 +28,7 @@ architecture section is not modified.
 #include <vector>
 #include <string>
 #include <utility>
+#include <cstdio>
 #include <cstdlib>
 #include <cmath>
 
@@ -45,6 +46,41 @@ architecture section is not modified.
 #else
 #define gsscanf sscanf
 #endif
+
+/**
+ * Note-allocation policy of the polyphonic engine, read from the 'options' metadata:
+ *
+ *   declare options "[nvoices:8][voicing:mono][note_priority:last][trigger:single]";
+ *
+ *  - voicing: how many notes may sound together. 'poly' (default) = as many as there
+ *    are voices, 'mono' = 1, 'duo' = 2. 'mono' and 'duo' cap the sounding notes but
+ *    keep the whole voice pool (nvoices), so the legato crossfade still has a spare
+ *    instance.
+ *  - note_priority: which of the held keys sound when more keys are down than the
+ *    voicing allows, and so which one comes back when a sounding key is released
+ *    while others are still held. 'last' (default) = the most recently pressed,
+ *    'low' (or 'lowest') = the lowest pitch, 'high' (or 'highest') = the highest pitch.
+ *  - trigger: whether a new note re-strikes the envelope. 'multi' (default) = every
+ *    new note does, and so does a key pressed again while its note still sounds
+ *    (with its new velocity). 'single' (or 'legato') = the envelope is struck only
+ *    when going from silence to sound: a new note just changes the pitch of the
+ *    sounding voice.
+ *
+ * Without these options, the engine differs from the one that did not remember held
+ * keys only when more keys are held than voices can sound: a key that was displaced
+ * is remembered and sounds again when a voice is released (with nvoices=1, pressing a
+ * second key and releasing it brings back the first one, which is still held).
+ * Unknown values are reported on stderr and ignored.
+ */
+enum class Voicing { Poly, Mono, Duo };
+enum class NotePriority { Last, Low, High };
+enum class TriggerMode { Multi, Single };
+
+struct PolyPolicy {
+    Voicing      voicing  = Voicing::Poly;
+    NotePriority priority = NotePriority::Last;
+    TriggerMode  trigger  = TriggerMode::Multi;
+};
 
 /**
  * Helper code for MIDI meta and polyphonic 'nvoices' parsing.
@@ -111,7 +147,58 @@ struct MidiMeta : public Meta {
         }
     #endif
     }
-    
+
+    // Set 'value' from the option 'key' of an already-extracted options map, using the
+    // given (name, value) pairs. An unknown name is reported and leaves 'value' as is.
+    template <typename T>
+    static void parseOption(std::map<std::string, std::string>& md, const char* key,
+                            const std::vector<std::pair<const char*, T>>& names, T& value)
+    {
+        auto it = md.find(key);
+        if (it == md.end()) {
+            return;
+        }
+        for (const auto& name : names) {
+            if (it->second == name.first) {
+                value = name.second;
+                return;
+            }
+        }
+        fprintf(stderr, "Unknown value '%s' for the '%s' option ignored\n", it->second.c_str(), key);
+    }
+
+    // Parse the note-allocation policy from an already-extracted options map.
+    static void parsePolicy(std::map<std::string, std::string>& md, PolyPolicy& policy)
+    {
+        parseOption<Voicing>(md, "voicing",
+                             {{"poly", Voicing::Poly}, {"mono", Voicing::Mono}, {"duo", Voicing::Duo}},
+                             policy.voicing);
+        parseOption<NotePriority>(md, "note_priority",
+                                  {{"last", NotePriority::Last},
+                                   {"low", NotePriority::Low}, {"lowest", NotePriority::Low},
+                                   {"high", NotePriority::High}, {"highest", NotePriority::High}},
+                                  policy.priority);
+        parseOption<TriggerMode>(md, "trigger",
+                                 {{"multi", TriggerMode::Multi},
+                                  {"single", TriggerMode::Single}, {"legato", TriggerMode::Single}},
+                                 policy.trigger);
+    }
+
+    // Fill the note-allocation policy from the 'options' metadata of the DSP, leaving
+    // the options it does not declare unchanged.
+    static void analysePolicy(dsp* mono_dsp, PolyPolicy& policy)
+    {
+        MidiMeta meta;
+        mono_dsp->metadata(&meta);
+        std::string options = meta.get("options", "");
+        if (options != "") {
+            std::map<std::string, std::string> metadata;
+            std::string                        res;
+            MetaDataUI::extractMetadata(options, res, metadata);
+            parsePolicy(metadata, policy);
+        }
+    }
+
     static bool checkPolyphony(dsp* mono_dsp)
     {
         MapUI map_ui;
