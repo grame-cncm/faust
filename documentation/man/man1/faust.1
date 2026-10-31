@@ -428,6 +428,9 @@ FAUST_DEBUG = FIR_PRINTER print FIR after generation.
 FAUST_DEBUG = FAUST_LLVM_NO_FM deactivate fast\f[B]\-math\f[R]
 optimisation in LLVM IR.
 .PP
+FAUST_LLVM_RELOAD = 1 reload the LLVM module from its bitcode before the
+JIT.
+.PP
 FAUST_OPT = FAUST_SIG_NO_NORM deactivate signal normalisation.
 .SS Example:
 faust \f[B]\-a\f[R] jack\-gtk.cpp \-o myfx.cpp myfx.dsp

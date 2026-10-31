@@ -314,6 +314,23 @@ static void AddOptimizationPasses(PassManagerBase& MPM, FUNCTION_PASS_MANAGER& F
 }
 #endif
 
+// The module, written to bitcode and read back in the same context. The code generation of
+// some modules is wrong as they were built in memory and right once reloaded, for a reason
+// that shows neither in the IR nor in verifyModule: max(-1, x) next to another use of x
+// gives -1 at -O0 on AArch64, whereas the IR says x.
+static Module* reloadModule(Module* module, string& error_msg)
+{
+    string             bitcode;
+    raw_string_ostream out(bitcode);
+#if LLVM_VERSION_MAJOR >= 8
+    WriteBitcodeToFile(*module, out);
+#else
+    WriteBitcodeToFile(module, out);
+#endif
+    out.flush();
+    return ParseBitcodeFile(MEMORY_BUFFER_CREATE(StringRef(bitcode)), module->getContext(), error_msg);
+}
+
 bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 {
     startTiming("initJIT");
@@ -334,6 +351,17 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 
     // For ObjectCache to work...
     LLVMLinkInMCJIT();
+
+    // Once a JIT exists it owns the module: crossCompile() comes here with one
+    if (getenv("FAUST_LLVM_RELOAD") && !fJIT) {
+        Module* reloaded = reloadModule(fModule, error_msg);
+        if (!reloaded) {
+            endTiming("initJIT");
+            return false;
+        }
+        delete fModule;
+        fModule = reloaded;
+    }
 
     EngineBuilder builder((unique_ptr<Module>(fModule)));
 

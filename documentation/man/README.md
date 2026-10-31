@@ -312,6 +312,8 @@ Environment variables:
 
   FAUST_DEBUG      = FAUST_LLVM_NO_FM     deactivate fast**-math** optimisation in LLVM IR.
 
+  FAUST_LLVM_RELOAD = 1                   reload the LLVM module from its bitcode before the JIT.
+
   FAUST_OPT        = FAUST_SIG_NO_NORM    deactivate signal normalisation.
 
 

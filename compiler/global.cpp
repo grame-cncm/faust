@@ -2946,6 +2946,9 @@ string global::printHelp()
     sstr << tab
          << "FAUST_DEBUG      = FAUST_LLVM_NO_FM     deactivate fast-math optimisation in LLVM IR."
          << endl;
+    sstr << tab
+         << "FAUST_LLVM_RELOAD = 1                   reload the LLVM module from its bitcode before the JIT."
+         << endl;
     sstr << tab << "FAUST_OPT        = FAUST_SIG_NO_NORM    deactivate signal normalisation."
          << endl;
 
