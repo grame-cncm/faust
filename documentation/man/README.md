@@ -1,4 +1,4 @@
-% man(1) Version 2.90.21 (31-October-2026) | Faust man page
+% man(1) Version 2.91.0 (31-October-2026) | Faust man page
 
 NAME
 ====
@@ -311,8 +311,6 @@ Environment variables:
   FAUST_DEBUG      = FIR_PRINTER          print FIR after generation.
 
   FAUST_DEBUG      = FAUST_LLVM_NO_FM     deactivate fast**-math** optimisation in LLVM IR.
-
-  FAUST_LLVM_RELOAD = 1                   reload the LLVM module from its bitcode before the JIT.
 
   FAUST_OPT        = FAUST_SIG_NO_NORM    deactivate signal normalisation.
 
