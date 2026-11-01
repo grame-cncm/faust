@@ -7644,7 +7644,10 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             } else {
                 fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
             }
-            fClass->addPostCode(Statement("", subst("$0[1] = $0[0];", vname)));
+            // the shift is conditioned like the write : on a disabled sample
+            // $0[0] was not computed (at the head of a block it is not even
+            // initialized) and the delayed value must be held
+            fClass->addPostCode(Statement(ccs, subst("$0[1] = $0[0];", vname)));
             fClass->addZone3Post(subst("$0State = $0[1];", vname));
             return subst("$0[0]", vname);
 
@@ -7660,7 +7663,7 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             for (int j = 0; j < mxd; j++) {
                 // warning ; line stacked in reverse order !!!
                 fClass->addPostCode(
-                    Statement("", subst("$0[$1] = $0[$2];", vname, T(j + 1), T(j))));
+                    Statement(ccs, subst("$0[$1] = $0[$2];", vname, T(j + 1), T(j))));
             }
             for (int j = 0; j < mxd; j++) {
                 fClass->addZone3Post(subst("$0State[$1] = $0[$2];", vname, T(j), T(j + 1)));
@@ -7683,7 +7686,7 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             fClass->addZone3(
                 subst("for (int j = 0; j < $0; j++) { $1[j+1] = $1State[j]; }", T(mxd), vname));
             fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
-            fClass->addPostCode(Statement("", subst("--$0;", vname)));
+            fClass->addPostCode(Statement(ccs, subst("--$0;", vname)));
             fClass->addZone3Post(
                 subst("for (int j = 0; j < $0; j++) { $1State[j] = $1[j+1]; }", T(mxd), vname));
             return subst("$0[0]", vname);
