@@ -77,7 +77,9 @@ interval interval_algebra::numericLowest(const interval& x) const
 }
 interval interval_algebra::numericBitCast(const interval& x) const
 {
-    return x.isEmpty() ? empty() : interval(-2147483648.0, 2147483647.0, 0);
+    // the integer of the IEEE-754 encoding of x, unrelated to its value (0.5f is 0x3F000000) :
+    // any integer of the width, int64 for a double (#1371), which covers int32
+    return x.isEmpty() ? empty() : interval(-9223372036854775808.0, 9223372036854775807.0, 0);
 }
 interval interval_algebra::numericSelect2(const interval& x, const interval& y, const interval& z) const
 {
