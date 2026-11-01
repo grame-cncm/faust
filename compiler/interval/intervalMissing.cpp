@@ -90,11 +90,10 @@ interval interval_algebra::numericLowest(const interval& x) const
 {
     return x.isEmpty() ? empty() : interval(x.lo(), x.lo(), x.lsb());
 }
-// A bitcast reinterprets the IEEE-754 encoding of x: the integer it gives has no relation
-// to the numeric range of x (0.5f is 0x3F000000, any negative float a negative integer), so
-// every integer of the width can occur (int64 for -double, #1371).
 interval interval_algebra::numericBitCast(const interval& x) const
 {
+    // the integer of the IEEE-754 encoding of x, unrelated to its value (0.5f is 0x3F000000) :
+    // any integer of the width, int64 for a double (#1371), which covers int32
     return x.isEmpty() ? empty() : interval(-9223372036854775808.0, 9223372036854775807.0, 0);
 }
 interval interval_algebra::numericSelect2(const interval& x, const interval& y, const interval& z) const
