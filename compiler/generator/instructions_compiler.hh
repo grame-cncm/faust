@@ -233,6 +233,7 @@ class InstructionsCompiler : public virtual Garbageable {
 
     virtual ValueInst* generateXtended(Tree sig);
     virtual ValueInst* generateDelayAccess(Tree sig, Tree arg, Tree size);
+    ValueInst*         safeDelayIndex(Tree delay, int mxd);
     void               flushPendingDelayWrites();
     bool               reachesUnstoredRecMember(Tree t);
     std::vector<int> instantaneousMemberOrder(Tree sig, Tree le, const std::vector<bool>& used);
