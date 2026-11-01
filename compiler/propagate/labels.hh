@@ -34,4 +34,8 @@ Tree normalizePath(Tree path);
 Tree superNormalizePath(Tree path);
 bool matchGroup(Tree gpath, Tree lpath, Tree& rpath);
 
+// Normalize a group label with type prefix against current path
+// groupType: 0=vertical, 1=horizontal, 2=tab
+Tree normalizeGroupPath(int groupType, Tree label, Tree currentPath);
+
 #endif
