@@ -32,6 +32,9 @@
 #include "struct_manager.hh"
 #include "text_instructions.hh"
 
+// Python has no INFINITY or NAN: standard float literals
+inline const NonFiniteNames gPythonNonFiniteNames = {"float('inf')", "float('-inf')", "float('nan')"};
+
 // Foreign functions dispatched to the architecture's RNG helpers. An explicit
 // set, not a name-prefix match: the architectures implement exactly these.
 inline bool isNNXRandomFunction(const std::string& name)
@@ -219,7 +222,7 @@ struct NNXBaseInitFieldsVisitor : public DispatchVisitor {
         *fOut << "np.array(";
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            *fOut << sep << checkNonFinite(inst->fNumTable[i], gPythonNonFiniteNames);
             sep = ',';
         }
         *fOut << "], dtype=self.faust_float)";
@@ -230,7 +233,7 @@ struct NNXBaseInitFieldsVisitor : public DispatchVisitor {
         *fOut << "np.array(";
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkDouble(inst->fNumTable[i]);
+            *fOut << sep << checkNonFinite(inst->fNumTable[i], gPythonNonFiniteNames);
             sep = ',';
         }
         *fOut << "], dtype=self.faust_float)";
@@ -435,6 +438,12 @@ class NNXBaseInstVisitor : public TextInstVisitor {
     // to emit the class-level `is_stochastic` flag, which lets the architecture
     // skip per-sample RNG key threading for deterministic DSPs.
     bool fUsesRandom = false;
+
+    // Python has no INFINITY or NAN: standard float literals
+    virtual NonFiniteNames nonFiniteNames(bool single) const override
+    {
+        return gPythonNonFiniteNames;
+    }
 
    protected:
     // Emit a Python double-quoted string literal with proper escaping. Faust UI
@@ -759,10 +768,10 @@ class NNXBaseInstVisitor : public TextInstVisitor {
                 *fOut << "self.add_hslider("
                     << quote(inst->fZone) << ", ui_path, "
                     << pyStr(inst->fLabel) << ", "
-                    << checkReal(inst->fInit) << ", "
-                    << checkReal(inst->fMin) << ", "
-                    << checkReal(inst->fMax) << ", "
-                    << checkReal(inst->fStep) << ", unnorm_funcs, "
+                    << realLiteral(inst->fInit) << ", "
+                    << realLiteral(inst->fMin) << ", "
+                    << realLiteral(inst->fMax) << ", "
+                    << realLiteral(inst->fStep) << ", unnorm_funcs, "
                     << scaleMode << ")";
                 break;
                 // clang-format on
@@ -771,10 +780,10 @@ class NNXBaseInstVisitor : public TextInstVisitor {
                 *fOut << "self.add_vslider("
                     << quote(inst->fZone) << ", ui_path, "
                     << pyStr(inst->fLabel) << ", "
-                    << checkReal(inst->fInit) << ", "
-                    << checkReal(inst->fMin) << ", "
-                    << checkReal(inst->fMax) << ", "
-                    << checkReal(inst->fStep) << ", unnorm_funcs, "
+                    << realLiteral(inst->fInit) << ", "
+                    << realLiteral(inst->fMin) << ", "
+                    << realLiteral(inst->fMax) << ", "
+                    << realLiteral(inst->fStep) << ", unnorm_funcs, "
                     << scaleMode << ")";
                 break;
                 // clang-format on
@@ -783,10 +792,10 @@ class NNXBaseInstVisitor : public TextInstVisitor {
                 *fOut << "self.add_nentry("
                     << quote(inst->fZone) << ", ui_path, "
                     << pyStr(inst->fLabel) << ", "
-                    << checkReal(inst->fInit) << ", "
-                    << checkReal(inst->fMin) << ", "
-                    << checkReal(inst->fMax) << ", "
-                    << checkReal(inst->fStep) << ", unnorm_funcs, "
+                    << realLiteral(inst->fInit) << ", "
+                    << realLiteral(inst->fMin) << ", "
+                    << realLiteral(inst->fMax) << ", "
+                    << realLiteral(inst->fStep) << ", unnorm_funcs, "
                     << scaleMode;
                 // clang-format on
                 emitMetadataArg(inst->fZone);
@@ -801,8 +810,8 @@ class NNXBaseInstVisitor : public TextInstVisitor {
         const char* method =
             (inst->fType == AddBargraphInst::kVertical) ? "add_vbargraph" : "add_hbargraph";
         *fOut << "self." << method << "(" << quote(inst->fZone) << ", ui_path, "
-              << pyStr(inst->fLabel) << ", " << checkReal(inst->fMin) << ", "
-              << checkReal(inst->fMax) << ", unnorm_funcs)";
+              << pyStr(inst->fLabel) << ", " << realLiteral(inst->fMin) << ", "
+              << realLiteral(inst->fMax) << ", unnorm_funcs)";
         EndLine(' ');
     }
 
@@ -838,7 +847,7 @@ class NNXBaseInstVisitor : public TextInstVisitor {
         *fOut << "jnp.array(";
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            *fOut << sep << floatLiteral(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << "], dtype=self.faust_float)";
@@ -849,7 +858,7 @@ class NNXBaseInstVisitor : public TextInstVisitor {
         *fOut << "jnp.array(";
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkDouble(inst->fNumTable[i]);
+            *fOut << sep << doubleLiteral(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << "], dtype=self.faust_float)";

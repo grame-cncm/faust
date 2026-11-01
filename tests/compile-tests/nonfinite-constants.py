@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile and execute non-finite constants (C++, Julia, Rust, Java, D, C#, AssemblyScript).
+"""Compile and execute non-finite constants (C++, Julia, Rust, Java, D, C#, AssemblyScript, NNX, Linen).
 
 An infinite constant was printed as INFINITY whatever its sign, so the C++
 code computed +inf where the program has -inf. The ocpp backend tested the
@@ -13,6 +13,8 @@ uses its own constants (f32::INFINITY, Float.POSITIVE_INFINITY,
 float.infinity, float.PositiveInfinity, and the double ones).
 AssemblyScript had the same issue; it now uses f32.POSITIVE_INFINITY,
 f32.NEGATIVE_INFINITY, f32.NaN and the f64 ones.
+NNX and Linen had the same issue; they now use float('inf'), float('-inf'),
+and float('nan').
 
 The program outputs +inf, -inf and 1e38 * 10 (+inf in single precision) at
 its first sample, and 0 after; it is generated in single and double
@@ -20,7 +22,9 @@ precision for each backend and run. D is compiled only (--backends dlang,
 with stubs for the dplug imports), C# only generated (--backends csharp):
 the generated names are checked. AssemblyScript (--backends asc) is compiled
 with asc and run with Node, after the same check of the names.
+NNX and Linen (--backends nnx linen) are generated and validated with ast.parse.
 """
+import ast
 import re
 import argparse
 from pathlib import Path
@@ -156,6 +160,9 @@ CSHARP_NAMES = {"single": ["float.PositiveInfinity", "float.NegativeInfinity"],
 ASC_NAMES = {"single": ["f32.POSITIVE_INFINITY", "f32.NEGATIVE_INFINITY"],
              "double": ["f64.POSITIVE_INFINITY", "f64.NEGATIVE_INFINITY"]}
 
+PYTHON_NAMES = {"single": ["float('inf')", "float('-inf')"],
+                "double": ["float('inf')", "float('-inf')"]}
+
 # asc only checks the code reached from an export: init reaches the constants computed at
 # initialization, compute the others
 ASC_RUNNER = """
@@ -200,7 +207,7 @@ def main():
     parser.add_argument("--asc", default="asc")
     parser.add_argument("--node", default="node")
     parser.add_argument("--backends", nargs="+",
-                        choices=["cpp", "ocpp", "julia", "rust", "java", "dlang", "csharp", "asc"],
+                        choices=["cpp", "ocpp", "julia", "rust", "java", "dlang", "csharp", "asc", "nnx", "linen"],
                         default=["cpp", "ocpp", "julia", "rust", "java"])
     args = parser.parse_args()
     faust = args.faust.resolve()
@@ -293,6 +300,27 @@ def main():
                                  capture_output=True, text=True).stdout
             check_printed("asc", precision, out)
             print(f"PASS asc {precision}: non-finite constants", flush=True)
+    for lang in [b for b in args.backends if b in ("nnx", "linen")]:
+        for precision in ["single", "double"]:
+            with tempfile.TemporaryDirectory(prefix=f"faust-nonfinite-{lang}-") as temp:
+                work = Path(temp)
+                (work / "nonfinite.dsp").write_text(SOURCE)
+                run([faust, "-I", repo / "libraries", "-lang", lang, "-" + precision,
+                     work / "nonfinite.dsp", "-o", work / "mydsp.py"], work)
+                code = (work / "mydsp.py").read_text()
+                missing = [n for n in PYTHON_NAMES[precision] if n not in code]
+                if missing or re.search(r"\b(INFINITY|NAN)\b", code) or re.search(r"[+-]?inf\.0\b", code):
+                    raise SystemExit(f"FAIL {lang} {precision}: missing {missing} or INFINITY/NAN/inf.0 left")
+                ast.parse(code)
+                (work / "ui.dsp").write_text(
+                    'process = hslider("gain", 0.0, -1e39, 1e39, 0.1), hbargraph("meter", -1e39, 1e39);\n')
+                run([faust, "-I", repo / "libraries", "-lang", lang, "-" + precision,
+                     work / "ui.dsp", "-o", work / "ui.py"], work)
+                ui_code = (work / "ui.py").read_text()
+                if re.search(r"\b(INFINITY|NAN)\b", ui_code) or re.search(r"[+-]?inf\.0\b", ui_code):
+                    raise SystemExit(f"FAIL {lang} {precision}: INFINITY/NAN/inf.0 left in UI code")
+                ast.parse(ui_code)
+                print(f"PASS {lang} {precision}: non-finite constants generated", flush=True)
     if "julia" not in args.backends:
         return
     run([args.julia, "--version"], repo)

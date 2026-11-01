@@ -435,7 +435,7 @@ string rmWhiteSpaces(const string& s)
 
 string checkReal(double val)
 {
-    return (strcmp(ifloat(), "float") == 0) ? checkFloat(float(val)) : checkDouble(val);
+    return (gGlobal->gFloatSize == 1) ? checkFloat(float(val)) : checkDouble(val);
 }
 
 string indent(const string& str, int tabs)
