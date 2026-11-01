@@ -89,7 +89,7 @@ list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 #endif
 
-AudioFaust::AudioFaust(int sample_rate, int buffer_size)
+AudioFaust::AudioFaust(int sample_rate, int buffer_size, i2s_pin_config_t pin_config)
 {
 #ifdef NVOICES
     int nvoices = NVOICES;
@@ -101,7 +101,7 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
     fUI = new MapUI();
     fDSP->buildUserInterface(fUI);
     
-    fAudio = new esp32audio(sample_rate, buffer_size);
+    fAudio = new esp32audio(sample_rate, buffer_size, pin_config);
     fAudio->init("esp32", fDSP);
     
 #ifdef SOUNDFILE
