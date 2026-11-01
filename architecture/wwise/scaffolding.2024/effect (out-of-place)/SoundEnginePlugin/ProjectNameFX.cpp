@@ -29,7 +29,6 @@ the specific language governing permissions and limitations under the License.
 
 #include <AK/AkWwiseSDKVersion.h>
 #include <AK/Wwise/Plugin/PluginDef.h>
-#include <stdexcept>
 
 AK::IAkPlugin* Create${name}FX(AK::IAkPluginMemAlloc* in_pAllocator)
 {
@@ -64,16 +63,6 @@ AKRESULT ${name}FX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPlug
 
     numInputs = m_dsp.getNumInputs();
     numOutputs = m_dsp.getNumOutputs();
-
-    // Runtime error in case of misalignment between amount of input and output requested channels by the Faust program
-    if (numInputs != numOutputs){
-        char errorMsg[256];
-        snprintf(errorMsg, sizeof(errorMsg),
-            "[ERROR]: Wwise FX plugins require the same amount of input/output channels. In this case {} != {}", 
-                numInputs, numOutputs);
-        AKPLATFORM::OutputDebugMsg(errorMsg);
-        throw std::runtime_error(errorMsg);
-    }
 
     // resize and initialize the faust io buffers with nullptr
     faust_inputs.resize(numInputs,nullptr);
@@ -170,14 +159,13 @@ void ${name}FX::Execute(AkAudioBuffer* in_pBuffer, AkUInt32 in_ulnOffset, AkAudi
         }
     }
 
-    // Fill rest of the channels, in case channelsAvail are less then numInputs.
+    // Fill rest of the channels, in case channelsAvail are less then numInputs/numOutputs.
     // This condition can be evaluated as true only once.
-    if (channelsAvail < numInputs)
+    // Note: now the case of misalignment between amount of input and output requested channels by the Faust is handled by filling the rest of the input channels with silence and allocating memory for the output channels.
+    if (!faustIOChannelsFilledOnce)
     {
         fillRestOfBuffersWithSilence(framesToProcess);
-        // micro-optimization
-        numInputs = channelsAvail;      
-        numOutputs = channelsAvail;
+        faustIOChannelsFilledOnce = true;
     }
 
     m_dsp.compute(static_cast<int>(framesToProcess), faust_inputs.data(), faust_outputs.data());

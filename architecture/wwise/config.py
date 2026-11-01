@@ -35,6 +35,7 @@ class Config:
     wwiseroot: Final[str]
     wp_script: Final[str]
     cfgJsonFileName: Final[str]
+    SUCCESS_EXIT_CODE: Final[int]
     ERR_INVALID_INPUT: Final[int]
     ERR_ENVIRONMENT: Final[int]
     ERR_FAUST_COMPILE: Final[int]
@@ -66,9 +67,16 @@ class Config:
         # Wwise paths
         self.wwiseroot = wwiseroot                  # Root dir of the Wwise installation
         self.wp_script = os.path.join(self.wwiseroot, 'Scripts', 'Build', 'Plugins', 'wp.py')
-        self.patch_version = str(wwiseroot).split("Wwise")[1][:4] # Derived from wwise version and used for defining the wwise_template_dir
+        # self.patch_version = str(wwiseroot).split("Wwise")[1][:4] # Derived from wwise version and used for defining the wwise_template_dir
+        self.patch_version = str(wwiseroot).split("Wwise")[1].lstrip("_")[:4] # .lstrip("_") only for testing releases marked as "NOT FOR PRODUCTION", where the WWISEROOT dir is named with an intermediate underscore( _ ), i.e. Wwise_2026.1.2.9249
         self.wwise_template_dir = None              # Directory where the template files are stored
-        self.supportedWwiseVersions = ["2024"]      # TODO Expand this on future development that enable support for previous/later Wwise versions 
+        # Project paths
+        self.build_location = None
+        self.install_location = None
+        # Wwise versioning and cross compilation support
+        self.supportedWwiseVersions = ["2024", "2025", "2026"]      # TODO Expand this on future development that enable support for previous/later Wwise versions 
+        self.crossCompilationSupportedPlatforms = ["Android"] # TODO Expand this on future development to enable support for other target platforms (Sony, Nintendo, Mac on Windows etc.)
+        self.crossCompilationEnabled = False
 
         # temp path
         self.temp_dir = "_temp_"                    # Temp dir to store temp data ( i.e. jsonfile )
@@ -84,6 +92,7 @@ class Config:
         self.wwise_platform = None
         self.wwise_plugin_interface = None          
         self.wwise_toolset = None
+        self.wwise_with_test_project = "none"        # avail in Wwise >= 2025
         self.wwise_debugger = False
         self.wwise_disable_codesign = False
         self.wwise_configuration = "Release"        # default
@@ -147,9 +156,12 @@ class Config:
         print(f"output_dir {self.output_dir}")
         print(f"faust_options {self.faust_options}")
         print("Wwise params:")
+        print(f"cross_compilation_enabled {self.crossCompilationEnabled}")
         print(f"platform {self.wwise_platform}")
         if self.wwise_toolset:
             print(f"toolset {self.wwise_toolset}")
+        if self.patch_version in ["2025", "2026"]:
+            print(f"with_test_project {self.wwise_with_test_project}")
         if self.wwise_debugger:
             print(f"debugger {self.wwise_debugger}")
         if self.wwise_disable_codesign:
@@ -202,11 +214,13 @@ class Config:
         print("=====================================")
         print("Faust2Wwise conversion completed!")
         print(f"Generated plugin: {self.plugin_name}")
-        print(f"Plugin type: {self.plugin_type}" + (" (in-place)" if self.plugin_type == "effect" and self.wwise_plugin_interface=="in-place" else " (out-of-place)" if self.plugin_type == "effect" else ""))
+        print(f"Plugin type: {self.plugin_type}" + (f" ({self.wwise_plugin_interface})" if self.plugin_type == "effect" else ""))
         print(f"IO: num inputs({self.num_inputs}), num outputs({self.num_outputs})")
-        print(f"Build Location: {os.path.join(self.output_dir, self.plugin_name)}")
+        print(f"Build location: {self.build_location}")
+        if self.wwise_with_test_project:
+            print(f"Test project location: {os.path.join(self.build_location, 'SoundEnginePluginTest')}")
         print(f"Configuration file: {self.cfg_json_path}")
-        print(f"Installation: {os.path.join(self.wwiseroot, 'Authoring', self.wwise_arch, self.wwise_configuration, 'bin', 'Plugins', self.plugin_name)}.(ext)")
+        print(f"Install location: {self.install_location}")
         print("=====================================")
         print("")
 
@@ -233,6 +247,8 @@ class Config:
     def to_json(self) -> None:
         """Stores the configuration into a JSON file within ${self.output_dir} directory.
         """
+
+        wwise_arch = "[armeabi-v7a, x86, arm64-v8a, x86_64]" if (self.wwise_platform == "Android" and self.wwise_arch is None) else self.wwise_arch
 
         config_dict = {
             "Paths": {
@@ -262,10 +278,11 @@ class Config:
                 "Wwise": {
                     "platform": self.wwise_platform,
                     "toolset": self.wwise_toolset,
+                    "with_test_project": self.wwise_with_test_project,
                     "debugger": self.wwise_debugger,
                     "disable_codesign": self.wwise_disable_codesign,
                     "configuration": self.wwise_configuration,
-                    "arch": self.wwise_arch,
+                    "arch": wwise_arch,
                     "build_hooks_file": self.wwise_build_hooks_file,
                     "toolchain_vers": self.wwise_toolchain_vers,
                     "toolchain_env_script": self.wwise_toolchain_env_script,
@@ -305,18 +322,15 @@ class Config:
                     "num_inputs": self.num_inputs,
                     "num_outputs": self.num_outputs
                 },
-                "location": os.path.join(self.output_dir, self.plugin_name),
-                "installation": os.path.join(
-                    self.wwiseroot,
-                    'Authoring',
-                    self.wwise_arch,
-                    self.wwise_configuration,
-                    'bin',
-                    'Plugins',
-                    self.plugin_name
-                ) + ".(ext)"
+                "Build location": self.build_location,
+                "Install location": self.install_location
             }
         }
+
+        if self.wwise_with_test_project:
+            config_dict["Summary"].update({
+                "Test project location": os.path.join(self.build_location, 'SoundEnginePluginTest')
+            })
 
         with open(self.cfg_json_path, 'w', encoding='utf-8') as f:
             json.dump(config_dict, f, indent=4)

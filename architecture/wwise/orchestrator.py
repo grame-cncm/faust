@@ -22,6 +22,7 @@ The Faust2Wwise conversion process is applied with the following steps:
         Remove temporary files
 """
 
+import cmd
 import os
 import sys
 import shutil
@@ -87,14 +88,14 @@ class Faust2WwiseOrchestrator:
         if self.patch_version not in self.supportedWwiseVersions:
             sys.stderr.write(f"Unsupported Wwise version : {self.patch_version}. \
                 Available Wwise (major) versions: {self.supportedWwiseVersions}")
-            sys.exit(cfg.ERR_ENVIRONMENT)
+            sys.exit(self.ERR_ENVIRONMENT)
 
         parsed_args = utils.parse_arguments(self.cfg, args)
 
         print("------------------------------------------Preliminary Step : setup and validate environment")
 
-        # conditionally edit variables across different platforms (windows/macOs) 
-        utils.platform_dependent_setup(self.cfg, parsed_args) 
+        # conditionally edit variables across different operating systems (windows/macOs) 
+        utils.os_dependent_setup(self.cfg, parsed_args) 
 
         # Wwise-related options
         utils.create_wwise_config(self.cfg, parsed_args)
@@ -153,16 +154,16 @@ class Faust2WwiseOrchestrator:
         
         jsonprocessor.process_json_configuration(self.cfg)
 
+        self.cfg.plugin_print() # print finalized configuration, after having parsed the faust't output json file
+        self.cfg.lock()         # lock config to deprive any further modifications of its internal state, making it immutable
+        self.cfg.to_json()      # save the config into a file immediately after locking
+
         if (self.wwise_speaker_cfg_channel_mask and \
             self.num_outputs!=speaker_config_options[self.wwise_speaker_cfg_channel_mask]):
                 print("Speaker configuration provided does not match with number of outputs supported by the Faust program.")
                 print(f"Faust outputs: {self.num_outputs}")
                 print(f"Channel config mask provided : {self.wwise_speaker_cfg_channel_mask} --> {speaker_config_options[self.wwise_speaker_cfg_channel_mask]} num channels")
                 sys.exit(self.ERR_INVALID_INPUT)
-
-        self.cfg.plugin_print() # print finalized configuration, after having parsed the faust't output json file
-        self.cfg.lock()         # lock config to deprive any further modifications of its internal state, making it immutable
-        self.cfg.to_json()      # save the config into a file immediately after locking
 
         print("OK : DSP compiling step was completed successfully!") 
 
@@ -188,6 +189,9 @@ class Faust2WwiseOrchestrator:
             "--description", self.description,
             "--no-prompt"
         ]
+
+        if self.patch_version in ["2025", "2026"]:
+            cmd.extend(["--with", self.wwise_with_test_project])
 
         if self.wwise_plugin_interface == "out-of-place":
             cmd.extend(["--out-of-place"])
@@ -267,9 +271,12 @@ class Faust2WwiseOrchestrator:
         
         cmd = [
             "python", self.wp_script, "build",
+            self.wwise_platform,
             "-c", self.wwise_configuration,
-            "-x", self.wwise_arch
         ]
+
+        if self.wwise_arch:
+            cmd.extend(["-x", self.wwise_arch])
 
         if self.wwise_toolset:
             cmd.extend(["--toolset", self.wwise_toolset])
@@ -282,8 +289,6 @@ class Faust2WwiseOrchestrator:
 
         if self.wwise_toolchain_env_script:
             cmd.extend(["--toolchain-env-script", self.wwise_toolchain_env_script])
-        
-        cmd.extend([self.wwise_platform])
         
         utils.run_system_command(cmd, self.ERR_BUILD)
         os.chdir(original_dir)
