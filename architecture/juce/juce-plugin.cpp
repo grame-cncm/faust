@@ -366,6 +366,13 @@ class FaustPlugInAudioProcessor : public foleys::MagicProcessor, private juce::T
         void releaseResources() override
         {}
         
+    #if defined(FAUST_PRESETS)
+        // PluginGuiMagic saves its own state (its ValueTree, with the parameter values):
+        // the current program is added to it as a property, and read back after a restore
+        void getStateInformation (juce::MemoryBlock& destData) override;
+        void postSetStateInformation() override;
+    #endif
+        
         void timerCallback() override;
         
         juce::AudioProcessor::BusesProperties getBusesProperties();
@@ -1077,6 +1084,26 @@ void FaustPlugInAudioProcessor::setStateInformation (const void* data, int sizeI
         fCurrentProgram = juce::jlimit(0, int(fPrograms.size()) - 1, stream.readInt());
     }
 #endif
+}
+#elif defined(FAUST_PRESETS)
+// Property of the PluginGuiMagic ValueTree that holds the current program
+static const juce::Identifier gFaustProgramID("faustProgram");
+
+void FaustPlugInAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+{
+    // Set just before saving, as PluginGuiMagic does for the parameter values
+    magicState.getValueTree().setProperty(gFaustProgramID, fCurrentProgram, nullptr);
+    foleys::MagicProcessor::getStateInformation(destData);
+}
+
+void FaustPlugInAudioProcessor::postSetStateInformation()
+{
+    // The restore has replaced the properties of the ValueTree: the program is absent
+    // from states written without presets, which then keep the current program
+    const juce::var program = magicState.getValueTree().getProperty(gFaustProgramID);
+    if (!program.isVoid()) {
+        fCurrentProgram = juce::jlimit(0, int(fPrograms.size()) - 1, int(program));
+    }
 }
 #endif
 //==============================================================================

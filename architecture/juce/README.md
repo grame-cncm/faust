@@ -97,7 +97,6 @@ With the .jucer project, enter these definitions in the exporter settings page, 
 
 Current limitations:
 - menus and radio buttons (`[style:menu{...}]`, `[style:radio{...}]`) are discrete parameters with value names, not `juce::AudioParameterChoice`: the default interface shows them as sliders, but a ComboBox placed in the editor and bound to one of them lists its names
-- with `-presets`, the programs are listed and selected by the host, but the current program is not saved with the plugin state (the parameter values are)
 - `FAUST_CUSTOM_EDITOR` cannot be combined with `-magic`
 - the editor is available in every build of the plugin, which the `FOLEYS_SHOW_GUI_EDITOR_PALLETTE` module setting (1 by default) controls: set it to 0 for a plugin that is distributed
 
@@ -136,7 +135,7 @@ The `-presets <file.json>` option gives a plugin factory presets, which hosts li
 }
 ```
 
-A control is named by the ID of its host parameter (see [Host parameters](#host-parameters)) or by its label. The plugin then exposes the programs "Default", with the values declared in the DSP, followed by the presets in the order of the file. Selecting a program recalls it completely: the controls it does not name go back to their default value. Selecting the current program again does nothing, because some hosts do so right after restoring a session, which would overwrite the restored values. The current program is saved with the plugin state. A preset naming an unknown control is reported on the standard error when the plugin starts. A label shared by several controls (such as `depth` in `Route 0/depth`, `Route 1/depth`...) sets all of them: name one of them by its shortname (`Route_0_depth`).
+A control is named by the ID of its host parameter (see [Host parameters](#host-parameters)) or by its label. The plugin then exposes the programs "Default", with the values declared in the DSP, followed by the presets in the order of the file. Selecting a program recalls it completely: the controls it does not name go back to their default value. Selecting the current program again does nothing, because some hosts do so right after restoring a session, which would overwrite the restored values. The current program is saved with the plugin state (with `-magic`, as the `faustProgram` property of the PluginGuiMagic state). A preset naming an unknown control is reported on the standard error when the plugin starts. A label shared by several controls (such as `depth` in `Route 0/depth`, `Route 1/depth`...) sets all of them: name one of them by its shortname (`Route_0_depth`).
 
 The control names can be found in the JSON description of the DSP (`faust -json foo.dsp`, the `shortname` field of each control). Rather than writing a preset by hand, it can also be taken from the plugin: right-click the generic interface and choose "Copy settings as a faust2juce -presets entry", which copies the current settings to the clipboard as `{ "Preset": { ... } }`. Only the controls that differ from their default value are written, as presets list them; rename the entry and paste it into the file. A custom editor can offer the same thing by declaring and calling the function the architecture defines:
 
