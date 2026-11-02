@@ -44,7 +44,7 @@ cmake -B build -DJUCE_DIR=/path/to/JUCE
 cmake --build build --config Release
 ```
 
-The plugins are then in `build/foo_artefacts/Release`. Without `JUCE_DIR`, CMake downloads JUCE (version 8.0.10, which `-DJUCE_GIT_TAG=<tag>` changes). JUCE only builds the AUv3 format with the Xcode generator (`cmake -G Xcode`). `-DFAUST_COPY_PLUGINS=ON` copies the plugins to the user plug-in folders after each build. `-DFAUST_CUSTOM_EDITOR=<file.h>` and `-DFAUST_EXTRA_SOURCES="<a.cpp;b.cpp>"` replace the generic interface with a custom editor (see [Custom editor](#custom-editor)). The `-magic` option is not supported: use the .jucer project.
+The plugins are then in `build/foo_artefacts/Release`. Without `JUCE_DIR`, CMake downloads JUCE (version 8.0.10, which `-DJUCE_GIT_TAG=<tag>` changes). JUCE only builds the AUv3 format with the Xcode generator (`cmake -G Xcode`). `-DFAUST_COPY_PLUGINS=ON` copies the plugins to the user plug-in folders after each build. `-DFAUST_CUSTOM_EDITOR=<file.h>` and `-DFAUST_EXTRA_SOURCES="<a.cpp;b.cpp>"` replace the generic interface with a custom editor (see [Custom editor](#custom-editor)). With `-magic`, `-DFOLEYS_GUI_MAGIC_DIR=<dir>` is required and `-DFAUST_MAGIC_XML=<file.xml>` builds a saved GUI into the plugin (see [Options](#options)).
 
 The CMake build uses the `JuceLibraryCode/JuceHeader.h` file written by **faust2juce**, which only includes the JUCE modules used by the architecture. Projucer replaces it when the .jucer project is saved, so use one of the two builds per exported folder.
 
@@ -72,26 +72,34 @@ Here are the available options:
 - `-jsynth` : to use JUCE polyphonic Synthesizer instead of Faust polyphonic code
 - `-llvm` : to use the LLVM compilation chain (OSX and Linux for now)
 ---
-- `-magic` : to generate a project using the [PluginGuiMagic GUI builder](https://foleysfinest.com/developer/pluginguimagic/)
-Tested with PGM version 1.13. Support for Faust components is incomplete. Supporting some features (e.g. visualizers) in PGM requires editing the generated C++ code.
+- `-magic` : to generate a project using [PluginGuiMagic](https://github.com/ffAudio/foleys_gui_magic) (the `foleys_gui_magic` JUCE module), a GUI builder whose editor runs in the plugin itself: the interface is designed in the running plugin, saved as an XML file, then built into the plugin. The plugin processor is a `foleys::MagicProcessor` and the project defines `PLUGIN_MAGIC`. Without a saved GUI, the plugin shows a default interface generated from the parameters, with one box per Faust group (see [Host parameters](#host-parameters)). Tested with foleys_gui_magic 1.5.0 and JUCE 8.0.10; the 1.3.x versions do not compile with JUCE 8. The [former PluginGuiMagic repository](https://github.com/ffAudio/PluginGuiMagic) is archived: use the module repository.
 
-This creates a preprocessor definition "PLUGIN_MAGIC" in the jucer file e.g. using VisualStudio 2019.
+With the CMake build (see [Building with CMake](#building-with-cmake)), `-DFOLEYS_GUI_MAGIC_DIR=<dir>` gives a checkout of the foleys_gui_magic repository, or its `modules/foleys_gui_magic` folder, and `-DFAUST_MAGIC_XML=<file.xml>` builds a GUI saved by the editor into the plugin (this defines `MAGIC_LOAD_BINARY`, described below):
 
-![image](https://user-images.githubusercontent.com/3178344/125528513-d8f127a0-a896-4f50-8210-ba7b8dcf0386.png)
+```
+cmake -B build -DJUCE_DIR=/path/to/JUCE -DFOLEYS_GUI_MAGIC_DIR=/path/to/foleys_gui_magic -DFAUST_MAGIC_XML=my-gui.xml
+cmake --build build --config Release
+```
 
-There are a couple of other options as well:
+With the .jucer project, the foleys_gui_magic module has to be added and configured in Projucer:
 
-MAGIC_LOAD_BINARY 
-- adds generated code if defined. By default not defined, lets you "bake in" your XML file by adding it to your Jucer project and then defining this variable.  You'll also need to configure the foleys_gui_magic module in Jucer:
+![image](https://user-images.githubusercontent.com/3178344/126184481-b83ba2ff-46c4-4aa5-b010-2d2e87eb4e14.png)
 
- ![image](https://user-images.githubusercontent.com/3178344/126184481-b83ba2ff-46c4-4aa5-b010-2d2e87eb4e14.png)
+Two other definitions add code to the plugin:
 
- You also have to change the names of the variables magic_xml and magic_xmlSize in the code to match your file name. If you don't you'll get a compilation error, so you'll know where to look.
+MAGIC_LOAD_BINARY
+- loads the GUI from an XML file built into the plugin, instead of the default interface. The code reads `BinaryData::magic_xml`: with the .jucer project, add the XML file to the project, name it `magic.xml` or change `magic_xml` and `magic_xmlSize` in FaustPluginProcessor.cpp to match its name, and define the variable. The CMake build does all this with `FAUST_MAGIC_XML`.
 
 MAGIC_LEVEL_SOURCE
-- adds generated code if defined. By default not defined, just to show you where in the source code you would add hooks for a visualizer. These are PGM specific features not represented in Faust. Knowledge of how to use the PGM components is assumed.
+- adds an output level meter source, named `output`, that a meter of the GUI can display. It shows where in the source code hooks for other visualizers would be added. These are PluginGuiMagic features not represented in Faust, and knowledge of the PluginGuiMagic components is assumed.
 
-To use either of these options, either enter the option into the JUCER exporter settings page as shown, or add a `#define` line near the top of your FaustPluginProcessor.cpp.
+With the .jucer project, enter these definitions in the exporter settings page, or add a `#define` line near the top of FaustPluginProcessor.cpp.
+
+Current limitations:
+- menus and radio buttons (`[style:menu{...}]`, `[style:radio{...}]`) are discrete parameters with value names, not `juce::AudioParameterChoice`: the default interface shows them as sliders, but a ComboBox placed in the editor and bound to one of them lists its names
+- with `-presets`, the programs are listed and selected by the host, but the current program is not saved with the plugin state (the parameter values are)
+- `FAUST_CUSTOM_EDITOR` cannot be combined with `-magic`
+- the editor is available in every build of the plugin, which the `FOLEYS_SHOW_GUI_EDITOR_PALLETTE` module setting (1 by default) controls: set it to 0 for a plugin that is distributed
 
 ---
 - `-help or -h` : shows the different options 

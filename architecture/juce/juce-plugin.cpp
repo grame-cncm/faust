@@ -321,7 +321,7 @@ class FaustSynthesiser : public juce::Synthesiser, public dsp_voice_group {
 
 #endif
 
-// Using the PluginGuiMagic project (https://foleysfinest.com/developer/pluginguimagic/)
+// Using the PluginGuiMagic project (https://github.com/ffAudio/foleys_gui_magic)
 
 #if defined(PLUGIN_MAGIC)
 

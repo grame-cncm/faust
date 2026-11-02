@@ -22,3 +22,11 @@
 #if defined(OSCCTRL)
 #include <juce_osc/juce_osc.h>
 #endif
+
+// -magic: the PluginGuiMagic module, and the GUI built into the plugin (FAUST_MAGIC_XML)
+#if defined(PLUGIN_MAGIC)
+#include <foleys_gui_magic/foleys_gui_magic.h>
+#endif
+#if defined(MAGIC_LOAD_BINARY)
+#include "BinaryData.h"
+#endif

@@ -15,6 +15,12 @@
 #                                       (absolute paths, or relative to this folder)
 #   -DFAUST_COPY_PLUGINS=ON             copy the plugins to the user plug-in folders after
 #                                       each build
+#   -DFOLEYS_GUI_MAGIC_DIR=<folder>     with -magic (required): a checkout of
+#                                       https://github.com/ffAudio/foleys_gui_magic, or its
+#                                       modules/foleys_gui_magic folder
+#   -DFAUST_MAGIC_XML=<file.xml>        with -magic: a GUI saved by the PluginGuiMagic editor,
+#                                       built into the plugin (otherwise the default GUI is
+#                                       generated from the parameter groups)
 #
 # Use either this file or the .jucer project in this folder: saving the .jucer project
 # with Projucer replaces JuceLibraryCode/JuceHeader.h.
@@ -31,12 +37,22 @@ set(JUCE_GIT_TAG "8.0.10" CACHE STRING "JUCE version downloaded when JUCE_DIR is
 set(FAUST_CUSTOM_EDITOR "" CACHE FILEPATH "Header replacing the generic Faust interface")
 set(FAUST_EXTRA_SOURCES "" CACHE STRING "Additional source files")
 option(FAUST_COPY_PLUGINS "Copy the plugins to the user plug-in folders after each build" OFF)
+set(FOLEYS_GUI_MAGIC_DIR "" CACHE PATH "With -magic: foleys_gui_magic checkout or module folder")
+set(FAUST_MAGIC_XML "" CACHE FILEPATH "With -magic: GUI saved by the PluginGuiMagic editor")
 
 # Preprocessor definitions selected by the faust2juce options
 set(FAUST_DEFINITIONS CMAKE_DEFINITIONS)
 
+# -magic: the PluginGuiMagic module, from the repository root or the module folder itself
 if("PLUGIN_MAGIC" IN_LIST FAUST_DEFINITIONS)
-    message(FATAL_ERROR "-magic needs the PluginGuiMagic module, which this file does not set up: use APPL_NAME.jucer")
+    if(EXISTS "${FOLEYS_GUI_MAGIC_DIR}/modules/foleys_gui_magic/foleys_gui_magic.h")
+        set(FOLEYS_GUI_MAGIC_MODULE "${FOLEYS_GUI_MAGIC_DIR}/modules/foleys_gui_magic")
+    elseif(EXISTS "${FOLEYS_GUI_MAGIC_DIR}/foleys_gui_magic.h")
+        set(FOLEYS_GUI_MAGIC_MODULE "${FOLEYS_GUI_MAGIC_DIR}")
+    else()
+        message(FATAL_ERROR "-magic needs the foleys_gui_magic module "
+                            "(https://github.com/ffAudio/foleys_gui_magic): pass -DFOLEYS_GUI_MAGIC_DIR=<checkout>")
+    endif()
 endif()
 
 if(JUCE_DIR)
@@ -46,6 +62,10 @@ else()
     FetchContent_Declare(JUCE GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
                          GIT_TAG ${JUCE_GIT_TAG} GIT_SHALLOW TRUE)
     FetchContent_MakeAvailable(JUCE)
+endif()
+
+if(FOLEYS_GUI_MAGIC_MODULE)
+    juce_add_module("${FOLEYS_GUI_MAGIC_MODULE}")
 endif()
 
 CMAKE_VST2_SDK
@@ -93,6 +113,18 @@ endif()
 set(FAUST_JUCE_MODULES juce::juce_audio_utils)
 if("OSCCTRL" IN_LIST FAUST_DEFINITIONS)
     list(APPEND FAUST_JUCE_MODULES juce::juce_osc)
+endif()
+
+if(FOLEYS_GUI_MAGIC_MODULE)
+    list(APPEND FAUST_JUCE_MODULES foleys_gui_magic juce::juce_dsp juce::juce_cryptography)
+    if(FAUST_MAGIC_XML)
+        # Copied as magic.xml, so that the resource is BinaryData::magic_xml, the name the
+        # architecture loads under MAGIC_LOAD_BINARY
+        configure_file("${FAUST_MAGIC_XML}" "${CMAKE_CURRENT_BINARY_DIR}/magic.xml" COPYONLY)
+        juce_add_binary_data(APPL_NAME_MagicGUI SOURCES "${CMAKE_CURRENT_BINARY_DIR}/magic.xml")
+        list(APPEND FAUST_JUCE_MODULES APPL_NAME_MagicGUI)
+        target_compile_definitions(APPL_NAME PUBLIC MAGIC_LOAD_BINARY)
+    endif()
 endif()
 
 target_link_libraries(APPL_NAME
