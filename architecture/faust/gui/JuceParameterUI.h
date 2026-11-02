@@ -28,6 +28,7 @@
 #include <cmath>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -181,6 +182,10 @@ struct FaustPlugInAudioParameterFloat : public juce::AudioParameterFloat, public
 // parameter that drives all their zones. A control with the same shortname but
 // another kind or range keeps its own parameter, with a numbered ID ("bpm_2").
 //
+// The Faust groups (vgroup, hgroup, tgroup) become juce::AudioProcessorParameterGroup:
+// hosts and GUI builders such as PluginGuiMagic can show the parameters the way the DSP
+// organises them. Parameter IDs and order do not depend on them.
+//
 // Widget metadata is passed on to the host: [scale:log] and [scale:exp] shape the
 // parameter range with the same conversions as the other Faust interfaces, [unit:...]
 // becomes the parameter label, and [style:menu{...}] or [style:radio{...}] give the
@@ -197,6 +202,7 @@ class JuceParameterUI : public GUI, public PathBuilder, public MetaDataUI {
             std::string fLabel;     // label without its metadata
             bool fIsBool;           // button or checkbox
             FAUSTFLOAT fInit, fMin, fMax, fStep;
+            std::vector<std::string> fGroups;  // labels of the enclosing groups, outermost first
         };
         
         // A parameter already created, which a control of a later DSP can join
@@ -209,6 +215,7 @@ class JuceParameterUI : public GUI, public PathBuilder, public MetaDataUI {
         juce::AudioProcessor* fProcessor;
         std::vector<Control> fControls;            // widgets of the top-level box being built
         std::map<std::string, Created> fCreated;   // parameters created so far, by ID
+        std::set<juce::String> fGroupIDs;          // group IDs used so far: JUCE wants them unique
         
         // Record a widget and its full path; its metadata has already been received by
         // declare(), which Faust calls before the widget itself
@@ -217,7 +224,7 @@ class JuceParameterUI : public GUI, public PathBuilder, public MetaDataUI {
         {
             std::string path = buildPath(label);
             fFullPaths.push_back(path);
-            fControls.push_back({ zone, path, label, is_bool, init, min, max, step });
+            fControls.push_back({ zone, path, label, is_bool, init, min, max, step, fControlsLevel });
         }
         
         /**
@@ -291,6 +298,16 @@ class JuceParameterUI : public GUI, public PathBuilder, public MetaDataUI {
             return isMenu(zone) ? getMenuDescription(zone) : getRadioDescription(zone);
         }
         
+        // A widget outside any group (none in Faust-generated code) goes to the processor directly
+        void addToGroup(juce::AudioProcessorParameterGroup* group, std::unique_ptr<juce::AudioProcessorParameter> parameter)
+        {
+            if (group) {
+                group->addChild(std::move(parameter));
+            } else {
+                fProcessor->addParameter(parameter.release());
+            }
+        }
+        
         // Return id, or id followed by the first free number ("bpm_2") if it is taken
         std::string freeID(const std::string& id)
         {
@@ -299,6 +316,40 @@ class JuceParameterUI : public GUI, public PathBuilder, public MetaDataUI {
                 candidate = id + "_" + std::to_string(n);
             }
             return candidate;
+        }
+        
+        // Return the group of a widget, creating the missing groups along its path under root.
+        // Group IDs are the group paths, numbered if the same path comes back (a second DSP).
+        juce::AudioProcessorParameterGroup* getGroup(const std::vector<std::string>& labels,
+                                                     std::unique_ptr<juce::AudioProcessorParameterGroup>& root,
+                                                     std::map<std::string, juce::AudioProcessorParameterGroup*>& groups)
+        {
+            juce::AudioProcessorParameterGroup* parent = nullptr;
+            std::string path;
+            for (const auto& label : labels) {
+                path += "/" + label;
+                auto it = groups.find(path);
+                if (it != groups.end()) {
+                    parent = it->second;
+                    continue;
+                }
+                juce::String id(path);
+                for (int n = 2; fGroupIDs.count(id) > 0; n++) {
+                    id = juce::String(path) + "_" + juce::String(n);
+                }
+                fGroupIDs.insert(id);
+                // Faust names an unlabelled group "0x00"
+                auto group = std::make_unique<juce::AudioProcessorParameterGroup>(id, (label == "0x00") ? "" : label, "|");
+                auto* raw = group.get();
+                if (parent) {
+                    parent->addChild(std::move(group));
+                } else {
+                    root = std::move(group);
+                }
+                groups[path] = raw;
+                parent = raw;
+            }
+            return parent;
         }
         
         // Create the parameters of the widgets of the top-level box just closed, in their
@@ -310,6 +361,9 @@ class JuceParameterUI : public GUI, public PathBuilder, public MetaDataUI {
             // Shortnames of this DSP only, independent of the DSPs visited before
             fFull2Short.clear();
             computeShortNames();
+            // The groups of this top-level box, handed to the processor at the end
+            std::unique_ptr<juce::AudioProcessorParameterGroup> root;
+            std::map<std::string, juce::AudioProcessorParameterGroup*> groups;
             for (const auto& control : fControls) {
             #ifdef FAUST_JUCE_FULLPATH_IDS
                 std::string id = control.fPath;
@@ -325,18 +379,22 @@ class JuceParameterUI : public GUI, public PathBuilder, public MetaDataUI {
                     }
                     id = freeID(id);
                 }
+                juce::AudioProcessorParameterGroup* group = getGroup(control.fGroups, root, groups);
                 if (control.fIsBool) {
-                    auto* parameter = new FaustPlugInAudioParameterBool(this, control.fZone, id, control.fLabel);
-                    fProcessor->addParameter(parameter);
-                    fCreated[id] = { parameter, true, control.fMin, control.fMax };
+                    auto parameter = std::make_unique<FaustPlugInAudioParameterBool>(this, control.fZone, id, control.fLabel);
+                    fCreated[id] = { parameter.get(), true, control.fMin, control.fMax };
+                    addToGroup(group, std::move(parameter));
                 } else {
-                    auto* parameter = new FaustPlugInAudioParameterFloat(this, control.fZone, id, control.fLabel, control.fInit,
+                    auto parameter = std::make_unique<FaustPlugInAudioParameterFloat>(this, control.fZone, id, control.fLabel, control.fInit,
                                                                          makeRange(getScale(control.fZone), control.fMin, control.fMax, control.fStep),
                                                                          makeAttributes(control.fZone, control.fStep),
                                                                          int(getOptions(control.fZone).size()));
-                    fProcessor->addParameter(parameter);
-                    fCreated[id] = { parameter, false, control.fMin, control.fMax };
+                    fCreated[id] = { parameter.get(), false, control.fMin, control.fMax };
+                    addToGroup(group, std::move(parameter));
                 }
+            }
+            if (root) {
+                fProcessor->addParameterGroup(std::move(root));
             }
             fControls.clear();
             fFullPaths.clear();

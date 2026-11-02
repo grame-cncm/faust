@@ -142,6 +142,8 @@ The file is embedded in the project (`FaustPresets.h`) and the `FAUST_PRESETS` m
 
 Each Faust control becomes a host parameter, whose ID is the Faust shortname: the label alone (`cutoff`), or preceded by the enclosing groups when the label is repeated (`Route_0_depth`). These IDs do not depend on the groups added by the architecture for polyphony or for the `-effect` sequencing, so they stay the same when these options change. Previous versions used the full path; define `FAUST_JUCE_FULLPATH_IDS` when compiling the plugin to keep these IDs, so that automation recorded in existing host sessions still applies.
 
+The Faust groups (`vgroup`, `hgroup`, `tgroup`) become JUCE parameter groups (`juce::AudioProcessorParameterGroup`), named after the group labels, with the groups added by the architecture (`Polyphonic`, `Voices`) around them. Hosts that show parameter groups, VST3 units for instance, and GUI builders such as PluginGuiMagic, whose default interface is laid out from these groups, present the parameters the way the DSP organises them. The parameter IDs and their order do not depend on the groups.
+
 With `-effect`, the shortnames are computed separately for the voices and for the effect. A control declared by both, with the same shortname, kind and range (for instance a `bpm` slider used by the voices and by a tempo-synced delay of the effect), becomes a single host parameter that sets both. A control with the same shortname but another kind or range keeps its own parameter, whose ID is numbered (`bpm_2`). The saved plugin state is not affected. With `FAUST_JUCE_FULLPATH_IDS`, controls are not merged.
 
 Widget metadata is passed on to the host:
