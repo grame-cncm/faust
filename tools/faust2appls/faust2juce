@@ -189,6 +189,15 @@ for p in $FILES; do
     dspName="${f%.dsp}"
     SUB_TYPE=$(shasum $p)
     SUB_TYPE=${SUB_TYPE:0:4}
+
+    # The project folder is rebuilt from scratch. Only replace a previous export:
+    # a file or another folder named like the DSP (e.g. a compiled binary) is kept
+    if [ -e "$SRCDIR/$dspName" ]; then
+        if [ ! -d "$SRCDIR/$dspName" ] || { [ ! -f "$SRCDIR/$dspName/FaustPluginProcessor.cpp" ] && [ ! -f "$SRCDIR/$dspName/FaustAudioApplication.cpp" ]; }; then
+            echo "ERROR : '$SRCDIR/$dspName' exists and is not a previous faust2juce export, move or rename it first" >&2
+            exit 1
+        fi
+    fi
     rm -rf "$SRCDIR/$dspName"
 
     if [ $STANDALONE = "0" ]; then
@@ -235,6 +244,30 @@ for p in $FILES; do
         sed -e "s/NUM_VOICES/$NVOICES/g" "$SRCDIR/$dspName/$dspName-temp10.jucer" >> "$SRCDIR/$dspName/$dspName.jucer"
     else
         cp "$SRCDIR/$dspName/$dspName-temp10.jucer" "$SRCDIR/$dspName/$dspName.jucer"
+    fi
+
+    # CMake project (CMakeLists.txt and JuceLibraryCode/JuceHeader.h), an alternative
+    # to the .jucer one, written for plugins compiled without LLVM
+    if [ $STANDALONE = "0" ] && [ $IS_LLVM = "0" ]; then
+        # buildAU,buildVST3... -> AU VST3... (longer names replaced first)
+        CMAKE_FORMATS=$(echo "$PLUGIN_FORMATS" | sed -e 's/buildAUv3/AUv3/' -e 's/buildAU/AU/' -e 's/buildVST3/VST3/' \
+            -e 's/buildVST/VST/' -e 's/buildStandalone/Standalone/' -e 's/,/ /g')
+        [ $IS_SYNTH = "1" ] && CMAKE_IS_SYNTH="TRUE" || CMAKE_IS_SYNTH="FALSE"
+        [ $IS_MIDI = "1" ] && CMAKE_IS_MIDI="TRUE" || CMAKE_IS_MIDI="FALSE"
+        if [ $BUILD_VST2 = "1" ]; then
+            CMAKE_VST2_SDK="juce_set_vst2_sdk_path(\"$VST2_SDK\")"
+        else
+            CMAKE_VST2_SDK="# Building a VST2 plugin needs faust2juce -vst2sdkdir <folder>"
+        fi
+        sed -e "s|APPL_NAME|$dspName|g" -e "s|SUB_TYPE|$SUB_TYPE|g" -e "s|CMAKE_DEFINITIONS|$DEF|g" \
+            -e "s|CMAKE_FORMATS|$CMAKE_FORMATS|g" -e "s|CMAKE_IS_SYNTH|$CMAKE_IS_SYNTH|g" \
+            -e "s|CMAKE_IS_MIDI|$CMAKE_IS_MIDI|g" -e "s|CMAKE_VST2_SDK|$CMAKE_VST2_SDK|g" \
+            -e "s|CMAKE_FAUST_INCLUDE|$FAUSTINC|g" -e "s|FAUST_FLOAT|$FAUSTFLOAT|g" \
+            -e "s|DISPLAY_SPLASH_SCREEN_DEFAULT|$DISPLAY_SPLASH_SCREEN|g" \
+            "$SRCDIR/$dspName/CMakeLists.txt" > "$SRCDIR/$dspName/CMakeLists-temp.txt"
+        mv "$SRCDIR/$dspName/CMakeLists-temp.txt" "$SRCDIR/$dspName/CMakeLists.txt"
+    else
+        rm -rf "$SRCDIR/$dspName/CMakeLists.txt" "$SRCDIR/$dspName/JuceLibraryCode"
     fi
 
     # standalone or plugin mode

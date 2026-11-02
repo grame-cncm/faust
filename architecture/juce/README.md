@@ -32,6 +32,22 @@ When using `-standalone` mode, it will create a standalone project, with a folde
 
 The resulting folder has to be moved on the "examples" folder of your JUCE installation, the .jucer file has to be opened, and projects for specific native platforms can be generated. Using the `-jucemodulesdir` allows to generate projects that can be used without moving them in JUCE installation.
 
+The folder is rebuilt from scratch at each run. **faust2juce** only replaces a previous export (a folder containing `FaustPluginProcessor.cpp` or `FaustAudioApplication.cpp`): if a file or another folder has the name of the DSP, for instance a binary compiled from it, it stops with an error and leaves it untouched.
+
+### Building with CMake
+
+Plugin projects (without `-llvm`) also contain a `CMakeLists.txt`, which builds the plugins without Projucer, with the options given to **faust2juce**:
+
+```
+cd foo
+cmake -B build -DJUCE_DIR=/path/to/JUCE
+cmake --build build --config Release
+```
+
+The plugins are then in `build/foo_artefacts/Release`. Without `JUCE_DIR`, CMake downloads JUCE (version 8.0.10, which `-DJUCE_GIT_TAG=<tag>` changes). JUCE only builds the AUv3 format with the Xcode generator (`cmake -G Xcode`). `-DFAUST_COPY_PLUGINS=ON` copies the plugins to the user plug-in folders after each build. `-DFAUST_CUSTOM_EDITOR=<file.h>` and `-DFAUST_EXTRA_SOURCES="<a.cpp;b.cpp>"` replace the generic interface with a custom editor (see [Custom editor](#custom-editor)). The `-magic` option is not supported: use the .jucer project.
+
+The CMake build uses the `JuceLibraryCode/JuceHeader.h` file written by **faust2juce**, which only includes the JUCE modules used by the architecture. Projucer replaces it when the .jucer project is saved, so use one of the two builds per exported folder.
+
 ## JUCE compatibility
 
 Generated projects use macOS 12.0 as the deployment target for both Debug and Release builds. This setting applies to plugin and standalone projects, including the LLVM variants, and can be changed in Projucer for your target system and Xcode SDK.
