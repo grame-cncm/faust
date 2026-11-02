@@ -494,6 +494,17 @@ struct dsp_voice_group {
         fVoiceTable.push_back(voice);
     }
         
+    // Return the number of voices still sounding: playing, in their release or in legato.
+    // Exact on the audio thread; an indication only when read from another thread.
+    int getNumActiveVoices() const
+    {
+        int count = 0;
+        for (size_t i = 0; i < fVoiceTable.size(); i++) {
+            count += (fVoiceTable[i]->fCurNote != kFreeVoice);
+        }
+        return count;
+    }
+
     // Clear all voices from the group
     void clearVoices()
     {
@@ -638,6 +649,10 @@ class dsp_poly : public decorator_dsp, public midi, public JSONControl {
     
         // Terminate all active voices, gently or immediately (depending of 'hard' value)
         virtual void allNotesOff(bool hard = false) {}
+    
+        // Return the number of voices still sounding (see dsp_voice_group::getNumActiveVoices),
+        // available to hosts that only hold a dsp_poly, like faustwasm IFaustPolyWebAudioDsp
+        virtual int getNumActiveVoices() { return 0; }
     
         // MIDI API
         virtual MapUI* keyOn(int channel, int pitch, int velocity)
@@ -1060,6 +1075,12 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->keyOff(hard);
             }
+        }
+    
+        // Both base classes declare it: the dsp_poly interface gets the dsp_voice_group count
+        virtual int getNumActiveVoices()
+        {
+            return dsp_voice_group::getNumActiveVoices();
         }
  
         // Additional polyphonic API
