@@ -8,7 +8,7 @@ Polyphonic synthesiser can be created using JUCE Synthesiser model or Faust own 
 
  - `JuceGUI.h`: contains the main JuceGUI class (and additional helpers classes) to display Faust UI components (buttons, sliders, bargraphs...) using JUCE widgets. The following `[style:knob]`, `[style:led]`, `[style:numerical]`, `[style:radio]`, `[style:menu]`, `[scale:log]`, `[scale:exp]`, `[tooltip:xx]`, `[hidden:0|1]` metadata are supported.
  - `JuceOSCUI.h`: allows to link Faust UI components (buttons, sliders, bargraphs...) to the JUCE OSC messaging system, allowing to control them in both directions
- - `JuceParameterUI.h`: allows to link Faust UI components (buttons, sliders, bargraphs...) with the JUCE AudioParameterFloat/AudioParameterBool classes
+ - `JuceParameterUI.h`: allows to link Faust UI components (buttons, sliders, bargraphs...) with the JUCE AudioParameterFloat/AudioParameterBool classes, named after the Faust shortnames and shaped by the widget metadata (see [Host parameters](#host-parameters))
  - `JuceStateUI.h`: allows to save/restore Faust UI components (buttons, sliders, bargraphs...) values using the JUCE state management system (MemoryInputStream/MemoryOutputStream classes)
 
 Some additional files are needed for soundfile and MIDI support:
@@ -26,13 +26,13 @@ Two different achitecture files will be used to glue the previously described fi
 
 `faust2juce [-osc] [-midi] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-presets <file.json>] [-standalone] [-jucemodulesdir <dir>] [-vst2sdkdir <dir>] [-disable-splash-screen] [-jsynth] [-llvm] [-magic] [additional Faust options (-vec -vs 8...)] file.dsp` 
 
-By default it will create a plugin project, with a folder named with the dsp file name, containing a .jucer project with a FaustPluginProcessor.cpp file to be used by JUCE.
+By default it will create a plugin project, with a folder named with the dsp file name, containing a .jucer project with a FaustPluginProcessor.cpp file to be used by JUCE, an `effect.h` file with `-effect`, a `FaustPresets.h` file with `-presets`, and a `CMakeLists.txt` with its `JuceLibraryCode/JuceHeader.h` (see [Building with CMake](#building-with-cmake)).
 
 When using `-standalone` mode, it will create a standalone project, with a folder named with the dsp file name, containing a .jucer project with a FaustAudioApplication.cpp file to be used by JUCE.
 
 The resulting folder has to be moved on the "examples" folder of your JUCE installation, the .jucer file has to be opened, and projects for specific native platforms can be generated. Using the `-jucemodulesdir` allows to generate projects that can be used without moving them in JUCE installation.
 
-The folder is rebuilt from scratch at each run. **faust2juce** only replaces a previous export (a folder containing `FaustPluginProcessor.cpp` or `FaustAudioApplication.cpp`): if a file or another folder has the name of the DSP, for instance a binary compiled from it, it stops with an error and leaves it untouched.
+The folder is rebuilt from scratch at each run. **faust2juce** only replaces a previous export (a folder containing its `.jucer` project, `FaustPluginProcessor.cpp` or `FaustAudioApplication.cpp`): if a file or another folder has the name of the DSP, for instance a binary compiled from it, it stops with an error and leaves it untouched.
 
 ### Building with CMake
 
@@ -64,6 +64,7 @@ Here are the available options:
 - `-nvoices <num>` : to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC
 - `-effect <effect.dsp>` : to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC
 - `-effect auto` : to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC 
+- `-presets <file.json>` : to expose the presets of a JSON file as host programs, plugins only (see [Presets as host programs](#presets-as-host-programs))
 - `-standalone` : to produce a standalone project, otherwise a plugin project is generated
 - `-jucemodulesdir <folder>` : to set JUCE modules directory to `<folder>`, such as ~/JUCE/modules
 - `-vst2sdkdir <folder>` : to set VST 2 Legacy Directory to `<folder>`. This is the directory that contains "plugininterfaces/vst2.x/aeffect.h".
@@ -96,6 +97,11 @@ To use either of these options, either enter the option into the JUCER exporter 
 - `-help or -h` : shows the different options 
 
 As usual with faust2xx tools, other Faust compiler specific options can be given to **faust2juce**, like `-vec -lv 1` to compile in vector mode.etc.
+
+The generated plugin project also understands the following preprocessor definitions, to add in Projucer (Exporters > Extra Preprocessor Definitions) or with CMake:
+
+- `FAUST_CUSTOM_EDITOR="MyEditor.h"` : replaces the generic interface with a custom editor (see [Custom editor](#custom-editor)); with CMake, use `-DFAUST_CUSTOM_EDITOR=<path/to/MyEditor.h>` and `-DFAUST_EXTRA_SOURCES=...` instead
+- `FAUST_JUCE_FULLPATH_IDS` : names the host parameters after their full path, as before Faust 2.92.0, so that automation saved in older host sessions still applies (see [Host parameters](#host-parameters)); with CMake, `-DCMAKE_CXX_FLAGS=-DFAUST_JUCE_FULLPATH_IDS`
 
 ## Latency setting
 
