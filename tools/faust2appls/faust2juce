@@ -32,6 +32,7 @@ echoHelp()
     option -jsynth "to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
     option -llvm "to use the LLVM compilation chain (OSX and Linux for now)"
     option -magic "to generate a project using the PluginGuiMagic GUI builder"
+    option "-presets <file.json>" "to expose the presets of a JSON file { \"name\": { \"control\": value, ... }, ... } as host programs (plugins only)"
     option "Faust options"
     exit
 }
@@ -64,6 +65,7 @@ JUCE_MODULES_DIR="\.\.\/\.\.\/modules"  # By default, the generated folder is su
 PLUGIN_FORMATS="buildAU,buildAUv3,buildVST3,buildStandalone"  # can append "buildVST"
 PLUGIN_CHARACTERISTICS=""
 DISPLAY_SPLASH_SCREEN="1"
+PRESETS=""  # JSON file of presets, exposed as host programs
 
 while [ $1 ]
 do
@@ -112,6 +114,10 @@ do
         DEF+="PLUGIN_MAGIC "
     elif [ $p = "-soundfile" ]; then
         DEF+="SOUNDFILE "
+    elif [ $p = "-presets" ]; then
+        shift
+        PRESETS=$1
+        DEF+="FAUST_PRESETS "
     elif [ ${p:0:1} = "-" ]; then
         if [ $p = "-double" ]; then
             FAUSTFLOAT="double"
@@ -146,6 +152,16 @@ fi
 if [ $STANDALONE = "1" ] && [ $JUCE_POLY = "1" ]; then
     echo "Cannot use -standalone with -jsynth"
     exit
+fi
+
+if [ -n "$PRESETS" ] && [ $STANDALONE = "1" ]; then
+    echo "Cannot use -presets with -standalone"
+    exit 1
+fi
+
+if [ -n "$PRESETS" ] && [ ! -f "$PRESETS" ]; then
+    echo "ERROR : presets file '$PRESETS' not found" >&2
+    exit 1
 fi
 
 if [ $POLY = "POLY2" ] && [ $JUCE_POLY = "1" ]; then
@@ -190,10 +206,11 @@ for p in $FILES; do
     SUB_TYPE=$(shasum $p)
     SUB_TYPE=${SUB_TYPE:0:4}
 
-    # The project folder is rebuilt from scratch. Only replace a previous export:
-    # a file or another folder named like the DSP (e.g. a compiled binary) is kept
+    # The project folder is rebuilt from scratch. Only replace a previous export (a
+    # folder with its .jucer project or generated source): a file or another folder
+    # named like the DSP (e.g. a compiled binary) is kept
     if [ -e "$SRCDIR/$dspName" ]; then
-        if [ ! -d "$SRCDIR/$dspName" ] || { [ ! -f "$SRCDIR/$dspName/FaustPluginProcessor.cpp" ] && [ ! -f "$SRCDIR/$dspName/FaustAudioApplication.cpp" ]; }; then
+        if [ ! -d "$SRCDIR/$dspName" ] || { [ ! -f "$SRCDIR/$dspName/$dspName.jucer" ] && [ ! -f "$SRCDIR/$dspName/FaustPluginProcessor.cpp" ] && [ ! -f "$SRCDIR/$dspName/FaustAudioApplication.cpp" ]; }; then
             echo "ERROR : '$SRCDIR/$dspName' exists and is not a previous faust2juce export, move or rename it first" >&2
             exit 1
         fi
@@ -299,6 +316,16 @@ for p in $FILES; do
         else
             faust -scn base_dsp -i -a "$FAUSTARCH/juce/juce-standalone.cpp" $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
         fi
+    fi
+
+    # Presets embedded as a raw string, parsed by the processor (see FAUST_PRESETS in juce-plugin.cpp)
+    if [ -n "$PRESETS" ]; then
+        {
+            echo "// Written by faust2juce -presets from $(basename "$PRESETS"): exposed as host programs"
+            echo 'static const char* gFaustPresets = R"faustpresets('
+            cat "$PRESETS"
+            echo ')faustpresets";'
+        } > "$SRCDIR/$dspName/FaustPresets.h"
     fi
 
     if [ $POLY = "POLY2" ]; then

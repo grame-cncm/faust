@@ -24,7 +24,7 @@ Two different achitecture files will be used to glue the previously described fi
 
 **faust2juce** is used with the following command: 
 
-`faust2juce [-osc] [-midi] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-standalone] [-jucemodulesdir <dir>] [-vst2sdkdir <dir>] [-disable-splash-screen] [-jsynth] [-llvm] [-magic] [additional Faust options (-vec -vs 8...)] file.dsp` 
+`faust2juce [-osc] [-midi] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-presets <file.json>] [-standalone] [-jucemodulesdir <dir>] [-vst2sdkdir <dir>] [-disable-splash-screen] [-jsynth] [-llvm] [-magic] [additional Faust options (-vec -vs 8...)] file.dsp` 
 
 By default it will create a plugin project, with a folder named with the dsp file name, containing a .jucer project with a FaustPluginProcessor.cpp file to be used by JUCE.
 
@@ -110,6 +110,21 @@ Some plugins add latency in the signal path. A special global metadata can be us
 Some plugins keep producing sound after their input stops, typically with delays or reverbs. A special global metadata can be used in the DSP code to define how long, so that the C++ architecture file can extract it and return it from the JUCE `AudioProcessor::getTailLengthSeconds()` method. The host then knows how long to keep processing the plugin after the last note or input, for instance when bouncing a track. The following syntax can be used:
 
 - `declare tail_sec "12";` to express the tail length in seconds (0 when not declared)
+
+## Presets as host programs
+
+The `-presets <file.json>` option gives a plugin factory presets, which hosts list in their own preset or program menu, without opening the plugin interface. The JSON file maps preset names to control values:
+
+```
+{
+    "Soft": { "cutoff": 800, "resonance": 0.2 },
+    "Bright": { "cutoff": 6000, "drive": 2.5 }
+}
+```
+
+A control is named by the ID of its host parameter (see [Host parameters](#host-parameters)) or by its label. The plugin then exposes the programs "Default", with the values declared in the DSP, followed by the presets in the order of the file. Selecting a program recalls it completely: the controls it does not name go back to their default value. Selecting the current program again does nothing, because some hosts do so right after restoring a session, which would overwrite the restored values. The current program is saved with the plugin state. A preset naming an unknown control is reported on the standard error when the plugin starts.
+
+The file is embedded in the project (`FaustPresets.h`) and the `FAUST_PRESETS` macro is defined. This option is only available for plugins, not with `-standalone`.
 
 ## Host parameters
 

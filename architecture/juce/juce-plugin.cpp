@@ -25,6 +25,8 @@
 
 #include <algorithm>
 #include <assert.h>
+#include <map>
+#include <vector>
 
 #if JUCE_WINDOWS
 #define JUCE_CORE_INCLUDE_NATIVE_HEADERS 1
@@ -63,6 +65,11 @@
 #include "faust/dsp/dsp-combiner.h"
 #include "effect.h"
 #endif 
+
+// Presets given to faust2juce -presets <file.json>, as the gFaustPresets JSON string
+#if defined(FAUST_PRESETS)
+#include "FaustPresets.h"
+#endif
 
 /*
  A project can replace the generic editor by defining FAUST_CUSTOM_EDITOR as the name
@@ -372,6 +379,18 @@ class FaustPlugInAudioProcessor : public foleys::MagicProcessor, private juce::T
     #endif
         // Tail length reported to the host, from [declare tail_sec "<seconds>"]
         double fTailLength = 0.0;
+    #if defined(FAUST_PRESETS)
+        // Host programs: "Default" (the values declared in the DSP), then the presets
+        // of gFaustPresets, each mapping control names to values
+        struct FaustProgram {
+            juce::String fName;
+            std::map<juce::String, float> fValues;
+        };
+        std::vector<FaustProgram> fPrograms;
+        int fCurrentProgram = 0;
+        void loadPrograms();
+        juce::RangedAudioParameter* findParameter(const juce::String& name);
+    #endif
     #if defined(POLY2)
         // The voices and the effect, owned by fDSP, visited separately to build the
         // host parameters (see the constructor)
@@ -480,6 +499,18 @@ class FaustPlugInAudioProcessor : public juce::AudioProcessor, private juce::Tim
     #endif
         // Tail length reported to the host, from [declare tail_sec "<seconds>"]
         double fTailLength = 0.0;
+    #if defined(FAUST_PRESETS)
+        // Host programs: "Default" (the values declared in the DSP), then the presets
+        // of gFaustPresets, each mapping control names to values
+        struct FaustProgram {
+            juce::String fName;
+            std::map<juce::String, float> fValues;
+        };
+        std::vector<FaustProgram> fPrograms;
+        int fCurrentProgram = 0;
+        void loadPrograms();
+        juce::RangedAudioParameter* findParameter(const juce::String& name);
+    #endif
     #if defined(POLY2)
         // The voices and the effect, owned by fDSP, visited separately to build the
         // host parameters (see the constructor)
@@ -696,6 +727,11 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     }
 #endif
     
+#if defined(FAUST_PRESETS)
+    // Once the host parameters exist, so that preset names can be checked against them
+    loadPrograms();
+#endif
+    
     startTimerHz(25);
 }
 
@@ -754,6 +790,80 @@ double FaustPlugInAudioProcessor::getTailLengthSeconds() const
     return fTailLength;
 }
 
+#if defined(FAUST_PRESETS)
+
+// Parse gFaustPresets: { "name": { "control": value, ... }, ... }. A control is named by
+// the ID of its host parameter (the Faust shortname) or by its label.
+void FaustPlugInAudioProcessor::loadPrograms()
+{
+    fPrograms.push_back({ "Default", {} });
+    juce::var presets = juce::JSON::parse(juce::String::fromUTF8(gFaustPresets));
+    juce::DynamicObject* object = presets.getDynamicObject();
+    if (!object) {
+        std::cerr << "ERROR : the presets given to faust2juce -presets are not a JSON object" << std::endl;
+        return;
+    }
+    for (const auto& preset : object->getProperties()) {
+        FaustProgram program { preset.name.toString(), {} };
+        if (juce::DynamicObject* values = preset.value.getDynamicObject()) {
+            for (const auto& value : values->getProperties()) {
+                if (!findParameter(value.name.toString())) {
+                    std::cerr << "WARNING : preset '" << program.fName << "' sets '" << value.name.toString()
+                              << "', which is not a control" << std::endl;
+                }
+                program.fValues[value.name.toString()] = float(value.value);
+            }
+        }
+        fPrograms.push_back(program);
+    }
+}
+
+juce::RangedAudioParameter* FaustPlugInAudioProcessor::findParameter(const juce::String& name)
+{
+    for (auto* parameter : getParameters()) {
+        if (auto* ranged = dynamic_cast<juce::RangedAudioParameter*>(parameter)) {
+            if (ranged->getParameterID() == name || ranged->getName(1024) == name) return ranged;
+        }
+    }
+    return nullptr;
+}
+
+int FaustPlugInAudioProcessor::getNumPrograms()
+{
+    return int(fPrograms.size());
+}
+
+int FaustPlugInAudioProcessor::getCurrentProgram()
+{
+    return fCurrentProgram;
+}
+
+// Recall a program completely: the controls it does not name go back to their default
+// value, so that nothing is left over from the previous sound. Selecting the current
+// program again does nothing, since some hosts do so right after restoring a session,
+// which would overwrite the restored values.
+void FaustPlugInAudioProcessor::setCurrentProgram (int index)
+{
+    if (index < 0 || index >= int(fPrograms.size()) || index == fCurrentProgram) return;
+    fCurrentProgram = index;
+    const auto& values = fPrograms[size_t(index)].fValues;
+    for (auto* parameter : getParameters()) {
+        if (auto* ranged = dynamic_cast<juce::RangedAudioParameter*>(parameter)) {
+            auto it = values.find(ranged->getParameterID());
+            if (it == values.end()) it = values.find(ranged->getName(1024));
+            ranged->setValueNotifyingHost((it != values.end()) ? ranged->convertTo0to1(it->second) : ranged->getDefaultValue());
+        }
+    }
+    updateHostDisplay(juce::AudioProcessor::ChangeDetails().withProgramChanged(true));
+}
+
+const juce::String FaustPlugInAudioProcessor::getProgramName (int index)
+{
+    return (index >= 0 && index < int(fPrograms.size())) ? fPrograms[size_t(index)].fName : juce::String();
+}
+
+#else
+
 int FaustPlugInAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
@@ -772,6 +882,8 @@ const juce::String FaustPlugInAudioProcessor::getProgramName (int index)
 {
     return juce::String();
 }
+
+#endif
 
 void FaustPlugInAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {}
@@ -907,6 +1019,14 @@ void FaustPlugInAudioProcessor::getStateInformation (juce::MemoryBlock& destData
     // as intermediaries to make it easy to save and load complex data.
     
     fStateUI.getStateInformation(destData);
+#if defined(FAUST_PRESETS)
+    // The current program follows an empty path, where the JuceStateUI reader stops:
+    // states written with presets can still be read by plugins built without them
+    juce::MemoryOutputStream stream(destData, true);
+    stream.writeString("");
+    stream.writeString("program");
+    stream.writeInt(fCurrentProgram);
+#endif
 }
 
 void FaustPlugInAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
@@ -915,6 +1035,17 @@ void FaustPlugInAudioProcessor::setStateInformation (const void* data, int sizeI
     // whose contents will have been created by the getStateInformation() call.
     
     fStateUI.setStateInformation(data, sizeInBytes);
+#if defined(FAUST_PRESETS)
+    // Skip the (path, value) pairs written by JuceStateUI up to the empty path, then read
+    // the current program, absent from states written without presets
+    juce::MemoryInputStream stream(data, static_cast<size_t>(sizeInBytes), false);
+    while (!stream.isExhausted() && stream.readString().isNotEmpty()) {
+        stream.skipNextBytes(sizeof(FAUSTFLOAT));
+    }
+    if (!stream.isExhausted() && stream.readString() == "program") {
+        fCurrentProgram = juce::jlimit(0, int(fPrograms.size()) - 1, stream.readInt());
+    }
+#endif
 }
 #endif
 //==============================================================================
