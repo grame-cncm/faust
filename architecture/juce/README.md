@@ -95,6 +95,51 @@ Some plugins keep producing sound after their input stops, typically with delays
 
 - `declare tail_sec "12";` to express the tail length in seconds (0 when not declared)
 
+## Host parameters
+
+Each Faust control becomes a host parameter, whose ID is the Faust shortname: the label alone (`cutoff`), or preceded by the enclosing groups when the label is repeated (`Route_0_depth`). These IDs do not depend on the groups added by the architecture for polyphony or for the `-effect` sequencing, so they stay the same when these options change. Previous versions used the full path; define `FAUST_JUCE_FULLPATH_IDS` when compiling the plugin to keep these IDs, so that automation recorded in existing host sessions still applies.
+
+Widget metadata is passed on to the host:
+
+- `[scale:log]` and `[scale:exp]` shape the parameter range with the same conversions as the other Faust interfaces, so that host knobs and automation curves follow the control (the middle of a logarithmic 30..18000 Hz control is about 735 Hz)
+- `[unit:Hz]` becomes the parameter label, displayed by hosts next to the value
+- `[style:menu{'Sine':0;'Saw':1}]` and `[style:radio{...}]` make the parameter discrete, show the name of the closest declared value and accept a name typed in the host
+- the widget step sets the snapping of values and the number of decimals displayed
+
+`[tooltip:...]` has no equivalent in JUCE parameters and is not passed on.
+
+## Custom editor
+
+A project can replace the generic interface with its own JUCE editor, while still building on the generated processor. Define `FAUST_CUSTOM_EDITOR` as the name of a header, for instance `-DFAUST_CUSTOM_EDITOR='"MyEditor.h"'` (in Projucer, add `FAUST_CUSTOM_EDITOR="MyEditor.h"` to the preprocessor definitions). The architecture includes this header, leaves out the generic interface (`JuceGUI.h`), and expects it to define:
+
+- `FaustEditorBridge`: a class owned by the processor and shared with the editor. The processor calls it on the audio thread:
+  - `prepare(double sampleRate, int blockSize, int numVoices)` from `prepareToPlay`, `numVoices` being 0 for a monophonic DSP
+  - `processMidi(juce::MidiBuffer& midi, int numSamples)` at the start of each block, before the MIDI events are decoded, so that it can read them or add its own, for instance from a `juce::MidiKeyboardState` displayed by the editor
+  - `processAudio(const juce::AudioBuffer<T>& buffer, int activeVoices)` after each block, with `T` being `float`, or `double` when the DSP is compiled in double precision, for meters, scopes or load measurement. `activeVoices` counts the voices still sounding, and is -1 when unknown (with `-jsynth`)
+- `juce::AudioProcessorEditor* createFaustEditor(juce::AudioProcessor&, FaustEditorBridge&)`, called by `createEditor()`
+
+Both only depend on JUCE, so the editor can be compiled in its own translation unit and reach the DSP controls through the host parameters (`AudioProcessor::getParameters()`, see above). A minimal header could be:
+
+```c++
+#pragma once
+#include "MyEditor.h"   // class MyEditor : public juce::AudioProcessorEditor
+
+struct FaustEditorBridge
+{
+    juce::MidiKeyboardState keyboard;   // played by MyEditor
+    void prepare(double, int, int) {}
+    void processMidi(juce::MidiBuffer& midi, int numSamples) { keyboard.processNextMidiBuffer(midi, 0, numSamples, true); }
+    template <typename T> void processAudio(const juce::AudioBuffer<T>&, int) {}
+};
+
+inline juce::AudioProcessorEditor* createFaustEditor(juce::AudioProcessor& p, FaustEditorBridge& bridge)
+{
+    return new MyEditor(p, bridge);
+}
+```
+
+`FAUST_CUSTOM_EDITOR` cannot be combined with `-magic`.
+
 ## Faust DSP Testbench
 
 As a fork of the [DSP-Testbench](https://github.com/AndrewJJ/DSP-Testbench) project, [Faust DSP Testbench](https://github.com/grame-cncm/Faust-DSP-Testbench) is designed to help developers using the [JUCE framework](https://juce.com) to analyse their Faust DSP by providing a test harness for code inheriting from `juce::dsp::ProcessorBase`. The harness provides signal sources, routing, analysis and monitoring functions.

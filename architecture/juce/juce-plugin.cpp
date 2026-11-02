@@ -486,6 +486,8 @@ class FaustPlugInAudioProcessor : public juce::AudioProcessor, private juce::Tim
         }
     
     #if defined(FAUST_CUSTOM_EDITOR)
+        // Defined by the FAUST_CUSTOM_EDITOR header; it outlives the editor, which can
+        // be closed and reopened while the processor keeps running
         FaustEditorBridge fEditorBridge;
     #endif
     
@@ -812,6 +814,7 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     fOutputMeter->setupSource(getMainBusNumOutputChannels(), sampleRate, 500, 200);
 #endif
 #if defined(FAUST_CUSTOM_EDITOR)
+    // The custom editor bridge can size its buffers and reset its measurements
     fEditorBridge.prepare(sampleRate, samplesPerBlock, fNumVoices);
 #endif
 }
@@ -828,6 +831,7 @@ void FaustPlugInAudioProcessor::process (juce::AudioBuffer<FloatType>& buffer, j
     juce::ScopedNoDenormals noDenormals;
     
 #if defined(FAUST_CUSTOM_EDITOR)
+    // Before the DSP sees the MIDI events: the bridge can add notes from the editor
     fEditorBridge.processMidi(midiMessages, buffer.getNumSamples());
 #endif
     
@@ -850,6 +854,7 @@ void FaustPlugInAudioProcessor::process (juce::AudioBuffer<FloatType>& buffer, j
 #endif
     
 #if defined(FAUST_CUSTOM_EDITOR)
+    // Once the block is computed: the bridge can analyse the output for the editor
     fEditorBridge.processAudio(buffer, getNumActiveVoices());
 #endif
 }

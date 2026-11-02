@@ -25,6 +25,9 @@
 #ifndef JuceParameterUI_H
 #define JuceParameterUI_H
 
+#include <cmath>
+#include <memory>
+
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "faust/gui/GUI.h"
@@ -64,9 +67,25 @@ struct FaustPlugInAudioParameterBool : public juce::AudioParameterBool, public u
 
 struct FaustPlugInAudioParameterFloat : public juce::AudioParameterFloat, public uiOwnedItem {
     
-    FaustPlugInAudioParameterFloat(GUI* gui, FAUSTFLOAT* zone, const std::string& path, const std::string& label, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-    // Pass the Faust step: the (min, max, init) constructor snaps every value to a 0.01 grid
-    :juce::AudioParameterFloat(juce::ParameterID(path, /* versionHint */ 1), label, juce::NormalisableRange<float>(float(min), float(max), float(step)), float(init)), uiOwnedItem(gui, zone)
+    /**
+     * @param gui the GUI that owns the zone and calls reflectZone() when it changes
+     * @param zone the Faust control
+     * @param path the parameter ID (the shortname, or the full path with FAUST_JUCE_FULLPATH_IDS)
+     * @param label the parameter name, i.e. the widget label without its metadata
+     * @param init the default value
+     * @param range the host range, built from the widget min, max, step and [scale] metadata;
+     *        the (min, max, init) constructor of AudioParameterFloat cannot be used since it
+     *        would snap every value to a 0.01 grid
+     * @param attributes the unit label and the conversions between values and text
+     * @param numSteps 0 for a continuous parameter, otherwise its number of positions,
+     *        which makes it discrete for the host (menus and radio buttons)
+     */
+    FaustPlugInAudioParameterFloat(GUI* gui, FAUSTFLOAT* zone, const std::string& path, const std::string& label, FAUSTFLOAT init,
+                                   const juce::NormalisableRange<float>& range,
+                                   const juce::AudioParameterFloatAttributes& attributes = {},
+                                   int numSteps = 0)
+    :juce::AudioParameterFloat(juce::ParameterID(path, /* versionHint */ 1), label, range, float(init), attributes), uiOwnedItem(gui, zone),
+    fNumSteps(numSteps)
     {}
     
     virtual ~FaustPlugInAudioParameterFloat() {}
@@ -90,6 +109,22 @@ struct FaustPlugInAudioParameterFloat : public juce::AudioParameterFloat, public
     {
         return range.convertTo0to1(range.getRange().clipValue(float(*fZone)));
     }
+    
+    // AudioParameterFloat reports a continuous parameter whatever the interval of its
+    // range, so menus and radio buttons give their number of positions explicitly
+    int getNumSteps() const override
+    {
+        return (fNumSteps > 0) ? fNumSteps : juce::AudioProcessorParameter::getNumSteps();
+    }
+    
+    bool isDiscrete() const override
+    {
+        return fNumSteps > 0;
+    }
+    
+    private:
+    
+        int fNumSteps;  // 0 for a continuous parameter
 
 };
 
@@ -102,22 +137,30 @@ struct FaustPlugInAudioParameterFloat : public juce::AudioParameterFloat, public
 // is built and parameters are created when the top-level box is closed.
 // Define FAUST_JUCE_FULLPATH_IDS to keep the full path as ID, as in previous
 // versions, so that automation saved with older exports still applies.
+//
+// Widget metadata is passed on to the host: [scale:log] and [scale:exp] shape the
+// parameter range with the same conversions as the other Faust interfaces, [unit:...]
+// becomes the parameter label, and [style:menu{...}] or [style:radio{...}] give the
+// value names shown and accepted by the host.
 
-class JuceParameterUI : public GUI, public PathBuilder {
+class JuceParameterUI : public GUI, public PathBuilder, public MetaDataUI {
     
     private:
         
+        // A widget seen while the UI is built, turned into a parameter by createParameters()
         struct Control {
             FAUSTFLOAT* fZone;
-            std::string fPath;
-            std::string fLabel;
-            bool fIsBool;
+            std::string fPath;      // full path, also the key of fFull2Short
+            std::string fLabel;     // label without its metadata
+            bool fIsBool;           // button or checkbox
             FAUSTFLOAT fInit, fMin, fMax, fStep;
         };
         
         juce::AudioProcessor* fProcessor;
-        std::vector<Control> fControls;
+        std::vector<Control> fControls;  // widgets of the top-level box being built
         
+        // Record a widget and its full path; its metadata has already been received by
+        // declare(), which Faust calls before the widget itself
         void addControl(const char* label, FAUSTFLOAT* zone, bool is_bool,
                         FAUSTFLOAT init = 0, FAUSTFLOAT min = 0, FAUSTFLOAT max = 1, FAUSTFLOAT step = 0)
         {
@@ -126,6 +169,79 @@ class JuceParameterUI : public GUI, public PathBuilder {
             fControls.push_back({ zone, path, label, is_bool, init, min, max, step });
         }
         
+        /**
+         * Build the host range of a slider or numerical entry.
+         *
+         * A linear range keeps the Faust step as its interval. A [scale:log] or [scale:exp]
+         * range maps the normalised host value with the LogValueConverter or ExpValueConverter
+         * used by the other Faust interfaces, so the middle of a log 30..18000 Hz control is
+         * about 735 Hz; values are then snapped to the Faust step, counted from min.
+         */
+        static juce::NormalisableRange<float> makeRange(Scale scale, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
+            if (scale == kLin || !(min < max)) {
+                return juce::NormalisableRange<float>(float(min), float(max), float(step));
+            }
+            std::shared_ptr<ValueConverter> converter;
+            if (scale == kLog) {
+                converter = std::make_shared<LogValueConverter>(0., 1., min, max);
+            } else {
+                converter = std::make_shared<ExpValueConverter>(0., 1., min, max);
+            }
+            float interval = float(step);
+            return juce::NormalisableRange<float>(float(min), float(max),
+                [converter](float, float, float proportion) { return float(converter->ui2faust(proportion)); },
+                [converter](float, float, float value) { return float(converter->faust2ui(value)); },
+                [interval](float start, float end, float value) {
+                    if (interval > 0.f) value = start + interval * std::round((value - start) / interval);
+                    return juce::jlimit(start, end, value);
+                });
+        }
+        
+        /**
+         * Build the attributes of a slider, numerical entry or bargraph: [unit:...] becomes
+         * the parameter label, which hosts display next to the value.
+         *
+         * The value is shown with as many decimals as the Faust step needs, since a range
+         * defined by conversion functions has no interval for JUCE to derive them from.
+         * With [style:menu{...}] or [style:radio{...}], the host shows the name of the
+         * closest declared value instead, and accepts a name typed back.
+         */
+        juce::AudioParameterFloatAttributes makeAttributes(FAUSTFLOAT* zone, FAUSTFLOAT step)
+        {
+            int decimals = (step >= 1) ? 0 : (step >= 0.1) ? 1 : (step >= 0.01) ? 2 : 3;
+            auto attributes = juce::AudioParameterFloatAttributes()
+                .withLabel(getUnit(zone))
+                .withStringFromValueFunction([decimals](float value, int) { return juce::String(value, decimals); });
+            auto options = getOptions(zone);
+            if (!options.empty()) {
+                attributes = attributes
+                    .withStringFromValueFunction([options](float value, int) {
+                        // The name of the closest declared value
+                        size_t best = 0;
+                        for (size_t i = 1; i < options.size(); i++) {
+                            if (std::abs(options[i].second - value) < std::abs(options[best].second - value)) best = i;
+                        }
+                        return juce::String(options[best].first);
+                    })
+                    .withValueFromStringFunction([options](const juce::String& text) {
+                        for (const auto& option : options) {
+                            if (text == juce::String(option.first)) return float(option.second);
+                        }
+                        return text.getFloatValue();
+                    });
+            }
+            return attributes;
+        }
+        
+        // The (name, value) pairs of a menu or radio widget, empty for other widgets
+        std::vector<std::pair<std::string, double> > getOptions(FAUSTFLOAT* zone)
+        {
+            return isMenu(zone) ? getMenuDescription(zone) : getRadioDescription(zone);
+        }
+        
+        // Create the parameters of all recorded widgets, in their declaration order,
+        // once the full paths are known and the shortnames can be computed
         void createParameters()
         {
             computeShortNames();
@@ -138,8 +254,10 @@ class JuceParameterUI : public GUI, public PathBuilder {
                 if (control.fIsBool) {
                     fProcessor->addParameter(new FaustPlugInAudioParameterBool(this, control.fZone, id, control.fLabel));
                 } else {
-                    fProcessor->addParameter(new FaustPlugInAudioParameterFloat(this, control.fZone, id, control.fLabel,
-                                                                                control.fInit, control.fMin, control.fMax, control.fStep));
+                    fProcessor->addParameter(new FaustPlugInAudioParameterFloat(this, control.fZone, id, control.fLabel, control.fInit,
+                                                                                makeRange(getScale(control.fZone), control.fMin, control.fMax, control.fStep),
+                                                                                makeAttributes(control.fZone, control.fStep),
+                                                                                int(getOptions(control.fZone).size())));
                 }
             }
             fControls.clear();
@@ -172,6 +290,14 @@ class JuceParameterUI : public GUI, public PathBuilder {
                 // All paths are known: shortnames can be computed
                 createParameters();
             }
+        }
+        
+        // -- metadata declarations
+        
+        // Keep the widget metadata ([scale], [unit], [style]...) for createParameters()
+        virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+        {
+            MetaDataUI::declare(zone, key, val);
         }
         
         // -- active widgets
