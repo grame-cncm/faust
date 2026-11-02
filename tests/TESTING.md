@@ -514,6 +514,30 @@ expected:
   - `sound` in the `float` legs: see "Known harness defects" 5.
   - every program in the `ocpp` leg under `-dlt 0`: no response at all
     (observed 2026-10-07, `52de44cac`).
+  - Observed 2026-11-02 with the compiler of `8f5262224`, built as 2.92.0
+    (Apple clang 21.0.0, Apple M5, `cpp-core ocpp ocpp-float -k -j 8`). The
+    emitted code is identical with and without the `-A` change of that
+    commit, the only compiler change of its series:
+    - `subcontainer1` in `cpp/double/it`: does not compile (duplicate
+      member `fSampleRate`, `clone` not covariant).
+    - `bells`, `comb_bug_exp`, `comb_delay1`, `comb_delay2`, `grain3`,
+      `long_convolution`, `math`, `modulations`, `osc`, `pow`, `priority`,
+      `priority1`, `table`, `table2`, `tester`, `tester2`, `tf_exp` and
+      `vocal_impulse_train` in `cpp/float` and `cpp/float/vec`: diverge
+      beyond the tolerance, the same with `-ffp-contract=off`, so not a
+      contraction (79 responses of 99, with `sound`).
+    - `osc_enable`, `pow_float_int` and `pow_int_float` in `ocpp/double`,
+      `ocpp/double/mcd0`, `ocpp/double/vec/lv0` and `ocpp/double/vec/lv1`
+      (95 responses of 99). The `pow` ones give `2.5e+09` where the
+      reference has `-1.79497e+09`: an out-of-range conversion to int,
+      whose result depends on the platform.
+    - In `ocpp/float`: the `cpp/float` list above without `math`, plus
+      `osc_enable`, `pow_float_int` and `pow_int_float` (76 responses).
+    - In `ocpp/float/mcd0`, `ocpp/float/vec/lv0` and `ocpp/float/vec/lv1`:
+      the `ocpp/float` list plus `carre_volterra`, `cubic_distortion`,
+      `lfboost`, `lowcut`, `osci`, `parametric_eq`, `phaser_flanger`,
+      `spectral_tilt`, `thru_zero_flanger`, `virtual_analog_oscillators`
+      and `zita_rev1` (65 responses).
 
 A program that is already broken cannot witness a second breakage: an
 innocuity test run over an already-failing case has no power there, while
