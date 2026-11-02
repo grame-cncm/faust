@@ -29,8 +29,12 @@
  * it is : P read twice widens its interval. The pass runs before the certified typing,
  * which bounds the rewritten program.
  *
- * It is not on by default. The rewriting adds an operation on the path of a recursion (2 to
- * 7 % on a Karplus-Strong string bank) for a precision finer than the uncertainty of a
- * weight set by a control ; its gain is the precision of si.smoothq, written for it.
+ * Only a small weight is rewritten, |w| < 2^-8 over its interval : 1 + w then loses 8 bits
+ * of w at least. A larger weight keeps (1 + w) * y : the rewriting adds an operation on the
+ * path of a recursion (2 to 7 % on a Karplus-Strong string bank), for a precision finer than
+ * the uncertainty of a weight set by a control. On by default (-noxw) : without it, the
+ * normal form, which flattens the sums, folded y + (b - om * y) of si.smoothq into
+ * b + (1 - om) * y, which the library writes to avoid (single precision, 60 times the error
+ * of master-dev against a double reference).
  */
 Tree exactWeights(Tree L);

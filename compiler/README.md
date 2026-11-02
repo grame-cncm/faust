@@ -204,7 +204,7 @@ Code generation options:
 
   **-noshs**      **--no-share-sums**             keep the dense sums of the normal form (by default they are factored by coefficient and their common sub-sums shared).
 
-  **-xw**         **--exact-weights**             write the products (1 + w) * y of the normal form as w * y + y, w read exactly (more precise, a little slower).
+  **-noxw**       **--no-exact-weights**          keep the products (1 + w) * y of the normal form (by default, a small w is written w * y + y, read exactly).
 
   **-mcs** \<n>    **--min-certified-seconds** \<n> refuse a program certified for less than n seconds at 48000 Hz (default 10, 0 accepts any duration).
 

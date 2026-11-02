@@ -18,6 +18,7 @@
 #include "exactWeights.hh"
 #include "rewrite.hh"
 #include "sigattributes.hh"
+#include "sighorizon.hh"
 #include "sigtype.hh"
 
 namespace {
@@ -93,8 +94,19 @@ std::unordered_set<Tree> decisionCone(Tree L)
 
 }  // namespace
 
-/// a real product with a factor 1 + w is held somewhere
-static bool hasCandidate(Tree L, ExactSolvers& exact, const std::unordered_set<Tree>& cone)
+/// w is small : |w| < 2^-8 over its interval, 1 + w then loses 8 bits of w at least (in
+/// single precision, a relative error of w up to 2^-24 / |w|, beyond 1.5e-5). A larger
+/// weight keeps (1 + w) * y, one operation less on the path of a recursion (2 to 7 % on a
+/// Karplus-Strong string bank).
+static bool smallWeight(const HorizonReader& horizon, Tree w)
+{
+    const itv::interval i = horizon.at(w);
+    return !i.isEmpty() && std::max(std::fabs(i.lo()), std::fabs(i.hi())) < 0x1p-8;
+}
+
+/// a real product with a factor 1 + w, w small, is held somewhere
+static bool hasCandidate(Tree L, ExactSolvers& exact, const std::unordered_set<Tree>& cone,
+                         const HorizonReader& horizon)
 {
     std::unordered_set<Tree> seen;
     std::vector<Tree>        work{L};
@@ -112,7 +124,7 @@ static bool hasCandidate(Tree L, ExactSolvers& exact, const std::unordered_set<T
         if (isSigProd(t, fs) && fs.size() >= 2 && exact.nature(t) == kReal && cone.count(t) == 0) {
             for (Tree f : fs) {
                 int pos;
-                if (complementOf(f, pos)) return true;
+                if (complementOf(f, pos) && smallWeight(horizon, f->branch(pos))) return true;
             }
         }
     }
@@ -123,8 +135,9 @@ Tree exactWeights(Tree L)
 {
     ExactSolvers                   exact(L);
     const std::unordered_set<Tree> cone = decisionCone(L);
+    HorizonReader                  horizon(L, &exact, /*lazy*/ true);
     // a rewrite rebuilds the recursions with fresh variables : none when nothing changes
-    if (!hasCandidate(L, exact, cone)) return L;
+    if (!hasCandidate(L, exact, cone, horizon)) return L;
     std::unordered_map<Tree, Tree> memo;
     // the rewritten products : result -> (w * P, P)
     std::unordered_map<Tree, std::pair<Tree, Tree>> split;
@@ -137,6 +150,7 @@ Tree exactWeights(Tree L)
         for (size_t k = 0; k < of.size(); k++) {
             int pos, rpos;
             if (!complementOf(of[k], pos) || !complementOf(rf[k], rpos) || rpos != pos) continue;
+            if (!smallWeight(horizon, of[k]->branch(pos))) continue;
             // P : the other factors, rebuilt
             tvec rest;
             for (size_t j = 0; j < rf.size(); j++) {
