@@ -182,9 +182,35 @@ interval positivePower(double lo, double hi, double elo, double ehi, int lsb)
 
 }  // namespace
 
+namespace {
+
+// The residual of a product or a quotient rounded to nearest is a double, found exactly by
+// a fused multiply-add, when nothing underflows : x y - r for |r| >= 2^-960 (the residual
+// is a multiple of 2^(Ex + Ey - 104), representable from Ex + Ey >= -970), x - r y for |x|,
+// |y|, |r| >= 2^-900 (LE-GAIN-DES-FILTRES.md). Its sign is the comparison of the exact
+// result with r : the same decision as the 128-bit comparison, without its cost.
+constexpr double kExactProduct  = 0x1p-960;
+constexpr double kExactQuotient = 0x1p-900;
+
+double directedBinaryWith(BinaryOp op, double x, double y, Direction direction, bool fused);
+
+}  // namespace
+
 // Internal kernel: exact residual/comparison chooses whether the rounded result
 // needs its neighbouring double. Invalid operations give NaN; fenv is unchanged.
 double directedBinary(BinaryOp op, double x, double y, Direction direction)
+{
+    return directedBinaryWith(op, x, y, direction, true);
+}
+
+double directedBinaryExact(BinaryOp op, double x, double y, Direction direction)
+{
+    return directedBinaryWith(op, x, y, direction, false);
+}
+
+namespace {
+
+double directedBinaryWith(BinaryOp op, double x, double y, Direction direction, bool fused)
 {
     if (op != BinaryOp::Add && op != BinaryOp::Sub && op != BinaryOp::Mul && op != BinaryOp::Div) {
         const NumericBounds bounds = referenceBinary(op, x, y);
@@ -204,6 +230,10 @@ double directedBinary(BinaryOp op, double x, double y, Direction direction)
     if (op == BinaryOp::Mul) {
         const double r = x * y;
         if (!std::isfinite(x) || !std::isfinite(y) || std::isnan(r)) return r;
+        if (fused && std::isfinite(r) && std::abs(r) >= kExactProduct) {
+            const double e = std::fma(x, y, -r);
+            return adjusted(r, (e > 0) - (e < 0), direction);
+        }
         return adjusted(r, compare(multiplied(x, y), r), direction);
     }
     const double r = x / y;
@@ -211,9 +241,17 @@ double directedBinary(BinaryOp op, double x, double y, Direction direction)
     // sign(x/y - r) = sign(x - r*y) * sign(y). Infinite rounded quotients
     // still bracket a finite exact quotient with max-finite on the inner side.
     if (std::isinf(r)) return widened(r, direction);
-    const int residual = compare(dyadic(x), multiplied(r, y));
+    int residual;
+    if (fused && std::abs(x) >= kExactQuotient && std::abs(y) >= kExactQuotient && std::abs(r) >= kExactQuotient) {
+        const double d = std::fma(-r, y, x);
+        residual       = (d > 0) - (d < 0);
+    } else {
+        residual = compare(dyadic(x), multiplied(r, y));
+    }
     return adjusted(r, y < 0 ? -residual : residual, direction);
 }
+
+}  // namespace
 
 // Internal kernel: TwoSum gives the exact sum r + error, r = x + y rounded to nearest in
 // binary64. In double, r is the program's sum. In float, rounding r to binary32 rounds

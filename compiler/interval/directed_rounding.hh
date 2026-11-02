@@ -89,6 +89,9 @@ inline int sumLSB(int a, int b)
 }
 
 double directedBinary(BinaryOp op, double x, double y, Direction direction);
+// The same, the residual of a product or a quotient always found by the exact comparison
+// of 128-bit significands, never by a fused multiply-add : the reference of the tests
+double directedBinaryExact(BinaryOp op, double x, double y, Direction direction);
 
 // The exact sum x + y rounded once to nearest, ties to even, in the program's precision
 // (float or double) : what the program computes for the operands x and y. Rounding to

@@ -15,7 +15,8 @@ Type `make help` for details on the available targets.
 
 Each script below checks one defect once fixed. `make check-scripts
 FAUST=<binary>` runs those that need only faust and a C/C++ compiler
-(`display-contexts`, `display-tail-sharing`, `division-by-zero`, `exe-path`, `hoist-negation`,
+(`directed-rounding`, `display-contexts`, `display-tail-sharing`, `division-by-zero`, `exe-path`,
+`filter-gain`, `hoist-negation`,
 `multiplicative-algebra`,
 `infinite-coefficients`, `integer-pow`, `defined-integer-operations`, `power-nature`,
 `svg-inner-process`, `svg-root-name`) ;
@@ -40,6 +41,26 @@ comparisons give it), compared with the tree of comparisons. Legs : `cpp`, `ocpp
 
 ```sh
 python3 tests/compile-tests/defined-integer-operations.py --faust build/bin/faust
+```
+
+### The certified gain of a filter, and the directed rounding
+
+`filter-gain.py` builds the interval sources and calls `filterGain`, which bounds the L1
+norm of the impulse response of an IIR filter from a block length after which its
+companion matrix contracts, proved in double-word arithmetic : for stable filters (the
+pink noise filter, first order, resonators up to r = 0.999, a cascade) the bound must
+exist, be at least the L1 norm and within 1e-4 of it, from a response of at most 65536
+samples ; for a pole on or outside the unit circle, no bound. In double, the error bound
+of the squarings exploded and a NaN norm ended the search : the pink noise filter was
+certified from 524288 samples (0.7 s of compilation for table and reverb_tester).
+
+`directed-rounding.py` compares, bit for bit on 28 million operand pairs, the directed
+rounding of products and quotients by a fused multiply-add with the exact comparison of
+128-bit significands it replaces where nothing underflows :
+
+```sh
+python3 tests/compile-tests/filter-gain.py
+python3 tests/compile-tests/directed-rounding.py
 ```
 
 ### The multiplicative algebra, before the natures
