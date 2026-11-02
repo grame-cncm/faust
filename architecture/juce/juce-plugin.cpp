@@ -72,6 +72,33 @@
 #endif
 
 /*
+ Write the current values of a plugin's parameters as one preset in the faust2juce -presets
+ format: { "<name>": { "<parameter ID>": value, ... } }, values in the units of the DSP.
+ Only the parameters that differ from their default value are written, as presets list
+ them, and values are rounded to 7 significant digits (the precision of a float).
+
+ The generic editor offers it in its context menu. A custom editor, even in another
+ translation unit, can declare it and call it:
+     juce::String faustPresetJSON(juce::AudioProcessor& processor, const juce::String& name);
+*/
+juce::String faustPresetJSON(juce::AudioProcessor& processor, const juce::String& name)
+{
+    juce::DynamicObject::Ptr values = new juce::DynamicObject();
+    for (auto* parameter : processor.getParameters()) {
+        if (auto* ranged = dynamic_cast<juce::RangedAudioParameter*>(parameter)) {
+            float normalised = ranged->getValue();
+            if (std::abs(normalised - ranged->getDefaultValue()) > 1e-6f) {
+                juce::String text = juce::String::toDecimalStringWithSignificantFigures(ranged->convertFrom0to1(normalised), 7);
+                values->setProperty(ranged->getParameterID(), text.getDoubleValue());
+            }
+        }
+    }
+    juce::DynamicObject::Ptr preset = new juce::DynamicObject();
+    preset->setProperty(name, juce::var(values.get()));
+    return juce::JSON::toString(juce::var(preset.get()));
+}
+
+/*
  A project can replace the generic editor by defining FAUST_CUSTOM_EDITOR as the name
  of a header, for instance -DFAUST_CUSTOM_EDITOR='"MyEditor.h"'. The header is included
  here and must define:
@@ -556,6 +583,10 @@ class FaustPlugInAudioProcessorEditor : public juce::AudioProcessorEditor
         
         void paint (juce::Graphics&) override;
         void resized() override;
+    #ifndef PLUGIN_MAGIC
+        // Context menu: copy the current settings as a faust2juce -presets entry
+        void mouseDown (const juce::MouseEvent&) override;
+    #endif
         
     private:
         
@@ -1067,9 +1098,24 @@ FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAud
 #endif
     
     addAndMakeVisible(fJuceGUI);
+    // Receive the clicks made on the widgets too, for the context menu
+    fJuceGUI.addMouseListener(this, true);
     
     juce::Rectangle<int> recommendedSize = fJuceGUI.getSize();
     setSize (recommendedSize.getWidth(), recommendedSize.getHeight());
+}
+
+void FaustPlugInAudioProcessorEditor::mouseDown (const juce::MouseEvent& e)
+{
+    if (!e.mods.isPopupMenu()) return;
+    juce::PopupMenu menu;
+    menu.addItem(1, "Copy settings as a faust2juce -presets entry");
+    juce::Component::SafePointer<FaustPlugInAudioProcessorEditor> editor(this);
+    menu.showMenuAsync(juce::PopupMenu::Options(), [editor](int result) {
+        if (result == 1 && editor != nullptr) {
+            juce::SystemClipboard::copyTextToClipboard(faustPresetJSON(editor->processor, "Preset"));
+        }
+    });
 }
 
 //==============================================================================
