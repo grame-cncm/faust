@@ -117,7 +117,8 @@ json-compare:
 # a C/C++ compiler ; check-scripts-all runs every one (they also need Java, Julia, Cargo,
 # Node or the Xilinx ap_fixed.h header : SCRIPT_ARGS passes their paths). One verdict per
 # script ; the target fails when one script fails.
-SCRIPTS_CORE := defined-integer-operations display-contexts display-tail-sharing division-by-zero exe-path \
+SCRIPTS_CORE := defined-integer-operations directed-rounding display-contexts display-tail-sharing division-by-zero \
+                exe-path filter-gain \
                 hoist-negation infinite-coefficients integer-pow multiplicative-algebra power-nature \
                 svg-inner-process svg-root-name
 SCRIPTS_ALL  := $(SCRIPTS_CORE) fixed-point-tables integer-pow-backends java-math \
