@@ -52,6 +52,12 @@ struct FaustPlugInAudioParameterBool : public juce::AudioParameterBool, public u
         modifyZone(FAUSTFLOAT(newValue));
     }
     
+    // The base class value is only updated by its own setValue, so read the zone
+    virtual float getValue() const override
+    {
+        return (*fZone > FAUSTFLOAT(0.5)) ? 1.0f : 0.0f;
+    }
+
 };
 
 // Link AudioParameterFloat with range parameters
@@ -78,6 +84,12 @@ struct FaustPlugInAudioParameterFloat : public juce::AudioParameterFloat, public
         modifyZone(FAUSTFLOAT(range.convertFrom0to1(newValue)));
     }
     
+    // The base class value is only updated by its own setValue, so read the zone
+    virtual float getValue() const override
+    {
+        return range.convertTo0to1(range.getRange().clipValue(float(*fZone)));
+    }
+
 };
 
 // A class to create AudioProcessorParameter objects for each zone
