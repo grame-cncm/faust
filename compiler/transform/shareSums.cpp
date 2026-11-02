@@ -40,6 +40,18 @@ bool numVal(Tree t, double& v)
     return false;
 }
 
+/// two magnitudes the program cannot tell apart, lo <= hi : in single precision, equal once
+/// rounded to a float (no value of the program moves) ; in double, within a relative 2^-46,
+/// about 64 ulps -- the error of the coefficients computed at compilation, cos(pi/4) and
+/// sin(pi/4) of an FFT -- a coefficient moving by 1.4e-14 at most. (A magnitude beyond
+/// FLT_MAX is an infinity in single precision : the test is an equality, inf - inf being
+/// no number.)
+bool sameMagnitude(double hi, double lo)
+{
+    if (gGlobal->gFloatSize == 1) return double(float(hi)) == double(float(lo));
+    return hi - lo <= std::ldexp(1.0, -46) * lo;
+}
+
 /// an atom of the rows : a signal, or a signal read d samples late (a tap)
 struct AtomKey {
     Tree base;
@@ -82,6 +94,7 @@ class Planner {
     std::vector<bool>                              fRewrite;   ///< row r is rewritten
     std::unordered_map<Tree, int>                  fRowOf;     ///< node -> row
     std::unordered_map<int, Tree>                  fBuilt;     ///< atom -> its tree
+    std::unordered_map<int, int>                   fReads;     ///< atom -> its readers
 
     explicit Planner(Tree L) : fExact(L) {}
 
@@ -98,6 +111,7 @@ class Planner {
     bool rowOf(Tree t, Row& row);
     Tree buildAtom(int a, std::unordered_map<Tree, Tree>& memo);
     Tree buildSigned(const Signed& s, std::unordered_map<Tree, Tree>& memo);
+    Tree buildRow(int r, std::unordered_map<Tree, Tree>& memo);
 };
 
 int Planner::atom(Tree base, int delay)
@@ -158,7 +172,11 @@ bool Planner::parseTerm(Tree t, double sign, std::vector<std::pair<int, double>>
     return true;
 }
 
-// a real Sum, or a real FIR with numeric coefficients, of three terms or more
+// a real Sum, or a real FIR with numeric coefficients, of three terms or more, or of two
+// terms of one magnitude other than 1 (sameMagnitude) : c * a - c * b factored is
+// c * (a - b), one product less, and a difference of close values exact before its scaling
+// (the scaled difference of fds.bow, c * x - c * x', cancelled two rounded products in
+// single precision)
 bool Planner::rowOf(Tree t, Row& row)
 {
     tvec subs;
@@ -196,6 +214,10 @@ bool Planner::rowOf(Tree t, Row& row)
     for (int a : order) {
         if (merged[a] != 0) row.terms.push_back({a, merged[a]});
     }
+    if (row.terms.size() == 2) {
+        const double m0 = std::fabs(row.terms[0].second), m1 = std::fabs(row.terms[1].second);
+        return m0 != 1.0 && m1 != 1.0 && sameMagnitude(std::max(m0, m1), std::min(m0, m1));
+    }
     return row.terms.size() >= 3;
 }
 
@@ -232,22 +254,12 @@ void Planner::plan()
     if (R == 0) return;
 
     // 1. the magnitudes of the coefficients, in clusters of the magnitudes the program
-    //    cannot tell apart : in single precision, equal once rounded to a float (no value
-    //    of the program moves) ; in double, within a relative 2^-46, about 64 ulps -- the
-    //    error of the coefficients computed at compilation, cos(pi/4) and sin(pi/4) of an
-    //    FFT -- a coefficient moving by 1.4e-14 at most ; the representative is 1 when the
-    //    cluster holds it, else its most frequent value
+    //    cannot tell apart (sameMagnitude, a cluster always taking its first magnitude) ;
+    //    the representative is 1 when the cluster holds it, else its most frequent value
     std::map<double, int> mags;
     for (auto& row : fRows) {
         for (auto& [a, c] : row.terms) mags[std::fabs(c)]++;
     }
-    // (a magnitude beyond FLT_MAX is an infinity in single precision : the test is an
-    // equality, inf - inf being no number, and a cluster always takes its first magnitude)
-    const bool   single = (gGlobal->gFloatSize == 1);
-    const double tol    = std::ldexp(1.0, -46);
-    auto         same   = [single, tol](double m, double start) {
-        return single ? double(float(m)) == double(float(start)) : m - start <= tol * start;
-    };
     std::map<double, double> rep;
     for (auto it = mags.begin(); it != mags.end();) {
         const double                        start = it->first;
@@ -255,7 +267,7 @@ void Planner::plan()
         do {
             cluster.push_back(*it);
             ++it;
-        } while (it != mags.end() && same(it->first, start));
+        } while (it != mags.end() && sameMagnitude(it->first, start));
         double best = cluster[0].first;
         int    n    = cluster[0].second;
         for (auto& [v, k] : cluster) {
@@ -401,6 +413,15 @@ void Planner::plan()
         }
         fRewrite[r] = gain;
     }
+    for (auto& s : fSums) {
+        for (auto& [a, x] : s) fReads[a]++;
+    }
+    for (auto& def : fAtoms) {
+        if (def.kind == AtomDef::kPair) {
+            fReads[def.u]++;
+            fReads[def.v]++;
+        }
+    }
 }
 
 Tree Planner::buildAtom(int a, std::unordered_map<Tree, Tree>& memo)
@@ -447,13 +468,41 @@ Tree Planner::buildSigned(const Signed& s, std::unordered_map<Tree, Tree>& memo)
     return (terms.size() == 1) ? terms[0] : sigSum(terms);
 }
 
+// the top sum of row r. A row reduced to -(c * S), S normalized with its first atom positive
+// and read by no other row, is c * (-S), its positive terms first, or (-c) * S when S has
+// no negative term : no negation left
+Tree Planner::buildRow(int r, std::unordered_map<Tree, Tree>& memo)
+{
+    const Signed& top = fSums[r];
+    if (top.size() == 1 && top.begin()->second < 0) {
+        const int      p   = top.begin()->first;
+        const AtomDef& def = fAtoms[p];
+        if (def.kind == AtomDef::kProduct && fReads[p] == 1) {
+            const Signed& S = fSums[def.sum];
+            tvec          pos, neg;
+            for (auto& [a, sg] : S) {
+                Tree x = buildAtom(a, memo);
+                if (sg < 0) {
+                    pos.push_back(x);
+                } else {
+                    neg.push_back(sigNeg(x));
+                }
+            }
+            if (pos.empty()) return sigProd({sigReal(-def.coef), buildSigned(S, memo)});
+            pos.insert(pos.end(), neg.begin(), neg.end());
+            return sigProd({sigReal(def.coef), (pos.size() == 1) ? pos[0] : sigSum(pos)});
+        }
+    }
+    return buildSigned(top, memo);
+}
+
 Tree Planner::rewrite(Tree L)
 {
     std::unordered_map<Tree, Tree> memo;
     auto rule = [&](Tree orig, Tree rebuilt) -> Tree {
         auto it = fRowOf.find(orig);
         if (it == fRowOf.end() || !fRewrite[it->second]) return rebuilt;
-        return buildSigned(fSums[it->second], memo);
+        return buildRow(it->second, memo);
     };
     return treeRewritePaired(L, rule, memo);
 }

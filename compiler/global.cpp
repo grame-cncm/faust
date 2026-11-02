@@ -586,7 +586,7 @@ void global::reset()
     gHasTeeLocal          = false;
     gMathApprox           = false;
     gShareSums            = true;
-    gExactWeights         = false;
+    gExactWeights         = true;
     gMinCertifiedSeconds  = 10;
     gNoCert               = false;
     gSumLanes             = true;
@@ -2848,8 +2848,8 @@ string global::printHelp()
             "default they are factored by coefficient and their common sub-sums shared)."
          << endl;
     sstr << tab
-         << "-xw         --exact-weights             write the products (1 + w) * y of the normal form "
-            "as w * y + y, w read exactly (more precise, a little slower)."
+         << "-noxw       --no-exact-weights          keep the products (1 + w) * y of the "
+            "normal form (by default, a small w is written w * y + y, read exactly)."
          << endl;
     sstr << tab
          << "-mcs <n>    --min-certified-seconds <n> refuse a program certified for less than n "
