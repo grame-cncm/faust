@@ -2814,16 +2814,16 @@ ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& iir)
 }
 
 /**
- * IRM(x; p) = y, y = mix(p, x, y'). A slow smoother (x and p computed at most once per
- * block) is the weighted sum w * x + p * y' of the source (si.smooth), w * x at the rate of
- * x and p, w the weight of x when the normal form wrote the pole 1 - w (irmInputWeight),
- * 1 - p otherwise : in float, it stops nearer to its target than the interpolation, whose
- * increments vanish before it. Otherwise an interpolation. When the normal form wrote the
- * pole 1 - w, w is the exact weight of x : y' + w * (x - y'), the computation of the source
- * (the state of a TPT filter, s + 2g (x - s)). Otherwise from the operand whose weight may
- * be near 1, as generateMix : x + p * (y' - x) when p may be below 1/2, y' + (1 - p) *
- * (x - y'), 1 - p exact, otherwise. The interval of the node bounds all these forms (Irm).
- * The value is stored in the node's line, read back at delay 1.
+ * IRM(x; p) = y, y = mix(p, x, y') : the computation of the source, as master-dev writes it.
+ * When the normal form wrote the pole 1 - w (irmInputWeight), the source is the state of a
+ * TPT filter : y' + w * (x - y'), s + 2g (x - s), w exact. Otherwise the source wrote the
+ * pole (si.smooth) : (1 - p) * x + p * y', 1 - p at the rate of p and (1 - p) * x at the
+ * rate of x and p. An interpolation chosen by the interval of p, from x when p may be below
+ * 1/2, cancelled x against y' for a slow smoother of an audio signal (an.resonator, in
+ * float, 12 times the error of the source), and the weighted sum of a TPT state rounded its
+ * pole apart, so that its fixed point was not x (bela/granulator, a grain one sample late).
+ * The interval of the node bounds both forms (Irm). The value is stored in the node's line,
+ * read back at delay 1.
  */
 ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p)
 {
@@ -2842,10 +2842,16 @@ ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p)
     ValueInst* prev = lineRead(vname, mxd, 1);
     ValueInst* vx   = compoundOperand(x);
     const int  vr   = std::max(getCertifiedSigType(x)->variability(), getCertifiedSigType(p)->variability());
-    if (getCertifiedSigType(sig)->nature() == kReal && vr != kSamp) {
-        ValueInst* vw = w ? compoundOperand(w)
-                          : IB::genBinopInst(kSub, IB::genRealNumInst(itfloat(), 1.0), compoundOperand(p));
-        ValueInst* wx = compoundSlowStore(vr, IB::genBinopInst(kMul, vw, vx));
+    if (!w && getCertifiedSigType(sig)->nature() == kReal) {
+        const int  vrp = getCertifiedSigType(p)->variability();
+        ValueInst* vw  = IB::genBinopInst(kSub, IB::genRealNumInst(itfloat(), 1.0), compoundOperand(p));
+        if (vrp != kSamp) {
+            vw = compoundSlowStore(vrp, vw);  // 1 - p at the rate of p
+        }
+        ValueInst* wx = IB::genBinopInst(kMul, vw, vx);
+        if (vr != kSamp) {
+            wx = compoundSlowStore(vr, wx);  // (1 - p) * x at the rate of x and p
+        }
         ValueInst* vp = compoundOperand(p);
         code          = IB::genBinopInst(kAdd, wx, IB::genBinopInst(kMul, vp, prev));
     } else if (!w && !itv::mixFromB(getCertifiedSigType(p)->getInterval())) {
