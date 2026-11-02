@@ -112,7 +112,8 @@ struct FaustPlugInAudioParameterFloat : public juce::AudioParameterFloat, public
      *        would snap every value to a 0.01 grid
      * @param attributes the unit label and the conversions between values and text
      * @param numSteps 0 for a continuous parameter, otherwise its number of positions,
-     *        which makes it discrete for the host (menus and radio buttons)
+     *        which makes it discrete for the host (menus and radio buttons whose values
+     *        are not 0, 1, 2..., see FaustPlugInAudioParameterChoice for the others)
      */
     FaustPlugInAudioParameterFloat(GUI* gui, FAUSTFLOAT* zone, const std::string& path, const std::string& label, FAUSTFLOAT init,
                                    const juce::NormalisableRange<float>& range,
@@ -165,6 +166,54 @@ struct FaustPlugInAudioParameterFloat : public juce::AudioParameterFloat, public
 
 };
 
+// Link AudioParameterChoice with a menu or radio widget whose values are 0, 1, 2...:
+// the value of the zone is the index of the choice. Hosts and GUI builders show a
+// list of names, as for any choice parameter, instead of a slider.
+
+struct FaustPlugInAudioParameterChoice : public juce::AudioParameterChoice, public uiOwnedItem, public FaustLinkedZones {
+
+    /**
+     * @param gui the GUI that owns the zone and calls reflectZone() when it changes
+     * @param zone the Faust control
+     * @param path the parameter ID (the shortname, or the full path with FAUST_JUCE_FULLPATH_IDS)
+     * @param label the parameter name, i.e. the widget label without its metadata
+     * @param choices the names of the values 0, 1, 2..., in this order
+     * @param init the default value, i.e. the index of the default choice
+     * @param unit the [unit:...] metadata, shown by hosts next to the value
+     */
+    FaustPlugInAudioParameterChoice(GUI* gui, FAUSTFLOAT* zone, const std::string& path, const std::string& label,
+                                    const juce::StringArray& choices, FAUSTFLOAT init, const juce::String& unit)
+    :juce::AudioParameterChoice(juce::ParameterID(path, /* versionHint */ 1), label, choices,
+                                juce::jlimit(0, choices.size() - 1, juce::roundToInt(init)),
+                                juce::AudioParameterChoiceAttributes().withLabel(unit)), uiOwnedItem(gui, zone)
+    {}
+
+    virtual ~FaustPlugInAudioParameterChoice() {}
+
+    void reflectZone() override
+    {
+        FAUSTFLOAT v = *fZone;
+        fCache = v;
+        writeLinkedZones(v);
+        setValueNotifyingHost(getValue());
+    }
+
+    virtual void setValue (float newValue) override
+    {
+        FAUSTFLOAT v = FAUSTFLOAT(juce::roundToInt(convertFrom0to1(newValue)));
+        modifyZone(v);
+        writeLinkedZones(v);
+    }
+
+    // The base class value (and getIndex()) is only updated by its own setValue, so read
+    // the zone, which can also hold a value between two choices: the closest one is used
+    virtual float getValue() const override
+    {
+        return convertTo0to1(float(juce::jlimit(0, choices.size() - 1, juce::roundToInt(*fZone))));
+    }
+
+};
+
 // A class to create AudioProcessorParameter objects for each zone.
 //
 // Parameter IDs are the Faust shortnames (e.g. "cutoff", or "Route_0_depth"
@@ -189,7 +238,9 @@ struct FaustPlugInAudioParameterFloat : public juce::AudioParameterFloat, public
 // Widget metadata is passed on to the host: [scale:log] and [scale:exp] shape the
 // parameter range with the same conversions as the other Faust interfaces, [unit:...]
 // becomes the parameter label, and [style:menu{...}] or [style:radio{...}] give the
-// value names shown and accepted by the host.
+// value names shown and accepted by the host. A menu or radio widget whose values are
+// 0, 1, 2... becomes a juce::AudioParameterChoice, which hosts and GUI builders show
+// as a list; the others become discrete float parameters.
 
 class JuceParameterUI : public GUI, public PathBuilder, public MetaDataUI {
     
@@ -298,6 +349,33 @@ class JuceParameterUI : public GUI, public PathBuilder, public MetaDataUI {
             return isMenu(zone) ? getMenuDescription(zone) : getRadioDescription(zone);
         }
         
+        /**
+         * The names of a menu or radio widget whose values are 0, 1, 2... up to its max, ordered
+         * by value, which an AudioParameterChoice represents exactly. Empty for the other widgets,
+         * and for menus with other values (-1, 0.5, a gap...), which stay discrete float parameters.
+         * The normalised host value is the same with both classes (value / max), so automation
+         * recorded with a discrete float parameter still applies.
+         */
+        juce::StringArray getChoices(const Control& control)
+        {
+            auto options = getOptions(control.fZone);
+            const size_t count = options.size();
+            if (count < 2 || control.fMin != 0 || control.fMax != FAUSTFLOAT(count - 1)) return {};
+            std::vector<std::string> names(count);
+            std::vector<bool> seen(count, false);
+            for (const auto& option : options) {
+                const double value = option.second;
+                if (value < 0 || value >= double(count) || value != std::floor(value) || seen[size_t(value)]) return {};
+                seen[size_t(value)] = true;
+                names[size_t(value)] = option.first;
+            }
+            juce::StringArray choices;
+            for (const auto& name : names) {
+                choices.add(juce::String(name));
+            }
+            return choices;
+        }
+
         // A widget outside any group (none in Faust-generated code) goes to the processor directly
         void addToGroup(juce::AudioProcessorParameterGroup* group, std::unique_ptr<juce::AudioProcessorParameter> parameter)
         {
@@ -380,7 +458,13 @@ class JuceParameterUI : public GUI, public PathBuilder, public MetaDataUI {
                     id = freeID(id);
                 }
                 juce::AudioProcessorParameterGroup* group = getGroup(control.fGroups, root, groups);
-                if (control.fIsBool) {
+                juce::StringArray choices = control.fIsBool ? juce::StringArray() : getChoices(control);
+                if (!choices.isEmpty()) {
+                    auto parameter = std::make_unique<FaustPlugInAudioParameterChoice>(this, control.fZone, id, control.fLabel,
+                                                                                       choices, control.fInit, getUnit(control.fZone));
+                    fCreated[id] = { parameter.get(), false, control.fMin, control.fMax };
+                    addToGroup(group, std::move(parameter));
+                } else if (control.fIsBool) {
                     auto parameter = std::make_unique<FaustPlugInAudioParameterBool>(this, control.fZone, id, control.fLabel);
                     fCreated[id] = { parameter.get(), true, control.fMin, control.fMax };
                     addToGroup(group, std::move(parameter));

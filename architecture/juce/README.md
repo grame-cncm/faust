@@ -96,7 +96,7 @@ MAGIC_LEVEL_SOURCE
 With the .jucer project, enter these definitions in the exporter settings page, or add a `#define` line near the top of FaustPluginProcessor.cpp.
 
 Current limitations:
-- menus and radio buttons (`[style:menu{...}]`, `[style:radio{...}]`) are discrete parameters with value names, not `juce::AudioParameterChoice`: the default interface shows them as sliders, but a ComboBox placed in the editor and bound to one of them lists its names
+- menus and radio buttons whose values are not 0, 1, 2... are discrete float parameters (see [Host parameters](#host-parameters)): the default interface shows them as sliders, but a ComboBox placed in the editor and bound to one of them lists its names
 - `FAUST_CUSTOM_EDITOR` cannot be combined with `-magic`
 - the editor is available in every build of the plugin, which the `FOLEYS_SHOW_GUI_EDITOR_PALLETTE` module setting (1 by default) controls: set it to 0 for a plugin that is distributed
 
@@ -157,7 +157,7 @@ Widget metadata is passed on to the host:
 
 - `[scale:log]` and `[scale:exp]` shape the parameter range with the same conversions as the other Faust interfaces, so that host knobs and automation curves follow the control (the middle of a logarithmic 30..18000 Hz control is about 735 Hz)
 - `[unit:Hz]` becomes the parameter label, displayed by hosts next to the value
-- `[style:menu{'Sine':0;'Saw':1}]` and `[style:radio{...}]` make the parameter discrete, show the name of the closest declared value and accept a name typed in the host
+- `[style:menu{'Sine':0;'Saw':1}]` and `[style:radio{...}]` make the parameter discrete, show the name of the closest declared value and accept a name typed in the host. When the values are 0, 1, 2... up to the widget max, without gap, the parameter is a `juce::AudioParameterChoice`, which hosts and GUI builders such as PluginGuiMagic show as a list of names; its normalised value is the same as before, so recorded automation still applies
 - the widget step sets the snapping of values and the number of decimals displayed
 
 `[tooltip:...]` has no equivalent in JUCE parameters and is not passed on.
