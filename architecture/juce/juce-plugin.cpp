@@ -37,7 +37,7 @@
 #include "faust/dsp/juce-dsp-adapter.h"
 #include "faust/gui/MidiUI.h"
 #include "faust/dsp/poly-dsp.h"
-#ifndef PLUGIN_MAGIC
+#if !defined(PLUGIN_MAGIC) && !defined(FAUST_CUSTOM_EDITOR)
 #include "faust/gui/JuceGUI.h"
 #endif
 #include "faust/gui/JuceParameterUI.h"
@@ -63,6 +63,30 @@
 #include "faust/dsp/dsp-combiner.h"
 #include "effect.h"
 #endif 
+
+/*
+ A project can replace the generic editor by defining FAUST_CUSTOM_EDITOR as the name
+ of a header, for instance -DFAUST_CUSTOM_EDITOR='"MyEditor.h"'. The header is included
+ here and must define:
+
+ - FaustEditorBridge: state shared between the processor, which owns it, and the editor.
+   The processor calls it on the audio thread:
+     prepare(double sampleRate, int blockSize, int numVoices) from prepareToPlay,
+       numVoices being 0 for a monophonic DSP;
+     processMidi(juce::MidiBuffer& midi, int numSamples) before the MIDI events are
+       decoded, so that it can read them or add its own (an on-screen keyboard);
+     processAudio(const juce::AudioBuffer<T>& buffer, int activeVoices) after each
+       block, with T float or double, activeVoices being -1 when unknown (-jsynth).
+ - juce::AudioProcessorEditor* createFaustEditor(juce::AudioProcessor&, FaustEditorBridge&)
+
+ Both only depend on JUCE, so the editor can live in its own translation unit.
+*/
+#if defined(FAUST_CUSTOM_EDITOR)
+#if defined(PLUGIN_MAGIC)
+#error "FAUST_CUSTOM_EDITOR cannot be used with PLUGIN_MAGIC"
+#endif
+#include FAUST_CUSTOM_EDITOR
+#endif
 
 // we require macro declarations
 #define FAUST_UIMACROS
@@ -339,6 +363,25 @@ class FaustPlugInAudioProcessor : public foleys::MagicProcessor, private juce::T
         
         JuceStateUI fStateUI;
         JuceParameterUI fParameterUI;
+    
+        // Number of polyphonic voices (0 for a monophonic DSP)
+        int fNumVoices = 0;
+    #ifndef JUCE_POLY
+        // The polyphonic voices, if any, to count the active ones
+        dsp_voice_group* fPolyVoices = nullptr;
+    #endif
+        // Tail length reported to the host, from [declare tail_sec "<seconds>"]
+        double fTailLength = 0.0;
+    
+        // Number of voices currently sounding, -1 when unknown (-jsynth)
+        int getNumActiveVoices() const
+        {
+        #ifdef JUCE_POLY
+            return -1;
+        #else
+            return (fPolyVoices) ? fPolyVoices->getNumActiveVoices() : 0;
+        #endif
+        }
         
     private:
         
@@ -423,6 +466,29 @@ class FaustPlugInAudioProcessor : public juce::AudioProcessor, private juce::Tim
         JuceStateUI fStateUI;
         JuceParameterUI fParameterUI;
     
+        // Number of polyphonic voices (0 for a monophonic DSP)
+        int fNumVoices = 0;
+    #ifndef JUCE_POLY
+        // The polyphonic voices, if any, to count the active ones
+        dsp_voice_group* fPolyVoices = nullptr;
+    #endif
+        // Tail length reported to the host, from [declare tail_sec "<seconds>"]
+        double fTailLength = 0.0;
+    
+        // Number of voices currently sounding, -1 when unknown (-jsynth)
+        int getNumActiveVoices() const
+        {
+        #ifdef JUCE_POLY
+            return -1;
+        #else
+            return (fPolyVoices) ? fPolyVoices->getNumActiveVoices() : 0;
+        #endif
+        }
+    
+    #if defined(FAUST_CUSTOM_EDITOR)
+        FaustEditorBridge fEditorBridge;
+    #endif
+    
     private:
     
         template <typename FloatType>
@@ -434,6 +500,7 @@ class FaustPlugInAudioProcessor : public juce::AudioProcessor, private juce::Tim
 
 #endif
 
+#if !defined(FAUST_CUSTOM_EDITOR)
 class FaustPlugInAudioProcessorEditor : public juce::AudioProcessorEditor
 {
     
@@ -456,6 +523,7 @@ class FaustPlugInAudioProcessorEditor : public juce::AudioProcessorEditor
         JuceGUI fJuceGUI;
 #endif    
 };
+#endif
 
 #ifndef PLUGIN_MAGIC
 FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
@@ -471,7 +539,20 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi, midi_sync, nvoices);
+    
+    // Delays and reverbs keep sounding after the input stops: [declare tail_sec "<seconds>"]
+    struct TailMeta : public Meta {
+        double fSeconds = 0.0;
+        void declare(const char* key, const char* value)
+        {
+            if (std::string(key) == "tail_sec") fSeconds = std::atof(value);
+        }
+    };
+    TailMeta tail_meta;
+    tmp_dsp->metadata(&tail_meta);
+    fTailLength = tail_meta.fSeconds;
     delete tmp_dsp;
+    fNumVoices = nvoices;
 	
 #ifdef PLUGIN_MAGIC
 #ifdef MAGIC_LOAD_BINARY
@@ -501,6 +582,7 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     assert(nvoices > 0);
     std::cout << "Started with " << nvoices << " voices\n";
     dsp* dsp = new mydsp_poly(new mydsp(), nvoices, true, group);
+    fPolyVoices = static_cast<mydsp_poly*>(dsp);
     
 #if MIDICTRL
     if (midi_sync) {
@@ -516,6 +598,7 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
         dsp* dsp = new mydsp_poly(new mydsp(), nvoices, true, group);
+        fPolyVoices = static_cast<mydsp_poly*>(dsp);
         
 #if MIDICTRL
         if (midi_sync) {
@@ -642,7 +725,7 @@ bool FaustPlugInAudioProcessor::producesMidi() const
 
 double FaustPlugInAudioProcessor::getTailLengthSeconds() const
 {
-    return 0.0;
+    return fTailLength;
 }
 
 int FaustPlugInAudioProcessor::getNumPrograms()
@@ -728,6 +811,9 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     magicState.prepareToPlay(sampleRate, samplesPerBlock);
     fOutputMeter->setupSource(getMainBusNumOutputChannels(), sampleRate, 500, 200);
 #endif
+#if defined(FAUST_CUSTOM_EDITOR)
+    fEditorBridge.prepare(sampleRate, samplesPerBlock, fNumVoices);
+#endif
 }
 
 bool FaustPlugInAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -740,6 +826,10 @@ template <typename FloatType>
 void FaustPlugInAudioProcessor::process (juce::AudioBuffer<FloatType>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
+    
+#if defined(FAUST_CUSTOM_EDITOR)
+    fEditorBridge.processMidi(midiMessages, buffer.getNumSamples());
+#endif
     
 #ifdef JUCE_POLY
     // The voices are added to the output channels: clear those that do not carry an input,
@@ -758,6 +848,10 @@ void FaustPlugInAudioProcessor::process (juce::AudioBuffer<FloatType>& buffer, j
     // Adapts the DSP to the sample format and the channel counts of 'buffer'
     fHostAdapter.compute(fDSP.get(), buffer, 0, buffer.getNumSamples(), getTotalNumInputChannels(), getTotalNumOutputChannels());
 #endif
+    
+#if defined(FAUST_CUSTOM_EDITOR)
+    fEditorBridge.processAudio(buffer, getNumActiveVoices());
+#endif
 }
 
 //==============================================================================
@@ -769,7 +863,11 @@ bool FaustPlugInAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* FaustPlugInAudioProcessor::createEditor()
 {
+#if defined(FAUST_CUSTOM_EDITOR)
+    return createFaustEditor(*this, fEditorBridge);
+#else
     return new FaustPlugInAudioProcessorEditor (*this);
+#endif
 }
 
 //==============================================================================
@@ -798,7 +896,7 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 }
 
 //==============================================================================
-#ifndef PLUGIN_MAGIC
+#if !defined(PLUGIN_MAGIC) && !defined(FAUST_CUSTOM_EDITOR)
 FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor& p)
 : juce::AudioProcessorEditor (&p), processor (p)
 {

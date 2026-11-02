@@ -89,6 +89,12 @@ Some plugins add latency in the signal path. A special global metadata can be us
 
 - `declare latency_sec "0.5";` to express the latency in seconds, to be converted internally in samples/frames using the host sample rate 
 
+## Tail length setting
+
+Some plugins keep producing sound after their input stops, typically with delays or reverbs. A special global metadata can be used in the DSP code to define how long, so that the C++ architecture file can extract it and return it from the JUCE `AudioProcessor::getTailLengthSeconds()` method. The host then knows how long to keep processing the plugin after the last note or input, for instance when bouncing a track. The following syntax can be used:
+
+- `declare tail_sec "12";` to express the tail length in seconds (0 when not declared)
+
 ## Faust DSP Testbench
 
 As a fork of the [DSP-Testbench](https://github.com/AndrewJJ/DSP-Testbench) project, [Faust DSP Testbench](https://github.com/grame-cncm/Faust-DSP-Testbench) is designed to help developers using the [JUCE framework](https://juce.com) to analyse their Faust DSP by providing a test harness for code inheriting from `juce::dsp::ProcessorBase`. The harness provides signal sources, routing, analysis and monitoring functions.
