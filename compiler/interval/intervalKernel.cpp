@@ -76,6 +76,46 @@ double gammaBound(int k, double u)
 
 using Matrix = std::vector<std::vector<double>>;
 
+// A double-word : the real hi + lo, exact sum of two doubles, |lo| <= u |hi|
+// (LE-GAIN-DES-FILTRES.md). TwoSum is exact for finite doubles, subnormals included ;
+// the sources are compiled without contraction, so no sum or product is fused behind the
+// proof.
+struct Word {
+    double hi, lo;
+};
+
+Word twoSum(double a, double b)
+{
+    const double s  = a + b;
+    const double bb = s - a;
+    return {s, (a - (s - bb)) + (b - bb)};
+}
+
+/// x y within 7u^2 |x||y| + eta : p and its exact error e1, then the cross products
+Word wordMul(Word x, Word y)
+{
+    const double p = x.hi * y.hi;
+    double       e = std::fma(x.hi, y.hi, -p);
+    e              = std::fma(x.hi, y.lo, e);
+    e              = std::fma(x.lo, y.hi, e);
+    return twoSum(p, e);
+}
+
+/// x + y within 4u^2 (|x| + |y|) + eta
+Word wordAdd(Word x, Word y)
+{
+    const Word   s = twoSum(x.hi, y.hi);
+    const Word   t = twoSum(x.lo, y.lo);
+    const Word   v = twoSum(s.hi, s.lo + t.hi);
+    return twoSum(v.hi, t.lo + v.lo);
+}
+
+/// an upper bound of |hi + lo|
+double wordAbsUp(Word x)
+{
+    return addUp(std::abs(x.hi), std::abs(x.lo));
+}
+
 }  // namespace
 
 // The impulse response h (h(0) = 1, h(n) = sum_j c[j] h(n-1-j)) is computed in double over
@@ -100,40 +140,67 @@ bool filterGain(const std::vector<double>& c, FilterGain& gain)
     }
     const double g = gammaBound(p + 1, u);
 
-    // 1. the block length : A^m by squarings, with its rounding error E
-    Matrix M(p, std::vector<double>(p, 0.0)), E(p, std::vector<double>(p, 0.0));
-    for (int j = 0; j < p; j++) M[0][j] = c[j];
-    for (int i = 1; i < p; i++) M[i][i - 1] = 1;
+    // 1. the block length : A^m by squarings in double-word, with the bound E of its
+    //    rounding error, |A^2m - C| <= |M|E + E|M| + EE + gw |M||M| + eta for the square C
+    //    of the approximation M of A^m (LE-GAIN-DES-FILTRES.md). In double, E grew about 90
+    //    times per squaring for a strongly non-normal matrix (the pink noise filter) : the
+    //    contraction was never proved, until a NaN norm, read as 0, ended the search with
+    //    m = 2^19 and a response of a million samples.
+    std::vector<std::vector<Word>> M(p, std::vector<Word>(p, Word{0.0, 0.0}));
+    Matrix                         E(p, std::vector<double>(p, 0.0)), A(p, std::vector<double>(p, 0.0));
+    for (int j = 0; j < p; j++) M[0][j] = {c[j], 0.0};
+    for (int i = 1; i < p; i++) M[i][i - 1] = {1.0, 0.0};
+    // the error of a dot product of p double-word products, (7 + 4p) u^2 with a margin, and
+    // an absolute term that covers every underflow
+    const double gw  = mulUp(mulUp(double(7 + 4 * p), std::ldexp(1.0, -106)), 1.0 + std::ldexp(1.0, -20));
+    const double eta = mulUp(double(2 * p), std::ldexp(1.0, -1000));
+    // |M|, bounded above ; false when an entry is not finite or too large to square safely
+    auto magnitudes = [&]() {
+        for (int i = 0; i < p; i++) {
+            for (int j = 0; j < p; j++) {
+                const Word& w = M[i][j];
+                if (!std::isfinite(w.hi) || !std::isfinite(w.lo) || std::abs(w.hi) > std::ldexp(1.0, 500)) return false;
+                A[i][j] = wordAbsUp(w);
+            }
+        }
+        return true;
+    };
+    // a NaN or infinite row is no contraction : +inf, never ignored by the maximum
     auto norm = [&]() {
         double n = 0;
         for (int i = 0; i < p; i++) {
             double r = 0;
-            for (int j = 0; j < p; j++) r = addUp(r, addUp(std::abs(M[i][j]), E[i][j]));
+            for (int j = 0; j < p; j++) r = addUp(r, addUp(A[i][j], E[i][j]));
+            if (!std::isfinite(r)) return HUGE_VAL;
             n = std::max(n, r);
         }
         return n;
     };
+    if (!magnitudes()) return false;
     long   m   = 1;
     double rho = norm();
     for (int k = 0; rho > 0.5 && k < 22; k++) {
-        Matrix M2(p, std::vector<double>(p, 0.0)), E2(p, std::vector<double>(p, 0.0));
+        std::vector<std::vector<Word>> M2(p, std::vector<Word>(p, Word{0.0, 0.0}));
+        Matrix                         E2(p, std::vector<double>(p, 0.0));
         for (int i = 0; i < p; i++) {
             for (int j = 0; j < p; j++) {
-                double s = 0, mm = 0, me = 0, em = 0, ee = 0;
+                Word   s  = wordMul(M[i][0], M[0][j]);
+                double mm = 0, me = 0, em = 0, ee = 0;
                 for (int l = 0; l < p; l++) {
-                    s  = s + M[i][l] * M[l][j];
-                    mm = addUp(mm, mulUp(std::abs(M[i][l]), std::abs(M[l][j])));
-                    me = addUp(me, mulUp(std::abs(M[i][l]), E[l][j]));
-                    em = addUp(em, mulUp(E[i][l], std::abs(M[l][j])));
+                    if (l > 0) s = wordAdd(s, wordMul(M[i][l], M[l][j]));
+                    mm = addUp(mm, mulUp(A[i][l], A[l][j]));
+                    me = addUp(me, mulUp(A[i][l], E[l][j]));
+                    em = addUp(em, mulUp(E[i][l], A[l][j]));
                     ee = addUp(ee, mulUp(E[i][l], E[l][j]));
                 }
                 M2[i][j] = s;
-                E2[i][j] = addUp(addUp(me, em), addUp(ee, mulUp(g, mm)));
+                E2[i][j] = addUp(addUp(addUp(me, em), addUp(ee, mulUp(gw, mm))), eta);
             }
         }
-        M   = M2;
-        E   = E2;
-        m   = 2 * m;
+        M = M2;
+        E = E2;
+        m = 2 * m;
+        if (!magnitudes()) return false;
         rho = norm();
     }
     if (!(rho <= 0.5)) return false;
