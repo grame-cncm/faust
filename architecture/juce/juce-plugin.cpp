@@ -372,6 +372,12 @@ class FaustPlugInAudioProcessor : public foleys::MagicProcessor, private juce::T
     #endif
         // Tail length reported to the host, from [declare tail_sec "<seconds>"]
         double fTailLength = 0.0;
+    #if defined(POLY2)
+        // The voices and the effect, owned by fDSP, visited separately to build the
+        // host parameters (see the constructor)
+        dsp* fVoiceDSP = nullptr;
+        dsp* fEffectDSP = nullptr;
+    #endif
     
         // Number of voices currently sounding, -1 when unknown (-jsynth)
         int getNumActiveVoices() const
@@ -474,6 +480,12 @@ class FaustPlugInAudioProcessor : public juce::AudioProcessor, private juce::Tim
     #endif
         // Tail length reported to the host, from [declare tail_sec "<seconds>"]
         double fTailLength = 0.0;
+    #if defined(POLY2)
+        // The voices and the effect, owned by fDSP, visited separately to build the
+        // host parameters (see the constructor)
+        dsp* fVoiceDSP = nullptr;
+        dsp* fEffectDSP = nullptr;
+    #endif
     
         // Number of voices currently sounding, -1 when unknown (-jsynth)
         int getNumActiveVoices() const
@@ -585,15 +597,17 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     std::cout << "Started with " << nvoices << " voices\n";
     dsp* dsp = new mydsp_poly(new mydsp(), nvoices, true, group);
     fPolyVoices = static_cast<mydsp_poly*>(dsp);
+    fVoiceDSP = dsp;
+    fEffectDSP = new effect();
     
 #if MIDICTRL
     if (midi_sync) {
-        fDSP = std::make_unique<timed_dsp>(new dsp_sequencer(dsp, new effect()));
+        fDSP = std::make_unique<timed_dsp>(new dsp_sequencer(fVoiceDSP, fEffectDSP));
     } else {
-        fDSP = std::make_unique<dsp_sequencer>(dsp, new effect());
+        fDSP = std::make_unique<dsp_sequencer>(fVoiceDSP, fEffectDSP);
     }
 #else
-    fDSP = std::make_unique<dsp_sequencer>(dsp, new effect());
+    fDSP = std::make_unique<dsp_sequencer>(fVoiceDSP, fEffectDSP);
 #endif
     
 #else
@@ -665,7 +679,17 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     }
 #else
     fDSP->buildUserInterface(&fStateUI);
+#if defined(POLY2) && !defined(FAUST_JUCE_FULLPATH_IDS)
+    // Visit the voices and the effect one after the other rather than the sequencer
+    // that combines them: JuceParameterUI then computes the shortnames of each DSP
+    // without the groups added by the sequencer, and a control declared by both
+    // (e.g. a tempo used by the voices and by a delay) gets a single host parameter
+    // driving both zones. The saved state (fStateUI) keeps the combined paths.
+    fVoiceDSP->buildUserInterface(&fParameterUI);
+    fEffectDSP->buildUserInterface(&fParameterUI);
+#else
     fDSP->buildUserInterface(&fParameterUI);
+#endif
     // When no previous state was restored, init DSP controllers with their default values
     if (!fStateUI.fRestored) {
         fDSP->instanceResetUserInterface();

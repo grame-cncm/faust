@@ -26,16 +26,47 @@
 #define JuceParameterUI_H
 
 #include <cmath>
+#include <map>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/PathBuilder.h"
 
+/**
+ * Zones of other DSPs that declare the same control as a parameter, for instance a
+ * tempo read by both the voices and the effect of a plugin built with -effect: the
+ * parameter keeps them equal to its own zone.
+ *
+ * The parameter writes them when the host or an editor sets it, and when its own
+ * zone changes (reflectZone). A linked zone changed by other means (a MIDI controller
+ * mapped on it only) is not propagated back to the parameter.
+ */
+struct FaustLinkedZones {
+    
+    std::vector<FAUSTFLOAT*> fLinkedZones;
+    
+    void linkZone(FAUSTFLOAT* zone)
+    {
+        fLinkedZones.push_back(zone);
+    }
+    
+    void writeLinkedZones(FAUSTFLOAT value)
+    {
+        for (FAUSTFLOAT* zone : fLinkedZones) {
+            *zone = value;
+        }
+    }
+    
+    virtual ~FaustLinkedZones() {}
+};
+
 // Link AudioParameterBool with on/off parameter
 
-struct FaustPlugInAudioParameterBool : public juce::AudioParameterBool, public uiOwnedItem {
+struct FaustPlugInAudioParameterBool : public juce::AudioParameterBool, public uiOwnedItem, public FaustLinkedZones {
     
     FaustPlugInAudioParameterBool(GUI* gui, FAUSTFLOAT* zone, const std::string& path, const std::string& label)
     :juce::AudioParameterBool(juce::ParameterID(path, /* versionHint */ 1), label, false), uiOwnedItem(gui, zone)
@@ -47,12 +78,14 @@ struct FaustPlugInAudioParameterBool : public juce::AudioParameterBool, public u
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
+        writeLinkedZones(v);
         setValueNotifyingHost(float(v));
     }
     
     virtual void setValue (float newValue) override
     {
         modifyZone(FAUSTFLOAT(newValue));
+        writeLinkedZones(FAUSTFLOAT(newValue));
     }
     
     // The base class value is only updated by its own setValue, so read the zone
@@ -65,7 +98,7 @@ struct FaustPlugInAudioParameterBool : public juce::AudioParameterBool, public u
 
 // Link AudioParameterFloat with range parameters
 
-struct FaustPlugInAudioParameterFloat : public juce::AudioParameterFloat, public uiOwnedItem {
+struct FaustPlugInAudioParameterFloat : public juce::AudioParameterFloat, public uiOwnedItem, public FaustLinkedZones {
     
     /**
      * @param gui the GUI that owns the zone and calls reflectZone() when it changes
@@ -94,6 +127,7 @@ struct FaustPlugInAudioParameterFloat : public juce::AudioParameterFloat, public
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
+        writeLinkedZones(v);
         if (v >= range.start && v <= range.end) {
             setValueNotifyingHost(range.convertTo0to1(float(v)));
         }
@@ -101,7 +135,9 @@ struct FaustPlugInAudioParameterFloat : public juce::AudioParameterFloat, public
     
     virtual void setValue (float newValue) override
     {
-        modifyZone(FAUSTFLOAT(range.convertFrom0to1(newValue)));
+        FAUSTFLOAT v = FAUSTFLOAT(range.convertFrom0to1(newValue));
+        modifyZone(v);
+        writeLinkedZones(v);
     }
     
     // The base class value is only updated by its own setValue, so read the zone
@@ -138,6 +174,13 @@ struct FaustPlugInAudioParameterFloat : public juce::AudioParameterFloat, public
 // Define FAUST_JUCE_FULLPATH_IDS to keep the full path as ID, as in previous
 // versions, so that automation saved with older exports still applies.
 //
+// Several DSPs can be visited in turn with the same JuceParameterUI, as the JUCE
+// architecture does with the voices and the effect of a plugin built with -effect.
+// Shortnames are then computed for each DSP (each top-level box), and a control
+// declared by several DSPs with the same shortname, kind and range gets a single
+// parameter that drives all their zones. A control with the same shortname but
+// another kind or range keeps its own parameter, with a numbered ID ("bpm_2").
+//
 // Widget metadata is passed on to the host: [scale:log] and [scale:exp] shape the
 // parameter range with the same conversions as the other Faust interfaces, [unit:...]
 // becomes the parameter label, and [style:menu{...}] or [style:radio{...}] give the
@@ -156,8 +199,16 @@ class JuceParameterUI : public GUI, public PathBuilder, public MetaDataUI {
             FAUSTFLOAT fInit, fMin, fMax, fStep;
         };
         
+        // A parameter already created, which a control of a later DSP can join
+        struct Created {
+            FaustLinkedZones* fParameter;
+            bool fIsBool;
+            FAUSTFLOAT fMin, fMax;
+        };
+        
         juce::AudioProcessor* fProcessor;
-        std::vector<Control> fControls;  // widgets of the top-level box being built
+        std::vector<Control> fControls;            // widgets of the top-level box being built
+        std::map<std::string, Created> fCreated;   // parameters created so far, by ID
         
         // Record a widget and its full path; its metadata has already been received by
         // declare(), which Faust calls before the widget itself
@@ -240,27 +291,55 @@ class JuceParameterUI : public GUI, public PathBuilder, public MetaDataUI {
             return isMenu(zone) ? getMenuDescription(zone) : getRadioDescription(zone);
         }
         
-        // Create the parameters of all recorded widgets, in their declaration order,
-        // once the full paths are known and the shortnames can be computed
+        // Return id, or id followed by the first free number ("bpm_2") if it is taken
+        std::string freeID(const std::string& id)
+        {
+            std::string candidate = id;
+            for (int n = 2; fCreated.count(candidate) > 0; n++) {
+                candidate = id + "_" + std::to_string(n);
+            }
+            return candidate;
+        }
+        
+        // Create the parameters of the widgets of the top-level box just closed, in their
+        // declaration order, once its full paths are known and the shortnames can be
+        // computed. A widget whose ID is already taken by a parameter of the same kind and
+        // range, created for a previous DSP, is linked to it instead.
         void createParameters()
         {
+            // Shortnames of this DSP only, independent of the DSPs visited before
+            fFull2Short.clear();
             computeShortNames();
             for (const auto& control : fControls) {
             #ifdef FAUST_JUCE_FULLPATH_IDS
-                const std::string& id = control.fPath;
+                std::string id = control.fPath;
             #else
-                const std::string& id = fFull2Short[control.fPath];
+                std::string id = fFull2Short[control.fPath];
             #endif
+                auto it = fCreated.find(id);
+                if (it != fCreated.end()) {
+                    const Created& created = it->second;
+                    if (created.fIsBool == control.fIsBool && created.fMin == control.fMin && created.fMax == control.fMax) {
+                        created.fParameter->linkZone(control.fZone);
+                        continue;
+                    }
+                    id = freeID(id);
+                }
                 if (control.fIsBool) {
-                    fProcessor->addParameter(new FaustPlugInAudioParameterBool(this, control.fZone, id, control.fLabel));
+                    auto* parameter = new FaustPlugInAudioParameterBool(this, control.fZone, id, control.fLabel);
+                    fProcessor->addParameter(parameter);
+                    fCreated[id] = { parameter, true, control.fMin, control.fMax };
                 } else {
-                    fProcessor->addParameter(new FaustPlugInAudioParameterFloat(this, control.fZone, id, control.fLabel, control.fInit,
-                                                                                makeRange(getScale(control.fZone), control.fMin, control.fMax, control.fStep),
-                                                                                makeAttributes(control.fZone, control.fStep),
-                                                                                int(getOptions(control.fZone).size())));
+                    auto* parameter = new FaustPlugInAudioParameterFloat(this, control.fZone, id, control.fLabel, control.fInit,
+                                                                         makeRange(getScale(control.fZone), control.fMin, control.fMax, control.fStep),
+                                                                         makeAttributes(control.fZone, control.fStep),
+                                                                         int(getOptions(control.fZone).size()));
+                    fProcessor->addParameter(parameter);
+                    fCreated[id] = { parameter, false, control.fMin, control.fMax };
                 }
             }
             fControls.clear();
+            fFullPaths.clear();
         }
         
     public:

@@ -99,6 +99,8 @@ Some plugins keep producing sound after their input stops, typically with delays
 
 Each Faust control becomes a host parameter, whose ID is the Faust shortname: the label alone (`cutoff`), or preceded by the enclosing groups when the label is repeated (`Route_0_depth`). These IDs do not depend on the groups added by the architecture for polyphony or for the `-effect` sequencing, so they stay the same when these options change. Previous versions used the full path; define `FAUST_JUCE_FULLPATH_IDS` when compiling the plugin to keep these IDs, so that automation recorded in existing host sessions still applies.
 
+With `-effect`, the shortnames are computed separately for the voices and for the effect. A control declared by both, with the same shortname, kind and range (for instance a `bpm` slider used by the voices and by a tempo-synced delay of the effect), becomes a single host parameter that sets both. A control with the same shortname but another kind or range keeps its own parameter, whose ID is numbered (`bpm_2`). The saved plugin state is not affected. With `FAUST_JUCE_FULLPATH_IDS`, controls are not merged.
+
 Widget metadata is passed on to the host:
 
 - `[scale:log]` and `[scale:exp]` shape the parameter range with the same conversions as the other Faust interfaces, so that host knobs and automation curves follow the control (the middle of a logarithmic 30..18000 Hz control is about 735 Hz)
