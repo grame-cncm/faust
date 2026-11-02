@@ -1770,12 +1770,15 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-A", "--architecture-dir") && (i + 1 < argc)) {
             if ((strstr(argv[i + 1], "http://") != 0) || (strstr(argv[i + 1], "https://") != 0)) {
-                gArchitectureDirList.push_back(argv[i + 1]);
+                // As with -I, search user given directories *before* the standard ones, so that
+                // they can override installed architecture files and the headers -i inlines
+                gArchitectureDirList.insert(gArchitectureDirList.begin(), argv[i + 1]);
             } else {
                 char  temp[PATH_MAX + 1];
                 char* path = realpath(argv[i + 1], temp);
                 if (path) {
-                    gArchitectureDirList.push_back(path);
+                    // As with -I, search user given directories *before* the standard ones
+                    gArchitectureDirList.insert(gArchitectureDirList.begin(), path);
                 } else {
                     stringstream error;
                     error << "WARNING : cannot resolve architecture directory '" << argv[i + 1]
