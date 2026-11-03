@@ -21,8 +21,20 @@
  * the C++ compiler, which may not reassociate without -ffast-math, can neither vectorize
  * nor overlap them. sumLanes rewrites a real Sum with at least 8 terms computed at the
  * sample rate : its slower terms first, as the normal form orders them, then the
- * sample-rate terms t0, ..., tm in 4 partial sums Sum(t0, t4, t8, ...), Sum(t1, t5, ...),
- * Sum(t2, ...), Sum(t3, ...), added as a balanced tree. The rounding changes : the pass
- * runs before the certified typing, which bounds the rewritten program itself.
+ * sample-rate terms t0, ..., tm in 4 partial sums added as a balanced tree. The rounding
+ * changes : the pass runs before the certified typing, which bounds the rewritten program
+ * itself.
+ *
+ * How the terms are dealt to the partial sums depends on the code generator :
+ * - interleaved, Sum(t0, t4, t8, ...), Sum(t1, t5, ...), ... : each step of the four sums
+ *   adds four consecutive terms, one vector for the C++ compiler. The generators of the
+ *   instruction compiler (cpp and the others) emit the terms in the same order whatever
+ *   the sum ;
+ * - contiguous, Sum(t0, ..., t(k-1)), Sum(tk, ...), ... : the ocpp scheduler emits each
+ *   computation where it is first read, and interleaved sums would emit the terms in the
+ *   order t0, t4, t8, ..., t1, ... : isomorphic computations (the bands of a vocoder) are
+ *   no longer adjacent, and the C++ compiler no longer vectorizes them.
  */
-Tree sumLanes(Tree L);
+enum class LaneOrder { kInterleaved, kContiguous };
+
+Tree sumLanes(Tree L, LaneOrder order);
