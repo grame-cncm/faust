@@ -139,6 +139,14 @@ A control is named by the ID of its host parameter (see [Host parameters](#host-
 
 The control names can be found in the JSON description of the DSP (`faust -json foo.dsp`, the `shortname` field of each control). Rather than writing a preset by hand, it can also be taken from the plugin: right-click the generic interface and choose "Copy settings as a faust2juce -presets entry", which copies the current settings to the clipboard as `{ "Preset": { ... } }`. Only the controls that differ from their default value are written, as presets list them. Controls are named by the IDs of their host parameters, never by their labels, and values are in the units of the DSP (Hz for a frequency, not the normalised value of the host), rounded to 7 significant digits, the precision of a float. Copying the settings of a plugin whose controls are all at their default value gives an empty entry, `{ "Preset": {} }`.
 
+A series of presets can be written directly to the file, without the clipboard. The same context menu has the items:
+
+- "Add settings to a new presets file...": chooses a file, whose previous content is replaced, then asks the name of the preset
+- "Add settings to an existing presets file...": chooses a file in the `-presets` format, then asks the name of the preset, which is added after the others
+- "Add settings to `<file>`...", once a file has been written: asks the name of the next preset and adds it to the same file
+
+The name proposed is `Preset <n>`, `n` following the presets of the file. A preset of the same name is replaced where it is, after confirmation, and the other presets are kept in their order, although their formatting is rewritten. The file is remembered while the plugin runs, even if its interface is closed, but not saved with the plugin state. The standalone application of the plugin (the `Standalone` format, built by the plugin project, not the `-standalone` option) is a convenient place to prepare the presets: set the controls, add the settings, repeat, then give the file to `faust2juce -presets`.
+
 The copied text is a complete JSON object: it can be saved as is as a file with a single preset. To add it to an existing file, paste only the entry, without the outer braces, rename it and separate it from the previous entry with a comma:
 
 ```
@@ -148,10 +156,12 @@ The copied text is a complete JSON object: it can be saved as is as a file with 
 }
 ```
 
-The same text is returned by a function that the architecture defines in every plugin, with or without `-presets`. A custom editor (see [Custom editor](#custom-editor)), even in another translation unit, can declare it and call it, for instance from a button that copies the settings to the clipboard or saves them in a file:
+The copied text and the presets files are written by two functions that the architecture defines in every plugin, with or without `-presets`. `faustPresetJSON` returns the entry copied to the clipboard; `faustAddPresetToFile` adds the current settings to a presets file as the menu items do, without asking anything, and returns an error message, or an empty string. A custom editor (see [Custom editor](#custom-editor)), even in another translation unit, can declare them and call them, for instance from a button:
 
 ```c++
 juce::String faustPresetJSON(juce::AudioProcessor& processor, const juce::String& name);
+juce::String faustAddPresetToFile(juce::AudioProcessor& processor, const juce::String& name,
+                                  const juce::File& file);
 
 // in the editor, processor being the juce::AudioProcessor given to createFaustEditor()
 copyButton.onClick = [this] {
@@ -159,7 +169,7 @@ copyButton.onClick = [this] {
 };
 ```
 
-The values are read from the Faust controls, so they include the changes made by MIDI or OSC. With `-magic`, the function is defined too, but the PluginGuiMagic interface does not call it: a project has to add the code that does.
+The values are read from the Faust controls, so they include the changes made by MIDI or OSC. With `-magic`, the functions are defined too, but the PluginGuiMagic interface does not call them: a project has to add the code that does.
 
 The file is embedded in the project (`FaustPresets.h`) and the `FAUST_PRESETS` macro is defined. This option is only available for plugins, not with `-standalone`.
 
@@ -190,7 +200,7 @@ A project can replace the generic interface with its own JUCE editor, while stil
   - `processAudio(const juce::AudioBuffer<T>& buffer, int activeVoices)` after each block, with `T` being `float`, or `double` when the DSP is compiled in double precision, for meters, scopes or load measurement. `activeVoices` counts the voices still sounding, and is -1 when unknown (with `-jsynth`)
 - `juce::AudioProcessorEditor* createFaustEditor(juce::AudioProcessor&, FaustEditorBridge&)`, called by `createEditor()`
 
-Both only depend on JUCE, so the editor can be compiled in its own translation unit and reach the DSP controls through the host parameters (`AudioProcessor::getParameters()`, see above). It can also call `faustPresetJSON()` to write the current settings as a `-presets` entry, as the generic interface does in its context menu (see [Presets as host programs](#presets-as-host-programs)). A minimal header could be:
+Both only depend on JUCE, so the editor can be compiled in its own translation unit and reach the DSP controls through the host parameters (`AudioProcessor::getParameters()`, see above). It can also call `faustPresetJSON()` or `faustAddPresetToFile()` to write the current settings as a `-presets` entry, as the generic interface does in its context menu (see [Presets as host programs](#presets-as-host-programs)). A minimal header could be:
 
 ```c++
 #pragma once

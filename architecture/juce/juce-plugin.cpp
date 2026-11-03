@@ -71,6 +71,24 @@
 #include "FaustPresets.h"
 #endif
 
+// The current values of a plugin's parameters that differ from their default value, as
+// presets list them: { "<parameter ID>": value, ... }, values in the units of the DSP and
+// rounded to 7 significant digits (the precision of a float)
+static juce::var faustPresetValues(juce::AudioProcessor& processor)
+{
+    juce::DynamicObject::Ptr values = new juce::DynamicObject();
+    for (auto* parameter : processor.getParameters()) {
+        if (auto* ranged = dynamic_cast<juce::RangedAudioParameter*>(parameter)) {
+            float normalised = ranged->getValue();
+            if (std::abs(normalised - ranged->getDefaultValue()) > 1e-6f) {
+                juce::String text = juce::String::toDecimalStringWithSignificantFigures(ranged->convertFrom0to1(normalised), 7);
+                values->setProperty(ranged->getParameterID(), text.getDoubleValue());
+            }
+        }
+    }
+    return juce::var(values.get());
+}
+
 /*
  Write the current values of a plugin's parameters as one preset in the faust2juce -presets
  format: { "<name>": { "<parameter ID>": value, ... } }, values in the units of the DSP.
@@ -83,19 +101,50 @@
 */
 juce::String faustPresetJSON(juce::AudioProcessor& processor, const juce::String& name)
 {
-    juce::DynamicObject::Ptr values = new juce::DynamicObject();
-    for (auto* parameter : processor.getParameters()) {
-        if (auto* ranged = dynamic_cast<juce::RangedAudioParameter*>(parameter)) {
-            float normalised = ranged->getValue();
-            if (std::abs(normalised - ranged->getDefaultValue()) > 1e-6f) {
-                juce::String text = juce::String::toDecimalStringWithSignificantFigures(ranged->convertFrom0to1(normalised), 7);
-                values->setProperty(ranged->getParameterID(), text.getDoubleValue());
-            }
-        }
-    }
     juce::DynamicObject::Ptr preset = new juce::DynamicObject();
-    preset->setProperty(name, juce::var(values.get()));
+    preset->setProperty(name, faustPresetValues(processor));
     return juce::JSON::toString(juce::var(preset.get()));
+}
+
+// Read a file in the faust2juce -presets format into presets, an object mapping preset names
+// to their values. A missing or empty file gives an empty object. Return an error message,
+// or an empty string.
+static juce::String faustReadPresetsFile(const juce::File& file, juce::var& presets)
+{
+    presets = juce::var(new juce::DynamicObject());
+    if (!file.existsAsFile()) return {};
+    juce::String text = file.loadFileAsString();
+    if (text.trim().isEmpty()) return {};
+    juce::var parsed;
+    juce::Result result = juce::JSON::parse(text, parsed);
+    if (result.failed()) return file.getFullPathName() + ": " + result.getErrorMessage();
+    if (parsed.getDynamicObject() == nullptr) {
+        return file.getFullPathName() + " is not a faust2juce -presets file: a JSON object is expected";
+    }
+    presets = parsed;
+    return {};
+}
+
+/*
+ Add the current values of a plugin's parameters, as written by faustPresetJSON, to a file
+ in the faust2juce -presets format, as the preset <name>. A preset of the same name is
+ replaced where it is, the others are kept in their order, and a missing file is created.
+ Return an error message, or an empty string.
+
+ The generic editor offers it in its context menu, to prepare the file given to -presets
+ (in the standalone application of the plugin for instance). A custom editor can declare
+ it and call it:
+     juce::String faustAddPresetToFile(juce::AudioProcessor& processor, const juce::String& name,
+                                       const juce::File& file);
+*/
+juce::String faustAddPresetToFile(juce::AudioProcessor& processor, const juce::String& name, const juce::File& file)
+{
+    juce::var presets;
+    juce::String error = faustReadPresetsFile(file, presets);
+    if (error.isNotEmpty()) return error;
+    presets.getDynamicObject()->setProperty(name, faustPresetValues(processor));
+    if (!file.replaceWithText(juce::JSON::toString(presets) + "\n")) return "Cannot write " + file.getFullPathName();
+    return {};
 }
 
 /*
@@ -566,8 +615,12 @@ class FaustPlugInAudioProcessor : public juce::AudioProcessor, private juce::Tim
         // Defined by the FAUST_CUSTOM_EDITOR header; it outlives the editor, which can
         // be closed and reopened while the processor keeps running
         FaustEditorBridge fEditorBridge;
+    #else
+        // The presets file to which the context menu of the generic editor adds the
+        // current settings, kept here to survive the editor; not saved with the state
+        juce::File fPresetsFile;
     #endif
-    
+
     private:
     
         template <typename FloatType>
@@ -591,20 +644,31 @@ class FaustPlugInAudioProcessorEditor : public juce::AudioProcessorEditor
         void paint (juce::Graphics&) override;
         void resized() override;
     #ifndef PLUGIN_MAGIC
-        // Context menu: copy the current settings as a faust2juce -presets entry
+        // Context menu: copy the current settings as a faust2juce -presets entry, or add
+        // them to a presets file
         void mouseDown (const juce::MouseEvent&) override;
     #endif
-        
+
     private:
-        
+
         // This reference is provided as a quick way for your editor to
         // access the processor object that created it.
         FaustPlugInAudioProcessor& processor;
-        
+
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustPlugInAudioProcessorEditor)
-#ifndef PLUGIN_MAGIC        
+#ifndef PLUGIN_MAGIC
         JuceGUI fJuceGUI;
-#endif    
+
+        // The dialogs of the context menu, kept until the next use since they are asynchronous
+        std::unique_ptr<juce::FileChooser> fPresetsChooser;
+        std::unique_ptr<juce::AlertWindow> fPresetNameDialog;
+        std::unique_ptr<juce::AlertWindow> fPresetReplaceDialog;
+
+        void choosePresetsFile(bool create);
+        void askPresetName(const juce::File& file, bool create);
+        void addPreset(const juce::File& file, const juce::String& name, bool create);
+        void showPresetError(const juce::String& message);
+#endif
 };
 #endif
 
@@ -1137,12 +1201,118 @@ void FaustPlugInAudioProcessorEditor::mouseDown (const juce::MouseEvent& e)
     if (!e.mods.isPopupMenu()) return;
     juce::PopupMenu menu;
     menu.addItem(1, "Copy settings as a faust2juce -presets entry");
+    menu.addSeparator();
+    // The file used last, to add a series of presets without choosing it again
+    const juce::File file = processor.fPresetsFile;
+    if (file != juce::File()) {
+        menu.addItem(2, "Add settings to " + file.getFileName() + "...");
+    }
+    menu.addItem(3, "Add settings to a new presets file...");
+    menu.addItem(4, "Add settings to an existing presets file...");
     juce::Component::SafePointer<FaustPlugInAudioProcessorEditor> editor(this);
-    menu.showMenuAsync(juce::PopupMenu::Options(), [editor](int result) {
-        if (result == 1 && editor != nullptr) {
-            juce::SystemClipboard::copyTextToClipboard(faustPresetJSON(editor->processor, "Preset"));
+    menu.showMenuAsync(juce::PopupMenu::Options(), [editor, file](int result) {
+        if (editor == nullptr) return;
+        switch (result) {
+            case 1: juce::SystemClipboard::copyTextToClipboard(faustPresetJSON(editor->processor, "Preset")); break;
+            case 2: editor->askPresetName(file, false); break;
+            case 3: editor->choosePresetsFile(true); break;
+            case 4: editor->choosePresetsFile(false); break;
+            default: break;
         }
     });
+}
+
+// Choose the presets file: a new one (create), whose previous content will be replaced,
+// or an existing one, to which the preset will be added
+void FaustPlugInAudioProcessorEditor::choosePresetsFile(bool create)
+{
+    juce::File folder = (processor.fPresetsFile != juce::File())
+        ? processor.fPresetsFile.getParentDirectory()
+        : juce::File::getSpecialLocation(juce::File::userDocumentsDirectory);
+    juce::File start = create ? folder.getChildFile(processor.getName() + "-presets.json") : folder;
+    fPresetsChooser = std::make_unique<juce::FileChooser>(create ? "New presets file" : "Presets file to add to",
+                                                          start, "*.json");
+    int flags = juce::FileBrowserComponent::canSelectFiles;
+    flags |= create ? (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::warnAboutOverwriting)
+                    : juce::FileBrowserComponent::openMode;
+    juce::Component::SafePointer<FaustPlugInAudioProcessorEditor> editor(this);
+    fPresetsChooser->launchAsync(flags, [editor, create](const juce::FileChooser& chooser) {
+        juce::File file = chooser.getResult();
+        if (editor != nullptr && file != juce::File()) {
+            editor->askPresetName(file, create);
+        }
+    });
+}
+
+// Ask the name of the preset, "Preset <n>" by default, n following the presets of the file,
+// and confirm before replacing a preset of the same name
+void FaustPlugInAudioProcessorEditor::askPresetName(const juce::File& file, bool create)
+{
+    juce::var presets = juce::var(new juce::DynamicObject());
+    if (!create) {
+        juce::String error = faustReadPresetsFile(file, presets);
+        if (error.isNotEmpty()) {
+            showPresetError(error);
+            return;
+        }
+    }
+    int count = presets.getDynamicObject()->getProperties().size();
+    fPresetNameDialog = std::make_unique<juce::AlertWindow>("Add preset", "Name of the preset in " + file.getFileName() + ":",
+                                                            juce::MessageBoxIconType::NoIcon, this);
+    fPresetNameDialog->addTextEditor("name", "Preset " + juce::String(count + 1));
+    fPresetNameDialog->addButton("Add", 1, juce::KeyPress(juce::KeyPress::returnKey));
+    fPresetNameDialog->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+    juce::Component::SafePointer<FaustPlugInAudioProcessorEditor> editor(this);
+    fPresetNameDialog->enterModalState(true, juce::ModalCallbackFunction::create([editor, file, create, presets](int result) {
+        if (editor == nullptr) return;
+        // The dialog is kept until the next use: it is still running this callback
+        editor->fPresetNameDialog->setVisible(false);
+        if (result != 1) return;
+        juce::String name = editor->fPresetNameDialog->getTextEditorContents("name").trim();
+        if (name.isEmpty()) {
+            editor->showPresetError("A preset needs a name.");
+        } else if (presets.getDynamicObject()->hasProperty(name)) {
+            editor->fPresetReplaceDialog = std::make_unique<juce::AlertWindow>("Replace preset",
+                file.getFileName() + " already has a preset named \"" + name + "\". Replace it?",
+                juce::MessageBoxIconType::QuestionIcon, editor.getComponent());
+            editor->fPresetReplaceDialog->addButton("Replace", 1, juce::KeyPress(juce::KeyPress::returnKey));
+            editor->fPresetReplaceDialog->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+            editor->fPresetReplaceDialog->enterModalState(true, juce::ModalCallbackFunction::create([editor, file, name](int answer) {
+                if (editor == nullptr) return;
+                editor->fPresetReplaceDialog->setVisible(false);
+                if (answer == 1) editor->addPreset(file, name, false);
+            }));
+        } else {
+            editor->addPreset(file, name, create);
+        }
+    }));
+}
+
+// Write the current settings as the preset name of file, emptied first if it is a new file,
+// which then becomes the file of the "Add settings to <file>" menu item
+void FaustPlugInAudioProcessorEditor::addPreset(const juce::File& file, const juce::String& name, bool create)
+{
+    if (create && !file.replaceWithText("")) {
+        showPresetError("Cannot write " + file.getFullPathName());
+        return;
+    }
+    juce::String error = faustAddPresetToFile(processor, name, file);
+    if (error.isNotEmpty()) {
+        showPresetError(error);
+        return;
+    }
+    processor.fPresetsFile = file;
+}
+
+void FaustPlugInAudioProcessorEditor::showPresetError(const juce::String& message)
+{
+    juce::AlertWindow::showAsync(juce::MessageBoxOptions()
+                                 .withIconType(juce::MessageBoxIconType::WarningIcon)
+                                 .withTitle("Presets file")
+                                 .withMessage(message)
+                                 .withButton("OK")
+                                 .withAssociatedComponent(this),
+                                 std::function<void (int)>());
 }
 
 //==============================================================================
