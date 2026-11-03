@@ -33,8 +33,7 @@ interval interval_algebra::Round(const interval& x) const
     }
 
     return {std::round(x.lo()), std::round(x.hi()),
-            std::max(0, x.lsb())};  // round to integral value (regardless of rounding direction) =>
-                                    // integer => precision 0
+            -1};  // as Floor and Rint: a float, whose lsb must stay negative
 }
 
 void interval_algebra::testRound()

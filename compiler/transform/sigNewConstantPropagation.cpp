@@ -34,7 +34,8 @@ namespace {
 // guard: a certified interval reduced to a single number decides the whole subtree
 // (the judgment lives on the SOURCE node and would not survive reconstruction), and
 // its children are never visited. The bottom-up side is the generic numeric frame on
-// binary operators, applied to every rebuilt node.
+// binary operators, and the choice of a select2 whose selector became a number,
+// applied to every rebuilt node.
 class ConstantPropagationAlgebra final : public TransformAlgebra {
    public:
     Tree cut(Tree orig) const override
@@ -65,7 +66,7 @@ class ConstantPropagationAlgebra final : public TransformAlgebra {
                  FixPointEvaluator<XSig>& ev) const override
     {
         XSig r = TransformAlgebra::combine(orig, c, ev);
-        return o(numericFrame(r.out));
+        return o(numericFrame(decidedSelect(r.out)));
     }
 
    private:
@@ -89,6 +90,20 @@ class ConstantPropagationAlgebra final : public TransformAlgebra {
         }
         fSideEffect[t] = se;
         return se;
+    }
+
+    // A select2 whose selector the guard has reduced to an integer keeps only the selected
+    // branch, as the generated (sel) ? s2 : s1 would. Without it, the decided select2
+    // survived as a constant computed at init (fConst = ((0) ? a : b)), still multiplied
+    // in the loop where it was a factor. A real selector is left alone.
+    static Tree decidedSelect(Tree sig)
+    {
+        Tree sel, s1, s2;
+        int  i;
+        if (isSigSelect2(sig, sel, s1, s2) && isSigInt(sel, &i)) {
+            return (i != 0) ? s2 : s1;
+        }
+        return sig;
     }
 
     // The generic frame: rules valid FOR ALL binary operators, driven by the op

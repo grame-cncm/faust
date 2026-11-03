@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <algorithm>
+
 #include "interval_algebra.hh"
 #include "interval_def.hh"
 
@@ -21,6 +23,11 @@ namespace itv {
 
 interval interval_algebra::FloatNum(double x) const
 {
-    return singleton(x);
+    // A real constant must keep a negative lsb, as FloatCast forces: the interval rules
+    // read lsb >= 0 as an int32, and wrap it. singleton gives floor(log2|x|) - 32, which
+    // is >= 0 from 2^32 on: 5e9 was then typed as an integer, and 5e9 * x became
+    // [INT_MIN, INT_MAX], wrong for a real (x * 5e9 >= 3e9 folded to 0).
+    interval i = singleton(x);
+    return {x, x, std::min(i.lsb(), -1)};
 }
 }  // namespace itv
