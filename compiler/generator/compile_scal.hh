@@ -26,6 +26,7 @@
 
 #include <functional>
 #include <map>
+#include <unordered_set>
 #include <utility>
 
 #include "definitionIndex.hh"
@@ -245,6 +246,14 @@ class ScalarCompiler : public Compiler {
     bool        isSigSimpleRec(Tree sig);
     std::string generateRecProj(Tree sig, Tree exp, int i);
     std::string generateIRM(Tree sig, Tree x, Tree p);
+
+    // the cone of the decisions of the prepared program (decisionCone.hh), built at the
+    // first question of reachesDecision
+    Tree                     fProgram = nullptr;
+    std::unordered_set<Tree> fDecisionCone;
+    bool                     fDecisionConeBuilt = false;
+    bool                     reachesDecision(Tree sig);
+
     std::string generateBpf(Tree sig);
     std::string generateBpfTable(Tree sig, Tree x, const struct BpfTable& tb);
     void        generateRec(Tree sig, Tree var, Tree le);

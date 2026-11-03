@@ -32,6 +32,7 @@
 #include "instructions_compiler.hh"
 #include "exactWeights.hh"
 #include "sumLanes.hh"
+#include "decisionCone.hh"
 #include "shareSums.hh"
 #include "instructions_compiler1.hh"
 #include "instructions_compiler_jax.hh"
@@ -203,6 +204,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
         sigToGraph(L2, dotfile);
     }
 
+    fProgram = L2;
     return L2;
 }
 
@@ -2814,16 +2816,22 @@ ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& iir)
 }
 
 /**
- * IRM(x; p) = y, y = mix(p, x, y') : the computation of the source, as master-dev writes it.
- * When the normal form wrote the pole 1 - w (irmInputWeight), the source is the state of a
- * TPT filter : y' + w * (x - y'), s + 2g (x - s), w exact. Otherwise the source wrote the
- * pole (si.smooth) : (1 - p) * x + p * y', 1 - p at the rate of p and (1 - p) * x at the
- * rate of x and p. An interpolation chosen by the interval of p, from x when p may be below
- * 1/2, cancelled x against y' for a slow smoother of an audio signal (an.resonator, in
- * float, 12 times the error of the source), and the weighted sum of a TPT state rounded its
- * pole apart, so that its fixed point was not x (bela/granulator, a grain one sample late).
- * The interval of the node bounds both forms (Irm). The value is stored in the node's line,
- * read back at delay 1.
+ * IRM(x; p) = y, y = mix(p, x, y').
+ * - The weighted sum c * x + p * y', c = 1 - p computed from p rounded, at the rate of p,
+ *   c * x at the rate of x and p : when the source wrote the pole (si.smooth), and when the
+ *   normal form wrote it 1 - w (irmInputWeight) with a target and a pole slower than the
+ *   sample, unless the node reaches a decision. One product and one sum per sample for a
+ *   slow target ; for p in [1/2, 1], 1 - p is exact and the static gain is 1.
+ * - The interpolation from the state, y' + w * (x - y'), w exact (the state of a TPT
+ *   filter, s + 2g (x - s)) : for a pole written 1 - w at the sample rate, or when the
+ *   node reaches a decision (decisionCone.hh, with the discontinuities) : its fixed point is
+ *   exactly x, and bela/granulator's speed drives the comparisons that start its grains.
+ *   The weighted sum with w exact and 1 - w rounded apart, the old form, missed x (a grain
+ *   one sample late).
+ * An interpolation chosen by the interval of p, from x when p may be below 1/2, cancelled x
+ * against y' for a slow smoother of an audio signal (an.resonator, in float, 12 times the
+ * error of the source). The interval of the node bounds every form (Irm). The value is
+ * stored in the node's line, read back at delay 1.
  */
 ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p)
 {
@@ -2842,7 +2850,8 @@ ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p)
     ValueInst* prev = lineRead(vname, mxd, 1);
     ValueInst* vx   = compoundOperand(x);
     const int  vr   = std::max(getCertifiedSigType(x)->variability(), getCertifiedSigType(p)->variability());
-    if (!w && getCertifiedSigType(sig)->nature() == kReal) {
+    const bool real = getCertifiedSigType(sig)->nature() == kReal;
+    if (real && (!w || (vr != kSamp && !reachesDecision(sig)))) {
         const int  vrp = getCertifiedSigType(p)->variability();
         ValueInst* vw  = IB::genBinopInst(kSub, IB::genRealNumInst(itfloat(), 1.0), compoundOperand(p));
         if (vrp != kSamp) {
@@ -2872,6 +2881,20 @@ ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p)
         code         = IB::genBinopInst(kAdd, lineRead(vname, mxd, 1), IB::genBinopInst(kMul, vw, d));
     }
     return writeIIRLine(sig, code, ctype, vname, mxd);
+}
+
+/// sig may reach a decision : a comparison, a discontinuous function, an integer conversion,
+/// a delay amount, an index (decisionCone.hh) ; without the prepared program, assumed so
+bool InstructionsCompiler::reachesDecision(Tree sig)
+{
+    if (fProgram == nullptr) {
+        return true;
+    }
+    if (!fDecisionConeBuilt) {
+        fDecisionCone      = decisionCone(fProgram, /*discontinuities*/ true);
+        fDecisionConeBuilt = true;
+    }
+    return fDecisionCone.count(sig) > 0;
 }
 
 /**
