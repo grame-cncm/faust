@@ -26,6 +26,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "definitionIndex.hh"
@@ -241,6 +242,14 @@ class InstructionsCompiler : public virtual Garbageable {
     std::string        delayLineName(Tree exp, int mxd, const char* prefix, ValueInst*& immediate);
     void               flushPendingDelayWrites();
     ValueInst*         generateIRM(Tree sig, Tree x, Tree p);
+
+    // the cone of the decisions of the prepared program (decisionCone.hh), built at the
+    // first question of reachesDecision
+    Tree                     fProgram = nullptr;
+    std::unordered_set<Tree> fDecisionCone;
+    bool                     fDecisionConeBuilt = false;
+    bool                     reachesDecision(Tree sig);
+
     ValueInst*         generateBpf(Tree sig);
     ValueInst*         generateBpfTable(Tree sig, Tree x, const struct BpfTable& tb);
     bool               reachesUnstoredRecMember(Tree t);

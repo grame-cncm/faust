@@ -43,6 +43,7 @@
 #include "compile_scal.hh"
 #include "exactWeights.hh"
 #include "sumLanes.hh"
+#include "decisionCone.hh"
 #include "shareSums.hh"
 #include "irm_weight.hh"
 #include "bpf_table.hh"
@@ -1071,6 +1072,7 @@ Tree ScalarCompiler::prepare(Tree LS)
         sigToGraph(L2, dotfile);
     }
 
+    fProgram = L2;
     return L2;
 }
 
@@ -7225,10 +7227,11 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
 }
 
 /**
- * IRM(x; p) = y, y = mix(p, x, y'), as InstructionsCompiler::generateIRM : the computation
- * of the source, y' + w * (x - y') when the normal form wrote the pole 1 - w (a TPT state),
- * (1 - p) * x + p * y' otherwise (si.smooth). The value is stored in the node's line, read
- * back at delay 1.
+ * IRM(x; p) = y, y = mix(p, x, y'), as InstructionsCompiler::generateIRM : the weighted sum
+ * (1 - p) * x + p * y', 1 - p from p rounded, when the source wrote the pole (si.smooth) and
+ * for a pole written 1 - w with a slow target and pole, unless the node reaches a decision ;
+ * otherwise the interpolation from the state y' + w * (x - y') (a TPT state). The value is
+ * stored in the node's line, read back at delay 1.
  */
 string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p)
 {
@@ -7242,7 +7245,7 @@ string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p)
     std::string prev = generateDelayAccessRaw(sig, sig, 1);
     std::string sx   = compoundOperand(x);
     const int   vr   = std::max(getCertifiedSigType(x)->variability(), getCertifiedSigType(p)->variability());
-    if (!w && ty->nature() == kReal) {
+    if (ty->nature() == kReal && (!w || (vr != kSamp && !reachesDecision(sig)))) {
         const int   vrp = getCertifiedSigType(p)->variability();
         std::string sw  = subst("($0 - $1)", realLiteral(1.0), compoundOperand(p));
         if (vrp != kSamp) {
@@ -7270,6 +7273,20 @@ string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p)
         code = subst("($0 + $1 * ($2 - $0))", prev, sw, sx);
     }
     return generateDelayVec(sig, code, ctype, vname, o->getMaxDelay(), o->getDelayCount());
+}
+
+/// sig may reach a decision (decisionCone.hh, with the discontinuities) ; without the
+/// prepared program, assumed so
+bool ScalarCompiler::reachesDecision(Tree sig)
+{
+    if (fProgram == nullptr) {
+        return true;
+    }
+    if (!fDecisionConeBuilt) {
+        fDecisionCone      = decisionCone(fProgram, /*discontinuities*/ true);
+        fDecisionConeBuilt = true;
+    }
+    return fDecisionCone.count(sig) > 0;
 }
 
 /**
