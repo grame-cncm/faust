@@ -703,10 +703,11 @@ Tree ScalarCompiler::prepare(Tree LS)
         endTiming("exactWeights");
     }
     if (gGlobal->gSumLanes) {
-        // the long sums in interleaved partial sums (-nosl), before the certified typing,
-        // which bounds the rewritten program
+        // the long sums in partial sums of contiguous terms (-nosl) : the scheduler emits
+        // each term where it is first read, in order. Before the certified typing, which
+        // bounds the rewritten program
         startTiming("sumLanes");
-        L2 = sumLanes(L2);
+        L2 = sumLanes(L2, LaneOrder::kContiguous);
         endTiming("sumLanes");
     }
 
