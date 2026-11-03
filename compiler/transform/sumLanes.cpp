@@ -40,7 +40,7 @@ Tree balancedSum(tvec parts)
 
 }  // namespace
 
-Tree sumLanes(Tree L)
+Tree sumLanes(Tree L, LaneOrder order)
 {
     const ExactSolvers             exact(L);
     std::unordered_map<Tree, Tree> memo;
@@ -63,11 +63,19 @@ Tree sumLanes(Tree L)
         if (ot.size() - s < size_t(2 * kLanes)) {
             return rebuilt;
         }
-        tvec parts;
+        tvec         parts;
+        const size_t n = rt.size() - s;
         for (size_t j = 0; j < size_t(kLanes); j++) {
             tvec lane;
-            for (size_t k = s + j; k < rt.size(); k += kLanes) {
-                lane.push_back(rt[k]);
+            if (order == LaneOrder::kInterleaved) {
+                for (size_t k = s + j; k < rt.size(); k += kLanes) {
+                    lane.push_back(rt[k]);
+                }
+            } else {
+                // lane j : the terms n * j / 4 to n * (j + 1) / 4, at least 2 of them
+                for (size_t k = s + n * j / kLanes; k < s + n * (j + 1) / kLanes; k++) {
+                    lane.push_back(rt[k]);
+                }
             }
             Tree p = sigSum(lane);
             parts.push_back(p);

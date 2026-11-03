@@ -152,7 +152,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
         // the long sums in interleaved partial sums (-nosl), before the certified typing,
         // which bounds the rewritten program
         startTiming("sumLanes");
-        L2 = sumLanes(L2);
+        L2 = sumLanes(L2, LaneOrder::kInterleaved);
         endTiming("sumLanes");
     }
 
