@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+#include "decisionCone.hh"
 #include "exactWeights.hh"
 #include "rewrite.hh"
 #include "sigattributes.hh"
@@ -45,51 +46,6 @@ bool complementOf(Tree f, int& pos)
     if (isExactlyOne(ts[0]) && !isNumber(ts[1])) return pos = 1, true;
     if (isExactlyOne(ts[1]) && !isNumber(ts[0])) return pos = 0, true;
     return false;
-}
-
-/**
- * The cone of the decisions : every signal that may reach the amount of a delay, the operand
- * of an integer conversion, the index of a table or of a soundfile, directly or through a
- * recursion. There, the wider interval of y + w * y (y read twice) could refuse a program
- * that (1 + w) * y lets through ; the products of the cone are left as they are.
- */
-std::unordered_set<Tree> decisionCone(Tree L)
-{
-    std::unordered_set<Tree> seen, cone;
-    std::vector<Tree>        work{L}, roots;
-    while (!work.empty()) {
-        Tree t = work.back();
-        work.pop_back();
-        if (!seen.insert(t).second) continue;
-        Tree var, body;
-        if (isRec(t, var, body)) {
-            if (body != nullptr) work.push_back(body);
-            continue;
-        }
-        for (int i = 0; i < t->arity(); i++) work.push_back(t->branch(i));
-        Tree x, d, tbl, sz, gen, sf, ch, part;
-        if (isSigDelay(t, x, d) && !isNumber(d)) roots.push_back(d);
-        if (isSigIntCast(t, x)) roots.push_back(x);
-        if (isSigRDTbl(t, tbl, x)) roots.push_back(x);
-        if (isSigWRTbl(t, sz, gen, x, d)) roots.push_back(x);
-        if (isSigSoundfileBuffer(t, sf, ch, part, x)) {
-            roots.push_back(part);
-            roots.push_back(x);
-        }
-        if (isSigSoundfileLength(t, sf, part) || isSigSoundfileRate(t, sf, part)) roots.push_back(part);
-    }
-    while (!roots.empty()) {
-        Tree t = roots.back();
-        roots.pop_back();
-        if (!cone.insert(t).second) continue;
-        Tree var, body;
-        if (isRec(t, var, body)) {
-            if (body != nullptr) roots.push_back(body);
-            continue;
-        }
-        for (int i = 0; i < t->arity(); i++) roots.push_back(t->branch(i));
-    }
-    return cone;
 }
 
 }  // namespace
@@ -134,7 +90,10 @@ static bool hasCandidate(Tree L, ExactSolvers& exact, const std::unordered_set<T
 Tree exactWeights(Tree L)
 {
     ExactSolvers                   exact(L);
-    const std::unordered_set<Tree> cone = decisionCone(L);
+    // the cone of the decisions : there, the wider interval of y + w * y (y read twice)
+    // could refuse a program that (1 + w) * y lets through ; its products are left as
+    // they are
+    const std::unordered_set<Tree> cone = decisionCone(L, /*discontinuities*/ false);
     HorizonReader                  horizon(L, &exact, /*lazy*/ true);
     // a rewrite rebuilds the recursions with fresh variables : none when nothing changes
     if (!hasCandidate(L, exact, cone, horizon)) return L;
