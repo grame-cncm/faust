@@ -3020,24 +3020,37 @@ ValueInst* InstructionsCompiler::writeIIRLine(Tree sig, ValueInst* exp, BasicTyp
 
 /**
  * FIR[x, c0, c1, ...] : the chain of the definition, the association of its interval, the
- * taps c[k] * x@k from the first delay to the last, the null coefficients left out.
+ * taps c[k] * x@k from the first delay to the last, the null coefficients left out. A real
+ * FIR whose first tap is negative and the second positive starts with the second (-a + b
+ * and b - a are the same value, bit for bit) ; a first tap of coefficient -1 is a negation,
+ * not a product by -1.
  */
 ValueInst* InstructionsCompiler::generateFIR(Tree sig, const tvec& fir)
 {
     faustassert(fir.size() > 1);
-    Tree       x   = fir[0];
-    ValueInst* acc = nullptr;
+    Tree                x    = fir[0];
+    ValueInst*          acc  = nullptr;
+    const bool          real = getCertifiedSigType(sig)->nature() == kReal;
+    std::vector<size_t> taps;
     for (size_t i = 1; i < fir.size(); i++) {
-        if (isZero(fir[i])) {
-            continue;
+        if (!isZero(fir[i])) {
+            taps.push_back(i);
         }
+    }
+    if (Tree m0, m1; real && taps.size() >= 2 && negativeCoefficient(fir[taps[0]], m0) &&
+                     !negativeCoefficient(fir[taps[1]], m1)) {
+        std::swap(taps[0], taps[1]);
+    }
+    for (size_t i : taps) {
         ValueInst* access = generateTapAccess(x, int(i) - 1);
         // a negative coefficient after the first tap : the tap subtracted
         Tree       m;
         const bool sub  = acc && negativeCoefficient(fir[i], m);
         Tree       c    = sub ? m : fir[i];
         ValueInst* term = access;
-        if (c != nullptr && !isOne(c)) {
+        if (!acc && real && isMinusOne(c)) {
+            term = IB::genNeg(access, true);
+        } else if (c != nullptr && !isOne(c)) {
             ValueInst* vc = sub ? operandAtRate(c) : CS(c);
             term          = IB::genBinopInst(kMul, vc, access);
         }

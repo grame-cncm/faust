@@ -7945,22 +7945,34 @@ string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
 string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
 {
     // the chain of the definition, the association of its interval : the taps from the
-    // first delay to the last, c[k] * x@k, the null coefficients left out ; an int FIR wraps
+    // first delay to the last, c[k] * x@k, the null coefficients left out ; an int FIR wraps.
+    // A real FIR whose first tap is negative and the second positive starts with the second
+    // (-a + b and b - a are the same value, bit for bit) ; a first tap of coefficient -1 is
+    // a negation, not a product by -1 (as InstructionsCompiler::generateFIR)
     faustassert(coefs.size() > 1);
-    const bool isInt = (getCertifiedSigType(sig)->nature() == kInt);
-    Tree       x     = coefs[0];
-    string     acc;
+    const bool                isInt = (getCertifiedSigType(sig)->nature() == kInt);
+    Tree                      x     = coefs[0];
+    string                    acc;
+    std::vector<unsigned int> taps;
     for (unsigned int i = 1; i < coefs.size(); ++i) {
-        if (isZero(coefs[i])) {
-            continue;
+        if (!isZero(coefs[i])) {
+            taps.push_back(i);
         }
+    }
+    if (Tree m0, m1; !isInt && taps.size() >= 2 && negativeCoefficient(coefs[taps[0]], m0) &&
+                     !negativeCoefficient(coefs[taps[1]], m1)) {
+        std::swap(taps[0], taps[1]);
+    }
+    for (unsigned int i : taps) {
         string access = generateDelayAccessRaw(sig, x, int(i) - 1);
         // a negative coefficient after the first tap : the tap subtracted
         Tree       m;
         const bool sub = !acc.empty() && negativeCoefficient(coefs[i], m);
         Tree       c   = sub ? m : coefs[i];
         string     term;
-        if (c == nullptr || isOne(c)) {
+        if (acc.empty() && !isInt && isMinusOne(c)) {
+            term = subst("(-$0)", access);
+        } else if (c == nullptr || isOne(c)) {
             term = access;
         } else {
             string sc = sub ? operandAtRate(c) : CS(c);
