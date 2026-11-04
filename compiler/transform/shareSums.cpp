@@ -14,6 +14,7 @@
 #include <cmath>
 #include <cstdint>
 #include <map>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -69,17 +70,28 @@ struct AtomKeyHash {
 /// a sum of atoms with coefficients +1 or -1, ordered by atom index
 using Signed = std::map<int, int>;
 
-/// a dense row : the node and its terms (atom, coefficient), in the order of the node
+/// a term of a symbolic coefficient : the atom, times k, times the coefficient c, a tree
+/// slower than the sample, up to its sign (canonicalCoefficient)
+struct SymTerm {
+    int    atom;
+    double k;
+    Tree   c;
+};
+
+/// a dense row : the node and its terms (atom, coefficient), in the order of the node, and
+/// the terms whose coefficient is a tree held by another term of the row
 struct Row {
     Tree                                node;
     std::vector<std::pair<int, double>> terms;
+    std::vector<SymTerm>                sym;
 };
 
 /// what an atom index stands for : an original atom, a product c * S, or a pair u + rel * v
 struct AtomDef {
     enum Kind { kOrig, kProduct, kPair } kind;
     AtomKey orig{nullptr, 0};
-    double  coef = 0;   ///< kProduct : the coefficient
+    double  coef = 0;        ///< kProduct : the coefficient
+    Tree    sym  = nullptr;  ///< kProduct : the symbolic coefficient, times coef
     int     sum  = -1;  ///< kProduct : the index of S in fSums
     int     u = -1, v = -1, rel = 0;  ///< kPair
 };
@@ -90,7 +102,8 @@ class Planner {
     std::unordered_map<AtomKey, int, AtomKeyHash>  fIndex;
     std::vector<Row>                               fRows;
     std::vector<Signed>                            fSums;      ///< the top sum of row r is fSums[r]
-    std::map<std::pair<double, Signed>, int>       fProducts;  ///< (coefficient, S) -> atom
+    std::map<std::tuple<double, size_t, Signed>, int>
+                                                   fProducts;  ///< (coefficient, symbol, S) -> atom
     std::vector<bool>                              fRewrite;   ///< row r is rewritten
     std::unordered_map<Tree, int>                  fRowOf;     ///< node -> row
     std::unordered_map<int, Tree>                  fBuilt;     ///< atom -> its tree
@@ -107,7 +120,10 @@ class Planner {
 
     bool isReal(Tree t) const { return fExact.nature(t) == kReal; }
     int  atom(Tree base, int delay);
-    bool parseTerm(Tree t, double sign, std::vector<std::pair<int, double>>& terms);
+    bool parseTerm(Tree t, double sign, std::vector<std::pair<int, double>>& terms,
+                   std::vector<SymTerm>& sym);
+    bool canonicalCoefficient(Tree c, Tree& canon, double& sign);
+    Tree coefficientTree(const AtomDef& def, bool negated);
     bool rowOf(Tree t, Row& row);
     Tree buildAtom(int a, std::unordered_map<Tree, Tree>& memo);
     Tree buildSigned(const Signed& s, std::unordered_map<Tree, Tree>& memo);
@@ -137,15 +153,61 @@ int Planner::atom(Tree base, int delay)
     return a;
 }
 
+/// c, a real tree slower than the sample and not a number, up to its sign : neg(u) is u
+/// negated, and a sum whose first term is negative is the opposite of the sum of the
+/// opposite terms (E15 = -0.5 + E13 is -(0.5 - E13)), rebuilt as the normal form writes it,
+/// so that two opposite coefficients are one tree (hash-consing) ; a sum rebuilt otherwise
+/// than the other one is only a coefficient left unfactored
+bool Planner::canonicalCoefficient(Tree c, Tree& canon, double& sign)
+{
+    double v;
+    if (numVal(c, v) || !isReal(c) || fExact.variability(c) >= kSamp) {
+        return false;
+    }
+    sign = 1;
+    Tree u;
+    while (isSigNeg(c, u)) {
+        sign = -sign;
+        c    = u;
+    }
+    tvec ts;
+    if (isSigSum(c, ts) && !ts.empty()) {
+        double v0;
+        Tree   u0;
+        if ((numVal(ts[0], v0) && v0 < 0) || isSigNeg(ts[0], u0)) {
+            tvec ns;
+            for (Tree t : ts) {
+                double w;
+                int    i;
+                Tree   x;
+                if (isSigReal(t, &w)) {
+                    ns.push_back(sigReal(-w));
+                } else if (isSigInt(t, &i)) {
+                    ns.push_back(sigInt(-i));
+                } else if (isSigNeg(t, x)) {
+                    ns.push_back(x);
+                } else {
+                    ns.push_back(sigNeg(t));
+                }
+            }
+            c    = sigSum(ns);
+            sign = -sign;
+        }
+    }
+    canon = c;
+    return true;
+}
+
 // a term of a Sum : neg(x), c * x (a product, a binary multiplication or the gain kernel
-// FIR[x, c]), or x itself
-bool Planner::parseTerm(Tree t, double sign, std::vector<std::pair<int, double>>& terms)
+// FIR[x, c]), or x itself ; c * y with c a tree slower than the sample is a symbolic term
+bool Planner::parseTerm(Tree t, double sign, std::vector<std::pair<int, double>>& terms,
+                        std::vector<SymTerm>& sym)
 {
     Tree   x, a, b;
     tvec   fs;
     double c;
     if (isSigNeg(t, x)) {
-        return parseTerm(x, -sign, terms);
+        return parseTerm(x, -sign, terms, sym);
     }
     if (isSigProd(t, fs) && fs.size() == 2) {
         a = fs[0], b = fs[1];
@@ -166,6 +228,20 @@ bool Planner::parseTerm(Tree t, double sign, std::vector<std::pair<int, double>>
             terms.push_back({atom(y, 0), sign * k});
             return true;
         }
+        Tree   canon;
+        double s;
+        if (!na && isReal(t) && isReal(a) && isReal(b)) {
+            if (fExact.variability(b) == kSamp && canonicalCoefficient(a, canon, s)) {
+                sym.push_back({atom(b, 0), sign * s, canon});
+                terms.push_back({atom(t, 0), sign});  // the term itself, if its symbol is alone
+                return true;
+            }
+            if (fExact.variability(a) == kSamp && canonicalCoefficient(b, canon, s)) {
+                sym.push_back({atom(a, 0), sign * s, canon});
+                terms.push_back({atom(t, 0), sign});
+                return true;
+            }
+        }
     }
     if (!isReal(t)) return false;
     terms.push_back({atom(t, 0), sign});
@@ -176,29 +252,87 @@ bool Planner::parseTerm(Tree t, double sign, std::vector<std::pair<int, double>>
 // terms of one magnitude other than 1 (sameMagnitude) : c * a - c * b factored is
 // c * (a - b), one product less, and a difference of close values exact before its scaling
 // (the scaled difference of fds.bow, c * x - c * x', cancelled two rounded products in
-// single precision)
+// single precision). The coefficients may be trees slower than the sample, compared up to
+// their sign (canonicalCoefficient) : a FIR whose taps all have one such coefficient
+// (bells : FIR[x, E14, 0, E15], E15 = -E14), a sum whose terms c * y hold one twice
 bool Planner::rowOf(Tree t, Row& row)
 {
     tvec subs;
     row.node = t;
     row.terms.clear();
+    row.sym.clear();
     if (isSigSum(t, subs)) {
         if (!isReal(t)) return false;
+        std::vector<SymTerm> sym;
         for (Tree s : subs) {
-            if (!parseTerm(s, 1, row.terms)) return false;
+            if (!parseTerm(s, 1, row.terms, sym)) {
+                return false;
+            }
+        }
+        // a symbolic term counts if another one holds its coefficient ; it then leaves the
+        // numeric terms, where it stood as an atom of coefficient +-1
+        std::map<size_t, int> uses;
+        for (auto& st : sym) {
+            uses[st.c->serial()]++;
+        }
+        for (auto& st : sym) {
+            if (uses[st.c->serial()] >= 2) {
+                row.sym.push_back(st);
+            }
+        }
+        if (!row.sym.empty()) {
+            // the numeric terms, without the products c * y whose symbol is held twice
+            std::vector<std::pair<int, double>> kept;
+            for (Tree s : subs) {
+                std::vector<std::pair<int, double>> one;
+                std::vector<SymTerm>                os;
+                parseTerm(s, 1, one, os);
+                const bool symbolic = !os.empty() && uses[os[0].c->serial()] >= 2;
+                for (auto& tm : one) {
+                    if (!symbolic) {
+                        kept.push_back(tm);
+                    }
+                }
+            }
+            row.terms = kept;
         }
     } else if (isSigFIR(t, subs) && subs.size() > 2) {
         if (!isReal(t) || !isReal(subs[0])) return false;
         std::vector<double> cs;
+        bool                numeric = true;
         for (size_t i = 1; i < subs.size(); i++) {
             double c;
-            if (!numVal(subs[i], c)) return false;
+            if (!numVal(subs[i], c)) {
+                numeric = false;
+                break;
+            }
             cs.push_back(c);
         }
-        for (size_t i = 0; i < cs.size(); i++) {
-            if (cs[i] != 0) {
-                row.terms.push_back({atom(subs[0], int(i)), cs[i]});
+        if (numeric) {
+            for (size_t i = 0; i < cs.size(); i++) {
+                if (cs[i] != 0) {
+                    row.terms.push_back({atom(subs[0], int(i)), cs[i]});
+                }
             }
+        } else {
+            // every non-null tap of one symbolic coefficient, up to its sign
+            Tree common = nullptr;
+            for (size_t i = 1; i < subs.size(); i++) {
+                if (isZero(subs[i])) {
+                    continue;
+                }
+                Tree   canon;
+                double s;
+                if (!canonicalCoefficient(subs[i], canon, s) || (common && canon != common)) {
+                    return false;
+                }
+                common = canon;
+                row.sym.push_back({atom(subs[0], int(i) - 1), s, canon});
+            }
+            if (row.sym.size() < 2) {
+                return false;
+            }
+            return true;
         }
     } else {
         return false;
@@ -213,6 +347,9 @@ bool Planner::rowOf(Tree t, Row& row)
     row.terms.clear();
     for (int a : order) {
         if (merged[a] != 0) row.terms.push_back({a, merged[a]});
+    }
+    if (!row.sym.empty()) {
+        return true;  // a symbolic coefficient held twice : one product less
     }
     if (row.terms.size() == 2) {
         const double m0 = std::fabs(row.terms[0].second), m1 = std::fabs(row.terms[1].second);
@@ -287,22 +424,30 @@ void Planner::plan()
     std::vector<int> groupsOf(R, 0);
     fSums.assign(R, Signed());
     for (size_t r = 0; r < R; r++) {
-        std::map<double, Signed> groups;
+        // the groups by (magnitude, symbol serial, 0 for a number) ; the symbol of a serial
+        std::map<std::pair<double, size_t>, Signed> groups;
+        std::map<size_t, Tree>                      symbols;
         for (auto& [a, c] : fRows[r].terms) {
             const double m = rep[std::fabs(c)];
             const int    s = (c > 0) ? 1 : -1;
             if (m == 1.0) {
                 fSums[r][a] += s;
             } else {
-                groups[m][a] += s;
+                groups[{m, 0}][a] += s;
             }
         }
-        for (auto& [m, S] : groups) {
+        for (auto& st : fRows[r].sym) {
+            const size_t key = st.c->serial();
+            symbols[key]     = st.c;
+            groups[{std::fabs(st.k), key}][st.atom] += (st.k > 0) ? 1 : -1;
+        }
+        for (auto& [ms, S] : groups) {
+            const double m = ms.first;
             if (S.size() >= 2) groupsOf[r]++;
             const int flip = S.begin()->second;
             Signed    norm;
             for (auto& [a, s] : S) norm[a] = s * flip;
-            auto key = std::make_pair(m, norm);
+            auto key = std::make_tuple(m, ms.second, norm);
             auto it  = fProducts.find(key);
             int  p;
             if (it == fProducts.end()) {
@@ -310,6 +455,7 @@ void Planner::plan()
                 AtomDef def;
                 def.kind = AtomDef::kProduct;
                 def.coef = m;
+                def.sym  = ms.second ? symbols[ms.second] : nullptr;
                 def.sum  = int(fSums.size()) - 1;
                 fAtoms.push_back(def);
                 p              = int(fAtoms.size()) - 1;
@@ -443,7 +589,7 @@ Tree Planner::buildAtom(int a, std::unordered_map<Tree, Tree>& memo)
             t      = sigDelay(t, d);
         }
     } else if (def.kind == AtomDef::kProduct) {
-        Tree c = sigReal(def.coef);
+        Tree c = coefficientTree(def, false);
         Tree s = buildSigned(fSums[def.sum], memo);
         t      = sigProd({c, s});
     } else {
@@ -454,6 +600,16 @@ Tree Planner::buildAtom(int a, std::unordered_map<Tree, Tree>& memo)
     }
     fBuilt[a] = t;
     return t;
+}
+
+/// the coefficient of a product, negated or not : the number, or the symbol times the number
+Tree Planner::coefficientTree(const AtomDef& def, bool negated)
+{
+    if (def.sym == nullptr) {
+        return sigReal(negated ? -def.coef : def.coef);
+    }
+    Tree c = (def.coef == 1.0) ? def.sym : sigProd({sigReal(def.coef), def.sym});
+    return negated ? sigNeg(c) : c;
 }
 
 Tree Planner::buildSigned(const Signed& s, std::unordered_map<Tree, Tree>& memo)
@@ -488,9 +644,11 @@ Tree Planner::buildRow(int r, std::unordered_map<Tree, Tree>& memo)
                     neg.push_back(sigNeg(x));
                 }
             }
-            if (pos.empty()) return sigProd({sigReal(-def.coef), buildSigned(S, memo)});
+            if (pos.empty()) {
+                return sigProd({coefficientTree(def, true), buildSigned(S, memo)});
+            }
             pos.insert(pos.end(), neg.begin(), neg.end());
-            return sigProd({sigReal(def.coef), (pos.size() == 1) ? pos[0] : sigSum(pos)});
+            return sigProd({coefficientTree(def, false), (pos.size() == 1) ? pos[0] : sigSum(pos)});
         }
     }
     return buildSigned(top, memo);
