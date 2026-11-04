@@ -28,7 +28,8 @@ JSFILE_PATH="ui.js"
 
 #------------------------------------------------------------------------------
 # 1/ MAX/MSP SDK Should be installed somewhere
-MAXSDK=/usr/local/include/c74support
+# MAXSDK is declared in faustpath: the MAXSDK variable when it is set,
+# /usr/local/include/c74support otherwise
 EXT="~.mxe64"
 
 if [ ! -d "${MAXSDK}" ]; then
@@ -43,8 +44,16 @@ fi
 
 : ${MINGWPREFIX="x86_64-w64-mingw32-"}
 CXX="${MINGWPREFIX}g++"
-(which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found"; exit 1)
-DLLWRAP="${MINGWPREFIX}dllwrap --target=x86_64-w64-mingw32 -Wl,--dynamicbase -Wl,--enable-auto-image-base"
+which "$CXX" >/dev/null || { echo "MingW compiler $CXX not found" 1>&2; exit 1; }
+# The DLL is linked with dllwrap when it is there; recent MinGW
+# distributions no longer ship it, and the compiler driver then links it
+# itself, the .def file giving the exported symbol
+DLLFLAGS="-Wl,--dynamicbase -Wl,--enable-auto-image-base"
+if which "${MINGWPREFIX}dllwrap" >/dev/null 2>&1; then
+    DLLWRAP="${MINGWPREFIX}dllwrap --target=x86_64-w64-mingw32 $DLLFLAGS --driver-name $CXX --def"
+else
+    DLLWRAP="$CXX -shared $DLLFLAGS"
+fi
 STRIP="${MINGWPREFIX}strip"
 
 #-----------------------------------------------------------------------------
@@ -96,29 +105,30 @@ for p in $FILES; do
 
     # creates a temporary dir
     TDR=$(mktemp -d faust.XXX)
-    TMP="$TDR/${f%.dsp}"
-    mkdir "$TMP"
+    # not TMP: on Windows, the compiler creates its temporary files in TMP
+    BUILDDIR="$TDR/${f%.dsp}"
+    mkdir "$BUILDDIR"
 
     # compile faust to c++
-    faust -i -double -cn ${f%.dsp} -uim -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    faust -i -double -cn ${f%.dsp} -uim -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$BUILDDIR/${f%.dsp}.cpp" || exit
 
     # compile c++ to binary
     (
-        cd "$TMP"
-        echo "TMP=$TMP"
+        cd "$BUILDDIR"
+        echo "BUILDDIR=$BUILDDIR"
 
         # we need to create the .def file needed to generate the .dll
-        echo "LIBRARY     ${f%.dsp}~"                          > ${f%.dsp}.def
+        echo "LIBRARY     \"${f%.dsp}$EXT\""                > ${f%.dsp}.def
         echo "DESCRIPTION 'Faust generated MAX plugin'"     >> ${f%.dsp}.def
         echo "EXPORTS     main"                             >> ${f%.dsp}.def
 
         $CXX $CXXINCS $CXXFLAGS $MC $POST -c "${f%.dsp}.cpp" -o "${f%.dsp}.o"
-        $DLLWRAP --driver-name $CXX --def ${f%.dsp}.def *.o  $LIBS -static -o "${f%.dsp}$EXT"
+        $DLLWRAP ${f%.dsp}.def *.o $LIBS -static -o "${f%.dsp}$EXT"
         # Read: https://beta.cycling74.com/t/error-998-loading-external-generated-with-faust2max6-on-windows/3327/10
         # $STRIP "${f%.dsp}$EXT"
     ) > /dev/null || exit
 
-    cp "$TMP/${f%.dsp}$EXT" "$SRCDIR"
+    cp "$BUILDDIR/${f%.dsp}$EXT" "$SRCDIR"
 
     # remove temporary directory
     rm -rf "$TDR"

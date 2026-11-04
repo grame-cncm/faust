@@ -454,6 +454,19 @@ install (
     FILES ${ARCHDIR}/httpdlib/src/include/HTTPDControler.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/gui
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
+# the same for the headers of the OSC lib, which faust -i reads through
+# faust/gui/OSCUI.h (max-msp64.cpp, used by faust2w64max6, for instance)
+install (
+    FILES ${ARCHDIR}/osclib/faust/faust/OSCControler.h ${ARCHDIR}/osclib/faust/faust/OSCIO.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/gui
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+install (
+    DIRECTORY ${ARCHDIR}/osclib/faust/faust/osc/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/osc
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+    DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    FILES_MATCHING PATTERN "*.h"
+)
 
 ####################################
 # install faust2xxx tools
