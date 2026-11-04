@@ -41,6 +41,9 @@ SOUNDFILELIBS=""
 SAMPLERATEDEFS=""
 SAMPLERATELIBS=""
 OPT=""
+OPTIONS=""
+ARCH="auto"
+ARCHOPT=""
 
 echoHelp() 
 {
@@ -61,6 +64,8 @@ echoHelp()
     option -me "to catch math computation exceptions (floating point exceptions and integer div-by-zero or overflow)"
     option -debug "to print all the build steps"
     option -nodeploy
+    option "-arch auto|arm64|x86_64|universal" "selects the macOS application architecture (auto builds for the current machine; the others need a Qt built for them)"
+    option -universal "alias for '-arch universal'"
     option "-I include-path" "add an include-directory to the generated Qt project for finding ffunction headers and such"
     option "Faust options"
     exit
@@ -105,6 +110,15 @@ do
         EFFECT=$1
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
+    elif [ $p = "-arch" ]; then
+        shift
+        ARCH=$1
+        if [[ "$ARCH" != "auto" && "$ARCH" != "arm64" && "$ARCH" != "x86_64" && "$ARCH" != "universal" ]]; then
+            echo "Invalid architecture '$ARCH' (expected auto, arm64, x86_64, or universal)"
+            exit 1
+        fi
+    elif [ $p = "-universal" ]; then
+        ARCH="universal"
     elif [ $p = "-I" ]; then
         shift
         ADDEDINCLUDES+=" INCLUDEPATH+=$1"
@@ -157,6 +171,29 @@ if [[ $(uname) == Darwin ]]; then
         CLANGOPT=""
     fi
     EXT=".app"
+
+    # auto lets qmake build for the current machine. The other values set
+    # QMAKE_APPLE_DEVICE_ARCHS, which only links if Qt itself holds the
+    # requested architectures: check it here rather than fail at link time.
+    case "$ARCH" in
+        universal) QTARCHS="x86_64 arm64" ;;
+        arm64|x86_64) QTARCHS="$ARCH" ;;
+        *) QTARCHS="" ;;
+    esac
+    if [ -n "$QTARCHS" ]; then
+        ARCHOPT="QMAKE_APPLE_DEVICE_ARCHS = $QTARCHS"
+        QTCORE="$(qmake -query QT_INSTALL_LIBS)/QtCore.framework/QtCore"
+        if [ -f "$QTCORE" ]; then
+            QTCOREARCHS=$(lipo -archs "$QTCORE")
+            for a in $QTARCHS; do
+                if [[ " $QTCOREARCHS " != *" $a "* ]]; then
+                    echo "Cannot build for '$ARCH': the Qt in $(qmake -query QT_INSTALL_PREFIX) is built for '$QTCOREARCHS' only"
+                    echo "(the Qt online installer provides universal builds; Homebrew's Qt is built for the current machine only)"
+                    exit 1
+                fi
+            done
+        fi
+    fi
 fi
 
 #-------------------------------------------------------------------
@@ -220,7 +257,7 @@ EndOfCode
     # compile c++ to binary
     (
         cd "$TMP"
-        qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$FAUSTINC" $ADDEDINCLUDES "INCLUDEPATH+=$SOUNDFILEINC" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS $HTTPLIBS1" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$MATHDEFS" "$SAMPLERATEDEFS" "$PRESETDEFS"
+        qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "$ARCHOPT" "INCLUDEPATH+=$FAUSTINC" $ADDEDINCLUDES "INCLUDEPATH+=$SOUNDFILEINC" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS $HTTPLIBS1" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$MATHDEFS" "$SAMPLERATEDEFS" "$PRESETDEFS"
         qmake $SPEC
         make
     ) > /dev/null || exit
