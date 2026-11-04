@@ -507,6 +507,106 @@ Tree Planner::rewrite(Tree L)
     return treeRewritePaired(L, rule, memo);
 }
 
+/// a real product at the sample rate that holds a slower factor (a control, a constant of
+/// the initialization) : a number held in one of its factors -- a product k * S, as the
+/// planner builds it or the normal form holds it, a gain kernel FIR[x, k] -- joins the
+/// product, its factors ordered by rate, so that the generators compute k * slow at the slow
+/// rate : one product less per sample (karplus32 : 0.5 * (a + b) in a product by a control,
+/// fSlow4 * (0.5f * (a + b)) instead of fSlow3 * (a + b)). A factor read elsewhere stays
+/// whole : its product is computed once, and released in each of its readers it would be
+/// computed again (vocal, the gain of a filter section read by its two states)
+Tree foldSlowGains(Tree L)
+{
+    const ExactSolvers             exact(L);
+    std::unordered_map<Tree, Tree> memo;
+    // the number of reads of every signal, one per branch that holds it
+    std::unordered_map<Tree, int> reads;
+    {
+        std::unordered_set<Tree> seen;
+        std::vector<Tree>        work{L};
+        while (!work.empty()) {
+            Tree t = work.back();
+            work.pop_back();
+            if (!seen.insert(t).second) {
+                continue;
+            }
+            Tree var, body;
+            if (isRec(t, var, body)) {
+                if (body != nullptr) {
+                    reads[body]++;
+                    work.push_back(body);
+                }
+                continue;
+            }
+            for (int i = 0; i < t->arity(); i++) {
+                reads[t->branch(i)]++;
+                work.push_back(t->branch(i));
+            }
+        }
+    }
+    auto rule = [&](Tree orig, Tree rebuilt) -> Tree {
+        tvec fo, fr;
+        if (!isSigProd(orig, fo) || !isSigProd(rebuilt, fr) || fo.size() != fr.size() ||
+            exact.nature(orig) != kReal || exact.variability(orig) != kSamp) {
+            return rebuilt;
+        }
+        bool slow = false;
+        for (Tree f : fo) {
+            slow = slow || exact.variability(f) < kSamp;
+        }
+        if (!slow) {
+            return rebuilt;
+        }
+        // the factors, (rebuilt factor, its rate), the numbers of the inner products and
+        // gain kernels released
+        std::vector<std::pair<Tree, int>> out;
+        bool                              changed = false;
+        double                            v;
+        for (size_t k = 0; k < fo.size(); k++) {
+            tvec so, sr;
+            if (reads[fo[k]] != 1) {
+                out.push_back({fr[k], exact.variability(fo[k])});
+                continue;
+            }
+            if (exact.nature(fo[k]) == kReal && exact.variability(fo[k]) == kSamp &&
+                isSigProd(fo[k], so) && isSigProd(fr[k], sr) && so.size() == sr.size()) {
+                bool number = false;
+                for (Tree s : so) {
+                    number = number || numVal(s, v);
+                }
+                if (number) {
+                    for (size_t j = 0; j < so.size(); j++) {
+                        out.push_back({sr[j], exact.variability(so[j])});
+                    }
+                    changed = true;
+                    continue;
+                }
+            }
+            if (exact.nature(fo[k]) == kReal && isSigFIR(fo[k], so) && so.size() == 2 &&
+                isSigFIR(fr[k], sr) && sr.size() == 2 && numVal(sr[1], v)) {
+                out.push_back({sr[1], kKonst});
+                out.push_back({sr[0], exact.variability(so[0])});
+                changed = true;
+                continue;
+            }
+            out.push_back({fr[k], exact.variability(fo[k])});
+        }
+        if (!changed) {
+            return rebuilt;
+        }
+        std::stable_sort(out.begin(), out.end(),
+                         [](const std::pair<Tree, int>& a, const std::pair<Tree, int>& b) {
+                             return a.second < b.second;
+                         });
+        tvec fs;
+        for (auto& [f, r] : out) {
+            fs.push_back(f);
+        }
+        return sigProd(fs);
+    };
+    return treeRewritePaired(L, rule, memo);
+}
+
 }  // namespace
 
 Tree shareSums(Tree L)
@@ -516,5 +616,5 @@ Tree shareSums(Tree L)
     p.plan();
     bool any = false;
     for (bool b : p.fRewrite) any = any || b;
-    return any ? p.rewrite(L) : L;
+    return foldSlowGains(any ? p.rewrite(L) : L);
 }
