@@ -46,7 +46,7 @@ class bela_midi : public midi_handler {
         {
             bela_midi* midi = static_cast<bela_midi*>(arg);
             int type = message.getType();       // which MIDI message, 128-255
-            int channel = message.getChannel(); // which MIDI channel, 1-16
+            int channel = message.getChannel(); // which MIDI channel, 0-15
             double time = 0.;
             
             switch (type) {

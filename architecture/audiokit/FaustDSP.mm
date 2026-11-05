@@ -166,10 +166,22 @@ class Faustmydsp : public DSPBase, public GenericUI {
     #ifdef MIDICTRL
         void handleMIDIEvent(AUMIDIEvent const& ev) override
         {
+            // ev.eventType is AURenderEventMIDI or AURenderEventMIDISysEx, not the MIDI status:
+            // ev.data holds the whole message, status byte included, and ev.length its size
+            if (ev.eventType != AURenderEventMIDI || ev.length == 0) return;
+            int status = ev.data[0];
+            int type = status & 0xf0;
+            int channel = status & 0x0f;
+
+            // MIDI sync
             if (ev.length == 1) {
-                fMidiHandler.handleData1(ev.eventSampleTime, ev.eventType, ev.data[0]);
+                fMidiHandler.handleSync(ev.eventSampleTime, status);
+            // One data byte messages
             } else if (ev.length == 2) {
-                fMidiHandler.handleData2(ev.eventSampleTime, ev.eventType, ev.data[0], ev.data[1]);
+                fMidiHandler.handleData1(ev.eventSampleTime, type, channel, ev.data[1]);
+            // Two data bytes messages
+            } else if (ev.length == 3) {
+                fMidiHandler.handleData2(ev.eventSampleTime, type, channel, ev.data[1], ev.data[2]);
             }
         }
     #endif
