@@ -4,11 +4,11 @@ CPPFLAGS ?= -I../../architecture
 
 .PHONY: check clean
 
-check: rpn-number-repro
-	./rpn-number-repro
+check: rpn-nrpn-decoding
+	./rpn-nrpn-decoding
 
-rpn-number-repro: rpn-number-repro.cpp ../../architecture/faust/midi/midi.h
+rpn-nrpn-decoding: rpn-nrpn-decoding.cpp ../../architecture/faust/midi/midi.h
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
 clean:
-	rm -f rpn-number-repro
+	rm -f rpn-nrpn-decoding

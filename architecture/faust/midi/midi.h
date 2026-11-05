@@ -121,9 +121,15 @@ class midi {
             ctrlChange14bits(channel, ctrl, value);
         }
     
+        // RPN and NRPN: ctrl is the 14-bit parameter number, value the 14-bit data entry
         virtual void rpn(double, int channel, int ctrl, int value)
         {
             rpn(channel, ctrl, value);
+        }
+
+        virtual void nrpn(double, int channel, int ctrl, int value)
+        {
+            nrpn(channel, ctrl, value);
         }
 
         virtual void progChange(double, int channel, int pgm)
@@ -149,6 +155,7 @@ class midi {
         virtual void ctrlChange(int channel, int ctrl, int value)       {}
         virtual void ctrlChange14bits(int channel, int ctrl, int value) {}
         virtual void rpn(int channel, int ctrl, int value)              {}
+        virtual void nrpn(int channel, int ctrl, int value)             {}
         virtual void pitchWheel(int channel, int wheel)                 {}
         virtual void progChange(int channel, int pgm)                   {}
         virtual void sysEx(std::vector<unsigned char>& message)         {}
@@ -182,92 +189,128 @@ class midi {
 };
 
 /**
- * A class to decode NRPN and RPN messages, adapted from JUCE forum message:
- * https://forum.juce.com/t/14bit-midi-controller-support/11517
+ * Decodes the RPN and NRPN messages of one MIDI channel.
+ *
+ * CC 101/100 (RPN) or CC 99/98 (NRPN) select a parameter. The selection is
+ * kept until another parameter is selected, the RPN null (CC 101 and 100 both
+ * at 127) is received, or Reset All Controllers (CC 121) is received, so
+ * several data entries can follow one selection.
+ *
+ * Data entry follows the MIDI 1.0 rules for 14-bit controllers: CC 6 sets the
+ * MSB and resets the LSB to 0, CC 38 then sets the LSB. Each data entry
+ * produces a value, so a CC 6 + CC 38 pair produces two values, the second
+ * one being the complete 14-bit value. A CC 38 received before any CC 6 for
+ * the selected parameter is ignored.
+ *
+ * When no parameter is selected, CC 6 and CC 38 are not filtered and are
+ * handled as ordinary controllers.
  */
 class MidiNRPN {
     
     private:
     
-        bool ctrlnew;
-        int ctrlnum;
-        int ctrlval;
-        
-        int nrpn_lsb, nrpn_msb;
-        int data_lsb, data_msb;
+        bool fNew;
+        bool fIsRPN;            // kind of the selected parameter
+        int fParamMSB;          // selected parameter number, -1 when unknown
+        int fParamLSB;
+        int fDataMSB;           // data entry of the selected parameter, -1 when unknown
+        int fDataLSB;
+        int fCtrl;              // last decoded parameter number and value
+        int fVal;
+        bool fCtrlIsRPN;
         
         enum
         {
+            midi_data_msb = 6,
+            midi_data_lsb = 38,
             midi_nrpn_lsb = 98,
             midi_nrpn_msb = 99,
             midi_rpn_lsb  = 100,
             midi_rpn_msb  = 101,
-            midi_data_lsb = 38,
-            midi_data_msb = 6
+            midi_reset_all_controllers = 121
         };
     
+        bool isSelected() const
+        {
+            return (fParamMSB >= 0) && (fParamLSB >= 0) && !(fIsRPN && fParamMSB == 127 && fParamLSB == 127);
+        }
+
+        void select(bool is_rpn, bool msb, int value)
+        {
+            // Switching between RPN and NRPN forgets the other byte: an RPN MSB
+            // followed by an NRPN LSB does not name any parameter
+            if (is_rpn != fIsRPN) {
+                fIsRPN = is_rpn;
+                fParamMSB = fParamLSB = -1;
+            }
+            if (msb) {
+                fParamMSB = value;
+            } else {
+                fParamLSB = value;
+            }
+            fDataMSB = fDataLSB = -1;
+        }
+
+        void output()
+        {
+            fCtrl = (fParamMSB << 7) | fParamLSB;
+            fVal = (fDataMSB << 7) | fDataLSB;
+            fCtrlIsRPN = fIsRPN;
+            fNew = true;
+        }
+
     public:
         
-        MidiNRPN(): ctrlnew(false), ctrlnum(0), ctrlval(0), nrpn_lsb(-1), nrpn_msb(-1), data_lsb(-1), data_msb(-1)
+        MidiNRPN()
+        :fNew(false), fIsRPN(true), fParamMSB(-1), fParamLSB(-1), fDataMSB(-1), fDataLSB(-1),
+        fCtrl(0), fVal(0), fCtrlIsRPN(true)
         {}
+
+        void reset()
+        {
+            fIsRPN = true;
+            fParamMSB = fParamLSB = -1;
+            fDataMSB = fDataLSB = -1;
+        }
         
-        // return true if the message has been filtered
+        // Return true if the message has been filtered
         bool process(int data1, int data2)
         {
             switch (data1)
             {
-                case midi_nrpn_lsb: nrpn_lsb = data2; return true;
-                case midi_nrpn_msb: nrpn_msb = data2; return true;
-                case midi_rpn_lsb: {
-                    if (data2 == 127) {
-                        nrpn_lsb = data_lsb = -1;
-                    } else {
-                        nrpn_lsb = data2;
-                        data_lsb = -1;
-                    }
-                    return true;
-                }
-                case midi_rpn_msb: {
-                    if (data2 == 127) {
-                        nrpn_msb = data_msb = -1;
-                    } else {
-                        nrpn_msb = data2;
-                        data_msb = -1;
-                    }
-                    return true;
-                }
-                case midi_data_lsb:
+                case midi_rpn_msb:  select(true, true, data2);   return true;
+                case midi_rpn_lsb:  select(true, false, data2);  return true;
+                case midi_nrpn_msb: select(false, true, data2);  return true;
+                case midi_nrpn_lsb: select(false, false, data2); return true;
                 case midi_data_msb:
-                {
-                    if (data1 == midi_data_msb) {
-                        if (nrpn_msb < 0) {
-                            return false;
-                        }
-                        data_msb = data2;
-                    } else { // midi_data_lsb
-                        if (nrpn_lsb < 0) {
-                            return false;
-                        }
-                        data_lsb = data2;
-                    }
-                    if (data_lsb >= 0 && data_msb >= 0) {
-                        ctrlnum = (nrpn_msb << 7) | nrpn_lsb;
-                        ctrlval = (data_msb << 7) | data_lsb;
-                        data_lsb = data_msb = -1;
-                        nrpn_msb = nrpn_lsb = -1;
-                        ctrlnew = true;
+                    if (!isSelected()) return false;
+                    fDataMSB = data2;
+                    fDataLSB = 0;
+                    output();
+                    return true;
+                case midi_data_lsb:
+                    if (!isSelected()) return false;
+                    if (fDataMSB >= 0) {
+                        fDataLSB = data2;
+                        output();
                     }
                     return true;
-                }
+                case midi_reset_all_controllers:
+                    // Reset the selection, and let the message be handled
+                    reset();
+                    return false;
                 default: return false;
             };
         }
         
-        bool hasNewNRPN() { bool res = ctrlnew; ctrlnew = false; return res; }
+        bool hasNewNRPN() { bool res = fNew; fNew = false; return res; }
         
-        // results in [0, 16383]
-        int getCtrl() const { return ctrlnum; }
-        int getVal() const { return ctrlval; }
+        // Kind of the last decoded parameter: true for RPN, false for NRPN
+        bool isRPN() const { return fCtrlIsRPN; }
+
+        // Results in [0, 16383]
+        int getCtrl() const { return fCtrl; }
+        int getVal() const { return fVal; }
     
 };
 
@@ -295,7 +338,7 @@ class midi_handler : public midi, public midi_interface {
 
         std::vector<midi*> fMidiInputs;
         std::string fName;
-        MidiNRPN fNRPN;
+        MidiNRPN fNRPN[16];     // one decoder per channel
     
         int range(int min, int max, int val) { return (val < min) ? min : ((val >= max) ? max : val); }
   
@@ -404,10 +447,15 @@ class midi_handler : public midi, public midi_interface {
         void handleCtrlChange(double time, int channel, int data1, int data2)
         {
             // Special processing for NRPN and RPN
-            if (fNRPN.process(data1, data2)) {
-                if (fNRPN.hasNewNRPN()) {
+            if (channel >= 0 && channel < 16 && fNRPN[channel].process(data1, data2)) {
+                MidiNRPN& nrpn = fNRPN[channel];
+                if (nrpn.hasNewNRPN()) {
                     for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                        fMidiInputs[i]->rpn(time, channel, fNRPN.getCtrl(), fNRPN.getVal());
+                        if (nrpn.isRPN()) {
+                            fMidiInputs[i]->rpn(time, channel, nrpn.getCtrl(), nrpn.getVal());
+                        } else {
+                            fMidiInputs[i]->nrpn(time, channel, nrpn.getCtrl(), nrpn.getVal());
+                        }
                     }
                 }
             } else {
