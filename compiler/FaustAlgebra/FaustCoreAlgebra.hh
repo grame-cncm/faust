@@ -1,0 +1,181 @@
+/* Copyright 2023-2026 Yann Orlarey
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef FAUSTCOREALGEBRA_HH
+#define FAUSTCOREALGEBRA_HH
+
+#include <cstdint>
+#include <string>
+#include <vector>
+
+//=====================================================================================================================
+// The operations shared by the two languages of the compiler : the normal form, whose
+// signature is FaustAlgebra, and the computation form, whose signature is ComputeAlgebra.
+// They carry no decision of the certification, and their nature never matters to a
+// rewrite of the computation form. Each language adds its own operations : the
+// arithmetic, the delays and the operations whose code depends on a decision.
+//=====================================================================================================================
+
+template <typename T>
+class FaustCoreAlgebra
+{
+   public:
+    // Injections of external values (numbers and strings)
+    // NB : lists (cons/nil) are STRUCTURE, not signals -- they never cross the
+    // algebra boundary, so there is no Nil operation. An adapter that must produce a
+    // value for structural syntax uses its domain's inert default.
+    virtual T IntNum(int x) const = 0;
+    virtual T Int64Num(int64_t x) const = 0;
+    virtual T FloatNum(double x) const = 0;
+    virtual T Label(const std::string& s) const = 0;
+
+    // Used when searching for fixpoint
+    virtual T FixPointUpdate(const T& x, const T& y) const = 0;
+
+    // Input Output Operations
+    virtual T Input(const T& chan) const = 0;
+    virtual T Output(const T& chan, const T& x) const = 0;
+
+    // User Interface Elements
+    virtual T Button(const T& name) const = 0;
+    virtual T Checkbox(const T& name) const = 0;
+    virtual T VSlider(const T& name, const T& init, const T& lo, const T& hi, const T& step) const = 0;
+    virtual T HSlider(const T& name, const T& init, const T& lo, const T& hi, const T& step) const = 0;
+    // Bargraphs are signal nodes, so the displayed signal must participate in
+    // every interpretation rather than being supplied by an implicit caller.
+    virtual T HBargraph(const T& name, const T& lo, const T& hi, const T& signal) const = 0;
+    virtual T VBargraph(const T& name, const T& lo, const T& hi, const T& signal) const = 0;
+    virtual T NumEntry(const T& name, const T& init, const T& lo, const T& hi, const T& step) const = 0;
+    // Effect and control wrappers expose both dependencies even when an
+    // interpretation ultimately preserves the value carried by x.
+    virtual T Attach(const T& x, const T& y) const = 0;
+    virtual T Enable(const T& x, const T& control) const = 0;
+    virtual T Control(const T& x, const T& control) const = 0;
+
+    // Numerical Operations that cannot overflow and carry no decision
+    virtual T Highest(const T& x) const = 0;
+    virtual T Lowest(const T& x) const = 0;
+    // The `%` binop and the `fmod` primitive share the modulo semantics but not
+    // the nature : `%` on two integers is an integer, `fmod` is the C function and
+    // is real whatever its operands. One operation cannot answer both, so fmod
+    // gets its own : every domain but the nature answers it with Mod.
+    virtual T Fmod(const T& x, const T& y) const = 0;
+    virtual T Acos(const T& x) const = 0;
+    virtual T Acosh(const T& x) const = 0;
+    virtual T And(const T& x, const T& y) const = 0;
+    virtual T Asin(const T& x) const = 0;
+    virtual T Asinh(const T& x) const = 0;
+    virtual T Atan(const T& x) const = 0;
+    virtual T Atan2(const T& x, const T& y) const = 0;
+    virtual T Atanh(const T& x) const = 0;
+    virtual T Cos(const T& x) const = 0;
+    virtual T Cosh(const T& x) const = 0;
+    virtual T Eq(const T& x, const T& y) const = 0;
+    virtual T Exp(const T& x) const = 0;
+    virtual T Exp10(const T& x) const = 0;
+    virtual T FloatCast(const T& x) const = 0;
+    virtual T BitCast(const T& x) const = 0;
+    virtual T Ge(const T& x, const T& y) const = 0;
+    virtual T Gt(const T& x, const T& y) const = 0;
+    virtual T IntCast(const T& x) const = 0;
+    virtual T Le(const T& x, const T& y) const = 0;
+    virtual T Log(const T& x) const = 0;
+    virtual T Log10(const T& x) const = 0;
+    virtual T Lt(const T& x, const T& y) const = 0;
+    virtual T Max(const T& x, const T& y) const = 0;
+    virtual T Min(const T& x, const T& y) const = 0;
+    virtual T Ne(const T& x, const T& y) const = 0;
+    virtual T Not(const T& x) const = 0;
+    virtual T Or(const T& x, const T& y) const = 0;
+    // its nature is decided before the certification, and its integer form is always
+    // the defined one : no decision left
+    virtual T Pow(const T& x, const T& y) const = 0;
+    // IEEE remainder is binary; the previous unary signature lost its divisor.
+    virtual T Remainder(const T& x, const T& y) const = 0;
+    virtual T Rint(const T& x) const = 0;
+    virtual T Round(const T& x) const = 0;
+    virtual T Select2(const T& x, const T& y, const T& z) const = 0;
+    virtual T Sin(const T& x) const = 0;
+    virtual T Sinh(const T& x) const = 0;
+    virtual T Sqrt(const T& x) const = 0;
+    virtual T Tan(const T& x) const = 0;
+    virtual T Tanh(const T& x) const = 0;
+    virtual T Xor(const T& x, const T& y) const = 0;
+
+    // Compound operations : each one is the definition written beside it, taken as ONE
+    // operation so that a repeated operand appears once (the dependency problem of the
+    // analyses : x - floor(x) read as two independent values loses that the result
+    // lies in [0, 1]). No default : every algebra says what the operation is in its
+    // domain -- an attribute algebra computes it, a tree algebra builds the node. A
+    // default definition would silently dissolve the node in a tree algebra that forgot
+    // to override it.
+    virtual T Cfrac(const T& x) const = 0;  // x - rint(x)
+    virtual T Tpt(const T& x) const   = 0;  // x / (x + 1)
+
+    // The kernels shared by the two languages, each one taken as ONE operation (an
+    // interval domain bounds a recursive filter by its gain, which its definition, a
+    // recursion, cannot give). No default, as above.
+    //   Iir(x, c) = y, where y(n) = x(n) + sum_k c[k] * y(n - 1 - k) and y(n < 0) = 0
+    //   Bpf(x, t, r) = r[i] for t[i-1] <= x < t[i] (t[-1] = -inf, t[n] = +inf ; a NaN x
+    //               selects the last region) : the break-point function, a selection by
+    //               the position of x among increasing thresholds, r having one more
+    //               element than t
+    virtual T Iir(const T& x, const std::vector<T>& coefs) const                      = 0;
+    virtual T Bpf(const T& x, const std::vector<T>& t, const std::vector<T>& r) const = 0;
+
+    // x at the first sample, then y one sample late : a state of one sample, held by the
+    // node itself
+    virtual T Prefix(const T& x, const T& y) const = 0;
+
+    // Tables and SoundFiles
+    // Bounds refine numeric values but must still be visible to analyses that
+    // validate their constancy and ordering.
+    virtual T AssertBounds(const T& lo, const T& hi, const T& x) const = 0;
+    virtual T RDTbl(const T& wtbl, const T& ri) const = 0;
+    virtual T WRTbl(const T& n, const T& g, const T& wi, const T& ws) const = 0;
+    virtual T Gen(const T& x) const = 0;
+    virtual T SoundFile(const T& label) const = 0;
+    virtual T SoundFileRate(const T& sf, const T& x) const = 0;
+    virtual T SoundFileLength(const T& sf, const T& x) const = 0;
+    virtual T SoundFileBuffer(const T& sf, const T& x, const T& y, const T& z) const = 0;
+    virtual T Waveform(const std::vector<T>& w) const = 0;
+
+    // Foreign functions.
+    //
+    // The declared type is passed as DATA rather than as a carrier value. Stating it as
+    // a T assumes the carrier retains enough of a number to recover the declaration:
+    // true of the interval ([0,0] vs [1,1]), false of a coarser abstraction, which maps
+    // both to its integer element and loses it. `declaredNature` and `resultNature`
+    // follow Faust's own encoding, 0 for integer and 1 for real.
+    virtual T ForeignFunction(int resultNature, const std::vector<T>& args) const = 0;
+    virtual T ForeignVar(int declaredNature, const T& name, const T& file) const = 0;
+    virtual T ForeignConst(int declaredNature, const T& name, const T& file) const = 0;
+
+    virtual ~FaustCoreAlgebra() = default;
+
+   protected:
+    //--------------------------------------------------------------------------------
+    // Copy and move operations are protected: derived algebras keep theirs, but
+    // copying through a FaustCoreAlgebra& (which would slice) is not allowed.
+    //--------------------------------------------------------------------------------
+    FaustCoreAlgebra()                                       = default;
+    FaustCoreAlgebra(const FaustCoreAlgebra&)                = default;
+    FaustCoreAlgebra& operator=(const FaustCoreAlgebra&)     = default;
+    FaustCoreAlgebra(FaustCoreAlgebra&&) noexcept            = default;
+    FaustCoreAlgebra& operator=(FaustCoreAlgebra&&) noexcept = default;
+};
+
+#endif
