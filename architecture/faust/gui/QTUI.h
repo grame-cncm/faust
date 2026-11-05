@@ -1668,11 +1668,19 @@ public:
         QDoubleSpinBox* w = new QDoubleSpinBox();
         w->setAlignment(Qt::AlignHCenter);
 #if 1
+        // With a border and NoButtons, some styles (Qt 6 on macOS) still reserve the
+        // (hidden) button area, leaving the inner line edit about 1 pixel wide so the
+        // value is not visible: place the buttons relative to the border and set an
+        // explicit padding so that the line edit gets the whole width.
         w->setStyleSheet(
                          "QDoubleSpinBox {"
                          "border: 2px solid orange;"
                          "border-radius: 5px;"
+                         "padding: 0px 3px;"
                          "font-size: 8pt;"
+                         "}"
+                         "QDoubleSpinBox::up-button, QDoubleSpinBox::down-button {"
+                         "subcontrol-origin: border;"
                          "}"
                          );
 #endif
