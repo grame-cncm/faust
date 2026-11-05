@@ -222,7 +222,7 @@ class MidiNRPN {
                     if (data2 == 127) {
                         nrpn_lsb = data_lsb = -1;
                     } else {
-                        nrpn_lsb = 0;
+                        nrpn_lsb = data2;
                         data_lsb = -1;
                     }
                     return true;
@@ -231,7 +231,7 @@ class MidiNRPN {
                     if (data2 == 127) {
                         nrpn_msb = data_msb = -1;
                     } else {
-                        nrpn_msb = 0;
+                        nrpn_msb = data2;
                         data_msb = -1;
                     }
                     return true;
