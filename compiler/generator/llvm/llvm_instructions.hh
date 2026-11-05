@@ -174,17 +174,22 @@ struct LLVMTypeHelper {
     virtual ~LLVMTypeHelper() {}
 
     // Value generation
+    // Integer constants must be built with their signedness: since LLVM 23,
+    // ConstantInt::get(Type*, uint64_t) no longer truncates the value, so a
+    // negative int (sign extended to 64 bits) gives an invalid 32 bits APInt
+    // (high bits set) in builds without assertions, which then crashes the x86
+    // code generator or is silently miscompiled on other targets.
     LLVMValue genInt1(int num)
     {
-        return llvm::ConstantInt::get(llvm::Type::getInt1Ty(fModule->getContext()), num);
+        return llvm::ConstantInt::get(llvm::Type::getInt1Ty(fModule->getContext()), num != 0);
     }
     LLVMValue genInt32(int num)
     {
-        return llvm::ConstantInt::get(llvm::Type::getInt32Ty(fModule->getContext()), num);
+        return llvm::ConstantInt::getSigned(llvm::Type::getInt32Ty(fModule->getContext()), num);
     }
     LLVMValue genInt64(int64_t num)
     {
-        return llvm::ConstantInt::get(llvm::Type::getInt64Ty(fModule->getContext()), num);
+        return llvm::ConstantInt::getSigned(llvm::Type::getInt64Ty(fModule->getContext()), num);
     }
     LLVMValue genFloat(float num)
     {
