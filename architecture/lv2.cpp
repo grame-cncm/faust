@@ -1792,13 +1792,16 @@ static string mangle(const string &s)
   return t;
 }
 
+// epp:rangeSteps is the number of points of the range, both ends included,
+// hence one more than the number of steps. The quotient is rounded, since
+// e.g. (1.3f-0.3f)/0.1f comes out just below 10.
 static unsigned steps(float min, float max, float step)
 {
-  if (step == 0.0) return 1;
-  int n = (max-min)/step;
+  if (step == 0.0) return 2;
+  int n = lrintf((max-min)/step);
   if (n < 0) n = -n;
   if (n == 0) n = 1;
-  return n;
+  return n+1;
 }
 
 // Escape a C++ string for inclusion in a Turtle quoted string literal.
@@ -2065,11 +2068,11 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
         lv2:portProperty epp:hasStrictBounds ;\n\
 #       lv2:portProperty epp:expensive ;\n\
         lv2:portProperty lv2:integer ;\n\
-        epp:rangeSteps %d ;\n\
+        epp:rangeSteps %u ;\n\
 	lv2:default %d ;\n\
 	lv2:minimum 1 ;\n\
 	lv2:maximum %d ;\n\
-    ]", idx==0?"    lv2:port":" ,", idx, plugin->maxvoices-1,
+    ]", idx==0?"    lv2:port":" ,", idx, steps(1, plugin->maxvoices, 1),
       plugin->maxvoices>1?plugin->maxvoices/2:1,
       plugin->maxvoices);
     idx++;
@@ -2084,11 +2087,12 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
 	lv2:name \"tuning\" ;\n\
         lv2:portProperty epp:hasStrictBounds ;\n\
         lv2:portProperty lv2:integer ;\n\
-        epp:rangeSteps %d ;\n\
+        epp:rangeSteps %u ;\n\
 	lv2:default 0 ;\n\
 	lv2:minimum 0 ;\n\
 	lv2:maximum %d ;\n",
-	idx==0?"    lv2:port":" ,", idx, plugin->n_tunings, plugin->n_tunings);
+	idx==0?"    lv2:port":" ,", idx, steps(0, plugin->n_tunings, 1),
+	plugin->n_tunings);
       for (int i = 0; i <= plugin->n_tunings; i++)
 	fprintf(fp, "\
 	lv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ] ;\n",
