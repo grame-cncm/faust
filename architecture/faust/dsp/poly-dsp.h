@@ -313,6 +313,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     int fCurNote;                       // Current playing note pitch
     int fNextNote;                      // In kLegatoVoice state, next note to play
     int fNextVel;                       // In kLegatoVoice state, next velocity to play
+    int fChannel;                       // MIDI channel in [0..15] of the current note (of the next one in kLegatoVoice state)
     int fDate;                          // KeyOn date
     FAUSTFLOAT fLevel;                  // Last audio block level
     std::vector<std::string> fGatePath; // Paths of 'gate' control
@@ -332,6 +333,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         dsp->buildUserInterface(this);
         fCurNote = kFreeVoice;
         fNextNote = fNextVel = -1;
+        fChannel = 0;
         fLevel = FAUSTFLOAT(0);
         fDate = 0;
         extractPaths(fGatePath, fFreqPath, fGainPath);
@@ -409,6 +411,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         decorator_dsp::instanceClear();
         fCurNote = kFreeVoice;
         fNextNote = fNextVel = -1;
+        fChannel = 0;
         fLevel = FAUSTFLOAT(0);
         fDate = 0;
     }
@@ -795,13 +798,15 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
         }
     
-        // Get the index of a voice currently playing a specific pitch
-        int getPlayingVoice(int pitch)
+        // Get the index of a voice currently playing a specific pitch on a specific channel:
+        // the same pitch may be played on several channels at once
+        int getPlayingVoice(int channel, int pitch)
         {
             int voice_playing = kNoVoice;
             int oldest_date_playing = INT_MAX;
             
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
+                if (fVoiceTable[i]->fChannel != channel) continue;
                 int curNote = fVoiceTable[i]->fCurNote;
                 int nextNote = fVoiceTable[i]->fNextNote;
                 if ((curNote == pitch) || ((curNote == kLegatoVoice) && (nextNote == pitch))) {
@@ -1077,6 +1082,16 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
         }
     
+        // Terminate the active voices started on 'channel' in [0..15]
+        void channelNotesOff(int channel, bool hard = false)
+        {
+            for (size_t i = 0; i < fVoiceTable.size(); i++) {
+                if ((fVoiceTable[i]->fChannel == channel) && (fVoiceTable[i]->fCurNote != kFreeVoice)) {
+                    fVoiceTable[i]->keyOff(hard);
+                }
+            }
+        }
+
         // Both base classes declare it: the dsp_poly interface gets the dsp_voice_group count
         virtual int getNumActiveVoices()
         {
@@ -1106,6 +1121,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         {
             if (checkPolyphony()) {
                 int voice = getFreeVoice();
+                fVoiceTable[voice]->fChannel = channel;
                 fVoiceTable[voice]->keyOn(pitch, velocity, fVoiceTable[voice]->fCurNote == kLegatoVoice);
                 return fVoiceTable[voice];
             } else {
@@ -1116,7 +1132,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         void keyOff(int channel, int pitch, int velocity = 127)
         {
             if (checkPolyphony()) {
-                int voice = getPlayingVoice(pitch);
+                int voice = getPlayingVoice(channel, pitch);
                 if (voice != kNoVoice) {
                     fVoiceTable[voice]->keyOff();
                 } else {
@@ -1127,12 +1143,13 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
 
         void ctrlChange(int channel, int ctrl, int value)
         {
+            // Channel mode messages only concern the voices started on their channel
             if (ctrl == ALL_NOTES_OFF) {
                 // Release the voices
-                allNotesOff(false);
+                channelNotesOff(channel, false);
             } else if (ctrl == ALL_SOUND_OFF) {
                 // Mute the voices immediately, whatever their release time
-                allNotesOff(true);
+                channelNotesOff(channel, true);
             }
         }
 

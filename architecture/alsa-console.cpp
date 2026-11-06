@@ -182,6 +182,7 @@ int main(int argc, char *argv[] )
     rt_midi midi_handler(name);
     MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
+    midiinterface.setChannel(MidiMeta::getChannel(DSP, argv));
     cout << "MIDI is on" << endl;
 #endif
 

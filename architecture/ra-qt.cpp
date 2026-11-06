@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
     snprintf(rcfilename, 256, "%s/.%src", home, basename(argv[0]));
     
     if (isopt(argv, "-h")) {
-        std::cout << "prog [--sample-rate <val>] [--buffer <val>] [--poly] [--group <0/1>] [--virtual-midi <0/1>]\n";
+        std::cout << "prog [--sample-rate <val>] [--buffer <val>] [--poly] [--group <0/1>] [--virtual-midi <0/1>] [--midi-channel <1..16>]\n";
         exit(1);
     }
     
@@ -173,6 +173,7 @@ int main(int argc, char* argv[])
     rt_midi midi_handler(name, is_virtual);
     MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
+    midiinterface.setChannel(MidiMeta::getChannel(DSP, argv));
     std::cout << "MIDI is on" << std::endl;
 #endif
     

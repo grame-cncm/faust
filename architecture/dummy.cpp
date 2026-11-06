@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
     snprintf(rcfilename, 256, "%s/.%src", home, name);
     
     if (isopt(argv, "-h")) {
-        cout << argv[0] << " [--nvoices <val>] [--group <0/1>]\n";
+        cout << argv[0] << " [--nvoices <val>] [--midi-channel <1..16>] [--group <0/1>]\n";
         exit(1);
     }
     
@@ -199,6 +199,7 @@ int main(int argc, char* argv[])
     rt_midi midi_handler(name);
     MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
+    midiinterface.setChannel(MidiMeta::getChannel(DSP, argv));
 #endif
     
     finterface.recallState(rcfilename);
