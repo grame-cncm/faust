@@ -24,6 +24,19 @@
 
 #define register        // suppress the deprecated 'register' warning
 
+#include <cstring>
+
+void FAUSTerror(char* msg);
+
+// A string is copied as is into the generated code, in string literals and in
+// comments: a backslash or a "*/" would change the meaning of that code
+static void checkString(const char* str)
+{
+    if (strchr(str, '\\') || strstr(str, "*/")) {
+        FAUSTerror((char*)"a string can't contain a backslash or '*/'");
+    }
+}
+
 %}
 
 DIGIT    [0-9]
@@ -232,7 +245,7 @@ NSID     {ID}("::"{ID})*
 "::"{NSID}       return IDENT;
 {NSID}           return IDENT;
 
-"\""[^\"]*"\""   return STRING;
+"\""[^\"]*"\""   { checkString(yytext); return STRING; }
 
 "<"{LETTER}*"."{LETTER}">"    return FSTRING;
 "<"{LETTER}*">"               return FSTRING;
