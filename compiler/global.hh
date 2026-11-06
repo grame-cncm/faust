@@ -534,10 +534,12 @@ struct global {
     xtended*& gLog10Prim = sigs::g.gLog10Prim;
     xtended*& gFmodPrim = sigs::g.gFmodPrim;
     xtended*& gFloorPrim = sigs::g.gFloorPrim;
+    xtended*& gFloorApproxPrim = sigs::g.gFloorApproxPrim;
     xtended*& gExpPrim = sigs::g.gExpPrim;
     xtended*& gExp10Prim = sigs::g.gExp10Prim;
     xtended*& gCosPrim = sigs::g.gCosPrim;
     xtended*& gCeilPrim = sigs::g.gCeilPrim;
+    xtended*& gCeilApproxPrim = sigs::g.gCeilApproxPrim;
     xtended*& gAtanPrim = sigs::g.gAtanPrim;
     xtended*& gAtan2Prim = sigs::g.gAtan2Prim;
     xtended*& gAsinPrim = sigs::g.gAsinPrim;

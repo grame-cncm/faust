@@ -19,6 +19,7 @@
 
 #include "global.hh"
 #include "sharing.hh"
+#include "computeSignals.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
 #include "xtended.hh"
@@ -60,8 +61,8 @@ class DefinitionIndex {
     void record(Tree t)
     {
         Tree  u, c, a, b;
-        if (isSigFrac(t, u) || isSigCfrac(t, u) || isSigTpt(t, u) || isSigMix(t, c, a, b) ||
-            isSigPhase(t, a, b)) {
+        if (isFracNode(t, u) || isSigCfrac(t, u) || isSigTpt(t, u) || isMixNode(t, c, a, b) ||
+            isPhaseNode(t, a, b)) {
             fCompounds.push_back(t);
             return;
         }
@@ -71,7 +72,8 @@ class DefinitionIndex {
             return;
         }
         if (ud != nullptr && t->arity() == 1) {
-            if (ud == static_cast<void*>(gGlobal->gFloorPrim)) {
+            if (ud == static_cast<void*>(gGlobal->gFloorPrim) ||
+                ud == static_cast<void*>(gGlobal->gFloorApproxPrim)) {
                 fFloor.emplace(t->branch(0), t);
             } else if (ud == static_cast<void*>(gGlobal->gRintPrim)) {
                 fRint.emplace(t->branch(0), t);
@@ -141,10 +143,10 @@ class DefinitionIndex {
     Tree held(Tree t) const
     {
         Tree x, a, b;
-        if (isSigFrac(t, x)) return floorOf(x);
+        if (isFracNode(t, x)) return floorOf(x);
         if (isSigCfrac(t, x)) return rintOf(x);
         if (isSigTpt(t, x)) return plusOneOf(x);
-        if (isSigPhase(t, a, b)) return remOf(a, b);
+        if (isPhaseNode(t, a, b)) return remOf(a, b);
         return nullptr;
     }
 

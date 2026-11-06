@@ -54,6 +54,8 @@
 #include "irm_weight.hh"
 #include "bpf_table.hh"
 #include "sigtyperules.hh"
+#include "computeForm.hh"
+#include "computeSignals.hh"
 #include "timing.hh"
 #include "xtendedCodegen.hh"
 
@@ -175,6 +177,19 @@ Tree InstructionsCompiler::prepare(Tree LS)
     checkValidity(L2);    // an integer remainder that may stop, a signal never valid
     checkLightTypes(L2);  // FAUST_CHECK_LIGHT_TYPES : the light typing against the certified one
 
+    // the computation form : the decisions of the code, taken once on the certified
+    // program (computeForm.hh) ; the normal form stays for the drawings
+    const Tree N2 = L2;
+    {
+        startTiming("computationForm");
+        ComputeForm cf(L2);
+        L2 = cf.program();
+        fConditionProperty.clear();
+        conditionAnnotation(L2);
+        recursivnessAnnotation(L2);
+        endTiming("computationForm");
+    }
+
     startTiming("sharingAnalysis");
     sharingAnalysis(L2, fSharingKey);  // Annotate L2 with sharing count
     endTiming("sharingAnalysis");
@@ -192,7 +207,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     if (gGlobal->gDrawSignals) {
         if (gGlobal->gDrawRetiming) {
             startTiming("retiming");
-            Tree L3 = sigRetiming(L2);
+            Tree L3 = sigRetiming(N2);
             endTiming("retiming");
             startTiming("retimed type annotation");
             typeAnnotation(L3, true);
@@ -201,10 +216,9 @@ Tree InstructionsCompiler::prepare(Tree LS)
             sigToGraph(L3, dotfile);
         }
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
-        sigToGraph(L2, dotfile);
+        sigToGraph(N2, dotfile);
     }
 
-    fProgram = L2;
     return L2;
 }
 
@@ -214,6 +228,8 @@ Tree InstructionsCompiler::prepare2(Tree L0)
 
     recursivnessAnnotation(L0);        // Annotate L0 with recursivness information
     typeAnnotation(L0, true);          // Annotate L0 with type information
+    L0 = ComputeForm(L0).program();    // the decisions of the code (computeForm.hh)
+    recursivnessAnnotation(L0);
     sharingAnalysis(L0, fSharingKey);  // Annotate L0 with sharing count
 
     delete fOccMarkup;
@@ -786,21 +802,33 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     } else if (tvec iir; isSigIIR(sig, iir)) {
         return generateIIR(sig, iir);
     } else if (Tree ix, ip; isSigIRM(sig, ix, ip)) {
-        return generateIRM(sig, ix, ip);
+        faustassert(false);  // translated into the computation form (computeForm.hh)
+        return nullptr;
+    } else if (IrmForm form; isCfIrm(sig, x, y, form)) {
+        return generateIRM(sig, x, y, form);
     } else if (isSigBpf(sig)) {
         return generateBpf(sig);
     } else if (isSigNeg(sig, x)) {
         return generateNeg(sig, x);
     } else if (isSigFrac(sig, x)) {
-        return generateRemainder(sig, x, gGlobal->gFloorPrim);
+        faustassert(false);  // translated into the computation form (computeForm.hh)
+        return nullptr;
+    } else if (bool approx; isCfFrac(sig, x, approx)) {
+        return generateRemainder(sig, x, approx ? gGlobal->gFloorApproxPrim : gGlobal->gFloorPrim);
     } else if (isSigCfrac(sig, x)) {
         return generateRemainder(sig, x, gGlobal->gRintPrim);
     } else if (isSigTpt(sig, x)) {
         return generateTpt(sig, x);
     } else if (Tree a, p; isSigPhase(sig, a, p)) {
-        return generatePhase(sig, a, p);
-    } else if (Tree c, a, b; isSigMix(sig, c, a, b)) {
-        return generateMix(sig, c, a, b);
+        faustassert(false);  // translated into the computation form (computeForm.hh)
+        return nullptr;
+    } else if (bool inv; isCfPhase(sig, x, y, inv)) {
+        return generatePhase(sig, x, y, inv);
+    } else if (isSigMix(sig, c, x, y)) {
+        faustassert(false);  // translated into the computation form (computeForm.hh)
+        return nullptr;
+    } else if (MixForm form; isCfMix(sig, c, x, y, form)) {
+        return generateMix(sig, c, x, y, form);
     } else if (isSigFFun(sig, ff, largs)) {
         return generateFFun(sig, ff, largs);
     } else if (isSigFConst(sig, type, name, file)) {
@@ -1240,7 +1268,7 @@ ValueInst* InstructionsCompiler::compoundSlowStore(int variability, ValueInst* e
 ValueInst* InstructionsCompiler::generateRemainder(Tree sig, Tree x, xtended* round)
 {
     // the program's own rounding of x, when it holds one
-    Tree held = (round == gGlobal->gFloorPrim) ? fDefinitions.floorOf(x) : fDefinitions.rintOf(x);
+    Tree held = (round == gGlobal->gRintPrim) ? fDefinitions.rintOf(x) : fDefinitions.floorOf(x);
     if (held != nullptr) {
         ValueInst* hx = compoundOperand(x);
         ValueInst* hr = compoundOperand(held);
@@ -1269,9 +1297,9 @@ ValueInst* InstructionsCompiler::generateTpt(Tree sig, Tree x)
 /**
  * phase(x, p) = (x % p) / p : the program's own remainder when it holds one (the
  * definition of a counter, ba.period), read from its variable ; the division is real, a
- * product by 1/p when phaseByReciprocal says so.
+ * product by 1/p when the node says so (byInverse, phaseByReciprocal on the certified p).
  */
-ValueInst* InstructionsCompiler::generatePhase(Tree sig, Tree x, Tree p)
+ValueInst* InstructionsCompiler::generatePhase(Tree sig, Tree x, Tree p, bool byInverse)
 {
     const bool isInt = getCertifiedSigType(x)->nature() == kInt && getCertifiedSigType(p)->nature() == kInt;
     ValueInst* vp    = compoundOperand(p);
@@ -1290,7 +1318,7 @@ ValueInst* InstructionsCompiler::generatePhase(Tree sig, Tree x, Tree p)
         BasicTyped* ft = genFloatType(getCertifiedSigType(sig));
         vr             = IB::genCastInst(vr, ft);
         vp             = IB::genCastInst(vp, ft);
-        if (phaseByReciprocal(p)) {
+        if (byInverse) {
             ValueInst* one = IB::genRealNumInst(itfloat(), 1.0);
             ValueInst* inv = compoundSlowStore(getCertifiedSigType(p)->variability(),
                                                IB::genBinopInst(kDiv, one, vp));
@@ -1306,24 +1334,27 @@ ValueInst* InstructionsCompiler::generatePhase(Tree sig, Tree x, Tree p)
 
 /**
  * mix(c, a, b) = (1 - c) * a + c * b, computed as an interpolation from the operand whose
- * weight may be near 1 (itv::mixFromB, on the interval of c) : b + (1 - c) * (a - b) when
- * c >= 1/2, 1 - c being then exact, a + c * (b - a) otherwise. Either keeps its fixed point
- * exactly, and costs about one rounding of the result when the weight of the difference is
- * small (a slow smoother) ; the interval of the node bounds this same computation.
+ * weight may be near 1 (the form of the node, itv::mixFromB on the certified c) :
+ * b + (1 - c) * (a - b) when c >= 1/2, 1 - c being then exact, a + c * (b - a) otherwise.
+ * Either keeps its fixed point exactly, and costs about one rounding of the result when the
+ * weight of the difference is small (a slow smoother) ; the interval of the node bounds
+ * this same computation.
  */
-ValueInst* InstructionsCompiler::generateMix(Tree sig, Tree c, Tree a, Tree b)
+ValueInst* InstructionsCompiler::generateMix(Tree sig, Tree c, Tree a, Tree b, MixForm form)
 {
     ValueInst* va = compoundOperand(a);
     ValueInst* vb = compoundOperand(b);
     // c written 1 - t : b + t * (a - b), 1 - t never computed (mixForm.hh)
-    if (Tree t; mixFromWeight(c, getCertifiedSigType(c)->getInterval(), t)) {
+    if (form == MixForm::kFromWeight) {
+        Tree t;
+        faustassert(mixComplementOf(c, t));
         ValueInst* vt = compoundOperand(t);
         ValueInst* d  = IB::genBinopInst(kSub, va, vb);
         ValueInst* p  = IB::genBinopInst(kMul, vt, d);
         return generateCacheCode(sig, IB::genBinopInst(kAdd, vb, p));
     }
     ValueInst* vc = compoundOperand(c);
-    if (itv::mixFromB(getCertifiedSigType(c)->getInterval())) {
+    if (form == MixForm::kFromB) {
         const int  vrc = getCertifiedSigType(c)->variability();
         ValueInst* w   = IB::genBinopInst(kSub, IB::genRealNumInst(itfloat(), 1.0), vc);
         if (vrc < getCertifiedSigType(sig)->variability() && vrc != kSamp) {
@@ -2833,7 +2864,7 @@ ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& iir)
  * error of the source). The interval of the node bounds every form (Irm). The value is
  * stored in the node's line, read back at delay 1.
  */
-ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p)
+ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p, IrmForm form)
 {
     int mxd = fOccMarkup->retrieve(sig)->getMaxDelay();
     faustassert(mxd >= 1);
@@ -2850,8 +2881,7 @@ ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p)
     ValueInst* prev = lineRead(vname, mxd, 1);
     ValueInst* vx   = compoundOperand(x);
     const int  vr   = std::max(getCertifiedSigType(x)->variability(), getCertifiedSigType(p)->variability());
-    const bool real = getCertifiedSigType(sig)->nature() == kReal;
-    if (real && (!w || (vr != kSamp && !reachesDecision(sig)))) {
+    if (form == IrmForm::kWeighted) {
         const int  vrp = getCertifiedSigType(p)->variability();
         ValueInst* vw  = IB::genBinopInst(kSub, IB::genRealNumInst(itfloat(), 1.0), compoundOperand(p));
         if (vrp != kSamp) {
@@ -2863,7 +2893,7 @@ ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p)
         }
         ValueInst* vp = compoundOperand(p);
         code          = IB::genBinopInst(kAdd, wx, IB::genBinopInst(kMul, vp, prev));
-    } else if (!w && !itv::mixFromB(getCertifiedSigType(p)->getInterval())) {
+    } else if (form == IrmForm::kFromX) {
         ValueInst* d = IB::genBinopInst(kSub, prev, vx);
         code         = IB::genBinopInst(kAdd, vx, IB::genBinopInst(kMul, compoundOperand(p), d));
     } else {
@@ -2881,20 +2911,6 @@ ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p)
         code         = IB::genBinopInst(kAdd, lineRead(vname, mxd, 1), IB::genBinopInst(kMul, vw, d));
     }
     return writeIIRLine(sig, code, ctype, vname, mxd);
-}
-
-/// sig may reach a decision : a comparison, a discontinuous function, an integer conversion,
-/// a delay amount, an index (decisionCone.hh) ; without the prepared program, assumed so
-bool InstructionsCompiler::reachesDecision(Tree sig)
-{
-    if (fProgram == nullptr) {
-        return true;
-    }
-    if (!fDecisionConeBuilt) {
-        fDecisionCone      = decisionCone(fProgram, /*discontinuities*/ true);
-        fDecisionConeBuilt = true;
-    }
-    return fDecisionCone.count(sig) > 0;
 }
 
 /**

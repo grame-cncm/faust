@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <iostream>
 
+#include "computeSignals.hh"
 #include "global.hh"
 #include "occurrences.hh"
 #include "recursivness.hh"
@@ -226,7 +227,7 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
         } else if (isSigPrefix(t, y, x)) {
             incOcc(env, v0, r0, 1, c0, x);
             incOcc(env, v0, r0, 0, c0, y);
-        } else if (Tree ix, ic; isSigIRM(t, ix, ic)) {
+        } else if (Tree ix, ic; isIrmNode(t, ix, ic)) {
             // IRM(X; C) : y = mix(C, X, y@1) -- the node reads ITSELF at delay 1, the
             // input and the pole at delay 0
             incOcc(env, v0, r0, 0, c0, ix);

@@ -21,6 +21,7 @@
 
 #include <property.hh>
 #include <signals.hh>
+#include "computeSignals.hh"
 #include <sstream>
 
 #include "tlib-error.hh"
@@ -252,15 +253,15 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
     }
 
     // the compound operations : their arguments
-    else if (isSigFrac(sig, x) || isSigCfrac(sig, x) || isSigTpt(sig, x) || isSigNeg(sig, x)) {
+    else if (isFracNode(sig, x) || isSigCfrac(sig, x) || isSigTpt(sig, x) || isSigNeg(sig, x)) {
         vsigs.push_back(x);
         return 1;
-    } else if (isSigMix(sig, c, x, y)) {
+    } else if (isMixNode(sig, c, x, y)) {
         vsigs.push_back(c);
         vsigs.push_back(x);
         vsigs.push_back(y);
         return 3;
-    } else if (isSigPhase(sig, x, y) || isSigIRM(sig, x, y)) {
+    } else if (isPhaseNode(sig, x, y) || isIrmNode(sig, x, y)) {
         vsigs.push_back(x);
         vsigs.push_back(y);
         return 2;

@@ -304,10 +304,12 @@ global::global()
     gLog10Prim     = new Log10Prim();
     gFmodPrim      = new FmodPrim();
     gFloorPrim     = new FloorPrim();
+    gFloorApproxPrim = new FloorApproxPrim();
     gExpPrim       = new ExpPrim();
     gExp10Prim     = new Exp10Prim();
     gCosPrim       = new CosPrim();
     gCeilPrim      = new CeilPrim();
+    gCeilApproxPrim = new CeilApproxPrim();
     gAtanPrim      = new AtanPrim();
     gAtan2Prim     = new Atan2Prim();
     gAsinPrim      = new AsinPrim();
