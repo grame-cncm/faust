@@ -569,6 +569,10 @@ static void compileRust(Tree signals, int numInputs, int numOutputs, ostream* ou
     gContainer =
         RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
 
+    // A Rust soundfile is never null: the DSP owns a default one (from the architecture file)
+    // until the host installs its own with 'set_soundfile'
+    gGlobal->gUseDefaultSound = false;
+
     if (gGlobal->gVectorSwitch) {
         // Required to not alias mutable buffers
         gGlobal->gRemoveVarAddress = true;

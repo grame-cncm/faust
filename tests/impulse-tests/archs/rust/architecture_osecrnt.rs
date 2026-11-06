@@ -45,12 +45,35 @@ type FaustFloat = f64;
 #[derive(Copy, Clone)]
 pub struct ParamIndex(i32);
 
-pub struct Soundfile<'a> {
-    fBuffers: &'a &'a F32,
-    fLength: &'a i32,
-    fSR: &'a i32,
-    fOffset: &'a i32,
-    fChannels: i32,
+pub const MAX_SOUNDFILE_PARTS: usize = 256;
+const SOUNDFILE_BUFFER_SIZE: usize = 1024;
+const SOUNDFILE_SAMPLE_RATE: i32 = 44100;
+
+/// The soundfile read by the 'soundfile' primitive: MAX_SOUNDFILE_PARTS parts, the loaded files
+/// followed by empty parts, stored one after the other in each channel buffer.
+/// The generated code reads channel 'chan % fChannels' at 'fOffset[part] + index', with the index
+/// kept in [0, fLength[part] - 1]. Contract: fChannels >= 1, fBuffers holds fChannels buffers, and
+/// fLength, fSR and fOffset have MAX_SOUNDFILE_PARTS entries (otherwise the DSP code panics).
+pub struct Soundfile<T> {
+    pub fBuffers: Vec<Vec<T>>,
+    pub fLength: Vec<i32>,
+    pub fSR: Vec<i32>,
+    pub fOffset: Vec<i32>,
+    pub fChannels: i32,
+}
+
+impl<T: Copy + Default> Default for Soundfile<T> {
+    /// The default sound, used until the host installs one: a silent channel, every part
+    /// SOUNDFILE_BUFFER_SIZE frames long, all parts sharing the same buffer
+    fn default() -> Self {
+        Soundfile {
+            fBuffers: vec![vec![T::default(); SOUNDFILE_BUFFER_SIZE]],
+            fLength: vec![SOUNDFILE_BUFFER_SIZE as i32; MAX_SOUNDFILE_PARTS],
+            fSR: vec![SOUNDFILE_SAMPLE_RATE; MAX_SOUNDFILE_PARTS],
+            fOffset: vec![0; MAX_SOUNDFILE_PARTS],
+            fChannels: 1,
+        }
+    }
 }
 
 pub trait Meta {
@@ -92,12 +115,16 @@ pub trait UI<T> {
     fn add_horizontal_bargraph(&mut self, label: &str, param: ParamIndex, min: T, max: T);
     fn add_vertical_bargraph(&mut self, label: &str, param: ParamIndex, min: T, max: T);
 
+    // -- soundfiles: the host loads the files of 'url', then gives them to 'set_soundfile(param, ...)'
+    fn add_soundfile(&mut self, label: &str, url: &str, param: ParamIndex) {}
+
     // -- metadata declarations
     fn declare(&mut self, param: Option<ParamIndex>, key: &str, value: &str);
 }
 
 pub struct ButtonUI {
     all_button_params: Vec<ParamIndex>,
+    soundfiles: Vec<(String, ParamIndex)>,
 }
 
 impl ButtonUI {
@@ -146,6 +173,11 @@ impl<T: Float + FromPrimitive> UI<T> for ButtonUI {
     fn add_horizontal_bargraph(&mut self, label: &str, param: ParamIndex, min: T, max: T) {}
     fn add_vertical_bargraph(&mut self, label: &str, param: ParamIndex, min: T, max: T) {}
 
+    // -- soundfiles
+    fn add_soundfile(&mut self, label: &str, url: &str, param: ParamIndex) {
+        self.soundfiles.push((url.to_string(), param));
+    }
+
     // -- metadata declarations
     fn declare(&mut self, param: Option<ParamIndex>, key: &str, value: &str) {}
 }
@@ -156,6 +188,84 @@ impl<T: Float + FromPrimitive> UI<T> for ButtonUI {
 
 // Generated class:
 <<includeclass>>
+
+// Soundfiles of the test: the fixture of the C++ harness (TestMemoryReader in controlTools.h).
+// Each channel has its own phase, so that reading a soundfile with more channels than it has
+// shows the 'chan % fChannels' wrap.
+const SOUND_CHAN: usize = 2;
+const SOUND_LENGTH: usize = 4096;
+const SOUND_SR: i32 = 44100;
+
+// Number of files of a soundfile url: "{'a.wav';'b.wav'}" has two
+fn soundfile_part_count(url: &str) -> usize {
+    url.trim()
+        .trim_start_matches('{')
+        .trim_end_matches('}')
+        .split(';')
+        .filter(|part| !part.trim().is_empty())
+        .count()
+        .max(1)
+}
+
+// Every file of the url is a SOUND_LENGTH part, the remaining parts are empty, as SoundUI does
+fn test_soundfile(url: &str) -> Soundfile<FaustFloat> {
+    let real_parts = soundfile_part_count(url).min(MAX_SOUNDFILE_PARTS);
+    let total_length =
+        real_parts * SOUND_LENGTH + (MAX_SOUNDFILE_PARTS - real_parts) * SOUNDFILE_BUFFER_SIZE;
+    let mut soundfile = Soundfile {
+        fBuffers: vec![vec![0.0 as FaustFloat; total_length]; SOUND_CHAN],
+        fLength: Vec::with_capacity(MAX_SOUNDFILE_PARTS),
+        fSR: Vec::with_capacity(MAX_SOUNDFILE_PARTS),
+        fOffset: Vec::with_capacity(MAX_SOUNDFILE_PARTS),
+        fChannels: SOUND_CHAN as i32,
+    };
+    let mut offset = 0;
+    for part in 0..MAX_SOUNDFILE_PARTS {
+        let real = part < real_parts;
+        let length = if real { SOUND_LENGTH } else { SOUNDFILE_BUFFER_SIZE };
+        soundfile.fLength.push(length as i32);
+        soundfile.fSR.push(if real { SOUND_SR } else { SOUNDFILE_SAMPLE_RATE });
+        soundfile.fOffset.push(offset as i32);
+        if real {
+            for chan in 0..SOUND_CHAN {
+                for sample in 0..SOUND_LENGTH {
+                    let phase = (2.0 * std::f64::consts::PI * sample as f64) / SOUND_LENGTH as f64;
+                    soundfile.fBuffers[chan][offset + sample] =
+                        (part as f64 + chan as f64 + phase).sin() as FaustFloat;
+                }
+            }
+        }
+        offset += length;
+    }
+    soundfile
+}
+
+// A DSP without soundfile has no 'set_soundfile': this default keeps the call below valid,
+// the inherent method of a DSP with soundfiles being chosen first
+trait TestSoundfileDsp {
+    fn set_soundfile(
+        &mut self,
+        param: ParamIndex,
+        soundfile: Soundfile<FaustFloat>,
+    ) -> Result<Soundfile<FaustFloat>, Soundfile<FaustFloat>> {
+        Err(soundfile)
+    }
+}
+
+impl TestSoundfileDsp for mydsp {}
+
+fn load_test_soundfiles(dsp: &mut mydsp) {
+    let mut ui = ButtonUI {
+        all_button_params: Vec::new(),
+        soundfiles: Vec::new(),
+    };
+    mydsp::build_user_interface_static(&mut ui);
+    for (url, param) in ui.soundfiles {
+        if dsp.set_soundfile(param, test_soundfile(&url)).is_err() {
+            panic!("soundfile '{}' cannot be installed", url);
+        }
+    }
+}
 
 const SAMPLE_RATE: i32 = 44100;
 
@@ -185,6 +295,7 @@ fn run_dsp(
     // Prepare UI
     let mut ui = ButtonUI {
         all_button_params: Vec::new(),
+        soundfiles: Vec::new(),
     };
     dsp.build_user_interface(&mut ui);
 
@@ -244,6 +355,12 @@ fn run_dsp(
     }
 }
 
+fn new_dsp() -> Box<mydsp> {
+    let mut dsp = mydsp::default_boxed();
+    load_test_soundfiles(&mut dsp);
+    dsp
+}
+
 fn main() {
     let num_total_samples = 60000;
 
@@ -255,7 +372,7 @@ fn main() {
         .expect("ERROR: Output file name expected.");
     let mut output_file = File::create(output_file_name).expect("Cannot create output file");
 
-    print_header(mydsp::default_boxed(), num_total_samples, &mut output_file);
+    print_header(new_dsp(), num_total_samples, &mut output_file);
 
-    run_dsp(mydsp::default_boxed(), block_size, 0, &mut output_file);
+    run_dsp(new_dsp(), block_size, 0, &mut output_file);
 }

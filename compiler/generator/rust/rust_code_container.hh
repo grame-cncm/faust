@@ -42,8 +42,12 @@ class RustCodeContainer : public virtual CodeContainer {
     RustInstVisitor          fCodeProducer;
     std::ostream*            fOut;
     std::vector<std::string> fStaticVarNames;
+    RustSoundfiles           fSoundfiles;
 
     void produceMetadata(int tabs);
+    void collectSoundfiles();
+    void produceSoundfileSetter(int tabs, const std::map<std::string, int>& parameterLookup,
+                                const std::set<std::string>& soundfileZones);
 
     virtual void printHeader() { CodeContainer::printHeader(*fOut); }
 
@@ -70,7 +74,8 @@ class RustCodeContainer : public virtual CodeContainer {
     virtual void              produceInfoFunctions(int tabs, const std::string& classname,
                                                    const std::string& obj, bool ismethod,
                                                    FunTyped::FunAttribute funtype, TextInstVisitor* producer);
-    virtual void produceParameterGetterSetter(int tabs, std::map<std::string, int> parameterLookup);
+    virtual void produceParameterGetterSetter(int tabs, std::map<std::string, int> parameterLookup,
+                                              const std::set<std::string>& soundfileZones);
 
     CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
     CodeContainer* createVectorContainer(const std::string& name, int sub_container_type);

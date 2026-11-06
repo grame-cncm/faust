@@ -48,12 +48,35 @@ type FaustFloat = F32;
 #[derive(Copy, Clone)]
 pub struct ParamIndex(pub i32);
 
-pub struct Soundfile<'a,T> {
-    fBuffers: &'a&'a T,
-    fLength: &'a i32,
-    fSR: &'a i32,
-    fOffset: &'a i32,
-    fChannels: i32
+pub const MAX_SOUNDFILE_PARTS: usize = 256;
+const SOUNDFILE_BUFFER_SIZE: usize = 1024;
+const SOUNDFILE_SAMPLE_RATE: i32 = 44100;
+
+/// The soundfile read by the 'soundfile' primitive: MAX_SOUNDFILE_PARTS parts, the loaded files
+/// followed by empty parts, stored one after the other in each channel buffer.
+/// The generated code reads channel 'chan % fChannels' at 'fOffset[part] + index', with the index
+/// kept in [0, fLength[part] - 1]. Contract: fChannels >= 1, fBuffers holds fChannels buffers, and
+/// fLength, fSR and fOffset have MAX_SOUNDFILE_PARTS entries (otherwise the DSP code panics).
+pub struct Soundfile<T> {
+    pub fBuffers: Vec<Vec<T>>,
+    pub fLength: Vec<i32>,
+    pub fSR: Vec<i32>,
+    pub fOffset: Vec<i32>,
+    pub fChannels: i32,
+}
+
+impl<T: Copy + Default> Default for Soundfile<T> {
+    /// The default sound, used until the host installs one: a silent channel, every part
+    /// SOUNDFILE_BUFFER_SIZE frames long, all parts sharing the same buffer
+    fn default() -> Self {
+        Soundfile {
+            fBuffers: vec![vec![T::default(); SOUNDFILE_BUFFER_SIZE]],
+            fLength: vec![SOUNDFILE_BUFFER_SIZE as i32; MAX_SOUNDFILE_PARTS],
+            fSR: vec![SOUNDFILE_SAMPLE_RATE; MAX_SOUNDFILE_PARTS],
+            fOffset: vec![0; MAX_SOUNDFILE_PARTS],
+            fChannels: 1,
+        }
+    }
 }
 
 pub trait FaustDsp {
@@ -99,6 +122,9 @@ pub trait UI<T> {
     // -- passive widgets
     fn add_horizontal_bargraph(&mut self, label: &str, param: ParamIndex, min: T, max: T);
     fn add_vertical_bargraph(&mut self, label: &str, param: ParamIndex, min: T, max: T);
+
+    // -- soundfiles: the host loads the files of 'url', then gives them to 'set_soundfile(param, ...)'
+    fn add_soundfile(&mut self, label: &str, url: &str, param: ParamIndex) {}
 
     // -- metadata declarations
     fn declare(&mut self, param: Option<ParamIndex>, key: &str, value: &str);

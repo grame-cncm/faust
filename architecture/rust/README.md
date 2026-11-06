@@ -54,3 +54,12 @@ default-boxed = ["dep:default-boxed"]
 Then, allocate the DSP with `let dsp = Dsp::default_boxed()` instead of `let dsp = Box::new(Dsp::new())`.
 
 This feature can be opted out by building without the `default-boxed` feature, for example with `--no-default-features`. This removes both the `default-boxed` dependency and the `::default_boxed()` method.
+
+## Soundfiles
+
+A DSP using the `soundfile` primitive owns one `Soundfile<FaustFloat>` per soundfile. Each one starts with the default sound given by `Default` (a silent channel) until the host installs its own:
+
+- `build_user_interface` calls `add_soundfile(label, url, param)` on the UI, a method of the `UI` trait with an empty default body. `url` lists the files, for instance `{'a.wav';'b.wav'}`.
+- The host loads these files into a `Soundfile` and calls `dsp.set_soundfile(param, soundfile)`. The previous soundfile is returned as `Ok`, so that it can be dropped outside of the audio thread. An index that is not a soundfile gets the new soundfile back as `Err`.
+
+The `Soundfile` type is defined by the architecture file. Its fields are those of the C++ `Soundfile` structure: `fChannels` buffers of samples (at least one), each holding all the parts one after the other, then `fLength`, `fSR` and `fOffset`, which must have `MAX_SOUNDFILE_PARTS` (256) entries. The generated code reads channel `chan % fChannels`, so a stereo file read with four outputs gives channels 0, 1, 0, 1. Out-of-range accesses are caught by Rust bounds checks, so a soundfile that breaks this contract makes the DSP panic. `set_soundfile` is a method of the generated struct, not of the `FaustDsp` trait.

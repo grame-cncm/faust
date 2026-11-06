@@ -37,18 +37,149 @@ inline std::string makeNameSingular(const std::string& name)
     return result;
 }
 
-// Visitor used to initialize fields into the DSP constructor
-struct RustInitFieldsVisitor : public DispatchVisitor {
-    std::ostream* fOut;
-    int           fTab;
+/*
+ Soundfiles in Rust.
 
-    RustInitFieldsVisitor(std::ostream* out, int tab = 0) : fOut(out), fTab(tab) {}
+ The FIR reads a soundfile through C++ pointers: a 'Soundfile*' zone given to the UI, a copy of
+ it cached on the stack (or in the struct with -ec), then per access a pointer to one of its
+ fields ('fLength', 'fSR', 'fOffset', 'fBuffers') and a pointer to one channel buffer.
+
+ Rust has no such pointers. The zone is an owned 'Soundfile<FaustFloat>' field (the type comes
+ from the architecture file), and every cache variable is an alias: it is not declared, and each
+ use is replaced by the access path it was initialized with, for instance
+ 'self.fSoundfile0.fBuffers[(1 % self.fSoundfile0.fChannels) as usize]'. The DSP code never
+ writes a soundfile, so evaluating the path at each use reads the same values as the cache.
+ Buffers hold 'FaustFloat' samples, converted to the internal real type when read.
+*/
+class RustSoundfiles : public DispatchVisitor {
+   private:
+    // A variable set to a value, in declaration or store order
+    struct Assignment {
+        std::string fName;
+        Typed*      fType;
+        ValueInst*  fValue;
+    };
+    std::vector<Assignment> fAssignments;
+
+    std::set<std::string>                 fZones;    // the 'Soundfile' fields of the DSP struct
+    std::map<std::string, ValueInst*>     fAliases;  // cache variable => the value it is set to
+    std::map<std::string, Typed::VarType> fAliasTypes;
+
+    // Name of the variable a pointer value is read from, through casts, loads and indexing
+    static std::string rootName(ValueInst* value)
+    {
+        while (CastInst* cast = dynamic_cast<CastInst*>(value)) {
+            value = cast->fInst;
+        }
+        LoadVarInst* load = dynamic_cast<LoadVarInst*>(value);
+        if (!load) {
+            return "";
+        }
+        Address* address = load->fAddress;
+        while (IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address)) {
+            address = indexed->fAddress;
+        }
+        NamedAddress* named = dynamic_cast<NamedAddress*>(address);
+        return (named) ? named->getName() : "";
+    }
+
+    void addAssignment(const std::string& name, Typed* type, ValueInst* value)
+    {
+        if (value && type && isPtrType(type->getType())) {
+            fAssignments.push_back({name, type, value});
+        }
+    }
+
+   public:
+    using DispatchVisitor::visit;
+
+    virtual void visit(AddSoundfileInst* inst) { fZones.insert(inst->fSFZone); }
 
     virtual void visit(DeclareVarInst* inst)
     {
+        addAssignment(inst->getName(), inst->fType, inst->fValue);
+        DispatchVisitor::visit(inst);
+    }
+
+    virtual void visit(StoreVarInst* inst)
+    {
+        // Only a whole variable can be a cache: a store into an array element
+        // ('fZec0[i] = <sample>' in -vec) keeps its target
+        if (dynamic_cast<NamedAddress*>(inst->fAddress)) {
+            addAssignment(inst->getName(), gGlobal->findVarType(inst->getName()), inst->fValue);
+        }
+        DispatchVisitor::visit(inst);
+    }
+
+    // To be called once all the blocks of the container have been visited
+    void resolve()
+    {
+        // A pointer variable is an alias when it is set from a zone or from another alias.
+        // Iterates until no new alias appears, so the result does not depend on block order.
+        bool changed = true;
+        while (changed) {
+            changed = false;
+            for (const auto& it : fAssignments) {
+                if (fZones.count(it.fName) || fAliases.count(it.fName)) {
+                    continue;
+                }
+                std::string root = rootName(it.fValue);
+                if (fZones.count(root) || fAliases.count(root)) {
+                    fAliases[it.fName]    = it.fValue;
+                    fAliasTypes[it.fName] = it.fType->getType();
+                    changed               = true;
+                }
+            }
+        }
+    }
+
+    bool hasZones() const { return !fZones.empty(); }
+    bool isZone(const std::string& name) const { return fZones.count(name) > 0; }
+    bool isAlias(const std::string& name) const { return fAliases.count(name) > 0; }
+
+    ValueInst* getAlias(const std::string& name) const { return fAliases.at(name); }
+
+    // An alias to one channel buffer: reading it gives a 'FaustFloat' sample
+    bool isChannelBuffer(const std::string& name) const
+    {
+        auto it = fAliasTypes.find(name);
+        return (it != fAliasTypes.end()) && isRealPtrType(it->second) &&
+               !isRealPtrPtrType(it->second);
+    }
+
+    // A pointer value derived from a zone, whose C++ cast has no Rust equivalent
+    bool isDerived(ValueInst* value) const
+    {
+        std::string root = rootName(value);
+        return isZone(root) || isAlias(root);
+    }
+};
+
+// Visitor used to initialize fields into the DSP constructor
+struct RustInitFieldsVisitor : public DispatchVisitor {
+    std::ostream*         fOut;
+    int                   fTab;
+    const RustSoundfiles* fSoundfiles;
+
+    RustInitFieldsVisitor(std::ostream* out, int tab = 0,
+                          const RustSoundfiles* soundfiles = nullptr)
+        : fOut(out), fTab(tab), fSoundfiles(soundfiles)
+    {
+    }
+
+    virtual void visit(DeclareVarInst* inst)
+    {
+        if (fSoundfiles && fSoundfiles->isAlias(inst->getName())) {
+            return;
+        }
         tab(fTab, *fOut);
         *fOut << inst->getName() << ": ";
-        ZeroInitializer(fOut, inst->fType);
+        if (fSoundfiles && fSoundfiles->isZone(inst->getName())) {
+            // The architecture file gives the default (silent) soundfile
+            *fOut << "Default::default()";
+        } else {
+            ZeroInitializer(fOut, inst->fType);
+        }
         if (inst->fAddress->isStruct()) {
             *fOut << ",";
         }
@@ -87,6 +218,7 @@ class RustInstVisitor : public TextInstVisitor {
     // Integer wrapping operators
     std::map<int, std::string>      fWrappingOpTable;
     std::unordered_set<std::string> fVarsRequiringGuards;
+    const RustSoundfiles*           fSoundfiles = nullptr;
 
     // Function returning 'bool', to be casted to 'int'
     inline bool isBoolFun(const std::string& name)
@@ -205,8 +337,31 @@ class RustInstVisitor : public TextInstVisitor {
         fVarsRequiringGuards = vars_requiring_guards;
     }
 
+    void setSoundfiles(const RustSoundfiles* soundfiles) { fSoundfiles = soundfiles; }
+
+    bool isSoundfileZone(const std::string& name) const
+    {
+        return fSoundfiles && fSoundfiles->isZone(name);
+    }
+
+    bool isSoundfileAlias(const std::string& name) const
+    {
+        return fSoundfiles && fSoundfiles->isAlias(name);
+    }
+
     virtual void visit(DeclareVarInst* inst)
     {
+        // A soundfile cache is not declared: its uses are replaced by its value
+        if (isSoundfileAlias(inst->getName())) {
+            return;
+        }
+        // The soundfile zone is an owned value, provided by the architecture file
+        if (isSoundfileZone(inst->getName()) && inst->fAddress->isStruct()) {
+            *fOut << inst->getName() << ": Soundfile<FaustFloat>";
+            EndLine(',');
+            return;
+        }
+
         if (inst->fAddress->isStaticStruct() && (inst->getAccess() & Address::kConst)) {
             *fOut << "static ";
         } else if (inst->fAddress->isStaticStruct()) {
@@ -340,8 +495,24 @@ class RustInstVisitor : public TextInstVisitor {
         }
     }
 
+    virtual void visit(StoreVarInst* inst)
+    {
+        // Setting a soundfile cache, or copying it back to the zone after compute: the zone is
+        // never written by the DSP code, and caches are aliases
+        std::string name = inst->getName();
+        if (dynamic_cast<NamedAddress*>(inst->fAddress) &&
+            (isSoundfileAlias(name) || isSoundfileZone(name))) {
+            return;
+        }
+        TextInstVisitor::visit(inst);
+    }
+
     virtual void visit(NamedAddress* named)
     {
+        if (isSoundfileAlias(named->getName())) {
+            fSoundfiles->getAlias(named->getName())->accept(this);
+            return;
+        }
         if (named->isStruct()) {
             if (named->getAccess() & Address::kReference &&
                 named->getAccess() & Address::kMutable) {
@@ -365,7 +536,13 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(IndexedAddress* indexed)
     {
         indexed->fAddress->accept(this);
-        if (isInt32Num(indexed->getIndex())) {
+        // A field of a soundfile: the index is the field number in the 'Soundfile' struct type
+        DeclareStructTypeInst* struct_type =
+            (fSoundfiles && fSoundfiles->hasZones()) ? isStructType(indexed->getName()) : nullptr;
+        if (struct_type) {
+            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->getIndex());
+            *fOut << "." << struct_type->fType->getName(field_index->fNum);
+        } else if (isInt32Num(indexed->getIndex())) {
             *fOut << "[";
             indexed->getIndex()->accept(this);
             *fOut << "]";
@@ -383,7 +560,18 @@ class RustInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(LoadVarInst* inst) { inst->fAddress->accept(this); }
+    virtual void visit(LoadVarInst* inst)
+    {
+        // A soundfile sample is a 'FaustFloat', converted to the internal real type
+        IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+        if (fSoundfiles && indexed && fSoundfiles->isChannelBuffer(indexed->getName())) {
+            *fOut << "(";
+            inst->fAddress->accept(this);
+            *fOut << " as " << fTypeManager->generateType(IB::genItFloatTyped()) << ")";
+        } else {
+            inst->fAddress->accept(this);
+        }
+    }
 
     virtual void visit(LoadVarAddressInst* inst)
     {
@@ -476,6 +664,11 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(::CastInst* inst)
     {
+        // 'fBuffers' is a 'void*' casted to the internal buffer type in C++: Rust buffers are typed
+        if (fSoundfiles && isPtrType(inst->fType->getType()) && fSoundfiles->isDerived(inst)) {
+            inst->fInst->accept(this);
+            return;
+        }
         bool needParentheses = dynamic_cast<CastInst*>(inst->fInst) == nullptr;
         if (needParentheses) {
             *fOut << "(";
@@ -746,6 +939,7 @@ class RustInstVisitor : public TextInstVisitor {
 class UserInterfaceParameterMapping : public DispatchVisitor {
    private:
     std::map<std::string, int> fParameterLookup;
+    std::set<std::string>      fSoundfileZones;
     int                        fParameterIndex;
 
    public:
@@ -756,6 +950,9 @@ class UserInterfaceParameterMapping : public DispatchVisitor {
     virtual ~UserInterfaceParameterMapping() {}
 
     std::map<std::string, int> getParameterLookup() { return fParameterLookup; }
+
+    // Soundfile zones share the index space of the parameters, but are not 'FaustFloat' values
+    std::set<std::string> getSoundfileZones() { return fSoundfileZones; }
 
     virtual void visit(AddMetaDeclareInst* inst)
     {
@@ -786,6 +983,14 @@ class UserInterfaceParameterMapping : public DispatchVisitor {
         if (fParameterLookup.find(inst->fZone) == fParameterLookup.end()) {
             fParameterLookup[inst->fZone] = fParameterIndex++;
         }
+    }
+
+    virtual void visit(AddSoundfileInst* inst)
+    {
+        if (fParameterLookup.find(inst->fSFZone) == fParameterLookup.end()) {
+            fParameterLookup[inst->fSFZone] = fParameterIndex++;
+        }
+        fSoundfileZones.insert(inst->fSFZone);
     }
 };
 
@@ -912,10 +1117,12 @@ class RustUIInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
+    // The UI gets the index to give to 'set_soundfile' with the loaded soundfile
     virtual void visit(AddSoundfileInst* inst)
     {
-        // Not supported for now
-        throw faustexception("ERROR : 'soundfile' primitive not yet supported for Rust\n");
+        *fOut << "ui_interface.add_soundfile(" << quote(inst->fLabel) << ", " << quote(inst->fURL)
+              << ", ParamIndex(" << getParameterIndex(inst->fSFZone) << "))";
+        EndLine();
     }
 };
 

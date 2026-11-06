@@ -385,6 +385,8 @@ void RustCodeContainer::produceClass()
         fCodeProducer.setVarsRequiringGuards(toUnorderedSet(fStaticVarNames));
     }
 
+    collectSoundfiles();
+
     int n = 0;
     if (gGlobal->gReprC) {
         tab(n, *fOut);
@@ -456,7 +458,7 @@ void RustCodeContainer::produceClass()
     }
     tab(n + 2, *fOut);
     *fOut << fKlassName << " {";
-    RustInitFieldsVisitor initializer(fOut, n + 3);
+    RustInitFieldsVisitor initializer(fOut, n + 3, &fSoundfiles);
     generateDeclarations(&initializer);
     tab(n + 2, *fOut);
     *fOut << "}";
@@ -581,6 +583,7 @@ void RustCodeContainer::produceClass()
     UserInterfaceParameterMapping parameterMappingVisitor;
     fUserInterfaceInstructions->accept(&parameterMappingVisitor);
     auto parameterLookup = parameterMappingVisitor.getParameterLookup();
+    auto soundfileZones  = parameterMappingVisitor.getSoundfileZones();
 
     // User interface (non-static method)
     tab(n + 1, *fOut);
@@ -603,7 +606,10 @@ void RustCodeContainer::produceClass()
     *fOut << "}";
 
     // Parameter getter/setter
-    produceParameterGetterSetter(n + 1, parameterLookup);
+    produceParameterGetterSetter(n + 1, parameterLookup, soundfileZones);
+    if (!soundfileZones.empty()) {
+        produceSoundfileSetter(n + 1, parameterLookup, soundfileZones);
+    }
 
     // Control
     if (gGlobal->gExtControl) {
@@ -680,7 +686,55 @@ void RustCodeContainer::produceInfoFunctions(int tabs, const string& classname, 
         ->accept(&fCodeProducer);
 }
 
-void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> parameterLookup)
+/*
+ Soundfile caches can be declared and set in the struct fields (-ec), in control(), in compute()
+ or frame(): every block that can hold one is collected before any code is generated.
+*/
+void RustCodeContainer::collectSoundfiles()
+{
+    fUserInterfaceInstructions->accept(&fSoundfiles);
+    if (!fSoundfiles.hasZones()) {
+        return;
+    }
+    fDeclarationInstructions->accept(&fSoundfiles);
+    fControlDeclarationInstructions->accept(&fSoundfiles);
+    fComputeBlockInstructions->accept(&fSoundfiles);
+    fPostComputeBlockInstructions->accept(&fSoundfiles);
+    fSoundfiles.resolve();
+    fCodeProducer.setSoundfiles(&fSoundfiles);
+}
+
+/*
+ The host loads the soundfile named by the URL that 'add_soundfile' gives with the same index,
+ then installs it here. The previous soundfile is given back, so that the host can drop it
+ outside of the audio thread. An index that is not a soundfile gives the new one back unused.
+*/
+void RustCodeContainer::produceSoundfileSetter(int tabs, const map<string, int>& parameterLookup,
+                                               const set<string>& soundfileZones)
+{
+    tab(tabs, *fOut);
+    tab(tabs, *fOut);
+    *fOut << "pub fn set_soundfile(&mut self, param: ParamIndex, soundfile: Soundfile<FaustFloat>) "
+             "-> Result<Soundfile<FaustFloat>, Soundfile<FaustFloat>> {";
+    tab(tabs + 1, *fOut);
+    *fOut << "match param.0 {";
+    for (const auto& paramPair : parameterLookup) {
+        if (soundfileZones.count(paramPair.first)) {
+            tab(tabs + 2, *fOut);
+            *fOut << paramPair.second << " => Ok(std::mem::replace(&mut self." << paramPair.first
+                  << ", soundfile)),";
+        }
+    }
+    tab(tabs + 2, *fOut);
+    *fOut << "_ => Err(soundfile),";
+    tab(tabs + 1, *fOut);
+    *fOut << "}";
+    tab(tabs, *fOut);
+    *fOut << "}";
+}
+
+void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> parameterLookup,
+                                                     const set<string>& soundfileZones)
 {
     // Add `get_param`
     tab(tabs, *fOut);
@@ -691,6 +745,9 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
     for (const auto& paramPair : parameterLookup) {
         const auto fieldName = paramPair.first;
         const auto index     = paramPair.second;
+        if (soundfileZones.count(fieldName)) {
+            continue;
+        }
         tab(tabs + 2, *fOut);
         *fOut << index << " => Some(self." << fieldName << "),";
     }
@@ -710,6 +767,9 @@ void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> 
     for (const auto& paramPair : parameterLookup) {
         const auto fieldName = paramPair.first;
         const auto index     = paramPair.second;
+        if (soundfileZones.count(fieldName)) {
+            continue;
+        }
         tab(tabs + 2, *fOut);
         *fOut << index << " => { self." << fieldName << " = value }";
     }
