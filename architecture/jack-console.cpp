@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
     DSP->buildUserInterface(&finterface);
     
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << argv[0] << " [--nvoices <num>] [--control <0/1>] [--group <0/1>]\n";
+        cout << argv[0] << " [--nvoices <num>] [--midi-channel <1..16>] [--control <0/1>] [--group <0/1>]\n";
         interface.printhelp_init();
     }
  
@@ -220,6 +220,7 @@ int main(int argc, char* argv[])
     }
     
     DSP->buildUserInterface(midiinterface);
+    midiinterface->setChannel(MidiMeta::getChannel(DSP, argv));
     cout << "MIDI is on" << endl;
 #endif
     

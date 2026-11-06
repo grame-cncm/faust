@@ -339,12 +339,13 @@ class midi_handler : public midi, public midi_interface {
         std::vector<midi*> fMidiInputs;
         std::string fName;
         MidiNRPN fNRPN[16];     // one decoder per channel
+        int fChannel;           // received channel in [1..16], 0 means "all channels"
     
         int range(int min, int max, int val) { return (val < min) ? min : ((val >= max) ? max : val); }
   
     public:
 
-        midi_handler(const std::string& name = "MIDIHandler"):midi_interface(), fName(name) {}
+        midi_handler(const std::string& name = "MIDIHandler"):midi_interface(), fName(name), fChannel(0) {}
         virtual ~midi_handler() {}
 
         void addMidiIn(midi* midi_dsp) { if (midi_dsp) fMidiInputs.push_back(midi_dsp); }
@@ -363,6 +364,20 @@ class midi_handler : public midi, public midi_interface {
         void setName(const std::string& name) { fName = name; }
         std::string getName() { return fName; }
     
+        /**
+         * Restrict the received channel voice messages (notes, controllers, program change,
+         * pressure, pitch bend) to one channel, for every input connected to this handler.
+         * Real-time (clock, start, stop) and SysEx messages are always received.
+         * Outgoing messages are not affected.
+         *
+         * @param channel - in [1..16], 0 to receive all channels (the default)
+         */
+        void setChannel(int channel) { fChannel = ((channel >= 0) && (channel <= 16)) ? channel : 0; }
+        int getChannel() const { return fChannel; }
+
+        // 'channel' is in [0..15] in this layer
+        bool acceptChannel(int channel) const { return (fChannel == 0) || (channel == fChannel - 1); }
+
         // To be used in polling mode
         virtual int recvMessages(std::vector<MIDIMessage>* message) { return 0; }
         virtual void sendMessages(std::vector<MIDIMessage>* message, int count) {}
@@ -404,6 +419,7 @@ class midi_handler : public midi, public midi_interface {
         // MIDI 1 data
         void handleProgChange(double time, int channel, int data1)
         {
+            if (!acceptChannel(channel)) return;
             for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
                 fMidiInputs[i]->progChange(time, channel, data1);
             }
@@ -411,6 +427,7 @@ class midi_handler : public midi, public midi_interface {
     
         void handleAfterTouch(double time, int channel, int data1)
         {
+            if (!acceptChannel(channel)) return;
             for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
                 fMidiInputs[i]->chanPress(time, channel, data1);
             }
@@ -428,6 +445,7 @@ class midi_handler : public midi, public midi_interface {
         // MIDI 2 datas
         void handleKeyOff(double time, int channel, int data1, int data2)
         {
+            if (!acceptChannel(channel)) return;
             for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
                 fMidiInputs[i]->keyOff(time, channel, data1, data2);
             }
@@ -435,6 +453,7 @@ class midi_handler : public midi, public midi_interface {
         
         void handleKeyOn(double time, int channel, int data1, int data2)
         {
+            if (!acceptChannel(channel)) return;
             if (data2 == 0) {
                 handleKeyOff(time, channel, data1, data2);
             } else {
@@ -446,6 +465,8 @@ class midi_handler : public midi, public midi_interface {
     
         void handleCtrlChange(double time, int channel, int data1, int data2)
         {
+            // Filtered before the NRPN decoders, so that they only see the received channel
+            if (!acceptChannel(channel)) return;
             // Special processing for NRPN and RPN
             if (channel >= 0 && channel < 16 && fNRPN[channel].process(data1, data2)) {
                 MidiNRPN& nrpn = fNRPN[channel];
@@ -467,6 +488,7 @@ class midi_handler : public midi, public midi_interface {
         
         void handlePitchWheel(double time, int channel, int data1, int data2)
         {
+            if (!acceptChannel(channel)) return;
             for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
                 fMidiInputs[i]->pitchWheel(time, channel, (data2 << 7) + data1);
             }
@@ -474,6 +496,7 @@ class midi_handler : public midi, public midi_interface {
     
         void handlePitchWheel(double time, int channel, int bend)
         {
+            if (!acceptChannel(channel)) return;
             for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
                 fMidiInputs[i]->pitchWheel(time, channel, bend);
             }
@@ -481,6 +504,7 @@ class midi_handler : public midi, public midi_interface {
         
         void handlePolyAfterTouch(double time, int channel, int data1, int data2)
         {
+            if (!acceptChannel(channel)) return;
             for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
                 fMidiInputs[i]->keyPress(time, channel, data1, data2);
             }
