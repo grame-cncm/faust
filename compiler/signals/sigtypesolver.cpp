@@ -47,7 +47,7 @@ bool isSignalTerm(Tree t, const Signature& sigSignature)
     double  r;
     Tree    g;
     if (isSigInt(t, &i) || isSigInt64(t, &i64) || isSigReal(t, &r)) return true;
-    if (getUserData(t) != nullptr) return true;
+    if (sigXtendedData(t) != nullptr) return true;
     if (isProj(t, i, g)) return true;
     sigs::SignalOpcode op;
     return sigs::signalOpcode(t, sigSignature, op);

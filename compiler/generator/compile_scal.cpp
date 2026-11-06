@@ -524,7 +524,7 @@ static Tree gatequivNormalize(Tree L)
             Tree a2, b2, s2, tb2, ix2;
             if (isSigBinOp(t, &op2, a2, b2) || isSigIntCast(t, a2) || isSigFloatCast(t, a2) ||
                 isSigBitCast(t, a2) || isSigSelect2(t, s2, a2, b2) || isSigRDTbl(t, tb2, ix2) ||
-                (getUserData(t) != nullptr && t->arity() > 0)) {
+                (sigXtendedData(t) != nullptr)) {
                 w++;
             }
         }
@@ -2066,7 +2066,7 @@ class LoopSplitEmitter {
             prescan(y, seen);
             return;
         }
-        if (getUserData(t)) {
+        if (sigXtendedData(t)) {
             for (int k = 0; k < t->arity(); k++) {
                 prescan(t->branch(k), seen);
             }
@@ -2671,8 +2671,8 @@ class LoopSplitEmitter {
             fOpOf[t] = o.op;
             return o;
         }
-        if (getUserData(t)) {
-            xtendedCodegen* p = static_cast<xtendedCodegen*>((xtended*)getUserData(t));
+        if (sigXtendedData(t)) {
+            xtendedCodegen* p = static_cast<xtendedCodegen*>((xtended*)sigXtendedData(t));
             std::vector<std::string> acodes;
             std::vector<Type>        types;
             std::vector<int>         deps;
@@ -3294,12 +3294,12 @@ class LoopSplitEmitter {
                 bool call = (i == kRem) && (getCertifiedSigType(t)->nature() == kReal);
                 return op({sw(x, false), sw(y, false)}, call, 100 + i);
             }
-            if (getUserData(t)) {
+            if (sigXtendedData(t)) {
                 std::vector<int> deps;
                 for (int k = 0; k < t->arity(); k++) {
                     deps.push_back(sw(t->branch(k), false));
                 }
-                const std::string nm = ((xtended*)getUserData(t))->name();
+                const std::string nm = ((xtended*)sigXtendedData(t))->name();
                 return op(deps, SuperNodeGraph::isCallPrim(nm), nameShape(nm));
             }
             if (isSigFFun(t, ff, largs)) {
@@ -5196,7 +5196,7 @@ string ScalarCompiler::generateCode(Tree sig)
             return generateSelectN(sig, it->second);
         }
     }
-    if (getUserData(sig)) {
+    if (sigXtendedData(sig)) {
         return generateXtended(sig);
     } else if (isSigInt(sig, &i)) {
         return generateNumber(sig, T(i));
@@ -5939,7 +5939,7 @@ void ScalarCompiler::computeDisplayFrontier()
         Tree x, y, sel;
         return isSigBinOp(t, &op, x, y) || isSigIntCast(t, x) || isSigFloatCast(t, x) ||
                isSigSelect2(t, sel, x, y) || isSigSum(t) ||
-               (getUserData(t) != nullptr && t->arity() > 0);
+               (sigXtendedData(t) != nullptr);
     };
     while (!work.empty()) {
         Tree t = work.back();
@@ -6053,8 +6053,8 @@ std::string ScalarCompiler::displayExpr(Tree t)
         }
         return acc.empty() ? std::string("0") : acc;
     }
-    if (getUserData(t) != nullptr && t->arity() > 0) {
-        xtendedCodegen*          p = static_cast<xtendedCodegen*>((xtended*)getUserData(t));
+    if (sigXtendedData(t) != nullptr) {
+        xtendedCodegen*          p = static_cast<xtendedCodegen*>((xtended*)sigXtendedData(t));
         std::vector<std::string> args;
         std::vector<Type>        types;
         for (int k = 0; k < t->arity(); k++) {
@@ -6744,7 +6744,7 @@ string ScalarCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2)
 
 string ScalarCompiler::generateXtended(Tree sig)
 {
-    xtendedCodegen* p = static_cast<xtendedCodegen*>((xtended*)getUserData(sig));
+    xtendedCodegen* p = static_cast<xtendedCodegen*>((xtended*)sigXtendedData(sig));
     vector<string> args;
     vector<Type>   types;
 

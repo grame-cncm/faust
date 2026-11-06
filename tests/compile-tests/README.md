@@ -159,3 +159,17 @@ diagram as root, no `process.svg`, a changed file).
 ```sh
 python3 tests/compile-tests/svg-root-name.py --faust build/bin/faust
 ```
+
+### Labels named after a math primitive
+
+`primitive-labels.py` is the regression test of issue #323: a string named
+after an extended primitive (`exp`, `cos`, `pow`...) shares the primitive's
+symbol, and `nentry("exp", ...)` crashed the compiler. It compiles, for each of
+the 22 primitives, its name as the label of a slider, a nentry, a button and a
+bargraph, and also as a group, a soundfile, a declared value and the include of
+an ffunction, under eight option sets (C++, C, ocpp, -vec, -double, -os, -svg,
+-json). Each compilation must succeed and the C++ must carry every label.
+
+```sh
+python3 tests/compile-tests/primitive-labels.py --faust build/bin/faust
+```

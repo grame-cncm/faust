@@ -445,7 +445,7 @@ void SignalFIRCompiler::visit(Tree sig)
      }
      */
 
-    if (xtendedCodegen* xt = static_cast<xtendedCodegen*>((xtended*)getUserData(sig))) {
+    if (xtendedCodegen* xt = static_cast<xtendedCodegen*>((xtended*)sigXtendedData(sig))) {
         compileXtended(sig, xt);
     } else if (isSigInt(sig, &i_val)) {
         compileSigInt(sig, i_val);

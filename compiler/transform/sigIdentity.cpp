@@ -56,7 +56,7 @@ Tree SignalIdentity::transformation(Tree sig)
     double  r;
     Tree    c, sel, w, x, y, z, u, v, var, le, label, ff, largs, type, name, file, sf;
 
-    if (getUserData(sig)) {
+    if (sigXtendedData(sig)) {
         vector<Tree> newBranches;
         for (Tree b : sig->branches()) {
             newBranches.push_back(self(b));

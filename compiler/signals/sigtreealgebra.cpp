@@ -58,7 +58,7 @@ Tree signalRebuild(Tree L, const TreeAlgebra& A)
         double             r;
         sigs::SignalOpcode op;
         const bool         isSignalNode = isSigInt(t, &i) || isSigInt64(t, &i64) ||
-                                  isSigReal(t, &r) || getUserData(t) != nullptr ||
+                                  isSigReal(t, &r) || sigXtendedData(t) != nullptr ||
                                   sigs::signalOpcode(t, sigSignature, op);
         if (!isSignalNode) {
             return t;  // structure: lists, labels, proj -- rec is treeRewrite's own

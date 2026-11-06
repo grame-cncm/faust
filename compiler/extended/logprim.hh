@@ -41,7 +41,7 @@ class LogPrim : public xtendedCodegen {
         faustassert(args.size() == arity());
 
         // log(exp(sig)) ==> sig
-        xtended* xt = (xtended*)getUserData(args[0]);
+        xtended* xt = (xtended*)sigXtendedData(args[0]);
         if (xt == gGlobal->gExpPrim) {
             return args[0]->branch(0);
         } else if (isNum(args[0], n)) {

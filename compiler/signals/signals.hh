@@ -137,6 +137,16 @@ SIGS_API Tree sigBinOp(SOperator op, Tree x, Tree y);
 SIGS_API Tree sigBinOp(int op, Tree x, Tree y);
 SIGS_API bool isSigBinOp(Tree s, int* op, Tree& x, Tree& y);
 
+// Extended primitives (exp, cos, pow...) : the xtended* (opaque here) heading an
+// application, nullptr otherwise. An xtended is attached to the ordinary symbol of its
+// name, which every string leaf of the same name shares -- a label "exp", "cos"... (issue
+// #323) -- so getUserData alone mistakes such a leaf for the primitive. In a signal only a
+// node with branches is an application.
+inline void* sigXtendedData(Tree sig)
+{
+    return (sig->arity() > 0) ? getUserData(sig) : nullptr;
+}
+
 // Foreign functions
 Tree              sigFFun(Tree ff, Tree largs);
 SIGS_API bool isSigFFun(Tree s, Tree& ff, Tree& largs);

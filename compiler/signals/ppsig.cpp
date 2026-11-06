@@ -199,7 +199,7 @@ ostream& ppsig::printrec(ostream& fout, Tree lexp, bool hide) const
 ostream& ppsig::printextended(ostream& fout, Tree sig1) const
 {
     string   sep = "";
-    xtended* p   = (xtended*)getUserData(fSig);
+    xtended* p   = (xtended*)sigXtendedData(fSig);
 
     fout << p->name() << '(';
     for (int i = 0; i < sig1->arity(); i++) {
@@ -237,7 +237,7 @@ ostream& ppsig::print(ostream& fout) const
         fout << "REF[" << i << "]";
     }
 
-    else if (getUserData(fSig)) {
+    else if (sigXtendedData(fSig)) {
         printextended(fout, fSig);
     } else if (isSigInt(fSig, &i)) {
         fout << i;
@@ -504,7 +504,7 @@ ostream& ppsigShared::printrec(ostream& fout, Tree lexp, bool hide) const
 ostream& ppsigShared::printextended(ostream& fout, Tree sig1) const
 {
     string   sep = "";
-    xtended* p   = (xtended*)getUserData(fSig);
+    xtended* p   = (xtended*)sigXtendedData(fSig);
 
     fout << p->name() << '(';
     for (int i = 0; i < sig1->arity(); i++) {
@@ -536,7 +536,7 @@ ostream& ppsigShared::print(ostream& fout) const
         fout << "REF[" << i << "]";
     }
 
-    else if (getUserData(fSig)) {
+    else if (sigXtendedData(fSig)) {
         SIG_INSERT_ID(printextended(s, fSig));
     } else if (isSigInt(fSig, &i)) {
         fout << i;

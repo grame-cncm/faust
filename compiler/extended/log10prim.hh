@@ -41,7 +41,7 @@ class Log10Prim : public xtendedCodegen {
         faustassert(args.size() == arity());
 
         // log10(exp10(sig)) ==> sig
-        xtended* xt = (xtended*)getUserData(args[0]);
+        xtended* xt = (xtended*)sigXtendedData(args[0]);
         if (xt == gGlobal->gExp10Prim) {
             return args[0]->branch(0);
         } else if (isNum(args[0], n)) {

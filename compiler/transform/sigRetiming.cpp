@@ -129,7 +129,7 @@ Tree SignalRetimer::transformation(Tree sig)
     double  r;
     Tree    c, sel, w, x, y, z, var, le, label, ff, largs, type, name, file, sf;
 
-    if (getUserData(sig)) {
+    if (sigXtendedData(sig)) {
         std::vector<Tree> nb1, nb2;
         int               tmax = 0;
         for (Tree b : sig->branches()) {

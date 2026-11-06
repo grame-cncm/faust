@@ -178,7 +178,7 @@ void Signal2SDF::visit(Tree sig)
     vector<Tree> subsig;
     Tree         c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
 
-    xtended* p = (xtended*)getUserData(sig);
+    xtended* p = (xtended*)sigXtendedData(sig);
     if (isList(sig)) {
         do {
             self(hd(sig));

@@ -45,7 +45,7 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
     Tree size, gen, wi, ws, tbl, ri, c, sel, x, y, z, u, v, var, le, label, ff, largs, type, name,
         file, sf;
 
-    if (getUserData(sig)) {
+    if (sigXtendedData(sig)) {
         for (int i1 = 0; i1 < sig->arity(); i1++) {
             vsigs.push_back(sig->branch(i1));
         }

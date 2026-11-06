@@ -59,7 +59,7 @@ void Signal2Elementary::visit(Tree sig)
     Tree   size, gen, wi, ws, tbl, ri, c, sel, x, y, z, var, le, label, ff, largs, type, name, file,
         sf;
 
-    if (getUserData(sig)) {
+    if (sigXtendedData(sig)) {
         for (Tree b : sig->branches()) {
             self(b);
         }

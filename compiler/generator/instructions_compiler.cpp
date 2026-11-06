@@ -728,7 +728,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
 
     // printf("compilation of %p : ", sig); print(sig); printf("\n");
 
-    if (getUserData(sig)) {
+    if (sigXtendedData(sig)) {
         return generateXtended(sig);
     } else if (isSigInt(sig, &i)) {
         return generateIntNumber(sig, i);
@@ -2324,7 +2324,7 @@ ValueInst* InstructionsCompiler::generateSelect2Aux(Tree sig, Tree s1, Tree s2, 
 
 ValueInst* InstructionsCompiler::generateXtended(Tree sig)
 {
-    xtendedCodegen* p = static_cast<xtendedCodegen*>((xtended*)getUserData(sig));
+    xtendedCodegen* p = static_cast<xtendedCodegen*>((xtended*)sigXtendedData(sig));
     Values         args;
     vector<::Type> types;
 

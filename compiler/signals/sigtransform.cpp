@@ -96,7 +96,7 @@ Tree signalTransform(Tree L, const TransformAlgebra& A, std::unordered_map<Tree,
             const bool         isSignalNode = isSigInt(orig, &i) || isSigInt64(orig, &i64) ||
                                       isSigReal(orig, &r) ||
                                       sigs::signalOpcode(orig, sigSignature, op) ||
-                                      getUserData(orig) != nullptr;
+                                      sigXtendedData(orig) != nullptr;
             if (isSignalNode) {
                 if (Tree c = A.cut(orig)) {
                     return c;
@@ -116,7 +116,7 @@ Tree signalTransform(Tree L, const TransformAlgebra& A, std::unordered_map<Tree,
                 }
                 return A.ffApp(orig, ff, args).out;
             }
-            if (void* ud = getUserData(orig)) {
+            if (void* ud = sigXtendedData(orig)) {
                 std::vector<XSig> c;
                 c.reserve(orig->arity());
                 for (int k = 0; k < orig->arity(); k++) {

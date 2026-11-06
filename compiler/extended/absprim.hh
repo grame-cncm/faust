@@ -49,7 +49,7 @@ class AbsPrim : public xtendedCodegen {
         faustassert(args.size() == arity());
 
         // abs(abs(sig)) ==> abs(sig)
-        xtended* xt = (xtended*)getUserData(args[0]);
+        xtended* xt = (xtended*)sigXtendedData(args[0]);
         if (xt == gGlobal->gAbsPrim) {
             return args[0];
 

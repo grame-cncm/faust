@@ -115,7 +115,7 @@ int mterm::complexity() const
 static bool isSigPow(Tree sig, Tree& x, int& n)
 {
     // cerr << "isSigPow("<< *sig << ')' << endl;
-    xtended* p = (xtended*)getUserData(sig);
+    xtended* p = (xtended*)sigXtendedData(sig);
     if (p == gGlobal->gPowPrim) {
         if (isSigInt(sig->branch(1), &n)) {
             x = sig->branch(0);

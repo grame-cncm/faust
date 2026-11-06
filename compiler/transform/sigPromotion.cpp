@@ -95,7 +95,7 @@ void SignalChecker::visit(Tree sig)
         step, t0;
 
     // Extended
-    xtended* p = (xtended*)getUserData(sig);
+    xtended* p = (xtended*)sigXtendedData(sig);
     if (p) {
         // The node's stored type IS the primitive's result type (the annotation just
         // computed it): no need to re-infer it from the argument types.

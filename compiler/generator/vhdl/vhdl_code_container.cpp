@@ -214,7 +214,7 @@ void VhdlCodeContainer::register_component(const Vertex&      component,
     int64_t  i64;
     double   r;
     Tree     x, y;
-    xtended* user_data = (xtended*)getUserData(sig);
+    xtended* user_data = (xtended*)sigXtendedData(sig);
     VhdlType sig_type;
     switch (component.nature) {
         case Nature::kInt:

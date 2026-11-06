@@ -196,7 +196,7 @@ void SignalRenderer<REAL>::visit(Tree sig)
     }
     */
 
-    if (xtended* xt = (xtended*)getUserData(sig)) {
+    if (xtended* xt = (xtended*)sigXtendedData(sig)) {
         vector<Node> args;
         // Interpret all arguments then call the function
         for (Tree b : sig->branches()) {

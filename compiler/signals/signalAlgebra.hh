@@ -251,7 +251,7 @@ V SignalDispatch<V>::combine(Tree sig, const std::vector<V>& c,
     Tree    x, y, z, u, label, cur, lo, hi, step, type, name, file, ff, ls;
 
     // Extended primitives first: they head ordinary symbols, outside every signature.
-    if (void* ud = getUserData(sig)) {
+    if (void* ud = sigXtendedData(sig)) {
         return xtendedOp(static_cast<xtended*>(ud), c);
     }
 
