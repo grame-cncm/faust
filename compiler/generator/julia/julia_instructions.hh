@@ -295,7 +295,7 @@ class JuliaInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["powf"]       = "pow";
         gPolyMathLibTable["remainderf"] = "remainder";
         gPolyMathLibTable["rintf"]      = "rint";
-        gPolyMathLibTable["roundf"]     = "round";
+        gPolyMathLibTable["roundf"]     = "faust_round";
         gPolyMathLibTable["sinf"]       = "sin";
         gPolyMathLibTable["sqrtf"]      = "faust_sqrt";
         gPolyMathLibTable["tanf"]       = "tan";
@@ -334,7 +334,7 @@ class JuliaInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["pow"]       = "pow";
         gPolyMathLibTable["remainder"] = "remainder";
         gPolyMathLibTable["rint"]      = "rint";
-        gPolyMathLibTable["round"]     = "round";
+        gPolyMathLibTable["round"]     = "faust_round";
         gPolyMathLibTable["sin"]       = "sin";
         gPolyMathLibTable["sqrt"]      = "faust_sqrt";
         gPolyMathLibTable["tan"]       = "tan";
