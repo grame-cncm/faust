@@ -11,4 +11,12 @@ F=${1:?usage: fingerprint.sh <faust> [witnesses]}; W=${2:-$HERE/witnesses.txt}
 F=$(cd "$(dirname "$F")" && pwd)/$(basename "$F"); W=$(cd "$(dirname "$W")" && pwd)/$(basename "$W")
 "$HERE/determinism.sh" "$F" "$F" "$W" > /dev/null 2>&1 || true
 cd "$HERE/out/a" || exit 2
-if command -v md5sum > /dev/null; then md5sum ./*.cpp | sed 's#  \./#  #'; else md5 -r ./*.cpp | sed 's# \./#  #'; fi | sort -k2
+sumof() { if command -v md5sum > /dev/null; then md5sum | cut -d' ' -f1; else md5 -q; fi; }
+{
+    if command -v md5sum > /dev/null; then md5sum ./*.cpp | sed 's#  \./#  #'; else md5 -r ./*.cpp | sed 's# \./#  #'; fi
+    # the witnesses with their own options leave a directory : one sum over its files, in order
+    for d in ./*.d; do
+        [ -d "$d" ] || continue
+        echo "$(find "$d" -type f | sort | xargs cat | sumof)  ${d#./}"
+    done
+} | sort -k2
