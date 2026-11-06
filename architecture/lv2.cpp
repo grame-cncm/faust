@@ -1794,14 +1794,30 @@ static string mangle(const string &s)
 
 // epp:rangeSteps is the number of points of the range, both ends included,
 // hence one more than the number of steps. The quotient is rounded, since
-// e.g. (1.3f-0.3f)/0.1f comes out just below 10.
+// e.g. (1.3f-0.3f)/0.1f comes out just below 10. A step larger than the
+// range still leaves both ends, hence 2 points.
+// Returns 0 when there is no step-wise control to describe: a null step
+// (continuous control), an empty range, or a count that does not fit in an
+// int (lrintf returns a long, which is 32 bits wide on Windows). The property
+// is then omitted and hosts keep their default behaviour; writing 2 instead
+// would make arrow keys and mouse wheels jump from one end to the other.
 static unsigned steps(float min, float max, float step)
 {
-  if (step == 0.0) return 2;
-  int n = lrintf((max-min)/step);
-  if (n < 0) n = -n;
+  if (step == 0.0f || min == max) return 0;
+  float q = fabsf((max-min)/step);
+  if (!(q < 2147483648.0f)) return 0; // also rejects inf and NaN
+  long n = lrintf(q);
   if (n == 0) n = 1;
-  return n+1;
+  return (unsigned)n+1;
+}
+
+// Write the epp:rangeSteps property of a port, unless steps() finds none.
+static void print_range_steps(FILE *fp, float min, float max, float step)
+{
+  unsigned n = steps(min, max, step);
+  if (n > 0)
+    fprintf(fp, "\
+        epp:rangeSteps %u ;\n", n);
 }
 
 // Escape a C++ string for inclusion in a Turtle quoted string literal.
@@ -1933,14 +1949,14 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
 	lv2:index %d ;\n\
 	lv2:symbol \"%s_%d\" ;\n\
 	lv2:name \"%s\" ;\n\
-        lv2:portProperty epp:hasStrictBounds ;\n\
-        epp:rangeSteps %u ;\n\
+        lv2:portProperty epp:hasStrictBounds ;\n", idx, sym.c_str(), idx, label);
+    print_range_steps(fp, plugin->ui[0]->elems[j].min,
+		      plugin->ui[0]->elems[j].max,
+		      plugin->ui[0]->elems[j].step);
+    fprintf(fp, "\
 	lv2:default %g ;\n\
 	lv2:minimum %g ;\n\
-	lv2:maximum %g ;\n", idx, sym.c_str(), idx, label,
-	    steps(plugin->ui[0]->elems[j].min,
-		  plugin->ui[0]->elems[j].max,
-		  plugin->ui[0]->elems[j].step),
+	lv2:maximum %g ;\n",
 	    plugin->ui[0]->elems[j].init,
 	    plugin->ui[0]->elems[j].min,
 	    plugin->ui[0]->elems[j].max);
@@ -2067,13 +2083,13 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
 	lv2:name \"polyphony\" ;\n\
         lv2:portProperty epp:hasStrictBounds ;\n\
 #       lv2:portProperty epp:expensive ;\n\
-        lv2:portProperty lv2:integer ;\n\
-        epp:rangeSteps %u ;\n\
+        lv2:portProperty lv2:integer ;\n", idx==0?"    lv2:port":" ,", idx);
+    print_range_steps(fp, 1, plugin->maxvoices, 1);
+    fprintf(fp, "\
 	lv2:default %d ;\n\
 	lv2:minimum 1 ;\n\
 	lv2:maximum %d ;\n\
-    ]", idx==0?"    lv2:port":" ,", idx, steps(1, plugin->maxvoices, 1),
-      plugin->maxvoices>1?plugin->maxvoices/2:1,
+    ]", plugin->maxvoices>1?plugin->maxvoices/2:1,
       plugin->maxvoices);
     idx++;
 #if FAUST_MTS
@@ -2086,13 +2102,13 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
 	lv2:symbol \"tuning\" ;\n\
 	lv2:name \"tuning\" ;\n\
         lv2:portProperty epp:hasStrictBounds ;\n\
-        lv2:portProperty lv2:integer ;\n\
-        epp:rangeSteps %u ;\n\
+        lv2:portProperty lv2:integer ;\n",
+	idx==0?"    lv2:port":" ,", idx);
+      print_range_steps(fp, 0, plugin->n_tunings, 1);
+      fprintf(fp, "\
 	lv2:default 0 ;\n\
 	lv2:minimum 0 ;\n\
-	lv2:maximum %d ;\n",
-	idx==0?"    lv2:port":" ,", idx, steps(0, plugin->n_tunings, 1),
-	plugin->n_tunings);
+	lv2:maximum %d ;\n", plugin->n_tunings);
       for (int i = 0; i <= plugin->n_tunings; i++)
 	fprintf(fp, "\
 	lv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ] ;\n",
