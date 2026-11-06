@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
     bool control = true;
     
     if (isopt(argv, "-help") || isopt(argv, "-h")) {
-        cout << argv[0] << " [--sample-rate <val>] [--buffer <val>] [--nvoices <val>] [--control <0/1>] [--group <0/1>] [--virtual-midi <0/1>]\n";
+        cout << argv[0] << " [--sample-rate <val>] [--buffer <val>] [--nvoices <val>] [--midi-channel <1..16>] [--control <0/1>] [--group <0/1>] [--virtual-midi <0/1>]\n";
         exit(1);
     }
     
@@ -210,6 +210,7 @@ int main(int argc, char* argv[])
     rt_midi midi_handler(name, is_virtual);
     MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
+    midiinterface.setChannel(MidiMeta::getChannel(DSP, argv));
     cout << "MIDI is on" << endl;
 #endif
     

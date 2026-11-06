@@ -26,9 +26,12 @@ architecture section is not modified.
 #define FAUST_MIDIUI_H
 
 #include <vector>
+#include <map>
 #include <string>
 #include <utility>
 #include <cstdlib>
+#include <cstring>
+#include <cstdio>
 #include <cmath>
 
 #include "faust/dsp/dsp.h"
@@ -112,6 +115,60 @@ struct MidiMeta : public Meta {
     #endif
     }
     
+    /**
+     * Return the MIDI channel to receive, in [1..16], or 0 for all channels.
+     *
+     * The '--midi-channel <0..16>' command line option, when given in 'argv'
+     * (a nullptr terminated array), overrides the 'declare options "[midichannel:N]";'
+     * or 'declare midichannel "N";' metadata of the DSP. An invalid value is reported
+     * and replaced by 0.
+     *
+     * @param dsp_inst - the DSP, whose metadata is read
+     * @param argv - the command line arguments, or nullptr
+     */
+    static int getChannel(dsp* dsp_inst, char* argv[] = nullptr)
+    {
+        std::string value;
+        const char* source = nullptr;
+
+        if (argv) {
+            for (int i = 0; argv[i]; i++) {
+                if (!strcmp(argv[i], "--midi-channel") && argv[i + 1]) {
+                    value = argv[i + 1];
+                    source = "--midi-channel";
+                }
+            }
+        }
+
+        if (!source) {
+            MidiMeta meta;
+            dsp_inst->metadata(&meta);
+            std::string options = meta.get("options", "");
+            std::map<std::string, std::string> metadata;
+            if (options != "") {
+                std::string res;
+                MetaDataUI::extractMetadata(options, res, metadata);
+            }
+            if (metadata.find("midichannel") != metadata.end()) {
+                value = metadata["midichannel"];
+                source = "[midichannel] option";
+            } else {
+                value = meta.get("midichannel", "");
+                source = "midichannel metadata";
+            }
+        }
+
+        if (value == "") return 0;
+        char* end = nullptr;
+        long channel = std::strtol(value.c_str(), &end, 10);
+        if (end == value.c_str() || *end != 0 || channel < 0 || channel > 16) {
+            fprintf(stderr, "Invalid MIDI channel '%s' in %s: should be in [1..16], or 0 for all channels\n",
+                    value.c_str(), source);
+            return 0;
+        }
+        return int(channel);
+    }
+
     static bool checkPolyphony(dsp* mono_dsp)
     {
         MapUI map_ui;
@@ -818,6 +875,11 @@ class MidiUI : public GUI, public midi, public midi_interface, public MetaDataUI
         
         void addMidiIn(midi* midi_dsp) { fMidiHandler->addMidiIn(midi_dsp); }
         void removeMidiIn(midi* midi_dsp) { fMidiHandler->removeMidiIn(midi_dsp); }
+
+        // Receive only 'channel' in [1..16], 0 for all channels (see midi_handler::setChannel).
+        // Applies to every input of the underlying midi_handler.
+        void setChannel(int channel) { fMidiHandler->setChannel(channel); }
+        int getChannel() const { return fMidiHandler->getChannel(); }
       
         // -- active widgets
         

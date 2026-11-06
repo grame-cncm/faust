@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
     snprintf(rcfilename, 256, "%s/.%src", home, appname);
     
     if (isopt(argv, "-h")) {
-        cout << argv[0] << " [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
+        cout << argv[0] << " [--nvoices <val>] [--midi-channel <1..16>] [--control <0/1>] [--group <0/1>]\n";
         exit(1);
     }
     
@@ -199,6 +199,7 @@ int main(int argc, char* argv[])
 #ifdef MIDICTRL
     MidiUI* midiinterface = new MidiUI(&audio);
     DSP->buildUserInterface(midiinterface);
+    midiinterface->setChannel(MidiMeta::getChannel(DSP, argv));
     cout << "MIDI is on" << endl;
 #endif
 

@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
     bool control = true;
     
     if (isopt(argv, "-h")) {
-        cout << argv[0] << " [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
+        cout << argv[0] << " [--nvoices <val>] [--midi-channel <1..16>] [--control <0/1>] [--group <0/1>]\n";
         exit(1);
     }
     
@@ -225,6 +225,7 @@ int main(int argc, char* argv[])
     MidiUI* midiinterface = new MidiUI(&audio);
     cout << "JACK MIDI is used" << endl;
     DSP->buildUserInterface(midiinterface);
+    midiinterface->setChannel(MidiMeta::getChannel(DSP, argv));
     cout << "MIDI is on" << endl;
 #endif
     
