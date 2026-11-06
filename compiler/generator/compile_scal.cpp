@@ -61,6 +61,8 @@
 #include "sigRetiming.hh"
 #include "sigToGraph.hh"
 #include "sigtypesolver.hh"
+#include "computeForm.hh"
+#include "computeSignals.hh"
 #include "sigprint.hh"
 #include "rewrite.hh"
 #include "superNodes.hh"
@@ -980,6 +982,70 @@ Tree ScalarCompiler::prepare(Tree LS)
         typeAnnotation(Lx, gGlobal->gLocalCausalityCheck);
     }
 
+    // the computation form : the decisions of the code, taken once on the certified
+    // program and on every root the emitter compiles (computeForm.hh), after every
+    // typing ; the tables keyed by the program's signals follow their translations. The
+    // normal form stays for the drawings.
+    const Tree N2 = L2;
+    {
+        startTiming("computationForm");
+        ComputeForm cf(L2);  // the program first, in its order
+        L2 = cf.program();
+        Lx = cf.translate(Lx);
+        {
+            std::map<Tree, Tree, treeorder> cp;
+            for (const auto& [k, v] : fConditionProperty) {
+                cp[cf.remap(k)] = cf.remap(v);
+            }
+            fConditionProperty = cp;
+        }
+        {
+            std::map<Tree, SelectNInfo> sn;
+            for (const auto& [k, v] : fSelectNInfo) {
+                SelectNInfo w = v;
+                w.selEff      = cf.remap(w.selEff);
+                for (auto& lf : w.leaves) {
+                    lf.branch = cf.remap(lf.branch);
+                    for (Tree& a : lf.atoms) {
+                        a = cf.remap(a);
+                    }
+                }
+                sn[cf.remap(k)] = w;
+            }
+            fSelectNInfo = sn;
+        }
+        fDisplayList = cf.remap(fDisplayList);
+        {
+            std::set<Tree> dp;
+            for (Tree t : fDisplayPreserved) {
+                dp.insert(cf.remap(t));
+            }
+            fDisplayPreserved = dp;
+        }
+        for (Tree& t : fDisplayStateful) {
+            t = cf.remap(t);
+        }
+        for (Tree& t : fDisplayCapturePoints) {
+            t = cf.remap(t);
+        }
+        {
+            std::map<Tree, std::string, treeorder> dc;
+            for (const auto& [k, v] : fDisplayCaptures) {
+                dc[cf.remap(k)] = v;
+            }
+            fDisplayCaptures = dc;
+        }
+        {
+            std::map<Tree, int, treeorder> du;
+            for (const auto& [k, v] : fDisplayUses) {
+                du[cf.remap(k)] = v;
+            }
+            fDisplayUses = du;
+        }
+        recursivnessAnnotation(Lx);
+        endTiming("computationForm");
+    }
+
     startTiming("sharingAnalysis");
     sharingAnalysis(Lx, fSharingKey);  // Annotate L2 (+ condition atoms) with sharing count
     endTiming("sharingAnalysis");
@@ -1060,7 +1126,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     if (gGlobal->gDrawSignals) {
         if (gGlobal->gDrawRetiming) {
             startTiming("retiming");
-            Tree L3 = sigRetiming(L2);
+            Tree L3 = sigRetiming(N2);
             endTiming("retiming");
             startTiming("retimed type annotation");
             typeAnnotation(L3, true);
@@ -1069,10 +1135,9 @@ Tree ScalarCompiler::prepare(Tree LS)
             sigToGraph(L3, dotfile);
         }
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
-        sigToGraph(L2, dotfile);
+        sigToGraph(N2, dotfile);
     }
 
-    fProgram = L2;
     return L2;
 }
 
@@ -1082,6 +1147,8 @@ Tree ScalarCompiler::prepare2(Tree L0)
 
     recursivnessAnnotation(L0);        // Annotate L0 with recursivness information
     typeAnnotation(L0, true);          // Annotate L0 with type information
+    L0 = ComputeForm(L0).program();    // the decisions of the code (computeForm.hh)
+    recursivnessAnnotation(L0);
     sharingAnalysis(L0, fSharingKey);  // annotate L0 with sharing count
 
     delete fOccMarkup;
@@ -2213,7 +2280,7 @@ class LoopSplitEmitter {
             }
             return;
         }
-        if (Tree p; isSigIRM(t, x, p)) {
+        if (Tree p; isIrmNode(t, x, p)) {
             // the node reads itself at delay 1 : the occurrences give it a history
             prescan(x, seen);
             prescan(p, seen);
@@ -2232,7 +2299,7 @@ class LoopSplitEmitter {
             return;
         }
         if (Tree c, a, b; isSigProd(t) || isSigNeg(t, x) || isSigFrac(t, x) || isSigCfrac(t, x) ||
-                          isSigTpt(t, x) || isSigMix(t, c, a, b) || isSigPhase(t, a, b)) {
+                          isSigTpt(t, x) || isSigMix(t, c, a, b) || isComputeSignal(t)) {
             for (int k = 0; k < t->arity(); k++) {
                 prescan(t->branch(k), seen);
             }
@@ -2861,9 +2928,12 @@ class LoopSplitEmitter {
             fOpOf[t]  = o.op;
             return o;
         }
-        if (isSigFrac(t, x) || isSigCfrac(t, x)) {
-            // as generateRemainder : x - floor(x), x - rint(x)
-            xtended*    round = isSigFrac(t, x) ? gGlobal->gFloorPrim : gGlobal->gRintPrim;
+        bool fracApprox = false;
+        if (isCfFrac(t, x, fracApprox) || isSigCfrac(t, x)) {
+            // as generateRemainder : x - floor(x), x - rint(x), the floor the node chose
+            xtended* round = isSigCfrac(t, x) ? gGlobal->gRintPrim
+                             : fracApprox     ? gGlobal->gFloorApproxPrim
+                                              : gGlobal->gFloorPrim;
             Operand     a     = walk(x, curScc, false);
             std::string rcode = static_cast<xtendedCodegen*>(round)->generateCode(
                 fClass, {operandCode(a)}, {getCertifiedSigType(x)});
@@ -2883,13 +2953,16 @@ class LoopSplitEmitter {
             fOpOf[t]  = o.op;
             return o;
         }
-        if (Tree c, a, b; isSigMix(t, c, a, b)) {
+        MixForm mixf = MixForm::kFromA;
+        if (Tree c, a, b; isCfMix(t, c, a, b, mixf)) {
             // as generateMix : the interpolation from b, 1 - c stored at the rate of c,
-            // when c may be near 1, from a otherwise
+            // when c may be near 1, from a otherwise (the form of the node)
             Operand oa = walk(a, curScc, false);
             Operand ob = walk(b, curScc, false);
-            if (Tree tw; mixFromWeight(c, getCertifiedSigType(c)->getInterval(), tw)) {
+            if (mixf == MixForm::kFromWeight) {
                 // c written 1 - t : b + t * (a - b) (mixForm.hh)
+                Tree tw;
+                faustassert(mixComplementOf(c, tw));
                 Operand ot  = walk(tw, curScc, false);
                 Operand dif = bodyOp("($0 - $1)", {oa, ob}, false);
                 Operand m   = bodyOp("($0 * $1)", {ot, dif}, false);
@@ -2898,7 +2971,7 @@ class LoopSplitEmitter {
                 return o;
             }
             Operand oc = walk(c, curScc, false);
-            if (itv::mixFromB(getCertifiedSigType(c)->getInterval())) {
+            if (mixf == MixForm::kFromB) {
                 const int vrc = getCertifiedSigType(c)->variability();
                 Operand   w   = slowLeaf(c, oc) ? leafOperand(subst("($0 - $1)", realLiteral(1.0), oc.code))
                                             : bodyOp("($0 - $1)", {leafOperand(realLiteral(1.0)), oc}, false);
@@ -2916,9 +2989,10 @@ class LoopSplitEmitter {
             fOpOf[t] = o.op;
             return o;
         }
-        if (Tree a, p; isSigPhase(t, a, p)) {
+        bool phInv = false;
+        if (Tree a, p; isCfPhase(t, a, p, phInv)) {
             // as generatePhase : (x % p) / p, the division by a product by 1/p when
-            // phaseByReciprocal says so
+            // the node says so
             const bool pInt = getCertifiedSigType(a)->nature() == kInt &&
                               getCertifiedSigType(p)->nature() == kInt;
             Operand ox = walk(a, curScc, false);
@@ -2927,7 +3001,7 @@ class LoopSplitEmitter {
             if (pInt) {
                 r = bodyOp("($0 % $1)", {ox, op}, true);
                 r = bodyOp(std::string(ifloat()) + "($0)", {r}, false);
-                if (phaseByReciprocal(p)) {
+                if (phInv) {
                     const std::string inv =
                         subst("($0 / $2($1))", realLiteral(1.0), operandCode(op), ifloat());
                     Operand oi = slowLeaf(p, op)
@@ -2951,8 +3025,10 @@ class LoopSplitEmitter {
             fOpOf[t] = o.op;
             return o;
         }
-        if (Tree ix, ip; isSigIRM(t, ix, ip)) {
-            // as generateIRM : y = mix(p, x, y@1), y@1 the member's own history
+        IrmForm irmf = IrmForm::kFromState;
+        if (Tree ix, ip; isCfIrm(t, ix, ip, irmf)) {
+            // as generateIRM, in the form of the node : y = mix(p, x, y@1), y@1 the member's
+            // own history
             const int ixSelf = fSN.indexOf(t);
             faustassert(ixSelf >= 0);
             Operand   prev = refOperand(ixSelf, "1", false, curScc);
@@ -2972,14 +3048,18 @@ class LoopSplitEmitter {
                 return wslow ? leafOperand(subst("($0 - $1)", realLiteral(1.0), sp.code))
                              : bodyOp("($0 - $1)", {leafOperand(realLiteral(1.0)), sp}, false);
             };
-            if (getCertifiedSigType(t)->nature() == kReal && vr != kSamp) {
-                Operand sw = weight();
+            if (irmf == IrmForm::kWeighted) {
+                // 1 - p from p, as generateIRM, even when the pole is written 1 - w : for p
+                // in [1/2, 1], 1 - p is exact and the static gain exactly 1
+                wslow      = slowLeaf(ip, sp);
+                Operand sw = wslow ? leafOperand(subst("($0 - $1)", realLiteral(1.0), sp.code))
+                                   : bodyOp("($0 - $1)", {leafOperand(realLiteral(1.0)), sp}, false);
                 Operand wx = (wslow && slowLeaf(ix, sx))
                                  ? slowStore(vr, leafOperand(subst("($0 * $1)", sw.code, sx.code)), false)
                                  : bodyOp("($0 * $1)", {sw, sx}, false);
                 Operand m  = bodyOp("($0 * $1)", {sp, prev}, false);
                 o          = bodyOp("($0 + $1)", {wx, m}, false);
-            } else if (!w && !itv::mixFromB(getCertifiedSigType(ip)->getInterval())) {
+            } else if (irmf == IrmForm::kFromX) {
                 Operand dif = bodyOp("($0 - $1)", {prev, sx}, false);
                 Operand m   = bodyOp("($0 * $1)", {sp, dif}, false);
                 o           = bodyOp("($0 + $1)", {sx, m}, false);
@@ -5594,7 +5674,10 @@ string ScalarCompiler::generateCode(Tree sig)
     } else if (tvec V; isSigIIR(sig, V)) {
         return generateIIR(sig, V);
     } else if (Tree ix, ip; isSigIRM(sig, ix, ip)) {
-        return generateIRM(sig, ix, ip);
+        faustassert(false);  // translated into the computation form (computeForm.hh)
+        return "";
+    } else if (IrmForm form; isCfIrm(sig, x, y, form)) {
+        return generateIRM(sig, x, y, form);
     } else if (isSigBpf(sig)) {
         return generateBpf(sig);
     } else if (tvec subs; isSigSum(sig, subs)) {
@@ -5608,15 +5691,24 @@ string ScalarCompiler::generateCode(Tree sig)
     } else if (isSigNeg(sig, x)) {
         return generateNeg(sig, x);
     } else if (isSigFrac(sig, x)) {
-        return generateRemainder(sig, x, gGlobal->gFloorPrim);
+        faustassert(false);  // translated into the computation form (computeForm.hh)
+        return "";
+    } else if (bool approx; isCfFrac(sig, x, approx)) {
+        return generateRemainder(sig, x, approx ? gGlobal->gFloorApproxPrim : gGlobal->gFloorPrim);
     } else if (isSigCfrac(sig, x)) {
         return generateRemainder(sig, x, gGlobal->gRintPrim);
     } else if (isSigTpt(sig, x)) {
         return generateTpt(sig, x);
-    } else if (Tree c, a, b; isSigMix(sig, c, a, b)) {
-        return generateMix(sig, c, a, b);
+    } else if (isSigMix(sig, c, x, y)) {
+        faustassert(false);  // translated into the computation form (computeForm.hh)
+        return "";
+    } else if (MixForm form; isCfMix(sig, c, x, y, form)) {
+        return generateMix(sig, c, x, y, form);
     } else if (Tree a, p; isSigPhase(sig, a, p)) {
-        return generatePhase(sig, a, p);
+        faustassert(false);  // translated into the computation form (computeForm.hh)
+        return "";
+    } else if (bool inv; isCfPhase(sig, x, y, inv)) {
+        return generatePhase(sig, x, y, inv);
     } else if (isSigFFun(sig, ff, largs)) {
         return generateFFun(sig, ff, largs);
     } else if (isSigFConst(sig, type, name, file)) {
@@ -5939,7 +6031,7 @@ string ScalarCompiler::compoundSlowStore(int variability, const string& exp, boo
 string ScalarCompiler::generateRemainder(Tree sig, Tree x, xtended* round)
 {
     // the program's own rounding of x, when it holds one
-    Tree held = (round == gGlobal->gFloorPrim) ? fDefinitions.floorOf(x) : fDefinitions.rintOf(x);
+    Tree held = (round == gGlobal->gRintPrim) ? fDefinitions.rintOf(x) : fDefinitions.floorOf(x);
     if (held != nullptr) {
         std::string sx = compoundOperand(x);
         std::string sr = compoundOperand(held);
@@ -5968,9 +6060,9 @@ string ScalarCompiler::generateTpt(Tree sig, Tree x)
 /**
  * phase(x, p) = (x % p) / p : the program's own remainder when it holds one (the
  * definition of a counter, ba.period), read from its variable ; the division is real, a
- * product by 1/p when phaseByReciprocal says so.
+ * product by 1/p when the node says so (byInverse, phaseByReciprocal on the certified p).
  */
-string ScalarCompiler::generatePhase(Tree sig, Tree x, Tree p)
+string ScalarCompiler::generatePhase(Tree sig, Tree x, Tree p, bool byInverse)
 {
     const bool  isInt = getCertifiedSigType(x)->nature() == kInt && getCertifiedSigType(p)->nature() == kInt;
     std::string sp    = compoundOperand(p);
@@ -5986,7 +6078,7 @@ string ScalarCompiler::generatePhase(Tree sig, Tree x, Tree p)
     }
     if (isInt) {
         sr = subst("$1($0)", sr, ifloat());
-        if (phaseByReciprocal(p)) {
+        if (byInverse) {
             std::string inv = compoundSlowStore(getCertifiedSigType(p)->variability(),
                                                 subst("($0 / $2($1))", realLiteral(1.0), sp, ifloat()));
             return generateCacheCode(sig, subst("($0 * $1)", sr, inv));
@@ -5998,22 +6090,25 @@ string ScalarCompiler::generatePhase(Tree sig, Tree x, Tree p)
 
 /**
  * mix(c, a, b) = (1 - c) * a + c * b, computed as an interpolation from the operand whose
- * weight may be near 1 (itv::mixFromB, on the interval of c) : b + (1 - c) * (a - b) when
- * c >= 1/2, 1 - c being then exact, a + c * (b - a) otherwise. Either keeps its fixed point
- * exactly, and costs about one rounding of the result when the weight of the difference is
- * small (a slow smoother) ; the interval of the node bounds this same computation.
+ * weight may be near 1 (the form of the node, itv::mixFromB on the certified c) :
+ * b + (1 - c) * (a - b) when c >= 1/2, 1 - c being then exact, a + c * (b - a) otherwise.
+ * Either keeps its fixed point exactly, and costs about one rounding of the result when the
+ * weight of the difference is small (a slow smoother) ; the interval of the node bounds
+ * this same computation.
  */
-string ScalarCompiler::generateMix(Tree sig, Tree c, Tree a, Tree b)
+string ScalarCompiler::generateMix(Tree sig, Tree c, Tree a, Tree b, MixForm form)
 {
     std::string sa = compoundOperand(a);
     std::string sb = compoundOperand(b);
     // c written 1 - t : b + t * (a - b), 1 - t never computed (mixForm.hh)
-    if (Tree t; mixFromWeight(c, getCertifiedSigType(c)->getInterval(), t)) {
+    if (form == MixForm::kFromWeight) {
+        Tree t;
+        faustassert(mixComplementOf(c, t));
         std::string st = compoundOperand(t);
         return generateCacheCode(sig, subst("($0 + $1 * ($2 - $0))", sb, st, sa));
     }
     std::string sc = compoundOperand(c);
-    if (itv::mixFromB(getCertifiedSigType(c)->getInterval())) {
+    if (form == MixForm::kFromB) {
         const int   vrc = getCertifiedSigType(c)->variability();
         std::string w   = subst("($0 - $1)", realLiteral(1.0), sc);
         if (vrc < getCertifiedSigType(sig)->variability() && vrc != kSamp) {
@@ -6626,7 +6721,7 @@ static bool displayStateful(Tree t)
     Tree x, y, g, id, body;
     tvec V;
     return isProj(t, &i, g) || isSigDelay(t, x, y) || isSigPrefix(t, x, y) || isSigFIR(t, V) ||
-           isSigIIR(t, V) || isSigIRM(t) || isRec(t, id, body);
+           isSigIIR(t, V) || isIrmNode(t) || isRec(t, id, body);
 }
 
 // The contexts of the occurrences (spec LE-CONTEXTE-DES-OCCURRENCES) : the
@@ -7233,7 +7328,7 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
  * otherwise the interpolation from the state y' + w * (x - y') (a TPT state). The value is
  * stored in the node's line, read back at delay 1.
  */
-string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p)
+string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p, IrmForm form)
 {
     Type         ty = getCertifiedSigType(sig);
     Occurrences* o  = fOccMarkup->retrieve(sig);
@@ -7245,7 +7340,7 @@ string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p)
     std::string prev = generateDelayAccessRaw(sig, sig, 1);
     std::string sx   = compoundOperand(x);
     const int   vr   = std::max(getCertifiedSigType(x)->variability(), getCertifiedSigType(p)->variability());
-    if (ty->nature() == kReal && (!w || (vr != kSamp && !reachesDecision(sig)))) {
+    if (form == IrmForm::kWeighted) {
         const int   vrp = getCertifiedSigType(p)->variability();
         std::string sw  = subst("($0 - $1)", realLiteral(1.0), compoundOperand(p));
         if (vrp != kSamp) {
@@ -7257,7 +7352,7 @@ string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p)
         }
         const std::string sp = compoundOperand(p);
         code                 = subst("($0 + $1 * $2)", wx, sp, prev);
-    } else if (!w && !itv::mixFromB(getCertifiedSigType(p)->getInterval())) {
+    } else if (form == IrmForm::kFromX) {
         code = subst("($0 + $1 * ($2 - $0))", sx, compoundOperand(p), prev);
     } else {
         std::string sw;
@@ -7273,20 +7368,6 @@ string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p)
         code = subst("($0 + $1 * ($2 - $0))", prev, sw, sx);
     }
     return generateDelayVec(sig, code, ctype, vname, o->getMaxDelay(), o->getDelayCount());
-}
-
-/// sig may reach a decision (decisionCone.hh, with the discontinuities) ; without the
-/// prepared program, assumed so
-bool ScalarCompiler::reachesDecision(Tree sig)
-{
-    if (fProgram == nullptr) {
-        return true;
-    }
-    if (!fDecisionConeBuilt) {
-        fDecisionCone      = decisionCone(fProgram, /*discontinuities*/ true);
-        fDecisionConeBuilt = true;
-    }
-    return fDecisionCone.count(sig) > 0;
 }
 
 /**
@@ -7424,7 +7505,7 @@ static bool occursNow(Tree needle, Tree def)
         Tree g, x, y, z, w;
         tvec v;
         if (isProj(t, &i, g) || isSigDelay(t, x, y) || isSigPrefix(t, x, y) || isSigFIR(t, v) ||
-            isSigIIR(t, v) || isSigIRM(t, x, y) || isSigWRTbl(t, x, y, z, w) || isSigRDTbl(t, x, y)) {
+            isSigIIR(t, v) || isIrmNode(t, x, y) || isSigWRTbl(t, x, y, z, w) || isSigRDTbl(t, x, y)) {
             continue;
         }
         for (int k = 0; k < t->arity(); k++) {

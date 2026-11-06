@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "binop.hh"
+#include "computeSignals.hh"
 #include "decisionCone.hh"
 #include "global.hh"
 #include "xtended.hh"
@@ -32,6 +33,7 @@ bool isDiscontinuousPrim(Tree t)
     void* p = getUserData(t);
     return p != nullptr &&
            (p == gGlobal->gFloorPrim || p == gGlobal->gCeilPrim || p == gGlobal->gRintPrim ||
+            p == gGlobal->gFloorApproxPrim || p == gGlobal->gCeilApproxPrim ||
             p == gGlobal->gRoundPrim || p == gGlobal->gFmodPrim || p == gGlobal->gRemainderPrim);
 }
 
@@ -88,9 +90,9 @@ std::unordered_set<Tree> decisionCone(Tree L, bool discontinuities)
             roots.push_back(y);
         } else if (isSigSelect2(t, sel, x, y)) {
             roots.push_back(sel);
-        } else if (isSigFrac(t, x) || isSigCfrac(t, x)) {
+        } else if (isFracNode(t, x) || isSigCfrac(t, x)) {
             roots.push_back(x);
-        } else if (isSigPhase(t, x, y)) {
+        } else if (isPhaseNode(t, x, y)) {
             roots.push_back(x);
             roots.push_back(y);
         } else if (isSigBpf(t, x, bt, br)) {

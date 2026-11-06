@@ -30,6 +30,8 @@
 class CeilPrim : public xtendedCodegen {
    public:
     CeilPrim() : xtendedCodegen("ceil") {}
+    /// a primitive that computes ceil too : its approximated form (CeilApproxPrim)
+    explicit CeilPrim(const char* name) : xtendedCodegen(name) {}
 
     virtual unsigned int arity() override { return 1; }
 
@@ -53,10 +55,8 @@ class CeilPrim : public xtendedCodegen {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        // -mapp : the approximation, exact on the certified interval of x (approxRound.hh)
-        if (approxRoundApplies(types[0])) {
-            return genApproxRound(container, args.front(), true);
-        }
+        // the exact function : the approximation under -mapp is CeilApproxPrim, chosen by the
+        // computation form (computeForm.hh)
         return generateFun(container, subst("ceil$0", isuffix()), args, result, types);
     }
 
@@ -66,10 +66,6 @@ class CeilPrim : public xtendedCodegen {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        if (approxRoundApplies(types[0])) {
-            klass->rememberNeedApproxRoundDef();
-            return subst("faust_ceil_approx($0)", args[0]);
-        }
         return subst("ceil$1($0)", args[0], isuffix());
     }
 
@@ -84,3 +80,32 @@ class CeilPrim : public xtendedCodegen {
 
     double compute(const std::vector<Node>& args) override { return ceil(args[0].getDouble()); }
 };
+
+/**
+ * ceil under -mapp, where the certified interval of the operand lies inside the int32 range
+ * (approxRoundApplies) : computed from the integer conversion, the same value bit for bit
+ * there (approxRound.hh). The computation form chooses it in place of ceil
+ * (computeForm.hh) ; the normal form never holds it.
+ */
+class CeilApproxPrim : public CeilPrim {
+   public:
+    CeilApproxPrim() : CeilPrim("ceil_approx") {}
+
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
+                                    ConstTypes types) override
+    {
+        faustassert(args.size() == arity());
+        faustassert(types.size() == arity());
+        return genApproxRound(container, args.front(), true);
+    }
+
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
+                                     ConstTypes types) override
+    {
+        faustassert(args.size() == arity());
+        faustassert(types.size() == arity());
+        klass->rememberNeedApproxRoundDef();
+        return subst("faust_ceil_approx($0)", args[0]);
+    }
+};
+

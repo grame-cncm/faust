@@ -22,6 +22,7 @@
 #include "sigs-config.hh"
 
 #include "interval.hh"
+#include "computeSignals.hh"
 #include "sigOpcode.hh"
 #include "sigtreealgebra.hh"
 #include "sigtypesolver.hh"
@@ -122,6 +123,8 @@ void initSignalSymbols()
     g.SIGIRM             = signal_signature.add("SigIRM", kAudioRate);
     g.SIGBPF             = signal_signature.add("SigBpf");
 
+    initComputeSymbols();
+
     // The session's initial algebra: its dispatch signature was just interned,
     // and dies with the tlib session -- rebuild it here, on both init paths
     // (standalone sigs::init() and the compiler's own sequence).
@@ -184,10 +187,12 @@ void init()
     g.gAtan2Prim      = nullptr;
     g.gAtanPrim       = nullptr;
     g.gCeilPrim       = nullptr;
+    g.gCeilApproxPrim = nullptr;
     g.gCosPrim        = nullptr;
     g.gExp10Prim      = nullptr;
     g.gExpPrim        = nullptr;
     g.gFloorPrim      = nullptr;
+    g.gFloorApproxPrim = nullptr;
     g.gFmodPrim       = nullptr;
     g.gLog10Prim      = nullptr;
     g.gLogPrim        = nullptr;
