@@ -225,8 +225,8 @@ class ScalarCompiler : public Compiler {
     std::string         compoundProduct(const std::string& lead, int vlead, Tree t, int consumer);
     std::string         generateRemainder(Tree sig, Tree x, xtended* round);
     std::string         generateTpt(Tree sig, Tree x);
-    std::string         generatePhase(Tree sig, Tree x, Tree p);
-    std::string         generateMix(Tree sig, Tree c, Tree a, Tree b);
+    std::string         generatePhase(Tree sig, Tree x, Tree p, bool byInverse);
+    std::string         generateMix(Tree sig, Tree c, Tree a, Tree b, MixForm form);
 
     std::string         generateFFun(Tree sig, Tree ff, Tree largs);
     virtual std::string generateWaveform(Tree sig);
@@ -245,14 +245,8 @@ class ScalarCompiler : public Compiler {
 
     bool        isSigSimpleRec(Tree sig);
     std::string generateRecProj(Tree sig, Tree exp, int i);
-    std::string generateIRM(Tree sig, Tree x, Tree p);
+    std::string generateIRM(Tree sig, Tree x, Tree p, IrmForm form);
 
-    // the cone of the decisions of the prepared program (decisionCone.hh), built at the
-    // first question of reachesDecision
-    Tree                     fProgram = nullptr;
-    std::unordered_set<Tree> fDecisionCone;
-    bool                     fDecisionConeBuilt = false;
-    bool                     reachesDecision(Tree sig);
 
     std::string generateBpf(Tree sig);
     std::string generateBpfTable(Tree sig, Tree x, const struct BpfTable& tb);

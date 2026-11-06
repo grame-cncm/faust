@@ -19,6 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
+#include "computeSignals.hh"
 #include "superNodes.hh"
 
 #include "factorizeFIRs.hh"
@@ -198,7 +199,7 @@ void SuperNodeGraph::collectRefs(Tree t, std::set<int>& refs, std::set<int>& ref
         }
         return;
     }
-    if (Tree ix, ic; isSigIRM(t, ix, ic)) {
+    if (Tree ix, ic; isIrmNode(t, ix, ic)) {
         // the recursive mix reads ITSELF at delay 1, as an IIR of order 1
         auto self = fMatIdx.find(t);
         if (self != fMatIdx.end() && (fFreeDelay == 0 || 1 < fFreeDelay)) {
@@ -570,7 +571,7 @@ int SuperNodeGraph::opsOfMember(int m) const
             walk(cs[0], false);
             return;
         }
-        if (Tree ix, ic; isSigIRM(t, ix, ic)) {
+        if (Tree ix, ic; isIrmNode(t, ix, ic)) {
             count += 3;  // the difference, the product, the add of the interpolation
             walk(ix, false);
             walk(ic, false);
