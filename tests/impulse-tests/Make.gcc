@@ -183,9 +183,6 @@ ir/c1/double/dlt256/osc_enable.c : dsp/osc_enable.dsp | ir/$(outdir)
 ir/$(outdir)/prefix.ir:
 	echo "todo fix bug #1071 to test dsp/prefix.dsp"
 
-ir/cpp/double/mapp/constant.ir:
-	echo "todo fix bug #1074 to test dsp/constant.dsp"
-
 ir/cpp/double/os/bs.ir:
 	@echo "accessing foreign variable 'count' is not allowed in this compilation mode"
 

@@ -61,6 +61,10 @@ class xtendedCodegen : public xtended {
 
     ValueInst* generateFun(CodeContainer* container, const std::string& fun_name,
                            const Values& args, ::Type rtype, ConstTypes types);
+
+    // -mapp: true if floor or ceil of an argument of type <arg> can be computed exactly
+    // from its conversion to an int, the library function being called otherwise
+    static bool approxByTruncation(::Type arg);
 };
 
 // Casting operations
