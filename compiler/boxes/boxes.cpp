@@ -523,6 +523,12 @@ static Tree buildRecursiveBodyDef(int n, Tree lnames, Tree lexp, Tree ldef2)
 //----------------------------------------------------------------------------
 Tree boxWithRecDef(Tree body, Tree ldef, Tree ldef2)
 {
+    // An empty letrec defines nothing: the where definitions are only visible inside the
+    // recursive bodies, so `e letrec { }` is `e`, as `e with { }` is (issue #416: the
+    // expansion built an empty parallel list and a bus of 0 wires, and crashed).
+    if (isNil(ldef)) {
+        return body;
+    }
     // cout << "list of recursive definitions : " << *ldef << endl;
     Tree lnames = def2names(ldef);
     Tree lexp   = def2exp(ldef);

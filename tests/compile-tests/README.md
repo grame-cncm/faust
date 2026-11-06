@@ -173,3 +173,14 @@ an ffunction, under eight option sets (C++, C, ocpp, -vec, -double, -os, -svg,
 ```sh
 python3 tests/compile-tests/primitive-labels.py --faust build/bin/faust
 ```
+
+### Empty letrec
+
+`empty-letrec.py` is the regression test of issue #416: `e letrec { }` is `e`,
+as `e with { }` is, with or without a `where` part (its definitions are only
+visible inside the recursive bodies). The compiler used to crash on such a
+program; a symbol the letrec does not define is an `undefined symbol` error.
+
+```sh
+python3 tests/compile-tests/empty-letrec.py --faust build/bin/faust
+```
