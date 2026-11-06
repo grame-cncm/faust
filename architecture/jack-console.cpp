@@ -35,6 +35,7 @@
 #include <math.h>
 #include <iostream>
 #include <list>
+#include <memory>
 #include <vector>
 
 #include "faust/dsp/timed-dsp.h"
@@ -209,10 +210,12 @@ int main(int argc, char* argv[])
 #ifdef MIDICTRL
     bool rtmidi = isopt(argv, "--rtmidi");
     
+    // Declared at main scope: the MidiUI keeps using this handler until the end of main
+    std::unique_ptr<rt_midi> rt_midi_handler;
     MidiUI* midiinterface;
     if (rtmidi) {
-        rt_midi midi_handler(name);
-        midiinterface = new MidiUI(&midi_handler);
+        rt_midi_handler.reset(new rt_midi(name));
+        midiinterface = new MidiUI(rt_midi_handler.get());
         printf("RtMidi is used\n");
     } else {
         midiinterface = new MidiUI(&audio);
