@@ -612,6 +612,9 @@ static void compileJulia(Tree signals, int numInputs, int numOutputs, ostream* o
 {
 #ifdef JULIA_BUILD
     gGlobal->gAllowForeignFunction = false;  // No foreign functions
+    // Julia has no null pointer to test: soundfile fields are set to the default sound
+    // in the constructor (see JuliaInitFieldsVisitor) and replaced by 'addSoundfile!'
+    gGlobal->gUseDefaultSound = false;
     gContainer =
         JuliaCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
 

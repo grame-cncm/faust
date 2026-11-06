@@ -441,7 +441,7 @@ class JuliaStringTypeManager : public StringTypeManager {
         fPtrRef = ptr_ref;
 
         fTypeDirectTable[Typed::kInt32]     = "Int32";
-        fTypeDirectTable[Typed::kInt32_ptr] = "Int32";
+        fTypeDirectTable[Typed::kInt32_ptr] = "Vector{Int32}";
         fTypeDirectTable[Typed::kInt32_vec] = "vector<Int32>";
 
         fTypeDirectTable[Typed::kInt64]     = "Int64";
@@ -450,12 +450,12 @@ class JuliaStringTypeManager : public StringTypeManager {
 
         fTypeDirectTable[Typed::kFloat]         = "T";
         fTypeDirectTable[Typed::kFloat_ptr]     = "T";
-        fTypeDirectTable[Typed::kFloat_ptr_ptr] = "T";
+        fTypeDirectTable[Typed::kFloat_ptr_ptr] = "Vector{Vector{T}}";
         fTypeDirectTable[Typed::kFloat_vec]     = "vector<T>";
 
         fTypeDirectTable[Typed::kDouble]         = "T";
         fTypeDirectTable[Typed::kDouble_ptr]     = "T";
-        fTypeDirectTable[Typed::kDouble_ptr_ptr] = "T";
+        fTypeDirectTable[Typed::kDouble_ptr_ptr] = "Vector{Vector{T}}";
         fTypeDirectTable[Typed::kDouble_vec]     = "vector<T>";
 
         fTypeDirectTable[Typed::kQuad]     = "quad";
@@ -473,8 +473,9 @@ class JuliaStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kVoid]     = "void";
         fTypeDirectTable[Typed::kVoid_ptr] = fPtrRef + "void";
 
-        fTypeDirectTable[Typed::kSound]     = "Soundfile";
-        fTypeDirectTable[Typed::kSound_ptr] = fPtrRef + "Soundfile";
+        // Soundfile{T} is defined in architecture/julia/dsp/dsp.jl
+        fTypeDirectTable[Typed::kSound]     = "Soundfile{T}";
+        fTypeDirectTable[Typed::kSound_ptr] = "Soundfile{T}";
 
         // DSP has to be empty here
         fTypeDirectTable[Typed::kObj]     = struct_name + "{T}";

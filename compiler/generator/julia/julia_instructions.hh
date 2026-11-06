@@ -69,6 +69,14 @@ struct JuliaInitFieldsVisitor : public DispatchVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
+        // A soundfile field starts with the default sound (one silent channel),
+        // replaced later by 'addSoundfile!' in buildUserInterface!
+        if (inst->fType->getType() == Typed::kSound_ptr) {
+            tab(fTab, *fOut);
+            inst->fAddress->accept(this);
+            *fOut << " = defaultsound(T)";
+            return;
+        }
         ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
         if (array_type) {
             tab(fTab, *fOut);
@@ -444,8 +452,9 @@ class JuliaInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        // Not supported for now
-        throw faustexception("ERROR : 'soundfile' primitive not yet supported for Julia\n");
+        *fOut << "addSoundfile!(ui_interface, " << quote(inst->fLabel) << ", "
+              << quote(inst->fURL) << ", :" << inst->fSFZone << ")";
+        EndLine(' ');
     }
 
     virtual void visit(Int32NumInst* inst) { *fOut << "Int32(" << inst->fNum << ")"; }
@@ -697,6 +706,11 @@ class JuliaInstVisitor : public TextInstVisitor {
 
     virtual void visit(::CastInst* inst)
     {
+        if (isPtrType(inst->fType->getType())) {
+            // The soundfile 'void*' buffers are already typed as Vector{Vector{T}}
+            inst->fInst->accept(this);
+            return;
+        }
         if (isIntType(inst->fType->getType())) {
             // Saturating, see faust_trunc in the code container
             *fOut << "faust_trunc(";

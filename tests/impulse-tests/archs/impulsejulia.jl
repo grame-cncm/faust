@@ -21,6 +21,7 @@ const FAUSTFLOAT = Float64
 include("/usr/local/share/faust/julia/dsp/dsp.jl")
 include("/usr/local/share/faust/julia/gui/meta.jl")
 include("/usr/local/share/faust/julia/gui/MapUI.jl")
+include("/usr/local/share/faust/julia/gui/SoundUI.jl")
 
 # Generated code
 <<includeIntrinsic>>
@@ -41,6 +42,33 @@ end
 # -- active widgets
 function addButton!(ui_interface::ControlUI, label::String, param::Symbol) 
     push!(ui_interface.buttons, param)
+end
+
+# -- soundfiles, filled like TestMemoryReader in controlTools.h
+struct TestMemoryReader <: SoundfileReader end
+
+const SOUND_CHAN = 2
+const SOUND_LENGTH = 4096
+const SOUND_SR = 44100
+
+checkFile(::TestMemoryReader, path_name::String) = true
+getParamsFile(::TestMemoryReader, path_name::String) = (SOUND_CHAN, SOUND_LENGTH)
+
+function readFile!(::TestMemoryReader, soundfile::Soundfile{T}, path_name::String, part::Int, offset::Int) where {T}
+    soundfile.fLength[part+1] = SOUND_LENGTH
+    soundfile.fSR[part+1] = SOUND_SR
+    soundfile.fOffset[part+1] = offset
+    # Each channel has its own phase, to show the 'chan % fChannels' wrap
+    for sample in 0:SOUND_LENGTH-1, chan in 0:SOUND_CHAN-1
+        soundfile.fBuffers[chan+1][offset+sample+1] = T(sin(part + chan + (2 * pi * Float64(sample) / SOUND_LENGTH)))
+    end
+    return offset + SOUND_LENGTH
+end
+
+function addSoundfile!(ui_interface::ControlUI, label::String, url::String, soundfile::Symbol)
+    dsp = ui_interface.dsp
+    sf = loadSoundfile(TestMemoryReader(), soundfileType(dsp, soundfile), url, String[])
+    setproperty!(dsp, soundfile, sf)
 end
 
 function setButtons!(dsp::mydsp, ui_interface::ControlUI, state::Bool) 
