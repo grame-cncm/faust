@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Entitlements of the macOS executables of the Faust package that JIT-compile with the
+  LLVM backend of libfaust (faustbench-llvm, dynamic-faust), signed with the hardened runtime
+  (required for notarization) by build/macos-sign-dmg.sh:
+  - allow-jit: memory mapped with MAP_JIT,
+  - allow-unsigned-executable-memory: the LLVM memory manager maps writable pages and then
+    makes them executable (mprotect), without MAP_JIT.
+  Entitlements only apply to executables: the dylibs and the faustgen~ Max external run with
+  the entitlements of the program that loads them (Max has both).
+-->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.cs.allow-jit</key>
+	<true/>
+	<key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+	<true/>
+</dict>
+</plist>
