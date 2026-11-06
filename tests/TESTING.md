@@ -113,14 +113,13 @@ make -C tests/impulse-tests legs                                # list available
 parallel and the total stays bounded. A leg used by two families
 (`cpp/double` by `cpp` and `travis`, for one) is defined once.
 
-**Count what a leg produced.** Four programs are excluded by rules in
+**Count what a leg produced.** Three programs are excluded by rules in
 `Make.gcc` that succeed by printing a line, so the leg reports success
 and the program is simply never tested. The count is the only trace:
 
 | program | legs | reason |
 | :------ | :--- | :----- |
 | `prefix` | every C++ leg | issue #1071, whose title names only rust with `-vec` |
-| `constant` | `cpp/double/mapp` | issue #1074 |
 | `osc_enable` | `cpp/double/os` | broken with `-os` |
 | `bs` | `cpp/double/os` | foreign variable `count` not allowed in that mode |
 

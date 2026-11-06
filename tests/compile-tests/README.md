@@ -159,3 +159,16 @@ diagram as root, no `process.svg`, a changed file).
 ```sh
 python3 tests/compile-tests/svg-root-name.py --faust build/bin/faust
 ```
+
+### floor and ceil under -mapp
+
+`mapp-floor-ceil.py` checks that `-mapp` types `floor` and `ceil` as the
+default compilation does: delays such as `int(floor(sr/2)) % 2` (impulse test
+`constant.dsp`) compile with `-mapp` in cpp, ocpp and c. It also checks that
+the generated code computes them from `int(x)` only for an argument within the
+int range (libm is called otherwise), and that this gives the values of
+`std::floor` and `std::ceil` on 200000 inputs, in float and double:
+
+```sh
+python3 tests/compile-tests/mapp-floor-ceil.py --faust build/bin/faust --cxx g++
+```
