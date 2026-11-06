@@ -195,10 +195,12 @@ struct State {
     xtended*                                    gLog10Prim{};
     xtended*                                    gFmodPrim{};
     xtended*                                    gFloorPrim{};
+    xtended*                                    gFloorApproxPrim{};  // the computation form only
     xtended*                                    gExpPrim{};
     xtended*                                    gExp10Prim{};
     xtended*                                    gCosPrim{};
     xtended*                                    gCeilPrim{};
+    xtended*                                    gCeilApproxPrim{};  // the computation form only
     xtended*                                    gAtanPrim{};
     xtended*                                    gAtan2Prim{};
     xtended*                                    gAsinPrim{};
@@ -222,6 +224,11 @@ struct State {
     Sym                                         SIGPHASE{};
     Sym                                         SIGIRM{};
     Sym                                         SIGBPF{};
+    // the computation form (computeSignals.hh), its own signature
+    Sym                                         CFPHASE{};
+    Sym                                         CFMIX{};
+    Sym                                         CFIRM{};
+    Sym                                         CFFRAC{};
     int                                         gMaxFIRSize{1024};  // -mfs threshold (port)
     Sym                                         SIGPREFIX{};
     Sym                                         SIGRDTBL{};

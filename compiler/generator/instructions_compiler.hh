@@ -241,14 +241,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* writeIIRLine(Tree sig, ValueInst* exp, BasicTyped* ctype, const std::string& vname, int mxd);
     std::string        delayLineName(Tree exp, int mxd, const char* prefix, ValueInst*& immediate);
     void               flushPendingDelayWrites();
-    ValueInst*         generateIRM(Tree sig, Tree x, Tree p);
-
-    // the cone of the decisions of the prepared program (decisionCone.hh), built at the
-    // first question of reachesDecision
-    Tree                     fProgram = nullptr;
-    std::unordered_set<Tree> fDecisionCone;
-    bool                     fDecisionConeBuilt = false;
-    bool                     reachesDecision(Tree sig);
+    ValueInst*         generateIRM(Tree sig, Tree x, Tree p, IrmForm form);
 
     ValueInst*         generateBpf(Tree sig);
     ValueInst*         generateBpfTable(Tree sig, Tree x, const struct BpfTable& tb);
@@ -268,8 +261,8 @@ class InstructionsCompiler : public virtual Garbageable {
     ValueInst*         compoundProduct(ValueInst* lead, int vlead, Tree t, int consumer);
     virtual ValueInst* generateRemainder(Tree sig, Tree x, xtended* round);
     virtual ValueInst* generateTpt(Tree sig, Tree x);
-    virtual ValueInst* generatePhase(Tree sig, Tree x, Tree p);
-    virtual ValueInst* generateMix(Tree sig, Tree c, Tree a, Tree b);
+    virtual ValueInst* generatePhase(Tree sig, Tree x, Tree p, bool byInverse);
+    virtual ValueInst* generateMix(Tree sig, Tree c, Tree a, Tree b, MixForm form);
 
     virtual ValueInst* generateFFun(Tree sig, Tree ff, Tree largs);
     virtual ValueInst* generateWaveform(Tree sig);
