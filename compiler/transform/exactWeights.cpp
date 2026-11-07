@@ -18,9 +18,8 @@
 #include "decisionCone.hh"
 #include "exactWeights.hh"
 #include "rewrite.hh"
-#include "sigattributes.hh"
-#include "sighorizon.hh"
 #include "sigtype.hh"
+#include "typedAttributes.hh"
 
 namespace {
 
@@ -50,19 +49,18 @@ bool complementOf(Tree f, int& pos)
 
 }  // namespace
 
-/// w is small : |w| < 2^-8 over its interval, 1 + w then loses 8 bits of w at least (in
-/// single precision, a relative error of w up to 2^-24 / |w|, beyond 1.5e-5). A larger
-/// weight keeps (1 + w) * y, one operation less on the path of a recursion (2 to 7 % on a
-/// Karplus-Strong string bank).
-static bool smallWeight(const HorizonReader& horizon, Tree w)
+/// w is small : |w| < 2^-8 over its certified interval, 1 + w then loses 8 bits of w at
+/// least (in single precision, a relative error of w up to 2^-24 / |w|, beyond 1.5e-5). A
+/// larger weight keeps (1 + w) * y, one operation less on the path of a recursion (2 to 7 %
+/// on a Karplus-Strong string bank).
+static bool smallWeight(Tree w)
 {
-    const itv::interval i = horizon.at(w);
+    const itv::interval i = getCertifiedSigType(w)->getInterval();
     return !i.isEmpty() && std::max(std::fabs(i.lo()), std::fabs(i.hi())) < 0x1p-8;
 }
 
 /// a real product with a factor 1 + w, w small, is held somewhere
-static bool hasCandidate(Tree L, ExactSolvers& exact, const std::unordered_set<Tree>& cone,
-                         const HorizonReader& horizon)
+static bool hasCandidate(Tree L, const TypedAttributes& exact, const std::unordered_set<Tree>& cone)
 {
     std::unordered_set<Tree> seen;
     std::vector<Tree>        work{L};
@@ -80,23 +78,27 @@ static bool hasCandidate(Tree L, ExactSolvers& exact, const std::unordered_set<T
         if (isSigProd(t, fs) && fs.size() >= 2 && exact.nature(t) == kReal && cone.count(t) == 0) {
             for (Tree f : fs) {
                 int pos;
-                if (complementOf(f, pos) && smallWeight(horizon, f->branch(pos))) return true;
+                if (complementOf(f, pos) && smallWeight(f->branch(pos))) return true;
             }
         }
     }
     return false;
 }
 
-Tree exactWeights(Tree L)
+Tree exactWeights(Tree L, std::unordered_map<Tree, Tree>* image)
 {
-    ExactSolvers                   exact(L);
-    // the cone of the decisions : there, the wider interval of y + w * y (y read twice)
-    // could refuse a program that (1 + w) * y lets through ; its products are left as
-    // they are
+    const TypedAttributes          exact;
+    // the cone of the memory decisions (a delay amount, an index, an integer conversion) :
+    // the rounding of a value that reaches one stays the one the certification bounded ;
+    // its products are left as they are
     const std::unordered_set<Tree> cone = decisionCone(L, /*discontinuities*/ false);
-    HorizonReader                  horizon(L, &exact, /*lazy*/ true);
     // a rewrite rebuilds the recursions with fresh variables : none when nothing changes
-    if (!hasCandidate(L, exact, cone, horizon)) return L;
+    if (!hasCandidate(L, exact, cone)) {
+        if (image != nullptr) {
+            image->clear();
+        }
+        return L;
+    }
     std::unordered_map<Tree, Tree> memo;
     // the rewritten products : result -> (w * P, P)
     std::unordered_map<Tree, std::pair<Tree, Tree>> split;
@@ -109,7 +111,7 @@ Tree exactWeights(Tree L)
         for (size_t k = 0; k < of.size(); k++) {
             int pos, rpos;
             if (!complementOf(of[k], pos) || !complementOf(rf[k], rpos) || rpos != pos) continue;
-            if (!smallWeight(horizon, of[k]->branch(pos))) continue;
+            if (!smallWeight(of[k]->branch(pos))) continue;
             // P : the other factors, rebuilt
             tvec rest;
             for (size_t j = 0; j < rf.size(); j++) {
@@ -151,5 +153,10 @@ Tree exactWeights(Tree L)
         }
         return rebuilt;
     };
-    return treeRewritePaired(L, rule, memo);
+    Tree r = treeRewritePaired(L, rule, memo);
+    completeTypes(r, memo);
+    if (image != nullptr) {
+        *image = memo;
+    }
+    return r;
 }

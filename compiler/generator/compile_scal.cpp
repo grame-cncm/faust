@@ -691,28 +691,6 @@ Tree ScalarCompiler::prepare(Tree LS)
     }
     // No more table privatisation
     Tree L2 = newConstantPropagation(L1);
-    if (gGlobal->gShareSums) {
-        // the dense sums factored by coefficient, their common sub-sums shared (-noshs),
-        // before the certified typing, which bounds the rewritten program
-        startTiming("shareSums");
-        L2 = shareSums(L2);
-        endTiming("shareSums");
-    }
-    if (gGlobal->gExactWeights) {
-        // -xw : (1 + w) * y written w * y + y, a small w read exactly, not through 1 + w
-        // rounded, before the certified typing
-        startTiming("exactWeights");
-        L2 = exactWeights(L2);
-        endTiming("exactWeights");
-    }
-    if (gGlobal->gSumLanes) {
-        // the long sums in partial sums of contiguous terms (-nosl) : the scheduler emits
-        // each term where it is first read, in order. Before the certified typing, which
-        // bounds the rewritten program
-        startTiming("sumLanes");
-        L2 = sumLanes(L2, LaneOrder::kContiguous);
-        endTiming("sumLanes");
-    }
 
 
     // enable/control escape hatch for the standalone -lsum path : the sum
@@ -984,12 +962,14 @@ Tree ScalarCompiler::prepare(Tree LS)
 
     // the computation form : the decisions of the code, taken once on the certified
     // program and on every root the emitter compiles (computeForm.hh), after every
-    // typing ; the tables keyed by the program's signals follow their translations. The
-    // normal form stays for the drawings.
+    // typing, then the lowerings that change the rounding, outside the cone of the memory
+    // decisions, the long sums in partial sums of contiguous terms (the scheduler emits
+    // each term where it is first read, in order) ; the tables keyed by the program's
+    // signals follow their translations. The normal form stays for the drawings.
     const Tree N2 = L2;
     {
         startTiming("computationForm");
-        ComputeForm cf(L2);  // the program first, in its order
+        ComputeForm cf(L2, /*lower*/ true, LaneOrder::kContiguous);  // the program first
         L2 = cf.program();
         Lx = cf.translate(Lx);
         {

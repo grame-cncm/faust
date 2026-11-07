@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "signals.hh"
 
 /**
@@ -34,8 +36,11 @@
  *     rate : the generators compute k times the slower factors at their rate.
  *
  * The result computes the same linear combination with at most as many operations, in
- * another association : the rounding changes. The pass runs before the certified typing,
- * which bounds the rewritten program itself. Shared trees are emitted once by the code
- * generators.
+ * another association : the rounding changes. The pass runs on the computation form, after
+ * the certified typing (computeForm.hh) : a sum or a product whose value may reach a delay
+ * amount, an index or an integer conversion (decisionCone.hh) is left as the certification
+ * bounded it. It reads the attributes in the types, and leaves its result typed
+ * (typedAttributes.hh) ; image, when given, receives every node of L with its rewriting.
+ * Shared trees are emitted once by the code generators.
  */
-Tree shareSums(Tree L);
+Tree shareSums(Tree L, std::unordered_map<Tree, Tree>* image = nullptr);
