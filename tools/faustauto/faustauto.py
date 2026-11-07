@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """faustauto — the complete auto mode of the ocpp backend, in two layers.
 
-Layer 1 (static, free): the program signature (FAUST_SS_SIG) prunes the
+Layer 1 (static, free): the program signature (-sig) prunes the
 53 modes down to 3 or 4 candidates. Two outcomes:
   - safe fusion  (recmii >= 50, or >= 5 real streams)  -> fusion + BOTH ordering regimes
   - uncertain                                          -> fusion + 2 orders + df
@@ -92,34 +92,24 @@ CAND = {
     # at the head of the loop body, with a register move at the original
     # slot. Proved by counters on freeverb (stalls -43%), a per-program
     # candidate (zitaRev 1.03: never a default).
-    "rp":   ["-ss", "0"],
+    "rp":   ["-ss", "0", "-rp"],
 }
 
 # candidates carried by an environment variable rather than flags
 # (the compiler is invoked with this extra environment)
-CAND_ENV = {
-    "rp": {"FAUST_SS_RINGPRELOAD": "1"},
-}
+CAND_ENV = {}
 
 
 def signature(dsp):
-    env = dict(os.environ, FAUST_SS_SIG="1")
-    r = subprocess.run([FAUST, "-lang", "ocpp", dsp, "-o", os.devnull],
-                       env=env, capture_output=True, text=True)
-    m = re.search(r"SS_SIG ([^\n]*)", r.stderr)
-    if not m:
+    r = subprocess.run([FAUST, "-lang", "ocpp", "-sig", dsp, "-o", os.devnull],
+                       capture_output=True, text=True)
+    m = re.search(r"SS_SIG ([^\n]*)", r.stdout)
+    if r.returncode or not m:
         sys.exit(f"faustauto: pas de signature (faust a dit : {r.stderr.strip()[:200]})")
     sig = {k: int(v) for k, v in re.findall(r"(\w+)=(\d+)", m.group(1))}
-    # the fourth form: matrix family count. A separate probe (families
-    # only exist after revealSum, outside the signature's default world)
-    # -- ~0.5 s, which only pays for inviting fibmx where it can differ
-    # from fibfu.
-    r = subprocess.run([FAUST, "-lang", "ocpp", "-fir", "-iirt", "-lsum", dsp,
-                        "-o", os.devnull],
-                       env=dict(os.environ, FAUST_MATRIX_CENSUS="1"),
-                       capture_output=True, text=True)
-    fams = re.findall(r"MATRIX census : \d+ candidats, (\d+) familles", r.stderr)
-    sig["nmatrix"] = int(fams[-1]) if fams else 0
+    # The removed FAUST_MATRIX_CENSUS variable has no supported replacement in
+    # 2.88. Do not pay for a second compile which cannot return a census.
+    sig["nmatrix"] = 0
     return sig
 
 
