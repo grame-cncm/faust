@@ -159,7 +159,7 @@ static bool isMonomial(Tree t)
     if (isSigProd(t, fs)) {
         return true;
     }
-    return getUserData(t) == gGlobal->gPowPrim && isSigInt(t->branch(1), &n);
+    return sigXtendedData(t) == gGlobal->gPowPrim && isSigInt(t->branch(1), &n);
 }
 
 // t, a product, holds a division at its multiplicative level

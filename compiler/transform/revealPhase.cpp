@@ -41,7 +41,7 @@ bool remainderOf(Tree r, Tree& x, Tree& p)
     if (isSigBinOp(r, &op, x, p) && op == kRem) {
         return true;
     }
-    if (r->arity() == 2 && getUserData(r) == static_cast<void*>(gGlobal->gFmodPrim)) {
+    if (sigXtendedData(r) == static_cast<void*>(gGlobal->gFmodPrim) && r->arity() == 2) {
         x = r->branch(0);
         p = r->branch(1);
         return true;

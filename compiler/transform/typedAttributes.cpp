@@ -33,7 +33,7 @@ bool isSignalNode(Tree t, const Signature& signature)
     double             r;
     Tree               g;
     sigs::SignalOpcode op;
-    return isSigInt(t, &i) || isSigInt64(t, &i64) || isSigReal(t, &r) || getUserData(t) != nullptr ||
+    return isSigInt(t, &i) || isSigInt64(t, &i64) || isSigReal(t, &r) || sigXtendedData(t) != nullptr ||
            isProj(t, &i, g) || sigs::signalOpcode(t, signature, op) || isComputeSignal(t);
 }
 
