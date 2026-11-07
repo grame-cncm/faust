@@ -352,11 +352,18 @@ class RustInstVisitor : public TextInstVisitor {
         }
         *fOut << named->getName();
         if (named->isStaticStruct()) {
-            if (fVarsRequiringGuards.find(named->getName()) != fVarsRequiringGuards.end()) {
+            bool guarded =
+                fVarsRequiringGuards.find(named->getName()) != fVarsRequiringGuards.end();
+            if (guarded) {
                 *fOut << "_guard";
             }
             if (named->getAccess() & Address::kReference &&
                 named->getAccess() & Address::kMutable) {
+                // The table of a sub-container, filled by classInit, is not locked by the
+                // class: it is locked for this call only
+                if (!guarded) {
+                    *fOut << ".write().unwrap()";
+                }
                 *fOut << ".as_mut()";
             }
         }
