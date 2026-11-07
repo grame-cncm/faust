@@ -85,16 +85,18 @@ struct Row {
     Tree                                node;
     std::vector<std::pair<int, double>> terms;
     std::vector<SymTerm>                sym;
+    bool candidate = false;  ///< two terms of two magnitudes : rewritten only if it holds a pair
 };
 
-/// what an atom index stands for : an original atom, a product c * S, or a pair u + rel * v
+/// what an atom index stands for : an original atom, a product c * S, a pair u + rel * v, or
+/// a proportional pair u + coef * v
 struct AtomDef {
-    enum Kind { kOrig, kProduct, kPair } kind;
+    enum Kind { kOrig, kProduct, kPair, kRatio } kind;
     AtomKey orig{nullptr, 0};
-    double  coef = 0;        ///< kProduct : the coefficient
+    double  coef = 0;        ///< kProduct : the coefficient ; kRatio : the ratio
     Tree    sym  = nullptr;  ///< kProduct : the symbolic coefficient, times coef
     int     sum  = -1;  ///< kProduct : the index of S in fSums
-    int     u = -1, v = -1, rel = 0;  ///< kPair
+    int     u = -1, v = -1, rel = 0;  ///< kPair, kRatio (u, v ; rel -1 when built v - u)
 };
 
 class Planner {
@@ -256,13 +258,15 @@ bool Planner::parseTerm(Tree t, double sign, std::vector<std::pair<int, double>>
 // (the scaled difference of fds.bow, c * x - c * x', cancelled two rounded products in
 // single precision). The coefficients may be trees slower than the sample, compared up to
 // their sign (canonicalCoefficient) : a FIR whose taps all have one such coefficient
-// (bells : FIR[x, E14, 0, E15], E15 = -E14), a sum whose terms c * y hold one twice
+// (bells : FIR[x, E14, 0, E15], E15 = -E14), a sum whose terms c * y hold one twice. A real
+// sum of two terms of two magnitudes is a candidate : rewritten only if it holds a pair.
 bool Planner::rowOf(Tree t, Row& row)
 {
     tvec subs;
     row.node = t;
     row.terms.clear();
     row.sym.clear();
+    row.candidate = false;
     if (fCone.count(t) != 0) {
         return false;  // its rounding reaches a delay amount, an index, an integer conversion :
                        // left as the certification bounded it
@@ -359,7 +363,11 @@ bool Planner::rowOf(Tree t, Row& row)
     }
     if (row.terms.size() == 2) {
         const double m0 = std::fabs(row.terms[0].second), m1 = std::fabs(row.terms[1].second);
-        return m0 != 1.0 && m1 != 1.0 && sameMagnitude(std::max(m0, m1), std::min(m0, m1));
+        if (sameMagnitude(std::max(m0, m1), std::min(m0, m1))) {
+            return m0 != 1.0 && m1 != 1.0;
+        }
+        row.candidate = true;  // c_u * u + c_v * v may hold a proportional pair (plan, 0.)
+        return true;
     }
     return row.terms.size() >= 3;
 }
@@ -395,6 +403,140 @@ void Planner::plan()
     const size_t R = fRows.size();
     fRewrite.assign(R, false);
     if (R == 0) return;
+
+    // 0. the proportional pairs : two atoms u < v of a row, of coefficients c_u and c_v,
+    //    have the ratio rho = c_v / c_u. A pair (u, v, rho), rho other than +-1, that two
+    //    rows at least hold, their ratios of one sign and of magnitudes the program cannot
+    //    tell apart (sameMagnitude), becomes an atom P = u + rho * v, rho the ratio of the
+    //    first row that holds it ; each of these rows replaces c_u * u + c_v * v by
+    //    c_u * P. P is written on v, v + (1 / rho) * u, when more of its rows give v a
+    //    coefficient of magnitude 1 than u, so that they read P without a product. The
+    //    pair held by the most rows first, ties to the smallest (u, v, rho) ; a sub-sum of
+    //    n terms that several rows hold at different scales is rebuilt by n - 1 pairs. A
+    //    pair held by m rows saves m - 1 products and m - 1 additions. A term whose
+    //    magnitude another term of its row holds stays out of the pairs : it belongs to the
+    //    factoring by magnitude (1.) and to the pairs of coefficients +-1 (3.), which a
+    //    proportional pair would break (the butterflies of FFT.dsp : 88 products more).
+    {
+        struct Cand {
+            int    u, v;
+            double rho;
+            int    row;
+        };
+        size_t       work    = 0;
+        const size_t kBudget = 50000000;
+        auto         unit    = [](double rho) {
+            const double m = std::fabs(rho);
+            return sameMagnitude(std::max(m, 1.0), std::min(m, 1.0));
+        };
+        auto coefficient = [&](int r, int a) {
+            for (auto& [b, c] : fRows[r].terms) {
+                if (b == a) return c;
+            }
+            faustassert(false);
+            return 0.0;
+        };
+        while (work <= kBudget) {
+            // a shared pair is made of atoms that two rows at least hold
+            std::unordered_map<int, int> holders;
+            for (auto& row : fRows) {
+                if (row.terms.size() < 2) continue;
+                for (auto& [a, c] : row.terms) holders[a]++;
+            }
+            std::vector<Cand>                   cands;
+            std::vector<std::pair<int, double>> shared;
+            for (size_t r = 0; r < R; r++) {
+                shared.clear();
+                const auto& ts = fRows[r].terms;
+                for (size_t i = 0; i < ts.size(); i++) {
+                    // a term whose magnitude another term of the row holds is left to the
+                    // factoring by magnitude (1.) and to the pairs of coefficients +-1 (3.)
+                    bool alone = true;
+                    for (size_t j = 0; j < ts.size() && alone; j++) {
+                        const double mi = std::fabs(ts[i].second), mj = std::fabs(ts[j].second);
+                        alone = (i == j) || !sameMagnitude(std::max(mi, mj), std::min(mi, mj));
+                    }
+                    if (alone && holders[ts[i].first] > 1) shared.push_back(ts[i]);
+                }
+                work += shared.size() * shared.size();
+                for (size_t i = 0; i < shared.size(); i++) {
+                    for (size_t j = i + 1; j < shared.size(); j++) {
+                        auto [a, ca] = shared[i];
+                        auto [b, cb] = shared[j];
+                        if (a > b) {
+                            std::swap(a, b);
+                            std::swap(ca, cb);
+                        }
+                        const double rho = cb / ca;
+                        if (!unit(rho) && std::isfinite(rho)) cands.push_back({a, b, rho, int(r)});
+                    }
+                }
+            }
+            if (cands.empty() || work > kBudget) break;
+            std::sort(cands.begin(), cands.end(), [](const Cand& x, const Cand& y) {
+                return std::tie(x.u, x.v, x.rho, x.row) < std::tie(y.u, y.v, y.rho, y.row);
+            });
+            // the clusters : one (u, v), ratios of one sign the program cannot tell apart from
+            // the first ratio of the cluster ; the largest first, ties to the first met
+            size_t best = 0, bestEnd = 0;
+            for (size_t i = 0; i < cands.size();) {
+                size_t       j  = i + 1;
+                const double m0 = std::fabs(cands[i].rho);
+                while (j < cands.size() && cands[j].u == cands[i].u && cands[j].v == cands[i].v &&
+                       (cands[j].rho > 0) == (cands[i].rho > 0) &&
+                       sameMagnitude(std::max(m0, std::fabs(cands[j].rho)),
+                                     std::min(m0, std::fabs(cands[j].rho)))) {
+                    j++;
+                }
+                if (j - i >= 2 && j - i > bestEnd - best) {
+                    best    = i;
+                    bestEnd = j;
+                }
+                i = j;
+            }
+            if (bestEnd - best < 2) break;
+            const int u = cands[best].u, v = cands[best].v;
+            int       first = cands[best].row;
+            double    rho   = cands[best].rho;
+            int       unitU = 0, unitV = 0;
+            for (size_t k = best; k < bestEnd; k++) {
+                const int r = cands[k].row;
+                if (r < first) {
+                    first = r;
+                    rho   = cands[k].rho;
+                }
+                unitU += std::fabs(coefficient(r, u)) == 1.0;
+                unitV += std::fabs(coefficient(r, v)) == 1.0;
+            }
+            const bool onV = unitV > unitU;
+            AtomDef    def;
+            def.kind = AtomDef::kRatio;
+            def.u    = onV ? v : u;
+            def.v    = onV ? u : v;
+            def.coef = onV ? 1.0 / rho : rho;
+            def.rel  = 1;
+            // a difference u - |rho| * v that most of its rows read negated is built
+            // |rho| * v - u, read with the opposite coefficient : a row reduced to it is
+            // then no negation
+            int negated = 0;
+            for (size_t k = best; k < bestEnd; k++) {
+                negated += (coefficient(cands[k].row, def.u) < 0) ? 1 : -1;
+            }
+            if (def.coef < 0 && negated > 0) def.rel = -1;
+            fAtoms.push_back(def);
+            const int p = int(fAtoms.size()) - 1;
+            for (size_t k = best; k < bestEnd; k++) {
+                const int    r = cands[k].row;
+                const double c = coefficient(r, def.u) * def.rel;
+                std::vector<std::pair<int, double>> kept;
+                for (auto& tc : fRows[r].terms) {
+                    if (tc.first != u && tc.first != v) kept.push_back(tc);
+                }
+                kept.push_back({p, c});
+                fRows[r].terms = kept;
+            }
+        }
+    }
 
     // 1. the magnitudes of the coefficients, in clusters of the magnitudes the program
     //    cannot tell apart (sameMagnitude, a cluster always taking its first magnitude) ;
@@ -541,15 +683,16 @@ void Planner::plan()
         }
     }
 
-    // 3'. the orientation of a difference u - v : a sum whose terms are all negated is
-    //    emitted as a negation (emitSum), a row reduced to -(u - v) among them. The pair is
-    //    built v - u, the exact opposite in floating point, when that leaves fewer such sums
-    //    among its readers, their signs inverted. A pair read by another pair keeps its
-    //    orientation (u carries no sign there) ; u + v has no opposite without a negation.
+    // 3'. the orientation of a difference u - v, or u - |rho| * v of a proportional pair :
+    //    a sum whose terms are all negated is emitted as a negation (emitSum), a row
+    //    reduced to -(u - v) among them. The pair is built v - u (|rho| * v - u), the exact
+    //    opposite in floating point, when that leaves fewer such sums among its readers,
+    //    their signs inverted. A pair read by another pair keeps its orientation (u carries
+    //    no sign there) ; u + v has no opposite without a negation.
     {
         std::unordered_set<int> inPair;
         for (const auto& def : fAtoms) {
-            if (def.kind == AtomDef::kPair) {
+            if (def.kind == AtomDef::kPair || def.kind == AtomDef::kRatio) {
                 inPair.insert(def.u);
                 inPair.insert(def.v);
             }
@@ -561,7 +704,10 @@ void Planner::plan()
             return s.empty() ? 0 : 1;
         };
         for (size_t t = 0; t < fAtoms.size(); t++) {
-            if (fAtoms[t].kind != AtomDef::kPair || fAtoms[t].rel > 0 || inPair.count(int(t)) != 0) {
+            const AtomDef& d          = fAtoms[t];
+            const bool     difference = (d.kind == AtomDef::kPair && d.rel < 0) ||
+                                    (d.kind == AtomDef::kRatio && d.coef < 0);
+            if (!difference || inPair.count(int(t)) != 0) {
                 continue;
             }
             int before = 0, after = 0;
@@ -574,7 +720,11 @@ void Planner::plan()
                 it->second = -it->second;
             }
             if (after < before) {
-                std::swap(fAtoms[t].u, fAtoms[t].v);
+                if (d.kind == AtomDef::kPair) {
+                    std::swap(fAtoms[t].u, fAtoms[t].v);
+                } else {
+                    fAtoms[t].rel = -fAtoms[t].rel;  // |rho| * v - u, or back to u - |rho| * v
+                }
                 for (auto& s : fSums) {
                     auto it = s.find(int(t));
                     if (it != s.end()) it->second = -it->second;
@@ -583,8 +733,8 @@ void Planner::plan()
         }
     }
 
-    // 4. a row is rewritten when it gains : a factored group, a pair, a product held by
-    //    another row or whose sum holds a pair
+    // 4. a row is rewritten when it gains : a factored group, a pair (proportional or
+    //    not), a product held by another row or whose sum holds a pair
     std::map<int, int> productUses;
     for (size_t r = 0; r < R; r++) {
         for (auto& [a, s] : fSums[r]) {
@@ -593,15 +743,16 @@ void Planner::plan()
     }
     auto holdsPair = [&](const Signed& s) {
         for (auto& [a, x] : s) {
-            if (fAtoms[a].kind == AtomDef::kPair) return true;
+            if (fAtoms[a].kind == AtomDef::kPair || fAtoms[a].kind == AtomDef::kRatio) return true;
         }
         return false;
     };
     for (size_t r = 0; r < R; r++) {
-        bool gain = groupsOf[r] > 0 || holdsPair(fSums[r]);
+        // a candidate row gains only by a pair, in its sum or in the sum of one of its products
+        bool gain = holdsPair(fSums[r]) || (!fRows[r].candidate && groupsOf[r] > 0);
         for (auto& [a, s] : fSums[r]) {
             if (fAtoms[a].kind == AtomDef::kProduct &&
-                (productUses[a] > 1 || holdsPair(fSums[fAtoms[a].sum]))) {
+                ((!fRows[r].candidate && productUses[a] > 1) || holdsPair(fSums[fAtoms[a].sum]))) {
                 gain = true;
             }
         }
@@ -611,7 +762,7 @@ void Planner::plan()
         for (auto& [a, x] : s) fReads[a]++;
     }
     for (auto& def : fAtoms) {
-        if (def.kind == AtomDef::kPair) {
+        if (def.kind == AtomDef::kPair || def.kind == AtomDef::kRatio) {
             fReads[def.u]++;
             fReads[def.v]++;
         }
@@ -640,6 +791,21 @@ Tree Planner::buildAtom(int a, std::unordered_map<Tree, Tree>& memo)
         Tree c = coefficientTree(def, false);
         Tree s = buildSigned(fSums[def.sum], memo);
         t      = sigProd({c, s});
+    } else if (def.kind == AtomDef::kRatio) {
+        // u + rho * v, or |rho| * v - u when built opposite (rel -1, rho < 0)
+        Tree u = buildAtom(def.u, memo);
+        Tree v = buildAtom(def.v, memo);
+        Tree c = sigReal(std::fabs(def.coef));
+        Tree p = sigProd({c, v});
+        if (def.rel < 0) {
+            Tree n = sigNeg(u);
+            t      = sigSum({p, n});
+        } else if (def.coef < 0) {
+            Tree n = sigNeg(p);
+            t      = sigSum({u, n});
+        } else {
+            t = sigSum({u, p});
+        }
     } else {
         Tree u = buildAtom(def.u, memo);
         Tree v = buildAtom(def.v, memo);
