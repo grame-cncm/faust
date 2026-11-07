@@ -11,9 +11,11 @@
  ************************************************************************/
 
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include "rewrite.hh"
-#include "sigattributes.hh"
+#include "decisionCone.hh"
+#include "typedAttributes.hh"
 #include "sigtype.hh"
 #include "sumLanes.hh"
 
@@ -40,14 +42,15 @@ Tree balancedSum(tvec parts)
 
 }  // namespace
 
-Tree sumLanes(Tree L, LaneOrder order)
+Tree sumLanes(Tree L, LaneOrder order, std::unordered_map<Tree, Tree>* image)
 {
-    const ExactSolvers             exact(L);
+    const TypedAttributes          exact;
+    const std::unordered_set<Tree> cone = decisionCone(L, /*discontinuities*/ false);
     std::unordered_map<Tree, Tree> memo;
     auto rule = [&](Tree orig, Tree rebuilt) -> Tree {
         tvec ot, rt;
         if (!isSigSum(orig, ot) || !isSigSum(rebuilt, rt) || ot.size() != rt.size() ||
-            exact.nature(orig) != kReal) {
+            exact.nature(orig) != kReal || cone.count(orig) != 0) {
             return rebuilt;
         }
         // the slower terms first, then only sample-rate terms (the order of the normal form)
@@ -88,5 +91,10 @@ Tree sumLanes(Tree L, LaneOrder order)
         outer.push_back(fast);
         return sigSum(outer);
     };
-    return treeRewritePaired(L, rule, memo);
+    Tree r = treeRewritePaired(L, rule, memo);
+    completeTypes(r, memo);
+    if (image != nullptr) {
+        *image = memo;
+    }
+    return r;
 }

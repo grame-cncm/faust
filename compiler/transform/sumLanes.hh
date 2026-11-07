@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "signals.hh"
 
 /**
@@ -22,8 +24,11 @@
  * nor overlap them. sumLanes rewrites a real Sum with at least 8 terms computed at the
  * sample rate : its slower terms first, as the normal form orders them, then the
  * sample-rate terms t0, ..., tm in 4 partial sums added as a balanced tree. The rounding
- * changes : the pass runs before the certified typing, which bounds the rewritten program
- * itself.
+ * changes : the pass runs on the computation form, after the certified typing
+ * (computeForm.hh), and leaves a sum whose value may reach a delay amount, an index or an
+ * integer conversion as the certification bounded it (decisionCone.hh). It reads the
+ * attributes in the types and leaves its result typed (typedAttributes.hh) ; image, when
+ * given, receives every node of L with its rewriting.
  *
  * How the terms are dealt to the partial sums depends on the code generator :
  * - interleaved, Sum(t0, t4, t8, ...), Sum(t1, t5, ...), ... : each step of the four sums
@@ -37,4 +42,4 @@
  */
 enum class LaneOrder { kInterleaved, kContiguous };
 
-Tree sumLanes(Tree L, LaneOrder order);
+Tree sumLanes(Tree L, LaneOrder order, std::unordered_map<Tree, Tree>* image = nullptr);

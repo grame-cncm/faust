@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "signals.hh"
 
 /**
@@ -26,8 +28,10 @@
  * other terms are added to w * P first, then P : (b + w * P) + P, the association of
  * y - (y * om - b), so that P does not absorb the low digits of the small terms. A product
  * that may reach a decision (a delay amount, an integer conversion, an index) is left as
- * it is : P read twice widens its interval. The pass runs before the certified typing,
- * which bounds the rewritten program.
+ * it is : its rounding stays the one the certification bounded. The pass runs on the
+ * computation form, after the certified typing (computeForm.hh) : it reads the attributes
+ * and the certified intervals in the types, and leaves its result typed
+ * (typedAttributes.hh) ; image, when given, receives every node of L with its rewriting.
  *
  * Only a small weight is rewritten, |w| < 2^-8 over its interval : 1 + w then loses 8 bits
  * of w at least. A larger weight keeps (1 + w) * y : the rewriting adds an operation on the
@@ -37,4 +41,4 @@
  * b + (1 - om) * y, which the library writes to avoid (single precision, 60 times the error
  * of master-dev against a double reference).
  */
-Tree exactWeights(Tree L);
+Tree exactWeights(Tree L, std::unordered_map<Tree, Tree>* image = nullptr);
