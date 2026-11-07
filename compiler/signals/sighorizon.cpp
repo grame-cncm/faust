@@ -313,7 +313,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
     static bool absArg(Tree t, Tree& x)
     {
         if (t->arity() == 1 && sigs::g.gAbsPrim != nullptr &&
-            getUserData(t) == static_cast<void*>(sigs::g.gAbsPrim)) {
+            sigXtendedData(t) == static_cast<void*>(sigs::g.gAbsPrim)) {
             x = t->branch(0);
             return true;
         }
@@ -323,7 +323,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
     /// t is prim(x)
     static bool primArg(Tree t, xtended* prim, Tree& x)
     {
-        if (t->arity() == 1 && prim != nullptr && getUserData(t) == static_cast<void*>(prim)) {
+        if (t->arity() == 1 && prim != nullptr && sigXtendedData(t) == static_cast<void*>(prim)) {
             x = t->branch(0);
             return true;
         }
@@ -343,7 +343,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
     static bool roundingArg(Tree t, Tree& x, double& lo, double& hi)
     {
         if (t->arity() != 1) return false;
-        void* p = getUserData(t);
+        void* p = sigXtendedData(t);
         if (p == nullptr) return false;
         if (p == static_cast<void*>(sigs::g.gFloorPrim)) {
             lo = 0;
@@ -860,7 +860,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
                                    isSigSum(t) || isSigProd(t) || isSigNeg(t, x) || isSigFrac(t, x) ||
                                    isSigCfrac(t, x) || isSigTpt(t, x) || isSigMix(t, x, y, w) ||
                                    isSigPhase(t, x, y) ||
-                                   getUserData(t) != nullptr;
+                                   sigXtendedData(t) != nullptr;
         if (instantaneous) {
             for (int j = 0; j < t->arity() && !r; j++) r = readsRefined(t->branch(j), keys, memo);
         }

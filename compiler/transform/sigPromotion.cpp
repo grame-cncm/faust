@@ -671,7 +671,7 @@ static bool boundedSide(Tree t, bool low, int bound)
     if (isSigInt(t, &k)) {
         return low ? k >= bound : k <= bound;
     }
-    xtended* p = (xtended*)getUserData(t);
+    xtended* p = (xtended*)sigXtendedData(t);
     if ((p == gGlobal->gMinPrim || p == gGlobal->gMaxPrim) && t->arity() == 2 && !isReal(t)) {
         bool a = boundedSide(t->branch(0), low, bound);
         bool b = boundedSide(t->branch(1), low, bound);
@@ -839,7 +839,7 @@ bool isGuardedDivisor(Tree d, Tree& y)
 
 bool isAbsDivisor(Tree d)
 {
-    return getUserData(d) == gGlobal->gAbsPrim;
+    return sigXtendedData(d) == gGlobal->gAbsPrim;
 }
 
 // The largest value of the program below 2^31 : INT32_MAX itself is no float (it rounds to
