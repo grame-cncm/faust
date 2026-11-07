@@ -30,7 +30,9 @@
  *     constants folded along different paths differ by a few ulps) ;
  *  2. a product c * S that several rows hold, up to its sign, is one tree ;
  *  3. in every sum of coefficients +-1 that remains, the signed pair of terms the most
- *     sums hold becomes a sum of its own, until no pair is held twice ;
+ *     sums hold becomes a sum of its own, until no pair is held twice ; a difference
+ *     u - v is built v - u, its exact opposite, when that leaves fewer negations in the
+ *     sums that read it (a sum whose terms are all negated is a negation) ;
  *  4. in a real product at the sample rate that holds a slower factor, the number of a
  *     factor k * S or of a gain kernel FIR[x, k] joins the product, its factors ordered by
  *     rate : the generators compute k times the slower factors at their rate.

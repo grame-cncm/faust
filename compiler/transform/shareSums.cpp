@@ -541,6 +541,48 @@ void Planner::plan()
         }
     }
 
+    // 3'. the orientation of a difference u - v : a sum whose terms are all negated is
+    //    emitted as a negation (emitSum), a row reduced to -(u - v) among them. The pair is
+    //    built v - u, the exact opposite in floating point, when that leaves fewer such sums
+    //    among its readers, their signs inverted. A pair read by another pair keeps its
+    //    orientation (u carries no sign there) ; u + v has no opposite without a negation.
+    {
+        std::unordered_set<int> inPair;
+        for (const auto& def : fAtoms) {
+            if (def.kind == AtomDef::kPair) {
+                inPair.insert(def.u);
+                inPair.insert(def.v);
+            }
+        }
+        auto negation = [](const Signed& s) {
+            for (const auto& [a, sg] : s) {
+                if (sg > 0) return 0;
+            }
+            return s.empty() ? 0 : 1;
+        };
+        for (size_t t = 0; t < fAtoms.size(); t++) {
+            if (fAtoms[t].kind != AtomDef::kPair || fAtoms[t].rel > 0 || inPair.count(int(t)) != 0) {
+                continue;
+            }
+            int before = 0, after = 0;
+            for (auto& s : fSums) {
+                auto it = s.find(int(t));
+                if (it == s.end()) continue;
+                before += negation(s);
+                it->second = -it->second;
+                after += negation(s);
+                it->second = -it->second;
+            }
+            if (after < before) {
+                std::swap(fAtoms[t].u, fAtoms[t].v);
+                for (auto& s : fSums) {
+                    auto it = s.find(int(t));
+                    if (it != s.end()) it->second = -it->second;
+                }
+            }
+        }
+    }
+
     // 4. a row is rewritten when it gains : a factored group, a pair, a product held by
     //    another row or whose sum holds a pair
     std::map<int, int> productUses;
