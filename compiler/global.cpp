@@ -560,6 +560,7 @@ void global::reset()
     gDummyInput = 10000;
 
     gBoxSlotNumber = 0;
+    gDefNameCount  = 0;
     gMemoryManager = -1;
 
     gLocalCausalityCheck = false;
@@ -689,6 +690,9 @@ void global::init()
     RECURSIVNESS     = tree(symbol("RecursivnessProp"));
     NORMALFORM       = tree(symbol("NormalForm"));
     DEFNAMEPROPERTY  = tree(symbol("DEFNAMEPROPERTY"));
+    DEFNAMESTAMP     = tree(symbol("DEFNAMESTAMP"));
+    DEFNAMESHARED    = tree(symbol("DEFNAMESHARED"));
+    DEFNAMEUNCERTAIN = tree(symbol("DEFNAMEUNCERTAIN"));
     NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
     BCOMPLEXITY      = tree("BCOMPLEXITY");
     LETRECBODY       = boxIdent("RECURSIVEBODY");
