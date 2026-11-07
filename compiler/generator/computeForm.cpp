@@ -25,6 +25,7 @@
 #include "mixForm.hh"
 #include "sigtransform.hh"
 #include "exactWeights.hh"
+#include "factorSums.hh"
 #include "shareSums.hh"
 #include "sigtyperules.hh"
 #include "timing.hh"
@@ -126,7 +127,12 @@ void ComputeForm::lower(LaneOrder order)
 {
     std::unordered_map<Tree, Tree> memo;
     if (gGlobal->gShareSums) {
-        // the dense sums factored by coefficient, their common sub-sums shared (-noshs)
+        // the sums of products factored, then the dense sums factored by coefficient and
+        // their common sub-sums shared (-noshs)
+        startTiming("factorSums");
+        fProgram = factorSums(fProgram, &memo);
+        composeImage(fImage, memo);
+        endTiming("factorSums");
         startTiming("shareSums");
         fProgram = shareSums(fProgram, &memo);
         composeImage(fImage, memo);
