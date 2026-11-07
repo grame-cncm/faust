@@ -14,13 +14,16 @@ import subprocess
 import sys
 import tempfile
 
-# (program, expected exit code, expected text in the generated C++ or the error)
+# (program, expected exit code, expected text in the generated C++ or the error ; a tuple
+# when the text has several spellings)
 CASES = [
     ("process = 1 letrec { };", 0, "output0[i0] = static_cast<FAUSTFLOAT>(1);"),
     ("process = _ letrec { } : +(1);", 0, "getNumInputs() {\n\t\treturn 1;"),
     ("process = 1 letrec { where f = 2; };", 0, "output0[i0] = static_cast<FAUSTFLOAT>(1);"),
     ("process = v letrec { } with { v = 1; };", 0, "output0[i0] = static_cast<FAUSTFLOAT>(1);"),
-    ("process = (x letrec { }) letrec { 'x = x * 0.5 + 1; };", 0, "fRec0"),
+    # the state of the recursion : fRec0, or fIIR0 where the normal form reveals the
+    # recursion 1 + 0.5 * x' as a filter kernel
+    ("process = (x letrec { }) letrec { 'x = x * 0.5 + 1; };", 0, ("fRec0", "fIIR0")),
     ("process = v letrec { };", 1, "undefined symbol : v"),
 ]
 
@@ -42,7 +45,7 @@ def main():
             if r.returncode != code:
                 failures += 1
                 print(f"FAIL {program}: exit {r.returncode}, expected {code}\n    {r.stderr.strip()[:300]}")
-            elif expected not in text:
+            elif not any(e in text for e in (expected if isinstance(expected, tuple) else (expected,))):
                 failures += 1
                 print(f"FAIL {program}: {expected!r} not in the output")
             else:
