@@ -3158,7 +3158,9 @@ void CompilerStats::print(std::ostream& out) const
     DAZ (denormals-are-zero) reads as 0. The compilation thread may inherit
     the environment of the calling thread (glibc does), and audio hosts often
     enable DAZ and FTZ (x86) or FZ (AArch64) there. The thread only runs the
-    compilation, so the environment is not restored.
+    compilation, so the environment is not restored. The public API functions
+    that run compilation code in the caller's thread use DefaultFloatEnv, which
+    restores it.
  */
 static void setDefaultFloatEnv()
 {
@@ -3170,6 +3172,32 @@ static void setDefaultFloatEnv()
     // Rounding to nearest, FZ, FZ16, DN and AH cleared, traps disabled
     uint64_t fpcr = 0;
     __asm__ __volatile__("msr fpcr, %0" : : "r"(fpcr));
+#endif
+}
+
+// fesetenv does not restore DAZ and FTZ (or FZ) on every system: their register
+// is saved and restored explicitly
+static uint64_t getFloatControl()
+{
+#if defined(__SSE__) || defined(_M_X64) || (defined(_M_IX86_FP) && (_M_IX86_FP >= 1))
+    return _mm_getcsr();
+#elif defined(__aarch64__)
+    uint64_t fpcr;
+    __asm__ __volatile__("mrs %0, fpcr" : "=r"(fpcr));
+    return fpcr;
+#else
+    return 0;
+#endif
+}
+
+static void setFloatControl(uint64_t control)
+{
+#if defined(__SSE__) || defined(_M_X64) || (defined(_M_IX86_FP) && (_M_IX86_FP >= 1))
+    _mm_setcsr(static_cast<unsigned int>(control));
+#elif defined(__aarch64__)
+    __asm__ __volatile__("msr fpcr, %0" : : "r"(control));
+#else
+    (void)control;
 #endif
 }
 
@@ -3185,6 +3213,23 @@ static void* callWithDefaultFloatEnv(void* arg)
     return call->fFun(call->fArg);
 }
 #endif
+
+DefaultFloatEnv::DefaultFloatEnv()
+{
+#if !defined(EMCC)
+    std::fegetenv(&fEnv);
+    fControl = getFloatControl();
+    setDefaultFloatEnv();
+#endif
+}
+
+DefaultFloatEnv::~DefaultFloatEnv()
+{
+#if !defined(EMCC)
+    std::fesetenv(&fEnv);
+    setFloatControl(fControl);
+#endif
+}
 
 void callFunWithStackSize(threaded_fun fun, void* arg, size_t stack_size)
 {

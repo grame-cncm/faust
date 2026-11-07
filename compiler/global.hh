@@ -24,7 +24,9 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <cfenv>
 #include <chrono>
+#include <cstdint>
 #include <list>
 #include <map>
 #include <memory>
@@ -897,6 +899,19 @@ extern global* gGlobal;
 typedef void* (*threaded_fun)(void* arg);
 void callFun(threaded_fun fun, void* arg);
 void callFunWithStackSize(threaded_fun fun, void* arg, size_t stack_size);
+
+// Sets the floating-point environment of the compilation thread (see callFunWithStackSize)
+// in the current thread, and restores the previous one on destruction: for the public API
+// functions that run compilation code in the caller's thread.
+class DefaultFloatEnv {
+   public:
+    DefaultFloatEnv();
+    ~DefaultFloatEnv();
+
+   private:
+    std::fenv_t fEnv;
+    uint64_t    fControl;  // MXCSR (x86) or FPCR (AArch64)
+};
 
 // Used to pass parameters and possibly return a result
 struct CallContext {
