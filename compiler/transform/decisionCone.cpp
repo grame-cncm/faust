@@ -30,7 +30,7 @@ bool isNumber(Tree t)
 /// a function that jumps : its result moves by a step when its operand crosses a point
 bool isDiscontinuousPrim(Tree t)
 {
-    void* p = getUserData(t);
+    void* p = sigXtendedData(t);
     return p != nullptr &&
            (p == gGlobal->gFloorPrim || p == gGlobal->gCeilPrim || p == gGlobal->gRintPrim ||
             p == gGlobal->gFloorApproxPrim || p == gGlobal->gCeilApproxPrim ||

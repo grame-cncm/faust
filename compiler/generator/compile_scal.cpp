@@ -6690,7 +6690,7 @@ static bool displayStateless(Tree t)
     Tree x, y, sel;
     return isSigBinOp(t, &op, x, y) || isSigIntCast(t, x) || isSigFloatCast(t, x) ||
            isSigSelect2(t, sel, x, y) || isSigSum(t) || isSigProd(t) || isSigNeg(t, x) ||
-           (getUserData(t) != nullptr && t->arity() > 0);
+           (sigXtendedData(t) != nullptr);
 }
 
 // The stateful nodes : their state is written at every sample, an audio

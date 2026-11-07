@@ -772,7 +772,7 @@ void aterm::extractRemainders()
             if (!p.second.isScaledFactor(coef, f) || f->arity() != 1) {
                 continue;
             }
-            xtended*   round   = static_cast<xtended*>(getUserData(f));
+            xtended*   round   = static_cast<xtended*>(sigXtendedData(f));
             const bool isFloor = round != nullptr && round == gGlobal->gFloorPrim;
             if (!isFloor && (round == nullptr || round != gGlobal->gRintPrim)) {
                 continue;

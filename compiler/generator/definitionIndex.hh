@@ -66,7 +66,7 @@ class DefinitionIndex {
             fCompounds.push_back(t);
             return;
         }
-        void* ud = getUserData(t);
+        void* ud = sigXtendedData(t);
         if (ud != nullptr && t->arity() == 2 && ud == static_cast<void*>(gGlobal->gFmodPrim)) {
             fRem.emplace(std::make_pair(t->branch(0), t->branch(1)), t);
             return;
