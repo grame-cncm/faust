@@ -23,7 +23,8 @@
 #include "global.hh"
 #include "rewrite.hh"
 #include "shareSums.hh"
-#include "sigattributes.hh"
+#include "decisionCone.hh"
+#include "typedAttributes.hh"
 #include "sigtype.hh"
 
 namespace {
@@ -109,14 +110,15 @@ class Planner {
     std::unordered_map<int, Tree>                  fBuilt;     ///< atom -> its tree
     std::unordered_map<int, int>                   fReads;     ///< atom -> its readers
 
-    explicit Planner(Tree L) : fExact(L) {}
+    explicit Planner(Tree L) : fCone(decisionCone(L, /*discontinuities*/ false)) {}
 
     void collect(Tree L);
     void plan();
-    Tree rewrite(Tree L);
+    Tree rewrite(Tree L, std::unordered_map<Tree, Tree>& memo);
 
    private:
-    ExactSolvers fExact;
+    TypedAttributes          fExact;
+    std::unordered_set<Tree> fCone;  ///< the cone of the memory decisions : no row there
 
     bool isReal(Tree t) const { return fExact.nature(t) == kReal; }
     int  atom(Tree base, int delay);
@@ -261,6 +263,10 @@ bool Planner::rowOf(Tree t, Row& row)
     row.node = t;
     row.terms.clear();
     row.sym.clear();
+    if (fCone.count(t) != 0) {
+        return false;  // its rounding reaches a delay amount, an index, an integer conversion :
+                       // left as the certification bounded it
+    }
     if (isSigSum(t, subs)) {
         if (!isReal(t)) return false;
         std::vector<SymTerm> sym;
@@ -654,9 +660,8 @@ Tree Planner::buildRow(int r, std::unordered_map<Tree, Tree>& memo)
     return buildSigned(top, memo);
 }
 
-Tree Planner::rewrite(Tree L)
+Tree Planner::rewrite(Tree L, std::unordered_map<Tree, Tree>& memo)
 {
-    std::unordered_map<Tree, Tree> memo;
     auto rule = [&](Tree orig, Tree rebuilt) -> Tree {
         auto it = fRowOf.find(orig);
         if (it == fRowOf.end() || !fRewrite[it->second]) return rebuilt;
@@ -673,10 +678,10 @@ Tree Planner::rewrite(Tree L)
 /// fSlow4 * (0.5f * (a + b)) instead of fSlow3 * (a + b)). A factor read elsewhere stays
 /// whole : its product is computed once, and released in each of its readers it would be
 /// computed again (vocal, the gain of a filter section read by its two states)
-Tree foldSlowGains(Tree L)
+Tree foldSlowGains(Tree L, std::unordered_map<Tree, Tree>& memo)
 {
-    const ExactSolvers             exact(L);
-    std::unordered_map<Tree, Tree> memo;
+    const TypedAttributes          exact;
+    const std::unordered_set<Tree> cone = decisionCone(L, /*discontinuities*/ false);
     // the number of reads of every signal, one per branch that holds it
     std::unordered_map<Tree, int> reads;
     {
@@ -705,7 +710,7 @@ Tree foldSlowGains(Tree L)
     auto rule = [&](Tree orig, Tree rebuilt) -> Tree {
         tvec fo, fr;
         if (!isSigProd(orig, fo) || !isSigProd(rebuilt, fr) || fo.size() != fr.size() ||
-            exact.nature(orig) != kReal || exact.variability(orig) != kSamp) {
+            exact.nature(orig) != kReal || exact.variability(orig) != kSamp || cone.count(orig) != 0) {
             return rebuilt;
         }
         bool slow = false;
@@ -767,12 +772,26 @@ Tree foldSlowGains(Tree L)
 
 }  // namespace
 
-Tree shareSums(Tree L)
+Tree shareSums(Tree L, std::unordered_map<Tree, Tree>* image)
 {
     Planner p(L);
     p.collect(L);
     p.plan();
     bool any = false;
     for (bool b : p.fRewrite) any = any || b;
-    return foldSlowGains(any ? p.rewrite(L) : L);
+    std::unordered_map<Tree, Tree> rows, gains;
+    Tree                           L1 = L;
+    if (any) {
+        L1 = p.rewrite(L, rows);
+        completeTypes(L1, rows);
+    }
+    Tree L2 = foldSlowGains(L1, gains);
+    completeTypes(L2, gains);
+    if (image != nullptr) {
+        *image = any ? rows : gains;
+        if (any) {
+            composeImage(*image, gains);
+        }
+    }
+    return L2;
 }
