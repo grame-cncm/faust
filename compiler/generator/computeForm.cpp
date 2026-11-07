@@ -24,7 +24,11 @@
 #include "irm_weight.hh"
 #include "mixForm.hh"
 #include "sigtransform.hh"
+#include "exactWeights.hh"
+#include "shareSums.hh"
 #include "sigtyperules.hh"
+#include "timing.hh"
+#include "typedAttributes.hh"
 
 namespace {
 
@@ -110,9 +114,39 @@ class Translation : public TransformAlgebra {
 
 }  // namespace
 
-ComputeForm::ComputeForm(Tree L) : fSource(L)
+ComputeForm::ComputeForm(Tree L, bool lower, LaneOrder order) : fSource(L)
 {
     fProgram = translate(L);
+    if (lower && gGlobal->gFloatSize != 4) {
+        this->lower(order);
+    }
+}
+
+void ComputeForm::lower(LaneOrder order)
+{
+    std::unordered_map<Tree, Tree> memo;
+    if (gGlobal->gShareSums) {
+        // the dense sums factored by coefficient, their common sub-sums shared (-noshs)
+        startTiming("shareSums");
+        fProgram = shareSums(fProgram, &memo);
+        composeImage(fImage, memo);
+        endTiming("shareSums");
+    }
+    if (gGlobal->gExactWeights) {
+        // (1 + w) * y written w * y + y, a small w read exactly, not through 1 + w rounded
+        // (-noxw)
+        startTiming("exactWeights");
+        fProgram = exactWeights(fProgram, &memo);
+        composeImage(fImage, memo);
+        endTiming("exactWeights");
+    }
+    if (gGlobal->gSumLanes) {
+        // the long sums in partial sums, interleaved or contiguous (-nosl)
+        startTiming("sumLanes");
+        fProgram = sumLanes(fProgram, order, &memo);
+        composeImage(fImage, memo);
+        endTiming("sumLanes");
+    }
 }
 
 Tree ComputeForm::translate(Tree t)

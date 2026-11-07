@@ -137,27 +137,6 @@ Tree InstructionsCompiler::prepare(Tree LS)
         typeAnnotation(L1, true);
     }
     Tree L2 = newConstantPropagation(L1);
-    if (gGlobal->gShareSums) {
-        // the dense sums factored by coefficient, their common sub-sums shared (-noshs),
-        // before the certified typing, which bounds the rewritten program
-        startTiming("shareSums");
-        L2 = shareSums(L2);
-        endTiming("shareSums");
-    }
-    if (gGlobal->gExactWeights) {
-        // -xw : (1 + w) * y written w * y + y, a small w read exactly, not through 1 + w
-        // rounded, before the certified typing
-        startTiming("exactWeights");
-        L2 = exactWeights(L2);
-        endTiming("exactWeights");
-    }
-    if (gGlobal->gSumLanes) {
-        // the long sums in interleaved partial sums (-nosl), before the certified typing,
-        // which bounds the rewritten program
-        startTiming("sumLanes");
-        L2 = sumLanes(L2, LaneOrder::kInterleaved);
-        endTiming("sumLanes");
-    }
 
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);
@@ -178,11 +157,12 @@ Tree InstructionsCompiler::prepare(Tree LS)
     checkLightTypes(L2);  // FAUST_CHECK_LIGHT_TYPES : the light typing against the certified one
 
     // the computation form : the decisions of the code, taken once on the certified
-    // program (computeForm.hh) ; the normal form stays for the drawings
+    // program, then the lowerings that change the rounding, outside the cone of the memory
+    // decisions (computeForm.hh) ; the normal form stays for the drawings
     const Tree N2 = L2;
     {
         startTiming("computationForm");
-        ComputeForm cf(L2);
+        ComputeForm cf(L2, /*lower*/ true, LaneOrder::kInterleaved);
         L2 = cf.program();
         fConditionProperty.clear();
         conditionAnnotation(L2);

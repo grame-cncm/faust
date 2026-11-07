@@ -15,6 +15,7 @@
 #include <unordered_map>
 
 #include "signals.hh"
+#include "sumLanes.hh"
 
 /**
  * The translation of a certified program into its computation form (computeSignals.hh,
@@ -30,8 +31,13 @@
  */
 class ComputeForm {
    public:
-    /// L : the certified program (typeAnnotation done), a list of roots or a signal
-    explicit ComputeForm(Tree L);
+    /// L : the certified program (typeAnnotation done), a list of roots or a signal. With
+    /// lower, the program translated is then lowered (spec LA-FORME-DE-CALCUL, "Le nouvel
+    /// ordre", step 2) : shareSums, exactWeights and sumLanes (lanes in the given order),
+    /// each under its option, outside the cone of the memory decisions (a delay amount, an
+    /// index, an integer conversion), never under -fx (whose fixed-point types are read in
+    /// the intervals)
+    explicit ComputeForm(Tree L, bool lower = false, LaneOrder order = LaneOrder::kInterleaved);
 
     /// translates t, a part of the program or another root the emitter compiles (a
     /// condition atom, a display signal) : the same translation, shared nodes once
@@ -49,4 +55,5 @@ class ComputeForm {
     Tree                           fSource;     ///< the certified program
     Tree                           fProgram;
     void                           annotate();
+    void                           lower(LaneOrder order);
 };
