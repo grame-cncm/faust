@@ -23,6 +23,12 @@
  * transform then repeat the sub-sums that butterflies would share. shareSums rewrites the real rows
  * :
  *
+ *  0. two atoms u, v that several rows hold in one ratio rho = c_v / c_u other than +-1
+ *     (a sub-sum read at several scales, distributed by the normal form in each reading :
+ *     the phase (p + s * 2^-24) * 2^-30 of an oscillator read at four scales) become one
+ *     atom P = u + rho * v, each row holding c_u * P ; P is written on the atom of
+ *     coefficient +-1 in the most rows. A term whose magnitude another term of its row
+ *     holds is left to the factoring by magnitude and to the pairs of coefficients +-1 ;
  *  1. in each row, the terms whose coefficients have the same magnitude are factored :
  *     c * a - c * b + c * d becomes c * (a - b + d), and c * a - c * b of two terms
  *     c * (a - b) ; the magnitudes the program cannot tell apart count as one (equal once
