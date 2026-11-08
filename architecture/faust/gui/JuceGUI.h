@@ -1959,6 +1959,10 @@ class JuceGUI : public GUI, public MetaDataUI, public juce::Component
          */
         JuceGUI():fRadioGroupID(1) // fRadioGroupID must start at 1
         {
+            // The light colour scheme draws the empty part of a slider track in white, which is
+            // invisible on a white tab page: it is drawn in grey
+            fLaf->setColour(juce::Slider::backgroundColourId, juce::Colour(0xffc8c8c8));
+            fLaf->setColour(juce::Slider::rotarySliderOutlineColourId, juce::Colour(0xffc8c8c8));
             setLookAndFeel(fLaf.get());
         }
         
