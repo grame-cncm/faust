@@ -1676,6 +1676,10 @@ void LV2QtGUI::updateQTGUI(QObject* object, float value)
   minimum = object->property("minimum").toDouble();
   maximum = object->property("maximum").toDouble();
   step    = object->property("singleStep").toDouble();
+  // The position of a slider or a knob is an integer: its single step is a
+  // step of the value, not of the position
+  if (qobject_cast<QAbstractSlider*>(object))
+    step = 1;
 
   QRadioButton* radioBut = qobject_cast<QRadioButton*>(object);
   if (radioBut) {
