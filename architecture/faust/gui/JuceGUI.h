@@ -1858,7 +1858,9 @@ class uiBox : public uiBase, public juce::Component
         void paint(juce::Graphics& g) override
         {
             // Fill the box background in gray shades
-            g.setColour(juce::Colours::black.withAlpha(0.5f)); // 0.05, used until 2023-08-5, is not readable on the Mac
+            // Light, as the texts are dark (see JuceGUI::fLaf): 0.5, used to make the white texts of
+            // the dark colour scheme readable, made the black names unreadable in the inner boxes
+            g.setColour(juce::Colours::black.withAlpha(0.1f));
             g.fillRect(getLocalBounds());
 
             // Display the name if it's needed
@@ -1885,7 +1887,9 @@ class JuceGUI : public GUI, public MetaDataUI, public juce::Component
         uiBase* fCurrentBox = nullptr;   // Current box used in buildUserInterface logic.
         
         int fRadioGroupID;               // In case of radio buttons.
-        std::unique_ptr<juce::LookAndFeel> fLaf = std::make_unique<juce::LookAndFeel_V4>();
+        // JuceGUI draws its own texts in black, on light gray boxes, white tabs and white value
+        // windows: the JUCE widgets use the light colour scheme, so that their texts are dark too
+        std::unique_ptr<juce::LookAndFeel> fLaf = std::make_unique<juce::LookAndFeel_V4>(juce::LookAndFeel_V4::getLightColourScheme());
     
         /** Add generic box to the user interface. */
         void openBox(uiBase* box)
@@ -2010,6 +2014,9 @@ class JuceGUI : public GUI, public MetaDataUI, public juce::Component
             if (fBoxStack.empty()) {
                 // Add root box in JuceGUI component
                 addAndMakeVisible(dynamic_cast<juce::Component*>(fCurrentBox));
+                // The widgets were created outside of JuceGUI, and some JUCE widgets (the text box
+                // of a slider) took their colours from the default LookAndFeel then
+                sendLookAndFeelChange();
                 fCurrentBox->init();
                 // Force correct draw
                 resized();
