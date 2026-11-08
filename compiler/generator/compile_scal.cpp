@@ -969,9 +969,21 @@ Tree ScalarCompiler::prepare(Tree LS)
     const Tree N2 = L2;
     {
         startTiming("computationForm");
-        ComputeForm cf(L2, /*lower*/ true, LaneOrder::kContiguous);  // the program first
-        L2 = cf.program();
-        Lx = cf.translate(Lx);
+        // the lowerings run on every root the emitter compiles, L2 and the roots added in
+        // front of it (the harvested bargraphs, the stateful displays, the condition atoms) :
+        // a computation read only by a display (the spectrum of FFT.dsp) is lowered as the
+        // program is. L2 is the tail of Lx, and its image the tail of Lx's image.
+        int extra = 0;
+        for (Tree t = Lx; t != L2; t = tl(t)) {
+            faustassert(isList(t));
+            extra++;
+        }
+        ComputeForm cf(Lx, /*lower*/ true, LaneOrder::kContiguous);
+        Lx = cf.program();
+        L2 = Lx;
+        for (int k = 0; k < extra; k++) {
+            L2 = tl(L2);
+        }
         {
             std::map<Tree, Tree, treeorder> cp;
             for (const auto& [k, v] : fConditionProperty) {
@@ -1021,6 +1033,25 @@ Tree ScalarCompiler::prepare(Tree LS)
                 du[cf.remap(k)] = v;
             }
             fDisplayUses = du;
+        }
+        if (display) {
+            // the frontier of the final program : the lowerings build nodes of their own in
+            // the computations of the displays (a shared sub-sum of FFT.dsp's spectrum),
+            // which the remapped frontier does not know ; a stateful root it adds joins
+            // the roots of the analyses
+            fDisplayUses.clear();
+            fDisplayStateful.clear();
+            fDisplayCapturePoints.clear();
+            computeDisplayFrontier(L2);
+            for (Tree sd : fDisplayStateful) {
+                bool found = false;
+                for (Tree l = Lx; isList(l) && !found; l = tl(l)) {
+                    found = hd(l) == sd;
+                }
+                if (!found) {
+                    Lx = cons(sd, Lx);
+                }
+            }
         }
         recursivnessAnnotation(Lx);
         endTiming("computationForm");
