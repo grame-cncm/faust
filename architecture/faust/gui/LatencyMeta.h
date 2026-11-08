@@ -68,7 +68,9 @@ struct LatencyMeta : public Meta {
             // As @(ba.sec2samp(<seconds>)) delays the signal: the product is computed
             // in the precision of the DSP, and its fraction dropped (0.071 s at 48 kHz
             // is 3408 frames in single precision, 3407 in double)
-            return fDouble ? int(fSeconds * sample_rate) : int(float(fSeconds) * float(sample_rate));
+            // ma.SR is clamped to [50, 192000] (pl.SR)
+            double sr = (sample_rate < 50.) ? 50. : ((sample_rate > 192000.) ? 192000. : sample_rate);
+            return fDouble ? int(fSeconds * sr) : int(float(fSeconds) * float(sr));
         } else {
             return 0;
         }
