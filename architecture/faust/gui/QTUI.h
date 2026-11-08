@@ -858,6 +858,15 @@ protected:
     FAUSTFLOAT			fMax;
     FAUSTFLOAT			fStep;
     
+    // The value of the step grid closest to v, min + k*step, within [min, max] (as JuceGUI)
+    FAUSTFLOAT quantize(double v)
+    {
+        if (fStep > 0) {
+            v = fMin + std::round((v - fMin) / fStep) * fStep;
+        }
+        return FAUSTFLOAT(std::max<double>(std::min(fMin, fMax), std::min<double>(std::max(fMin, fMax), v)));
+    }
+
 public:
     
     uiSlider(GUI* ui, FAUSTFLOAT* zone, QAbstractSlider* slider, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step, MetaDataUI::Scale scale)
@@ -865,7 +874,10 @@ public:
     {
         fSlider->setMinimum(0);
         fSlider->setMaximum(10000);
-        //fSlider->setSingleStep(fStep);
+        // With a linear scale, a keyboard or wheel move goes to the next step of the value
+        if (scale == MetaDataUI::kLin && fStep > 0 && fMax > fMin) {
+            fSlider->setSingleStep(std::max<int>(1, int(0.5+10000*fStep/(fMax-fMin))));
+        }
         fSlider->setValue(int(0.5+fConverter->faust2ui(fCur)));
         *fZone = fCur;
     }
@@ -885,7 +897,19 @@ public:
     public slots :
     void setValue(int v)
     {
-        modifyZone(fConverter->ui2faust(v));
+        FAUSTFLOAT value = quantize(fConverter->ui2faust(v));
+        bool changed = value != *fZone;
+        modifyZone(value);
+        // The thumb goes to the position of the value, except after a keyboard or wheel move
+        // that does not reach another step yet: the next moves add to it
+        if (changed || fSlider->isSliderDown()) {
+            int position = int(0.5+fConverter->faust2ui(value));
+            if (position != v) {
+                const bool blocked = fSlider->blockSignals(true);
+                fSlider->setValue(position);
+                fSlider->blockSignals(blocked);
+            }
+        }
     }
 };
 
