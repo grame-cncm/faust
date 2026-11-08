@@ -163,11 +163,8 @@ private:
     // Keep MapUI bookkeeping while capturing ranges for later scaling.
     void addZoneWithRange(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax, bool hasRange)
     {
-        string path = buildPath(label);
-        fFullPaths.push_back(path);
-        fPathZoneMap[path] = zone;
-        fLabelZoneMap[label] = zone;
-        fRanges.push_back({path, fmin, fmax, hasRange});
+        addZoneLabel(label, zone);
+        fRanges.push_back({fFullPaths.back(), fmin, fmax, hasRange});
     }
 };
 

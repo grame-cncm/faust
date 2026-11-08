@@ -28,6 +28,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <iterator>
 #include <stdio.h>
 
 #include "faust/gui/UI.h"
@@ -43,6 +44,10 @@
  *
  * Simple 'labels', 'shortname' and complete 'paths' (to fully discriminate between possible same
  * 'labels' at different location in the UI hierachy) can be used to access a given parameter.
+ *
+ * Index based accessors (getParamAddress, getParamShortname, getParamLabel, getParamZone...)
+ * all use the order of the complete 'paths', so that a given index designates the same
+ * parameter in all of them.
  ******************************************************************************/
 
 class FAUST_API MapUI : public UI, public PathBuilder
@@ -59,12 +64,44 @@ class FAUST_API MapUI : public UI, public PathBuilder
         // Full path map
         std::map<std::string, FAUSTFLOAT*> fPathZoneMap;
     
+        // Full path to label map (labels are not unique, and cannot be rebuilt from paths)
+        std::map<std::string, std::string> fFull2Label;
+
         void addZoneLabel(const std::string& label, FAUSTFLOAT* zone)
         {
             std::string path = buildPath(label);
             fFullPaths.push_back(path);
             fPathZoneMap[path] = zone;
             fLabelZoneMap[label] = zone;
+            fFull2Label[path] = label;
+        }
+
+        // Return the full path map entry at 'index', or end() if 'index' is out of range
+        std::map<std::string, FAUSTFLOAT*>::const_iterator getPathIterator(int index) const
+        {
+            if (index < 0 || index >= int(fPathZoneMap.size())) {
+                return fPathZoneMap.end();
+            } else {
+                return std::next(fPathZoneMap.begin(), index);
+            }
+        }
+
+        // Return the shortname of the parameter at 'index', or nullptr
+        const std::string* getShortname(int index) const
+        {
+            auto it = getPathIterator(index);
+            if (it == fPathZoneMap.end()) return nullptr;
+            auto short_it = fFull2Short.find(it->first);
+            return (short_it != fFull2Short.end()) ? &short_it->second : nullptr;
+        }
+
+        // Return the label of the parameter at 'index', or nullptr
+        const std::string* getLabel(int index) const
+        {
+            auto it = getPathIterator(index);
+            if (it == fPathZoneMap.end()) return nullptr;
+            auto label_it = fFull2Label.find(it->first);
+            return (label_it != fFull2Label.end()) ? &label_it->second : nullptr;
         }
     
     public:
@@ -219,24 +256,14 @@ class FAUST_API MapUI : public UI, public PathBuilder
          */
         std::string getParamAddress(int index) const
         {
-            if (index < 0 || index >= int(fPathZoneMap.size())) {
-                return "";
-            } else {
-                auto it = fPathZoneMap.begin();
-                while (index-- > 0 && it++ != fPathZoneMap.end()) {}
-                return it->first;
-            }
+            auto it = getPathIterator(index);
+            return (it != fPathZoneMap.end()) ? it->first : "";
         }
         
         const char* getParamAddress1(int index) const
         {
-            if (index < 0 || index >= int(fPathZoneMap.size())) {
-                return nullptr;
-            } else {
-                auto it = fPathZoneMap.begin();
-                while (index-- > 0 && it++ != fPathZoneMap.end()) {}
-                return it->first.c_str();
-            }
+            auto it = getPathIterator(index);
+            return (it != fPathZoneMap.end()) ? it->first.c_str() : nullptr;
         }
     
         /**
@@ -248,24 +275,14 @@ class FAUST_API MapUI : public UI, public PathBuilder
          */
         std::string getParamShortname(int index) const
         {
-            if (index < 0 || index >= int(fShortnameZoneMap.size())) {
-                return "";
-            } else {
-                auto it = fShortnameZoneMap.begin();
-                while (index-- > 0 && it++ != fShortnameZoneMap.end()) {}
-                return it->first;
-            }
+            const std::string* shortname = getShortname(index);
+            return (shortname) ? *shortname : "";
         }
         
         const char* getParamShortname1(int index) const
         {
-            if (index < 0 || index >= int(fShortnameZoneMap.size())) {
-                return nullptr;
-            } else {
-                auto it = fShortnameZoneMap.begin();
-                while (index-- > 0 && it++ != fShortnameZoneMap.end()) {}
-                return it->first.c_str();
-            }
+            const std::string* shortname = getShortname(index);
+            return (shortname) ? shortname->c_str() : nullptr;
         }
     
         /**
@@ -277,24 +294,14 @@ class FAUST_API MapUI : public UI, public PathBuilder
          */
         std::string getParamLabel(int index) const
         {
-            if (index < 0 || index >= int(fLabelZoneMap.size())) {
-                return "";
-            } else {
-                auto it = fLabelZoneMap.begin();
-                while (index-- > 0 && it++ != fLabelZoneMap.end()) {}
-                return it->first;
-            }
+            const std::string* label = getLabel(index);
+            return (label) ? *label : "";
         }
         
         const char* getParamLabel1(int index) const
         {
-            if (index < 0 || index >= int(fLabelZoneMap.size())) {
-                return nullptr;
-            } else {
-                auto it = fLabelZoneMap.begin();
-                while (index-- > 0 && it++ != fLabelZoneMap.end()) {}
-                return it->first.c_str();
-            }
+            const std::string* label = getLabel(index);
+            return (label) ? label->c_str() : nullptr;
         }
     
         /**
@@ -348,13 +355,8 @@ class FAUST_API MapUI : public UI, public PathBuilder
          */
         FAUSTFLOAT* getParamZone(int index) const 
         {
-            if (index < 0 || index >= int(fPathZoneMap.size())) {
-                return nullptr;
-            } else {
-                auto it = fPathZoneMap.begin();
-                while (index-- > 0 && it++ != fPathZoneMap.end()) {}
-                return it->second;
-            }
+            auto it = getPathIterator(index);
+            return (it != fPathZoneMap.end()) ? it->second : nullptr;
         }
     
         static bool endsWith(const std::string& str, const std::string& end)
