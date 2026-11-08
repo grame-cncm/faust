@@ -1929,8 +1929,12 @@ void VSTWrapper::setSampleRate(float sampleRate)
     AudioEffect::setSampleRate(sampleRate);
     plugin->set_rate(sampleRate);
     // Hosts change the sample rate while the plugin is suspended, and read the
-    // delay when they resume it
-    setInitialDelay(latency.getFrames(sampleRate));
+    // delay when they resume it: ioChanged tells the ones that read it only at load
+    VstInt32 delay = latency.getFrames(sampleRate);
+    if (delay != cEffect.initialDelay) {
+        setInitialDelay(delay);
+        ioChanged();
+    }
 }
 
 // programs a.k.a. built-in presets (see above)

@@ -612,8 +612,12 @@ void Faust::setSampleRate(float sampleRate)
     AudioEffect::setSampleRate(sampleRate);
     m_dsp->init((int)getSampleRate()); // in case AudioEffect altered it
     // Hosts change the sample rate while the plugin is suspended, and read the
-    // delay when they resume it
-    setInitialDelay(getDeclaredLatency(m_dsp, getSampleRate()));
+    // delay when they resume it: ioChanged tells the ones that read it only at load
+    VstInt32 delay = getDeclaredLatency(m_dsp, getSampleRate());
+    if (delay != cEffect.initialDelay) {
+        setInitialDelay(delay);
+        ioChanged();
+    }
     
     for (unsigned int i = 0; i < MAX_POLYPHONY; ++i) {
         m_voices[i]->m_dsp.init((int)getSampleRate());
