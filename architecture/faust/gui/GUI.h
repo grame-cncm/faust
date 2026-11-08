@@ -152,6 +152,11 @@ class GUI : public UI
             fGuiList.remove(this);
         }
 
+        // A GUI is neither copyable nor movable: its address is in fGuiList, each of its
+        // items keeps a pointer to it, and a copy would delete the same items a second time
+        GUI(const GUI&) = delete;
+        GUI& operator=(const GUI&) = delete;
+
         // -- registerZone(z,c) : zone management
         
         void registerZone(FAUSTFLOAT* z, uiItemBase* c)
