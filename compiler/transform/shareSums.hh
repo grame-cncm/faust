@@ -39,9 +39,11 @@
  *     sums hold becomes a sum of its own, until no pair is held twice ; a difference
  *     u - v is built v - u, its exact opposite, when that leaves fewer negations in the
  *     sums that read it (a sum whose terms are all negated is a negation) ;
- *  4. in a real product at the sample rate that holds a slower factor, the number of a
- *     factor k * S or of a gain kernel FIR[x, k] joins the product, its factors ordered by
- *     rate : the generators compute k times the slower factors at their rate ;
+ *  4. in a real product, the constant gain k of a recursive filter of slower input joins
+ *     its input, k * IIR(x; a) = IIR(k * x; a) ; in a real product at the sample rate that
+ *     holds a slower factor, the number of a factor k * S or of a gain kernel FIR[x, k]
+ *     joins the product, its factors ordered by rate : the generators compute k times the
+ *     slower factors at their rate ;
  *  5. in a real product, a negated factor (neg(x), FIR(x; -1, ..., -1), a sum of negations)
  *     is replaced by its opposite and the product negated, up to the sum that reads it and
  *     subtracts it : c * (-x0 - x1) + t becomes t - c * (x0 + x1), the same bit for bit.
