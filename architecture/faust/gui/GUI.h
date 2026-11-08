@@ -174,7 +174,10 @@ class GUI : public UI
         void updateAllZones()
         {
             for (const auto& m : fZoneMap) {
-                updateZone(m.first);
+                FAUSTFLOAT v = *m.first;
+                for (const auto& c : *m.second) {
+                    if (c->cache() != v) c->reflectZone();
+                }
             }
         }
     
