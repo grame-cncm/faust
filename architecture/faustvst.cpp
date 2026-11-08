@@ -38,6 +38,7 @@
 #include <faust/dsp/dsp.h>
 #include <faust/gui/UI.h>
 #include <faust/gui/MidiUI.h>
+#include <faust/gui/LatencyMeta.h>
 
 using namespace std;
 
@@ -1755,6 +1756,8 @@ private:
     char host[65];
 #endif
     float *progdata;
+    // The latency declared in the dsp meta data, which the host compensates
+    LatencyMeta latency;
 };
 
 // Create a "unique" VST plugin ID using Murmur2 hashes. This can't possibly
@@ -1841,6 +1844,8 @@ VSTWrapper::VSTWrapper(audioMasterCallback audioMaster)
     // Get the initial sample rate from the VST host.
     const int rate = getSampleRate();
     plugin = new VSTPlugin(num_voices, rate);
+    plugin->dsp[0]->metadata(&latency);
+    setInitialDelay(latency.getFrames(getSampleRate()));
 #if FAUST_UI
     // Get the name of the host (product string).
     strcpy(host, "Unknown");
@@ -1923,6 +1928,9 @@ void VSTWrapper::setSampleRate(float sampleRate)
 {
     AudioEffect::setSampleRate(sampleRate);
     plugin->set_rate(sampleRate);
+    // Hosts change the sample rate while the plugin is suspended, and read the
+    // delay when they resume it
+    setInitialDelay(latency.getFrames(sampleRate));
 }
 
 // programs a.k.a. built-in presets (see above)

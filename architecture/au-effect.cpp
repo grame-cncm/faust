@@ -57,6 +57,7 @@
 #include <AudioToolbox/AudioUnitUtilities.h>
 #include "FaustAUVersion.h"
 #include "faust/misc.h"
+#include "faust/gui/LatencyMeta.h"
 
 #ifndef FaustAU_FaustAUEffect_h
 #include "FaustAU.h" //TODO
@@ -139,10 +140,11 @@ public:
         return 3.0;
     }
 
-    //For example, a lookahead compressor or FFT-based processor should report the true latency in seconds
+    // The latency declared in the DSP, which the host expects in seconds
     virtual Float64 GetLatency()
     {
-        return 0.0;
+        Float64 rate = GetSampleRate();
+        return (rate > 0.) ? fLatency.getFrames(rate) / rate : 0.;
     }
 
     virtual OSStatus ProcessBufferLists(AudioUnitRenderActionFlags &ioActionFlags,
@@ -151,6 +153,8 @@ public:
 
 private:
     auUI* dspUI;
+    // Parsed once: GetLatency is also called while rendering
+    LatencyMeta fLatency;
 
 public:
     mydsp* dsp;
@@ -166,6 +170,7 @@ FaustAUEffect::FaustAUEffect(AudioUnit component)
     CreateElements();
     dspUI = new auUI();
     dsp = new mydsp();
+    dsp->metadata(&fLatency);
     SetParamHasSampleRateDependency(true);
     dsp->buildUserInterface(dspUI);
 

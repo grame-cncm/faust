@@ -42,7 +42,7 @@ class vstUIObject { /* superclass of all VST UI widgets */
         
         string fLabel;
         float* fZone;
-        Meta metadata;
+        vstMeta metadata;
         
         float clip(float min, float max, float val) 
         {
@@ -249,7 +249,7 @@ class vstUI : public UI {
         bool fStopped;
         
         vector<vstUIObject*> fUITable;
-        map<const float*, Meta*> m_controlMetadataMap;
+        map<const float*, vstMeta*> m_controlMetadataMap;
         
     public:
         
@@ -277,7 +277,7 @@ class vstUI : public UI {
                 delete *iter;
             }
             
-            for (map<const float*, Meta*>::iterator iter = m_controlMetadataMap.begin();
+            for (map<const float*, vstMeta*>::iterator iter = m_controlMetadataMap.begin();
                  iter != m_controlMetadataMap.end(); ++iter)
             {
                 delete iter->second;
@@ -289,11 +289,11 @@ class vstUI : public UI {
         
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* value)
         {
-            map<const float*, Meta*>::iterator iter = m_controlMetadataMap.find(zone);
+            map<const float*, vstMeta*>::iterator iter = m_controlMetadataMap.find(zone);
             if (iter == m_controlMetadataMap.end()) {
                 // if Meta for zone doesn't exist, create it now
-                pair<const float*, Meta*> entry(zone, new Meta());
-                pair< map<const float*, Meta*>::iterator, bool> result = m_controlMetadataMap.insert(entry);
+                pair<const float*, vstMeta*> entry(zone, new vstMeta());
+                pair< map<const float*, vstMeta*>::iterator, bool> result = m_controlMetadataMap.insert(entry);
                 if (!result.second) {
                     TRACE(fprintf(stderr, "Failed adding metadata %s:%s\n", key, value));
                     return;
@@ -317,7 +317,7 @@ class vstUI : public UI {
             }
             
             const float* zone = fUITable[index]->getZone();
-            map<const float*, Meta*>::iterator iter = m_controlMetadataMap.find(zone);
+            map<const float*, vstMeta*>::iterator iter = m_controlMetadataMap.find(zone);
             if (iter == m_controlMetadataMap.end()) {
                 TRACE(fprintf(stderr, "Metadata for control %d not found\n", index));
                 return defaultString;

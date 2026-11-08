@@ -132,7 +132,10 @@
 
 using namespace std;
 
-struct Meta : std::map<const char*, const char*>
+#include "faust/gui/meta.h"
+
+// The metadata of the DSP and of its controls, by key
+struct vstMeta : public Meta, std::map<const char*, const char*>
 {
     void declare(const char* key, const char* value) { (*this)[key] = value; }
     
@@ -175,6 +178,7 @@ struct Meta : std::map<const char*, const char*>
 
 #include "faust/vst/vstui.h"
 #include "faust/dsp/dsp.h"
+#include "faust/gui/LatencyMeta.h"
 
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
@@ -214,6 +218,14 @@ struct Meta : std::map<const char*, const char*>
 
 #define kNumPrograms (1)
 
+// The latency the DSP declares, in frames at this sample rate
+static VstInt32 getDeclaredLatency(dsp* dspi, float sampleRate)
+{
+    LatencyMeta latency;
+    dspi->metadata(&latency);
+    return latency.getFrames(sampleRate);
+}
+
 AudioEffect* createEffectInstance(audioMasterCallback audioMaster)
 {
     TRACE( fprintf(stderr, "Faust VSTi: Creating VST instance\n") );
@@ -250,6 +262,7 @@ m_currentDeltas()
 #endif
     
     mydsp::classInit((int)getSampleRate()); // Ask AudioEffect for sample-rate
+    setInitialDelay(getDeclaredLatency(m_dsp, getSampleRate()));
     
     setProgram(0);
     setProgramName("Default");
@@ -479,7 +492,7 @@ bool Faust::getProgramNameIndexed(VstInt32 category, VstInt32 index,
 //-----------------------------------------------------------------------------
 const char* Faust::getMetadata(const char* key, const char* defaultString)
 {
-    Meta meta;
+    vstMeta meta;
     mydsp* tmp = new mydsp;
     tmp->metadata(&meta);
     const char* res = meta.get(key, defaultString);
@@ -598,6 +611,9 @@ void Faust::setSampleRate(float sampleRate)
 {
     AudioEffect::setSampleRate(sampleRate);
     m_dsp->init((int)getSampleRate()); // in case AudioEffect altered it
+    // Hosts change the sample rate while the plugin is suspended, and read the
+    // delay when they resume it
+    setInitialDelay(getDeclaredLatency(m_dsp, getSampleRate()));
     
     for (unsigned int i = 0; i < MAX_POLYPHONY; ++i) {
         m_voices[i]->m_dsp.init((int)getSampleRate());
