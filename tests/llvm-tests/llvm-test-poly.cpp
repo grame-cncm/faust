@@ -76,11 +76,11 @@ int main(int argc, char* argv[])
         audio.init("FaustDSP", DSP);
         
         // Create GUI
-        GTKUI gtk_ui = GTKUI((char*)"FaustDSP", &argc, (char***)&argv);
+        GTKUI gtk_ui((char*)"FaustDSP", &argc, (char***)&argv);
         DSP->buildUserInterface(&gtk_ui);
         
         // Create MIDI controller
-        MidiUI midi_ui = MidiUI(&audio);
+        MidiUI midi_ui(&audio);
         DSP->buildUserInterface(&midi_ui);
         
         // Start real-time processing

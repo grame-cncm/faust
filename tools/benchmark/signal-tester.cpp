@@ -46,7 +46,7 @@ static void runAudio(dsp* dsp, const char* name, int argc, char* argv[])
     audio.init("Test", dsp);
     
     // Create GUI
-    GTKUI gtk_ui = GTKUI((char*)name, &argc, &argv);
+    GTKUI gtk_ui((char*)name, &argc, &argv);
     dsp->buildUserInterface(&gtk_ui);
     
     // Start real-time processing
@@ -829,11 +829,11 @@ static void test24(int argc, char* argv[])
         audio.init("Organ", dsp);
         
         // Create GUI
-        GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, &argv);
+        GTKUI gtk_ui((char*)"Organ", &argc, &argv);
         dsp->buildUserInterface(&gtk_ui);
         
         // Create MIDI controller
-        MidiUI midi_ui = MidiUI(&audio);
+        MidiUI midi_ui(&audio);
         dsp->buildUserInterface(&midi_ui);
         
         // Start real-time processing
