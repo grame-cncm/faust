@@ -961,6 +961,24 @@ struct LV2PluginUI {
       return 0.0f;
   }
 
+  // The [scale:...] metadata of a control, or NULL if it has none.
+  const char* getScale(int index)
+  {
+    index = map_param(index);
+    int k = ui->nports;
+    if (index >= 0 && index < k) {
+      int j = ctrls[index];
+      assert(index == ui->elems[j].port);
+      map< int, list<strpair> >::iterator it = ui->metadata.find(j);
+      if (it != ui->metadata.end())
+	for (list<strpair>::iterator jt = it->second.begin();
+	     jt != it->second.end(); ++jt)
+	  if (!strcmp(jt->first, "scale"))
+	    return jt->second;
+    }
+    return NULL;
+  }
+
   int isPassiveControl(int index)
   {
     index = map_param(index);
@@ -1249,11 +1267,10 @@ public:
  
   virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
   {
-    // XXXFIXME: Faust's Qt GUI implementation handles [scale:log] and similar
-    // meta data affecting the scaling of slider data, but this isn't
-    // supported in the current faust-lv2 implementation, so we just ignore
-    // this meta data for now.
-    if (strcmp(key, "scale")) ui->declare(zone, key, val);
+    // [scale:log] and [scale:exp] are passed on too: QTGUI maps the position
+    // of a slider or a knob to its value with them, and LV2QtGUI does the
+    // same with the LV2 parameter (see LV2QtGUI::positionToParameter).
+    ui->declare(zone, key, val);
   }
 
 };
@@ -1657,6 +1674,43 @@ void LV2QtGUI::close()
   passive_controls.clear();
 }
 
+// The LV2 parameters are linear in [0,1], but a slider or a knob follows the
+// [scale:log] or [scale:exp] metadata of its control, as in QTGUI. These
+// convert the position of such a widget, in [0,1], to its parameter and back.
+
+static MetaDataUI::Scale controlScale(LV2PluginUI* plugui, int lv2Param)
+{
+  const char* scale = plugui->getScale(lv2Param);
+  if (scale && !strcmp(scale, "log"))
+    return MetaDataUI::kLog;
+  else if (scale && !strcmp(scale, "exp"))
+    return MetaDataUI::kExp;
+  else
+    return MetaDataUI::kLin;
+}
+
+float LV2QtGUI::positionToParameter(int lv2Param, float position)
+{
+  MetaDataUI::Scale scale = controlScale(plugui, lv2Param);
+  if (scale == MetaDataUI::kLin) return position;
+  float minimum = plugui->getMinimum(lv2Param);
+  float maximum = plugui->getMaximum(lv2Param);
+  uiConverter converter(scale, 0, 1, minimum, maximum);
+  return plugui->normalize(minimum, maximum,
+			   converter.fConverter->ui2faust(position));
+}
+
+float LV2QtGUI::parameterToPosition(int lv2Param, float value)
+{
+  MetaDataUI::Scale scale = controlScale(plugui, lv2Param);
+  if (scale == MetaDataUI::kLin) return value;
+  float minimum = plugui->getMinimum(lv2Param);
+  float maximum = plugui->getMaximum(lv2Param);
+  uiConverter converter(scale, 0, 1, minimum, maximum);
+  return plugui->normalize(0, 1, converter.fConverter->faust2ui(
+			   minimum+value*(maximum-minimum)));
+}
+
 void LV2QtGUI::updateQTGUI(QObject* object, float value)
 {
   const double eps = 1e-5;
@@ -1685,6 +1739,10 @@ void LV2QtGUI::updateQTGUI(QObject* object, float value)
       radioBut->click();
     return;
   }
+
+  // sliders and knobs may have a nonlinear scale
+  if (qobject_cast<QAbstractSlider*>(object))
+    value = parameterToPosition(object->property("lv2Param").toInt(), value);
 
   if (QString(object->metaObject()->className())=="uiMenu")
     valueChar = "currentIndex";
@@ -1812,6 +1870,9 @@ void LV2QtGUI::updateUI()
 #endif
 
   float newFloat = plugui->normalize(minimum, maximum, value);
+  // sliders and knobs may have a nonlinear scale
+  if (qobject_cast<QAbstractSlider*>(QObject::sender()))
+    newFloat = positionToParameter(lv2Param, newFloat);
   plugui->setParameter(lv2Param, newFloat);
 #if FAUSTQT_DEBUG>1
   qDebug() << "LV2: new LV2 value: " << plugui->getParameter(lv2Param);
