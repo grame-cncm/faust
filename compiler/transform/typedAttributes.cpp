@@ -68,6 +68,9 @@ Type composedType(Tree t)
     } else if (isSigFIR(t, subs)) {
         operands = subs;
         taps     = subs.size() > 2;
+    } else if (isSigIIR(t, subs)) {
+        operands = subs;
+        taps     = true;  // a recursion : at the sample rate
     } else if (isSigNeg(t, x)) {
         operands = {x};
     } else if (isSigBinOp(t, &op, x, y) && (op == kAdd || op == kSub || op == kMul || op == kDiv)) {

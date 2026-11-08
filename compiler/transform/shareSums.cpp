@@ -978,6 +978,96 @@ Tree foldSlowGains(Tree L, std::unordered_map<Tree, Tree>& memo)
     return treeRewritePaired(L, rule, memo);
 }
 
+/// the gain of a recursive filter carried into its slower input (3e). A linear filter is
+/// time-invariant : for a constant gain k, k * IIR(x; a) = IIR(k * x; a), the state of the
+/// second k times that of the first. In a real product outside the cone of the memory
+/// decisions, a factor IIR(x; a) that this product alone reads, its input x real and slower
+/// than the sample, and the constant factors of the product (numbers, constants of the
+/// initialization) become the factor IIR(k * x; a) : k * x is computed at the rate of x, one
+/// product less per sample (volume : input * (0.001 * IIR(gain; 0.999)) becomes
+/// input * IIR(0.001 * gain; 0.999), as master-dev computes it ; a smoother of numeric pole
+/// is no IRM, the normal form keeps it a filter of unit input gain, its gain 1 - p a
+/// factor). A gain that changes at the control rate is no constant : the state would keep
+/// the former scale.
+Tree foldIirGains(Tree L, std::unordered_map<Tree, Tree>& memo)
+{
+    const TypedAttributes          exact;
+    const std::unordered_set<Tree> cone = decisionCone(L, /*discontinuities*/ false);
+    std::unordered_map<Tree, int>  reads;
+    {
+        std::unordered_set<Tree> seen;
+        std::vector<Tree>        work{L};
+        while (!work.empty()) {
+            Tree t = work.back();
+            work.pop_back();
+            if (!seen.insert(t).second) continue;
+            Tree var, body;
+            if (isRec(t, var, body)) {
+                if (body != nullptr) {
+                    reads[body]++;
+                    work.push_back(body);
+                }
+                continue;
+            }
+            for (int i = 0; i < t->arity(); i++) {
+                reads[t->branch(i)]++;
+                work.push_back(t->branch(i));
+            }
+        }
+    }
+    auto rule = [&](Tree orig, Tree rebuilt) -> Tree {
+        Tree       oa, ob, a, b;
+        tvec       fo, fr;
+        const bool nary = isSigProd(orig, fo) && isSigProd(rebuilt, fr) && fo.size() == fr.size();
+        const bool bin  = !nary && isSigMul(orig, oa, ob) && isSigMul(rebuilt, a, b);
+        if ((!nary && !bin) || orig->getType() == nullptr || exact.nature(orig) != kReal ||
+            cone.count(orig) != 0) {
+            return rebuilt;
+        }
+        if (bin) {
+            fo = {oa, ob};
+            fr = {a, b};
+        }
+        // the filter, and the constant factors of the product
+        int               filter = -1;
+        std::vector<bool> constant(fo.size(), false);
+        tvec              gains;
+        for (size_t k = 0; k < fo.size(); k++) {
+            tvec iir;
+            if (filter < 0 && isSigIIR(fo[k], iir) && reads[fo[k]] == 1 && cone.count(fo[k]) == 0 &&
+                exact.nature(fo[k]) == kReal && exact.nature(iir[0]) == kReal &&
+                exact.variability(iir[0]) < kSamp) {
+                filter = int(k);
+            } else if (exact.nature(fo[k]) == kReal && exact.variability(fo[k]) == kKonst) {
+                constant[k] = true;
+                gains.push_back(fr[k]);
+            }
+        }
+        if (filter < 0 || gains.empty()) {
+            return rebuilt;
+        }
+        tvec iir;
+        isSigIIR(fr[filter], iir);
+        gains.push_back(iir[0]);
+        Tree x  = sigProd(gains);  // k * x, at the rate of x
+        iir[0]  = x;
+        Tree f  = sigIIR(iir);
+        tvec rest;
+        for (size_t k = 0; k < fo.size(); k++) {
+            if (int(k) == filter) {
+                rest.push_back(f);
+            } else if (!constant[k]) {
+                rest.push_back(fr[k]);
+            }
+        }
+        if (rest.size() == 1) {
+            return rest[0];
+        }
+        return nary ? sigProd(rest) : sigMul(rest[0], rest[1]);
+    };
+    return treeRewritePaired(L, rule, memo);
+}
+
 /// a negated factor, one whose code costs exactly a negation, and its opposite : neg(x), x ;
 /// FIR(x; -1, ..., -1), FIR(x; 1, ..., 1) ; a sum of negations neg(a) + neg(b) + ..., a + b
 /// + .... A FIR of other negative taps is written with negative literals, no negation.
@@ -1108,16 +1198,20 @@ Tree shareSums(Tree L, std::unordered_map<Tree, Tree>* image)
         L1 = p.rewrite(L, rows);
         completeTypes(L1, rows);
     }
-    Tree L2 = foldSlowGains(L1, gains);
+    std::unordered_map<Tree, Tree> iirs;
+    Tree                           L1b = foldIirGains(L1, iirs);
+    completeTypes(L1b, iirs);
+    Tree L2 = foldSlowGains(L1b, gains);
     completeTypes(L2, gains);
     std::unordered_map<Tree, Tree> negs;
     Tree                           L3 = liftNegations(L2, negs);
     completeTypes(L3, negs);
     if (image != nullptr) {
-        *image = any ? rows : gains;
+        *image = any ? rows : iirs;
         if (any) {
-            composeImage(*image, gains);
+            composeImage(*image, iirs);
         }
+        composeImage(*image, gains);
         composeImage(*image, negs);
     }
     return L3;
