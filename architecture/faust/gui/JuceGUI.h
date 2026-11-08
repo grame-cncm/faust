@@ -1678,7 +1678,10 @@ public:
     void add(Component* comp) override
     {
         // Name of the component is moved in Tab (so removed from component)
-        juce::TabbedComponent::addTab(comp->getName(), juce::Colours::white, comp, true);
+        // As in uiBox, only the containers are deleted with the uiTabBox: a widget placed directly
+        // in a tab is deleted by the uiItem mechanism, and would otherwise be deleted twice
+        bool isWidget = (dynamic_cast<uiComponent*>(comp) != nullptr);
+        juce::TabbedComponent::addTab(comp->getName(), juce::Colours::white, comp, !isWidget);
         comp->setName("");
     }
     
