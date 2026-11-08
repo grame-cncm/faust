@@ -368,6 +368,8 @@ class FaustPolyEngine {
          * setVoiceParamValue(id, voice, value)
          * Sets the value of the parameter associated with the id for
          * the voice. setVoiceParamValue can only be used if nvoices > 0.
+         * The id is a voice id: the index of the parameter in the voice
+         * MapUI (path order), not the id of getParamAddress(id).
          */
         void setVoiceParamValue(int id, uintptr_t voice, float value)
         {
@@ -388,6 +390,8 @@ class FaustPolyEngine {
          * getVoiceParamValue(id, voice)
          * Gets the parameter value associated with the id for the voice.
          * getVoiceParamValue can only be used if nvoices > 0.
+         * The id is a voice id: the index of the parameter in the voice
+         * MapUI (path order), not the id of getParamAddress(id).
          */
         float getVoiceParamValue(int id, uintptr_t voice)
         {
@@ -423,7 +427,10 @@ class FaustPolyEngine {
 
         /*
          * getVoiceParamAddress(id, voice)
-         * Returns the address of a parameter for a specific voice in function of its "id".
+         * Returns the address of a parameter for a specific voice in function of its "id",
+         * or nullptr if there is no parameter with this id.
+         * The id is a voice id: the index of the parameter in the voice
+         * MapUI (path order), not the id of getParamAddress(id).
          */
         const char* getVoiceParamAddress(int id, uintptr_t voice)
         {

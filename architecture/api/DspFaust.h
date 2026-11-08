@@ -298,9 +298,13 @@ class DspFaust
         // Set the value of one of the parameters of the Faust
         // object in function of its id for a specific voice.
         //
+        // Voice ids are not the ids of `getParamAddress(int id)`: they index the
+        // parameters of a single voice (the monophonic DSP), sorted by path, from 0
+        // up to the first id for which `getVoiceParamAddress` returns NULL.
+        //
         // #### Arguments
         //
-        // * `id`: id of the parameter
+        // * `id`: voice id of the parameter (see `getVoiceParamAddress`)
         // * `voice`: address of the polyphonic voice (retrieved from `keyOn`)
         // * `value`: value of the parameter
         //--------------------------------------------------------
@@ -321,9 +325,13 @@ class DspFaust
         // Returns the value of a parameter in function of its
         // id for a specific voice.
         //
+        // Voice ids are not the ids of `getParamAddress(int id)`: they index the
+        // parameters of a single voice (the monophonic DSP), sorted by path, from 0
+        // up to the first id for which `getVoiceParamAddress` returns NULL.
+        //
         // #### Arguments
         //
-        // * `id`: id of the parameter
+        // * `id`: voice id of the parameter (see `getVoiceParamAddress`)
         // * `voice`: address of the polyphonic voice (retrieved from `keyOn`)
         //--------------------------------------------------------
         float getVoiceParamValue(int id, uintptr_t voice);
@@ -338,11 +346,16 @@ class DspFaust
         const char* getParamAddress(int id);
 
         //----`const char* getVoiceParamAddress(int id, uintptr_t voice)`-----
-        // Returns the address (label/shortname/path) of a parameter in function of its ID.
+        // Returns the path of a parameter of a specific voice in function
+        // of its voice id, or NULL if there is no parameter with this id.
+        //
+        // Voice ids are not the ids of `getParamAddress(int id)`: they index the
+        // parameters of a single voice (the monophonic DSP), sorted by path, from 0
+        // up to the first id for which `getVoiceParamAddress` returns NULL.
         //
         // #### Arguments
         //
-        // * `id`: id of the parameter
+        // * `id`: voice id of the parameter
         // * `voice`: address of the polyphonic voice (retrieved from `keyOn`)
         //--------------------------------------------------------
         const char* getVoiceParamAddress(int id, uintptr_t voice);
