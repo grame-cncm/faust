@@ -116,7 +116,9 @@ Some plugins add latency in the signal path. A special global metadata can be us
 
 - `declare latency_frames "7000";` (or alternatively `declare latency_samples "7000";`) to express the latency in samples/frames
 
-- `declare latency_sec "0.5";` to express the latency in seconds, to be converted internally in samples/frames using the host sample rate 
+- `declare latency_sec "0.5";` to express the latency in seconds, to be converted internally in samples/frames using the host sample rate, as `@(ba.sec2samp(0.5))` converts it (in the precision of the DSP, fraction of a frame dropped): the reported latency is then exactly the delay of such a lookahead
+
+The same metadata is reported to the host by `faust2vst`, `faust2faustvst`, `faust2au` (effects) and `faust2clap`.
 
 ## Tail length setting
 

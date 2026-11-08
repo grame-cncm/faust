@@ -17,6 +17,7 @@ In addition to this static mode, a dynamic implementation has been added. In thi
 - ✅ MIDI and polyphonic support via Faust’s `mydsp_poly`  
 - ✅ State save/restore, parameters recalled properly (static mode; see Known Issues for the dynamic one)  
 - ✅ 32f/64f audio I/O support  
+- ✅ Latency reported to the host, from `declare latency_samples "<frames>";` or `declare latency_sec "<seconds>";` (see [Latency setting](../juce/README.md#latency-setting))
 
 ---
 

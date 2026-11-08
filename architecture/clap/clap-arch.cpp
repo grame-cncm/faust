@@ -11,6 +11,7 @@
 #include <faust/gui/MapUI.h>
 #include <faust/gui/UI.h>
 #include <faust/gui/meta.h>
+#include <faust/gui/LatencyMeta.h>
 #include <faust/midi/midi.h>  // faust midi types
 #include "plugin_metadata.h"
 
@@ -244,6 +245,9 @@ class APlugin final : public Base {
     bool          fIsPolyphonic = false;  // determines if midi/note handling is enabled
     MidiUI*       fMidiUI       = nullptr;
     midi_handler* fMidiHandler  = nullptr;
+    // The latency declared in the DSP metadata, and what it is at the current sample rate
+    LatencyMeta fLatency;
+    uint32_t    fLatencyFrames = 0;
 
     // constructor initialises base class with descriptor and host pointers
     APlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host) : Base(desc, host) {}
@@ -292,6 +296,7 @@ class APlugin final : public Base {
         // Read the arity now: the host asks audioPortsInfo() before activate().
         fNumInputs  = fDSP->getNumInputs();
         fNumOutputs = fDSP->getNumOutputs();
+        fDSP->metadata(&fLatency);
         return true;
     }
 
@@ -299,6 +304,15 @@ class APlugin final : public Base {
     bool activate(double sampleRate, uint32_t, uint32_t) noexcept override
     {
         fDSP->init(sampleRate);
+        // A latency in seconds depends on the sample rate, and CLAP only lets it
+        // change while the plugin is being activated
+        const uint32_t latency = fLatency.getFrames(sampleRate);
+        if (latency != fLatencyFrames) {
+            fLatencyFrames = latency;
+            if (_host.canUseLatency()) {
+                _host.latencyChanged();
+            }
+        }
         return true;
     }
 
@@ -674,6 +688,11 @@ class APlugin final : public Base {
             handleMIDIEvent(hdr);
         }
     }
+
+    // Only offered when the DSP declares a latency: without the extension, the
+    // host assumes none
+    bool     implementsLatency() const noexcept override { return fLatency.isDeclared(); }
+    uint32_t latencyGet() const noexcept override { return fLatencyFrames; }
 
     // indicate support for audio ports
     bool implementsAudioPorts() const noexcept override { return true; }

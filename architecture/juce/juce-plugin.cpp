@@ -44,6 +44,7 @@
 #endif
 #include "faust/gui/JuceParameterUI.h"
 #include "faust/gui/JuceStateUI.h"
+#include "faust/gui/LatencyMeta.h"
 
 // Always included otherwise -i mode sometimes fails...
 #include "faust/gui/DecoratorUI.h"
@@ -462,6 +463,8 @@ class FaustPlugInAudioProcessor : public foleys::MagicProcessor, private juce::T
     #endif
         // Tail length reported to the host, from [declare tail_sec "<seconds>"]
         double fTailLength = 0.0;
+        // Latency reported to the host, from [declare latency_samples "<frames>"] or [declare latency_sec "<seconds>"]
+        LatencyMeta fLatency;
     #if defined(FAUST_PRESETS)
         // Host programs: "Default" (the values declared in the DSP), then the presets
         // of gFaustPresets, each mapping control names to values
@@ -582,6 +585,8 @@ class FaustPlugInAudioProcessor : public juce::AudioProcessor, private juce::Tim
     #endif
         // Tail length reported to the host, from [declare tail_sec "<seconds>"]
         double fTailLength = 0.0;
+        // Latency reported to the host, from [declare latency_samples "<frames>"] or [declare latency_sec "<seconds>"]
+        LatencyMeta fLatency;
     #if defined(FAUST_PRESETS)
         // Host programs: "Default" (the values declared in the DSP), then the presets
         // of gFaustPresets, each mapping control names to values
@@ -698,6 +703,8 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     TailMeta tail_meta;
     tmp_dsp->metadata(&tail_meta);
     fTailLength = tail_meta.fSeconds;
+    // Lookaheads and linear phase filters delay the signal: the host compensates it
+    tmp_dsp->metadata(&fLatency);
     delete tmp_dsp;
     fNumVoices = nvoices;
 	
@@ -998,6 +1005,10 @@ bool FaustPlugInAudioProcessor::supportsDoublePrecisionProcessing() const
 //==============================================================================
 void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+    if (fLatency.isDeclared()) {
+        setLatencySamples(fLatency.getFrames(sampleRate));
+    }
+
 #ifdef JUCE_POLY
     mydsp::classInit(int(sampleRate));
     fSynth->setCurrentPlaybackSampleRate (sampleRate);
@@ -1013,30 +1024,6 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
 #endif
     fDSP->instanceConstants(int(sampleRate));
     fDSP->instanceClear();
-    
-    // Get latency metadata
-    struct LatencyMeta : public Meta {
-        
-        float fLatencyFrames = -1.f;
-        float fLatencySec = -1.f;
-        
-        void declare(const char* key, const char* value)
-        {
-            if (std::string(key) == "latency_frames" || std::string(key) == "latency_samples") {
-                fLatencyFrames = std::atof(value);
-            } else if (std::string(key) == "latency_sec") {
-                fLatencySec = std::atof(value);
-            }
-        }
-    };
-    
-    LatencyMeta meta;
-    fDSP->metadata(&meta);
-    if (meta.fLatencyFrames > 0) {
-        setLatencySamples(meta.fLatencyFrames);
-    } else if (meta.fLatencySec > 0) {
-        setLatencySamples(meta.fLatencySec * sampleRate);
-    }
     
     // Builds the DSP adapters outside the audio thread for the expected configuration;
     // process rebuilds them if the host finally uses another one
