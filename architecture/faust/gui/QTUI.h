@@ -877,6 +877,8 @@ public:
         // With a linear scale, a keyboard or wheel move goes to the next step of the value
         if (scale == MetaDataUI::kLin && fStep > 0 && fMax > fMin) {
             fSlider->setSingleStep(std::max<int>(1, int(0.5+10000*fStep/(fMax-fMin))));
+            // Qt bounds a wheel move by the page step, and a page step must reach the next step too
+            fSlider->setPageStep(std::max(fSlider->pageStep(), fSlider->singleStep()));
         }
         fSlider->setValue(int(0.5+fConverter->faust2ui(fCur)));
         *fZone = fCur;
