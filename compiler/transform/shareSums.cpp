@@ -978,6 +978,121 @@ Tree foldSlowGains(Tree L, std::unordered_map<Tree, Tree>& memo)
     return treeRewritePaired(L, rule, memo);
 }
 
+/// a negated factor, one whose code costs exactly a negation, and its opposite : neg(x), x ;
+/// FIR(x; -1, ..., -1), FIR(x; 1, ..., 1) ; a sum of negations neg(a) + neg(b) + ..., a + b
+/// + .... A FIR of other negative taps is written with negative literals, no negation.
+bool negatedFactor(Tree f, Tree& opposite)
+{
+    Tree x;
+    tvec ts;
+    if (isSigNeg(f, x)) {
+        opposite = x;
+        return true;
+    }
+    if (isSigFIR(f, ts) && ts.size() >= 2) {
+        tvec opp{ts[0]};
+        for (size_t i = 1; i < ts.size(); i++) {
+            double v;
+            int    k;
+            if (isSigReal(ts[i], &v) && v == -1.0) {
+                opp.push_back(sigReal(1.0));
+            } else if (isSigInt(ts[i], &k) && k == -1) {
+                opp.push_back(sigInt(1));
+            } else {
+                return false;
+            }
+        }
+        opposite = sigFIR(opp);
+        return true;
+    }
+    if (isSigSum(f, ts) && !ts.empty()) {
+        tvec opp;
+        for (Tree t : ts) {
+            if (!isSigNeg(t, x)) return false;
+            opp.push_back(x);
+        }
+        opposite = sigSum(opp);
+        return true;
+    }
+    return false;
+}
+
+/// the negations out of the products (3d.3) : in a real product, a negated factor is
+/// replaced by its opposite, and the product negated when they are odd in number ;
+/// neg(neg(y)) is y. Bottom-up, a negation rises through nested products to the sum that
+/// reads it, which subtracts it (emitSum) ; another reader reads one negation, as before.
+/// The normal form keeps the slower coefficient of a product positive and its sign in the
+/// other factor : E3 * FIR(x; -1, -1), written fConst5 * (-x0 - x1) + t where t -
+/// fConst5 * (x0 + x1) holds no negation. Exact : the rounding to nearest commutes with the
+/// negation, and emitSum computes a sum as its signed chain. A FIR or a sum read elsewhere
+/// stays as it is (its opposite would be computed besides it) ; a neg(x) is replaced by x,
+/// computed anyway. Real arithmetic only, outside the cone of the memory decisions.
+Tree liftNegations(Tree L, std::unordered_map<Tree, Tree>& memo)
+{
+    const TypedAttributes          exact;
+    const std::unordered_set<Tree> cone = decisionCone(L, /*discontinuities*/ false);
+    std::unordered_map<Tree, int>  reads;
+    {
+        std::unordered_set<Tree> seen;
+        std::vector<Tree>        work{L};
+        while (!work.empty()) {
+            Tree t = work.back();
+            work.pop_back();
+            if (!seen.insert(t).second) continue;
+            Tree var, body;
+            if (isRec(t, var, body)) {
+                if (body != nullptr) {
+                    reads[body]++;
+                    work.push_back(body);
+                }
+                continue;
+            }
+            for (int i = 0; i < t->arity(); i++) {
+                reads[t->branch(i)]++;
+                work.push_back(t->branch(i));
+            }
+        }
+    }
+    auto rule = [&](Tree orig, Tree rebuilt) -> Tree {
+        // a negation, or a product, real and outside the cone (the form first : only signals
+        // carry a type)
+        Tree       x, y, a, b, oa, ob;
+        tvec       fo, fr;
+        const bool neg  = isSigNeg(orig, x);
+        const bool nary = !neg && isSigProd(orig, fo) && isSigProd(rebuilt, fr) && fo.size() == fr.size();
+        const bool bin  = !neg && !nary && isSigMul(orig, oa, ob) && isSigMul(rebuilt, a, b);
+        if ((!neg && !nary && !bin) || orig->getType() == nullptr || exact.nature(orig) != kReal ||
+            cone.count(orig) != 0) {
+            return rebuilt;
+        }
+        if (neg) {
+            return (isSigNeg(rebuilt, x) && isSigNeg(x, y)) ? y : rebuilt;
+        }
+        if (bin) {
+            fo = {oa, ob};
+            fr = {a, b};
+        }
+        int  negated = 0;
+        tvec fs;
+        for (size_t k = 0; k < fr.size(); k++) {
+            Tree opp;
+            if (exact.nature(fo[k]) == kReal && negatedFactor(fr[k], opp) &&
+                (isSigNeg(fr[k], x) || reads[fo[k]] == 1)) {
+                fs.push_back(opp);
+                negated++;
+            } else {
+                fs.push_back(fr[k]);
+            }
+        }
+        if (negated == 0) {
+            return rebuilt;
+        }
+        Tree p = nary ? sigProd(fs) : sigMul(fs[0], fs[1]);
+        return (negated % 2 == 1) ? sigNeg(p) : p;
+    };
+    return treeRewritePaired(L, rule, memo);
+}
+
 }  // namespace
 
 Tree shareSums(Tree L, std::unordered_map<Tree, Tree>* image)
@@ -995,11 +1110,15 @@ Tree shareSums(Tree L, std::unordered_map<Tree, Tree>* image)
     }
     Tree L2 = foldSlowGains(L1, gains);
     completeTypes(L2, gains);
+    std::unordered_map<Tree, Tree> negs;
+    Tree                           L3 = liftNegations(L2, negs);
+    completeTypes(L3, negs);
     if (image != nullptr) {
         *image = any ? rows : gains;
         if (any) {
             composeImage(*image, gains);
         }
+        composeImage(*image, negs);
     }
-    return L2;
+    return L3;
 }

@@ -62,8 +62,12 @@ Type composedType(Tree t)
                               tx->vectorability() | ty->vectorability(), tx->boolean(), unbounded);
     }
     tvec operands;
+    bool taps = false;  // a FIR of two taps or more reads its signal delayed
     if (isSigSum(t, subs) || isSigProd(t, subs)) {
         operands = subs;
+    } else if (isSigFIR(t, subs)) {
+        operands = subs;
+        taps     = subs.size() > 2;
     } else if (isSigNeg(t, x)) {
         operands = {x};
     } else if (isSigBinOp(t, &op, x, y) && (op == kAdd || op == kSub || op == kMul || op == kDiv)) {
@@ -83,6 +87,9 @@ Type composedType(Tree t)
         c |= to->computability();
         vec |= to->vectorability();
         b |= to->boolean();
+    }
+    if (taps) {
+        v |= kSamp;
     }
     return makeSimpleType(n, v, c, vec, b, unbounded);
 }
