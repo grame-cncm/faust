@@ -115,7 +115,7 @@ class MinPrim : public xtendedCodegen {
             // the real min : faustmin, a comparison (Klass::printAdditionalCode, LE-MAX-ET-LE-MIN),
             // in float, double and quad ; fmin in fixed point
             const bool  cmp  = (gGlobal->gFloatSize >= 1) && (gGlobal->gFloatSize <= 3);
-            std::string name = cmp ? "faustmin" : subst("fmin$0", isuffix());
+            std::string name = cmp ? (isFreeMinMax(types) ? "faustmink" : "faustmin") : subst("fmin$0", isuffix());
             if (cmp) {
                 klass->rememberNeedRealMinMaxDef();
             }

@@ -115,7 +115,7 @@ class MaxPrim : public xtendedCodegen {
             // the real max : faustmax, a comparison (Klass::printAdditionalCode, LE-MAX-ET-LE-MIN),
             // in float, double and quad ; fmax in fixed point
             const bool  cmp  = (gGlobal->gFloatSize >= 1) && (gGlobal->gFloatSize <= 3);
-            std::string name = cmp ? "faustmax" : subst("fmax$0", isuffix());
+            std::string name = cmp ? (isFreeMinMax(types) ? "faustmaxk" : "faustmax") : subst("fmax$0", isuffix());
             if (cmp) {
                 klass->rememberNeedRealMinMaxDef();
             }
