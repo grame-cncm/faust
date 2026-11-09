@@ -52,6 +52,7 @@ class Klass {
     static bool fNeedPowerDef;
     static bool fNeedApproxRoundDef;  ///< -mapp : faust_floor_approx, faust_ceil_approx
     static bool fNeedIntPowerDef;     ///< faust_ipow, an integer power of variable exponent
+    static bool fNeedRealMinMaxDef;   ///< faustmax, faustmin : the real max and min
 
     Klass*      fParentKlass;  ///< Klass in which this Klass is embedded, void if toplevel Klass
     std::string fKlassName;
@@ -160,6 +161,7 @@ class Klass {
     void rememberNeedPowerDef() { fNeedPowerDef = true; }
     void rememberNeedApproxRoundDef() { fNeedApproxRoundDef = true; }
     void rememberNeedIntPowerDef() { fNeedIntPowerDef = true; }
+    void rememberNeedRealMinMaxDef() { fNeedRealMinMaxDef = true; }
 
     void collectIncludeFile(std::set<std::string>& S);
 

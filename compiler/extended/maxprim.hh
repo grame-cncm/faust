@@ -111,17 +111,25 @@ class MaxPrim : public xtendedCodegen {
         // generates code compatible with overloaded max
         int n0 = types[0]->nature();
         int n1 = types[1]->nature();
-        if (n0 == kReal) {
-            if (n1 == kReal) {
-                // both are floats, no need to cast
-                return subst("fmax$2($0, $1)", args[0], args[1], isuffix());
-            } else {
-                faustassert(n1 == kInt);  // second argument is not float, cast it to float
-                return subst("fmax$3($0, $2($1))", args[0], args[1], icast(), isuffix());
+        if ((n0 == kReal) || (n1 == kReal)) {
+            // the real max : faustmax, a comparison (Klass::printAdditionalCode, LE-MAX-ET-LE-MIN),
+            // in float, double and quad ; fmax in fixed point
+            const bool  cmp  = (gGlobal->gFloatSize >= 1) && (gGlobal->gFloatSize <= 3);
+            std::string name = cmp ? "faustmax" : subst("fmax$0", isuffix());
+            if (cmp) {
+                klass->rememberNeedRealMinMaxDef();
             }
-        } else if (n1 == kReal) {
+            if (n0 == kReal) {
+                if (n1 == kReal) {
+                    // both are floats, no need to cast
+                    return subst("$2($0, $1)", args[0], args[1], name);
+                } else {
+                    faustassert(n1 == kInt);  // second argument is not float, cast it to float
+                    return subst("$3($0, $2($1))", args[0], args[1], icast(), name);
+                }
+            }
             faustassert(n0 == kInt);  // first not float but second is, cast first to float
-            return subst("fmax$3($2($0), $1)", args[0], args[1], icast(), isuffix());
+            return subst("$3($2($0), $1)", args[0], args[1], icast(), name);
         } else {
             faustassert(n0 == kInt);
             faustassert(n1 == kInt);  // both are integers, check for booleans
