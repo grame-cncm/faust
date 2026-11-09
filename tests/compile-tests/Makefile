@@ -120,7 +120,7 @@ json-compare:
 SCRIPTS_CORE := defined-integer-operations directed-rounding display-contexts display-tail-sharing division-by-zero \
                 empty-letrec exe-path filter-gain \
                 hoist-negation infinite-coefficients integer-pow multiplicative-algebra power-nature \
-                primitive-labels real-minmax-ocpp real-power-ocpp svg-inner-process svg-root-name
+                minmax-ieee primitive-labels real-power-ocpp svg-inner-process svg-root-name
 SCRIPTS_ALL  := $(SCRIPTS_CORE) fixed-point-tables integer-pow-backends java-math \
                 julia-float-to-int math-domain nonfinite-constants signal-renderer-pow
 SCRIPT_ARGS  ?=

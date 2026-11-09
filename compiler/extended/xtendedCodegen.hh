@@ -22,6 +22,7 @@
 #ifndef __XTENDED_CODEGEN__
 #define __XTENDED_CODEGEN__
 
+#include <cmath>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -47,20 +48,105 @@ class xtendedCodegen : public xtended {
    public:
     using xtended::xtended;
 
-    // A real max or min whose value is the same under fmax (fmin) and under the comparison
-    // (a < b) ? b : a ((b < a) ? b : a) of the cpp generator : its first operand proven not
-    // NaN by the interval of the program, and no tie between +0 and -0 (one operand proven
-    // non-zero). The ocpp generator writes it faustmaxk (faustmink), the form each C++
-    // compiler compiles best (LE-MAX-ET-LE-MIN)
-    static bool isFreeMinMax(ConstTypes types)
+    // The real max and min of Faust are maximumNumber and minimumNumber of IEEE 754-2019 : a
+    // NaN operand gives the other one (NaN when both are), and -0 < +0 ; the operation is
+    // commutative (LES-NAN-DU-MAX-ET-DU-MIN). The C and C++ generators write each one in the
+    // cheapest form that has this value, from what the interval of the program proves :
+    //  - kMinMaxFree : the first operand proven not NaN, no tie between +0 and -0 possible :
+    //    fmax (fmin) and the comparison (a < b) ? b : a ((b < a) ? b : a) have this value,
+    //    each C++ compiler takes the form it compiles best ;
+    //  - kMinMaxCompare : a tie of zeros possible, the literal zero that wins first (+0 of a
+    //    max, -0 of a min) or the one that loses second : the comparison has this value ;
+    //  - kMinMaxFull : otherwise, the comparison with the NaN test and the sign of the zeros.
+    // swap tells to write the operands in the other order, a proven operand first. zero0 and
+    // zero1 : +1 for a literal +0, -1 for a literal -0, 0 for anything else
+    enum MinMaxForm { kMinMaxFree, kMinMaxCompare, kMinMaxFull };
+
+    // the value : the constant folding and the interpreter of the signals
+    static double maxNumber(double a, double b)
     {
-        const interval a = types[0]->getInterval();
-        const interval b = types[1]->getInterval();
-        if (a.isEmpty() || b.isEmpty() || a.mayBeInvalid()) {
-            return false;
-        }
-        return !a.hasZero() || !b.hasZero();
+        if (std::isnan(a)) return b;
+        if (std::isnan(b)) return a;
+        if (a == b) return std::signbit(a) ? b : a;
+        return (a < b) ? b : a;
     }
+    static double minNumber(double a, double b)
+    {
+        if (std::isnan(a)) return b;
+        if (std::isnan(b)) return a;
+        if (a == b) return std::signbit(a) ? a : b;
+        return (b < a) ? b : a;
+    }
+
+    static MinMaxForm minMaxForm(bool isMax, ConstTypes types, int zero0, int zero1, bool& swap)
+    {
+        const interval a  = types[0]->getInterval();
+        const interval b  = types[1]->getInterval();
+        const bool     na = a.isEmpty() || a.mayBeInvalid();
+        const bool     nb = b.isEmpty() || b.mayBeInvalid();
+        swap              = na && !nb;
+        if (na && nb) {
+            return kMinMaxFull;
+        }
+        const bool tie = (a.isEmpty() || a.hasZero()) && (b.isEmpty() || b.hasZero());
+        if (!tie) {
+            return kMinMaxFree;
+        }
+        // the comparison gives its first operand on a tie of zeros : it is exact when that
+        // operand is the result, the literal zero that wins (+0 of a max, -0 of a min) first,
+        // or the literal zero that loses second (max(x, -0) = min(x, +0) = x for x = +-0)
+        const int  wins   = isMax ? 1 : -1;
+        const int  first  = swap ? zero1 : zero0;
+        const int  second = swap ? zero0 : zero1;
+        const bool nfirst = swap ? nb : na;  // false : first is not NaN
+        const bool nsec   = swap ? na : nb;
+        if (first == wins || (second == -wins && !nfirst)) {
+            return kMinMaxCompare;
+        }
+        if (second == wins || (first == -wins && !nsec)) {
+            // the other order : the winning literal first, or the losing one second
+            swap = !swap;
+            return kMinMaxCompare;
+        }
+        return kMinMaxFull;
+    }
+
+    // +1 for the literal +0, -1 for the literal -0, 0 otherwise : the FIR constants
+    static int zeroLiteral(ValueInst* v);
+
+    // the same for the text of the ocpp generator : 0, 0.0, 0.0f, 0.0L, -0.0f...
+    static int zeroLiteral(const std::string& s)
+    {
+        size_t i = 0, n = s.size();
+        bool   neg = false;
+        if (i < n && s[i] == '-') {
+            neg = true;
+            i++;
+        }
+        if (n > i && (s[n - 1] == 'f' || s[n - 1] == 'L')) {
+            n--;
+        }
+        bool zero = false, dot = false;
+        for (; i < n; i++) {
+            if (s[i] == '0') {
+                zero = true;
+            } else if (s[i] == '.' && !dot) {
+                dot = true;
+            } else {
+                return 0;
+            }
+        }
+        return zero ? (neg ? -1 : 1) : 0;
+    }
+
+    // the helper of a form, with the libm suffix of the program's real type (f, none, l)
+    static std::string minMaxHelper(bool isMax, MinMaxForm form);
+
+    // the helpers, in C and C++ : written once, before the classes, when a real max or min
+    // was generated (fNeedMinMaxHelpers, cleared once written)
+    static bool fNeedMinMaxHelpers;
+    // byRef : the comparisons return a reference under clang, as the std::max cpp wrote (C++ only)
+    static void printMinMaxHelpers(std::ostream& out, bool byRef = false);
 
     virtual std::string fname(int type) { return sname() + isuffix(); }
 
