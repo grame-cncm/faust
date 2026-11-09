@@ -397,8 +397,8 @@ class CPPInstVisitor : public TextInstVisitor {
             gFunctionSymbolTable[inst->fName] = true;
         }
 
-        // Defined as macro in the architecture file...
-        if (checkMinMax(inst->fName)) {
+        // Defined as macro in the architecture file, or a helper of the real max and min
+        if (checkMinMax(inst->fName) || isFaustMinMaxHelper(inst->fName)) {
             return;
         }
 

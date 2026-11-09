@@ -21,6 +21,7 @@
 
 #include <climits>
 
+#include "xtendedCodegen.hh"
 #include "Text.hh"
 #include "cpp_code_container.hh"
 #include "cpp_gpu_code_container.hh"
@@ -329,6 +330,8 @@ void CPPCodeContainer::produceClass()
     // Int32 shifts and abs in a defined form : a shift count taken modulo 32, a left shift on
     // the unsigned bits, abs(INT_MIN) = INT_MIN ; written where the operands do not prove
     // the plain form defined
+    // the real max and min (LES-NAN-DU-MAX-ET-DU-MIN), before every class that uses them
+    xtendedCodegen::printMinMaxHelpers(*fOut, true);
     *fOut << "#ifndef FAUST_INT_SHIFT" << endl;
     *fOut << "#define FAUST_INT_SHIFT" << endl;
     *fOut << "inline int faust_wrap_shl(int a, int k) { return int((unsigned int)a << (k & 31)); }" << endl;
