@@ -308,6 +308,31 @@ class PowPrim : public xtendedCodegen {
         return true;
     }
 
+    // A literal of integer value in [0, 8], written as an integer (3) or as a real (3.0, 3.,
+    // 3.0f) : the promotion gives the exponent of a real power the real nature of the power
+    static bool isSmallIntegerValueLiteral(const std::string& s, int& value)
+    {
+        size_t n = s.size();
+        if (n > 0 && s[n - 1] == 'f') {
+            n--;
+        }
+        if (n == 0 || s[0] < '0' || s[0] > '8') {
+            return false;
+        }
+        if (n > 1) {
+            if (s[1] != '.') {
+                return false;
+            }
+            for (size_t i = 2; i < n; i++) {
+                if (s[i] != '0') {
+                    return false;
+                }
+            }
+        }
+        value = s[0] - '0';
+        return true;
+    }
+
     virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
                                      ConstTypes types) override
     {
@@ -316,11 +341,23 @@ class PowPrim : public xtendedCodegen {
 
         // faustpower<N> recurses on N/2 and N - N/2 : a nonnegative literal only (a negative
         // one, left by the constant propagation, would never reach its base cases)
-        int exponent = -1;
-        if ((types[1]->nature() == kInt) && (types[1]->variability() == kKonst) &&
-            (types[1]->computability() == kComp) && isNonNegativeLiteral(args[1], exponent)) {
+        int  exponent = -1;
+        bool konst    = (types[1]->variability() == kKonst) && (types[1]->computability() == kComp);
+        if (konst && (types[0]->nature() == kInt) && (types[1]->nature() == kInt) &&
+            isNonNegativeLiteral(args[1], exponent)) {
+            // the product wrapped on 32 bits, for every exponent
             klass->rememberNeedPowerDef();
             return subst("faustpower<$1>($0)", args[0], args[1]);
+        } else if (konst && (types[0]->nature() == kReal) &&
+                   ((gGlobal->gFloatSize == 1) || (gGlobal->gFloatSize == 2)) &&
+                   isSmallIntegerValueLiteral(args[1], exponent)) {
+            // x^k, x real and k from 0 to 8 : the k - 1 products of the cpp generator
+            // (isIntPowArg) and of the interval model, which widens such a power by k ulps
+            // (interval_algebra.cpp, numericPow) ; beyond 8, the 2 ulps of the libm pow. The
+            // base converted to the program's real type, as pow converts it, picks the
+            // faustpower of that type
+            klass->rememberNeedPowerDef();
+            return subst("faustpower<$1>($2($0))", args[0], T(exponent), ifloat());
         } else if ((types[0]->nature() == kInt) && (types[1]->nature() == kInt)) {
             // the integer power of the analysis, defined for every exponent (klass.cpp)
             klass->rememberNeedIntPowerDef();

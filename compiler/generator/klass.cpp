@@ -1164,6 +1164,26 @@ static bool hasLibmCall(const std::string& code)
     return false;
 }
 
+// A real power of a constant integer exponent, faustpower<k>(float(x)) or
+// faustpower<k>(double(x)) (powprim.hh), replaces the libm pow the pass sank
+// before (LA-PUISSANCE) : sunk like it, its statement keeps the place it had,
+// where an early cheap temp read at the end of the body stays live across
+// every call between (oneSourceToStereo, g++ : 50 ns/sample against 42.5).
+// It is no call : the choice of the flat loop does not count it.
+static bool hasRealIntegerPower(const std::string& code)
+{
+    size_t p = 0;
+    while ((p = code.find("faustpower<", p)) != std::string::npos) {
+        size_t q = code.find(">(", p);
+        if (q != std::string::npos &&
+            (code.compare(q + 2, 6, "float(") == 0 || code.compare(q + 2, 7, "double(") == 0)) {
+            return true;
+        }
+        p += 11;
+    }
+    return false;
+}
+
 static void collectIdents(const std::string& code, std::set<std::string>& out)
 {
     size_t p = 0;
@@ -1242,7 +1262,8 @@ void Klass::sinkExpensiveCalls()
         for (size_t i = 0; i < v.size() && !restart; i++) {
             std::string lhs;
             bool        isDecl;
-            if (!v[i].condition().empty() || !hasLibmCall(v[i].code()) ||
+            if (!v[i].condition().empty() ||
+                !(hasLibmCall(v[i].code()) || hasRealIntegerPower(v[i].code())) ||
                 !parseWriteTarget(v[i].code(), lhs, isDecl) || !isDecl) {
                 continue;
             }
