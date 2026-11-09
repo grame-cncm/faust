@@ -11,7 +11,7 @@ else
 SHARED_LIBFAUST ?= $(LIB)/libfaust.so
 endif
 
-.PHONY: all clean clean-api help api-info check-shared-api check-signal-api check-box-api
+.PHONY: all clean clean-api help api-info check-shared-api check-signal-api check-box-api check-float-env
 .SECONDARY: signal-api-references.inc box-api-references.inc
 
 DESTDIR ?=
@@ -40,6 +40,10 @@ signal-test: signal-test.cpp $(LIB)/libfaust.a
 signal-api-test box-api-test: %-api-test: %-api-test.cpp %-api-references.inc $(SHARED_LIBFAUST) Makefile | api-info
 	$(CXX) $(CXXFLAGS) -std=c++11 -I"$(INC)" $< "$(SHARED_LIBFAUST)" -Wl,-rpath,"$(abspath $(LIB))" $(LDFLAGS) -o $@
 
+# Compile with subnormal values flushed to zero, as audio hosts do (issue #1117)
+float-env-test: float-env-test.cpp $(SHARED_LIBFAUST) Makefile | api-info
+	$(CXX) $(CXXFLAGS) -std=c++11 -I"$(INC)" $< "$(SHARED_LIBFAUST)" -Wl,-rpath,"$(abspath $(LIB))" $(LDFLAGS) -o $@
+
 %-api-references.inc: $(INC)/faust/dsp/libfaust-%.h generate-api-references.py
 	$(PYTHON) generate-api-references.py $< $@
 
@@ -58,6 +62,9 @@ check-box-api: box-api-test
 
 check-shared-api: check-signal-api check-box-api
 
+check-float-env: float-env-test
+	./float-env-test
+
 install: 
 	([ -e signal-test ]) && cp signal-test $(prefix)/bin
 
@@ -65,12 +72,13 @@ clean-api:
 	rm -f signal-api-test box-api-test signal-api-references.inc box-api-references.inc
 
 clean: clean-api
-	rm -f signal-test
+	rm -f signal-test float-env-test
 	
 help:
 	@echo "Available targets:"
 	@echo "  signal-test - test the Signal interpreter"
 	@echo "  check-shared-api - check all public C++ Signal and Box API links against shared libfaust"
 	@echo "  check-signal-api / check-box-api - check one public API"
+	@echo "  check-float-env - check that compiling with subnormals flushed to zero changes nothing"
 	@echo "  clean-api - remove API test executables and generated references"
 	@echo "  help         - Display this help message"
