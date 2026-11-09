@@ -286,6 +286,21 @@ void Klass::printAdditionalCode(ostream& fout)
              << endl;
         fout << "static inline " << t << " faustmin(" << t << " a, " << t << " b) { return (b < a) ? b : a; }"
              << endl;
+        // the first operand proven not NaN, and no tie between +0 and -0 : fmax and fmin have the
+        // value of the comparison, each compiler takes the form it compiles best (clang groups
+        // fmax and fmin better in its vectors, g++ calls them in the libm)
+        fout << "#include <cmath>" << endl;
+        fout << "#if defined(__clang__)" << endl;
+        fout << "static inline " << t << " faustmaxk(" << t << " a, " << t << " b) { return std::fmax(a, b); }"
+             << endl;
+        fout << "static inline " << t << " faustmink(" << t << " a, " << t << " b) { return std::fmin(a, b); }"
+             << endl;
+        fout << "#else" << endl;
+        fout << "static inline " << t << " faustmaxk(" << t << " a, " << t << " b) { return (a < b) ? b : a; }"
+             << endl;
+        fout << "static inline " << t << " faustmink(" << t << " a, " << t << " b) { return (b < a) ? b : a; }"
+             << endl;
+        fout << "#endif" << endl;
         fout << "#endif" << endl;
         // read once per compilation : the next one starts without it
         fNeedRealMinMaxDef = false;

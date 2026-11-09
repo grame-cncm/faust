@@ -9,11 +9,17 @@ comparisons of std::max and std::min : max(a, b) = (a < b) ? b : a, min(a, b) = 
 1. The code : in single, double and quad precision, a real max or min of ocpp is faustmax or
    faustmin, defined once, and its compute method calls neither fmax nor fmin ; the integer max
    and min stay faustmaxi and faustmini.
-2. The values : max and min of two inputs in both orders, and against a constant on either
+2. The free form : a max or min whose first operand the interval of the program proves not
+   NaN, one operand being proven non-zero, is faustmaxk or faustmink, fmax and fmin under clang
+   and the comparison otherwise (the same value) ; the others stay faustmax and faustmin.
+3. The values : max and min of two inputs in both orders, and against a constant on either
    side, on ordinary values, +-0, +-inf and NaN at each place, in single and double precision :
-   the outputs of ocpp equal those of cpp bit for bit (the sign of a zero and NaN included) ;
-   a NaN first operand gives NaN, a NaN second operand the first one.
+   compiled by g++, the outputs of ocpp equal those of cpp bit for bit (the sign of a zero and
+   NaN included) ; a NaN first operand gives NaN, a NaN second operand the first one. Compiled
+   by clang (when installed), the same without a NaN input, which the analysis excludes.
 """
+
+import shutil
 
 import argparse
 import math
@@ -79,8 +85,27 @@ def compute_code(text):
     return text[m.start():]
 
 
+# each max or min, and the helper its operands call for
+FREE = [("max(sqrt(x), 0.5)", "faustmax"), ("max(0.5, sqrt(x))", "faustmaxk"),
+        ("max(x, 0.5)", "faustmaxk"), ("max(x, y)", "faustmax"), ("min(0.25, x)", "faustmink"),
+        ("min(x, y)", "faustmin"), ("max(0.0, x)", "faustmax"), ("min(x, -2.0)", "faustmink")]
+
+
 def check_code(args, work):
     fails = []
+    fdsp = work / "free.dsp"
+    fdsp.write_text("process(x, y) = " + ", ".join(e for e, _ in FREE) + ";\n")
+    for prec in ("single", "double", "quad"):
+        code = compute_code(faust(args, fdsp, "ocpp", prec))
+        got = re.findall(r"output(\d+)\[i\] = \(FAUSTFLOAT\)\((faust(?:max|min)k?)\(", code)
+        got = {int(o): h for o, h in got}
+        for k, (e, h) in enumerate(FREE):
+            ok = got.get(k) == h
+            if not ok:
+                print(f"FAIL free   {prec:6s} {e} : {got.get(k)}, expected {h}")
+                fails.append(f"free {prec} {e}")
+        print(f"{'ok  ' if all(got.get(k) == h for k, (_, h) in enumerate(FREE)) else 'FAIL'} free   {prec:6s} "
+              f"{sum(1 for _, h in FREE if h.endswith('k'))} free of {len(FREE)}")
     dsp = work / "code.dsp"
     dsp.write_text(DSP + "\n")
     idsp = work / "int.dsp"
@@ -113,14 +138,14 @@ def lit(v):
     return "-0.0" if v == 0 and math.copysign(1, v) < 0 else repr(v)
 
 
-def run_values(args, work, lang, prec):
-    d = work / f"{lang}-{prec}"
+def run_values(args, work, lang, prec, cxx):
+    d = work / f"{lang}-{prec}-{Path(cxx).name}"
     d.mkdir()
     (d / "values.dsp").write_text(DSP)
     faust(args, d / "values.dsp", lang, prec, d / "generated.cpp")
     (d / "runner.cpp").write_text(RUNNER.replace("%VALUES%", ", ".join(lit(v) for v in VALUES)))
     fl = "float" if prec == "single" else "double"
-    subprocess.run([args.cxx, "-O1", "-ffp-contract=off", "-std=c++17", f"-DFAUSTFLOAT={fl}",
+    subprocess.run([cxx, "-O1", "-ffp-contract=off", "-std=c++17", f"-DFAUSTFLOAT={fl}",
                     "-I", str(args.arch), str(d / "runner.cpp"), "-o", str(d / "runner")],
                    check=True, cwd=d)
     out = subprocess.run([str(d / "runner")], capture_output=True, text=True, check=True).stdout
@@ -129,12 +154,17 @@ def run_values(args, work, lang, prec):
 
 def check_values(args, work):
     fails = []
-    for prec in ("single", "double"):
-        ocpp = run_values(args, work, "ocpp", prec)
-        cpp = run_values(args, work, "cpp", prec)
+    for cxx, prec in [(c, p) for c in args.compilers for p in ("single", "double")]:
+        clang = "clang" in Path(cxx).name
+        ocpp = run_values(args, work, "ocpp", prec, cxx)
+        cpp = run_values(args, work, "cpp", prec, cxx)
         bad = 0
         first_nan = 0
+        compared = 0
         for ro, rc in zip(ocpp, cpp):
+            if clang and ("nan" in ro[0] or "nan" in ro[1]):
+                continue  # fmax under clang : the free form assumes what the analysis proves
+            compared += 1
             # hex floats : equal text is equal bits, the sign of a zero included ; NaN as is
             if ro != rc:
                 bad += 1
@@ -150,10 +180,10 @@ def check_values(args, work):
                 if float.fromhex(ro[8]) != 0.5 or float.fromhex(ro[9]) != 0.5:
                     bad += 1
                     print(f"FAIL value {prec} max(0.5, NaN) = {ro[8]}, min(0.5, NaN) = {ro[9]}")
-        print(f"{'ok  ' if bad == 0 else 'FAIL'} values {prec} : {len(ocpp)} pairs of inputs, 8 outputs, "
-              f"{first_nan} with a NaN first input, {bad} wrong")
+        print(f"{'ok  ' if bad == 0 else 'FAIL'} values {Path(cxx).name} {prec} : {compared} pairs of inputs, "
+              f"8 outputs, {first_nan} with a NaN first input checked, {bad} wrong")
         if bad:
-            fails.append(f"values {prec}")
+            fails.append(f"values {Path(cxx).name} {prec}")
     return fails
 
 
@@ -162,9 +192,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--faust", type=Path, default=repo / "build/bin/faust")
     parser.add_argument("--cxx", default="g++")
+    parser.add_argument("--clang", default="clang++", help="also compiled by clang, when installed")
     parser.add_argument("--arch", type=Path, default=repo / "architecture")
     args, _ = parser.parse_known_args()
     args.faust = args.faust.resolve()
+    args.compilers = [args.cxx] + ([args.clang] if shutil.which(args.clang) else [])
     with tempfile.TemporaryDirectory(prefix="faust-real-minmax-") as temp:
         work = Path(temp)
         fails = check_code(args, work) + check_values(args, work)

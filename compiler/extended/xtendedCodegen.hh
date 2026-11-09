@@ -47,6 +47,21 @@ class xtendedCodegen : public xtended {
    public:
     using xtended::xtended;
 
+    // A real max or min whose value is the same under fmax (fmin) and under the comparison
+    // (a < b) ? b : a ((b < a) ? b : a) of the cpp generator : its first operand proven not
+    // NaN by the interval of the program, and no tie between +0 and -0 (one operand proven
+    // non-zero). The ocpp generator writes it faustmaxk (faustmink), the form each C++
+    // compiler compiles best (LE-MAX-ET-LE-MIN)
+    static bool isFreeMinMax(ConstTypes types)
+    {
+        const interval a = types[0]->getInterval();
+        const interval b = types[1]->getInterval();
+        if (a.isEmpty() || b.isEmpty() || a.mayBeInvalid()) {
+            return false;
+        }
+        return !a.hasZero() || !b.hasZero();
+    }
+
     virtual std::string fname(int type) { return sname() + isuffix(); }
 
     // FIR backends
