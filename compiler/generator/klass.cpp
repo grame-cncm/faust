@@ -55,6 +55,7 @@ static int gTaskCount = 0;
 bool Klass::fNeedPowerDef = false;
 bool Klass::fNeedApproxRoundDef = false;
 bool Klass::fNeedIntPowerDef    = false;
+bool Klass::fNeedRealMinMaxDef  = false;
 
 /**
  * Store the loop used to compute a signal
@@ -271,6 +272,23 @@ void Klass::printAdditionalCode(ostream& fout)
         fout << "#endif" << endl;
         // read once per compilation : the next one starts without it
         fNeedIntPowerDef = false;
+    }
+
+    if (fNeedRealMinMaxDef) {
+        // the real max and min of the cpp generator, std::max and std::min, as comparisons
+        // (LE-MAX-ET-LE-MIN) : g++ calls fmax and fmin in the libm unless -ffinite-math-only.
+        // A NaN first operand gives NaN, a NaN second operand the first one ; between +0 and -0,
+        // the first operand, as fmax and fmin of the glibc
+        const std::string t = (gGlobal->gFloatSize == 3) ? "long double" : ifloat();
+        fout << "#ifndef FAUSTMINMAX_" << gGlobal->gFloatSize << endl;
+        fout << "#define FAUSTMINMAX_" << gGlobal->gFloatSize << endl;
+        fout << "static inline " << t << " faustmax(" << t << " a, " << t << " b) { return (a < b) ? b : a; }"
+             << endl;
+        fout << "static inline " << t << " faustmin(" << t << " a, " << t << " b) { return (b < a) ? b : a; }"
+             << endl;
+        fout << "#endif" << endl;
+        // read once per compilation : the next one starts without it
+        fNeedRealMinMaxDef = false;
     }
 
     if (fNeedApproxRoundDef) {
