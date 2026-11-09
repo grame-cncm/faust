@@ -50,16 +50,16 @@ class MaxPrim : public xtendedCodegen {
 
         if (isDouble(args[0]->node(), &f)) {
             if (isDouble(args[1]->node(), &g)) {
-                return tree(std::max(f, g));
+                return tree(maxNumber(f, g));
             } else if (isInt(args[1]->node(), &j)) {
-                return tree(std::max(f, double(j)));
+                return tree(maxNumber(f, double(j)));
             } else {
                 return tree(symbol(), args[0], args[1]);
             }
 
         } else if (isInt(args[0]->node(), &i)) {
             if (isDouble(args[1]->node(), &g)) {
-                return tree(std::max(double(i), g));
+                return tree(maxNumber(double(i), g));
             } else if (isInt(args[1]->node(), &j)) {
                 return tree(std::max(i, j));
             } else {
@@ -97,6 +97,23 @@ class MaxPrim : public xtendedCodegen {
             }
         */
 
+        // C and C++ : the form of maximumNumber (minimumNumber) the interval proves enough
+        // (LES-NAN-DU-MAX-ET-DU-MIN) ; the other backends keep their max, until theirs
+        const bool ieee = (result->nature() == kReal) &&
+                          ((gGlobal->gOutputLang == "cpp") || (gGlobal->gOutputLang == "c")) &&
+                          (gGlobal->gFloatSize >= 1) && (gGlobal->gFloatSize <= 3);
+        if (ieee) {
+            ValueInst* a0   = promote2real(types[0]->nature(), *args.begin());
+            ValueInst* a1   = promote2real(types[1]->nature(), *std::next(args.begin(), 1));
+            bool       swap = false;
+            MinMaxForm form = minMaxForm(true, types, zeroLiteral(a0), zeroLiteral(a1), swap);
+            Values     cargs;
+            cargs.push_back(swap ? a1 : a0);
+            cargs.push_back(swap ? a0 : a1);
+            std::vector<Typed::VarType> atypes = {itfloat(), itfloat()};
+            fNeedMinMaxHelpers                 = true;
+            return container->pushFunction(minMaxHelper(true, form), itfloat(), atypes, cargs);
+        }
         std::string fun_name = (result->nature() == kInt) ? "max_i" : subst("max_$0", isuffix());
         return generateFun(container, fun_name, args, result, types);
     }
@@ -112,24 +129,18 @@ class MaxPrim : public xtendedCodegen {
         int n0 = types[0]->nature();
         int n1 = types[1]->nature();
         if ((n0 == kReal) || (n1 == kReal)) {
-            // the real max : faustmax, a comparison (Klass::printAdditionalCode, LE-MAX-ET-LE-MIN),
-            // in float, double and quad ; fmax in fixed point
-            const bool  cmp  = (gGlobal->gFloatSize >= 1) && (gGlobal->gFloatSize <= 3);
-            std::string name = cmp ? (isFreeMinMax(types) ? "faustmaxk" : "faustmax") : subst("fmax$0", isuffix());
-            if (cmp) {
-                klass->rememberNeedRealMinMaxDef();
+            // the real max : maximumNumber (minimumNumber) of IEEE 754-2019, in the form the
+            // interval proves enough (LES-NAN-DU-MAX-ET-DU-MIN), in float, double and quad ;
+            // fmax in fixed point
+            std::string a0 = (n0 == kReal) ? args[0] : subst("$0($1)", icast(), args[0]);
+            std::string a1 = (n1 == kReal) ? args[1] : subst("$0($1)", icast(), args[1]);
+            if ((gGlobal->gFloatSize < 1) || (gGlobal->gFloatSize > 3)) {
+                return subst("fmax$2($0, $1)", a0, a1, isuffix());
             }
-            if (n0 == kReal) {
-                if (n1 == kReal) {
-                    // both are floats, no need to cast
-                    return subst("$2($0, $1)", args[0], args[1], name);
-                } else {
-                    faustassert(n1 == kInt);  // second argument is not float, cast it to float
-                    return subst("$3($0, $2($1))", args[0], args[1], icast(), name);
-                }
-            }
-            faustassert(n0 == kInt);  // first not float but second is, cast first to float
-            return subst("$3($2($0), $1)", args[0], args[1], icast(), name);
+            bool       swap = false;
+            MinMaxForm form = minMaxForm(true, types, zeroLiteral(args[0]), zeroLiteral(args[1]), swap);
+            fNeedMinMaxHelpers = true;
+            return subst("$0($1, $2)", minMaxHelper(true, form), swap ? a1 : a0, swap ? a0 : a1);
         } else {
             faustassert(n0 == kInt);
             faustassert(n1 == kInt);  // both are integers, check for booleans
@@ -173,7 +184,7 @@ class MaxPrim : public xtendedCodegen {
         if (isInt(args[0], &i) && isInt(args[1], &j)) {
             return std::max(i, j);
         } else {
-            return std::max(args[0].getDouble(), args[1].getDouble());
+            return maxNumber(args[0].getDouble(), args[1].getDouble());
         }
     }
 
