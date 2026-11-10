@@ -3,8 +3,11 @@
 
 A real FIR outside the cone of the memory decisions adds its taps from the last delay to the
 first, the tap of delay 0 (computed in the sample) last ; a real IIR adds its feedback taps
-from the last delay to y@1, then its input. The cascades of biquads below (coefficients of a
-control, and numbers) give FIR and IIR nodes, in cpp, ocpp and ocpp -ls, single and double
+from the last delay to y@1, then its input ; an IIR whose input is such a FIR, read by it
+alone, takes the taps of the FIR in its own chain : the delayed taps of the FIR, the feedback
+taps, then the tap of delay 0. The chain takes the sign of its first term. The cascades of
+biquads below (coefficients of a control, and numbers) and the resonators (a positive y@1
+tap, a negative y@2 tap) give FIR and IIR nodes, in cpp, ocpp and ocpp -ls, single and double
 precision.
 
 1. The code : the default and -nolt differ.

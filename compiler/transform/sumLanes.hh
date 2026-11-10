@@ -74,3 +74,12 @@ Tree sumLanes(Tree L, LaneOrder order, std::unordered_map<Tree, Tree>* image = n
  */
 void markLateTaps(Tree L);
 bool lateTapsLast(Tree sig);
+
+/**
+ * An IIR marked by markLateTaps whose input is a marked FIR that no other signal reads :
+ * the code of the IIR takes the taps of its input in its own chain, the taps that read
+ * delay lines first (the delayed taps of the FIR, then the feedback taps from the last
+ * delay to y@1), the tap of delay 0 of the FIR last. One operation follows the term
+ * computed in the sample ; the recurrence keeps two operations from y@1 to y.
+ */
+bool fusedFirInput(Tree iir);
