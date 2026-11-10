@@ -23,10 +23,25 @@
  * the C++ compiler, which may not reassociate without -ffast-math, can neither vectorize
  * nor overlap them. sumLanes rewrites a real Sum with at least 8 terms computed at the
  * sample rate : its slower terms first, as the normal form orders them, then the
- * sample-rate terms t0, ..., tm in 4 partial sums added as a balanced tree. The rounding
- * changes : the pass runs on the computation form, after the certified typing
- * (computeForm.hh), and leaves a sum whose value may reach a delay amount, an index or an
- * integer conversion as the certification bounded it (decisionCone.hh). It reads the
+ * sample-rate terms t0, ..., tm in 4 partial sums added as a balanced tree.
+ *
+ * A sum first takes in its nested sums (step 3f.1 of the computation form) : a term that
+ * is a real sum at the sample rate, or its negation, that no other signal reads, is
+ * replaced by its terms, at its place, when the sum thus gathered has at least 8
+ * sample-rate terms and its partial sums are less deep, in additions, than the sum as the
+ * code would compute it. The normal form and the sharing of the sums leave staircases of
+ * nested sums computed one after the other (the decoder of oneSourceToStereo : 8 nested
+ * sums, about 40 additions in a chain), which are gathered ; a balanced tree of nested
+ * sums stays. A sum read elsewhere stays one term, computed once. The numbers of the
+ * gathered sum are added into one, first, and its slower terms follow by rate.
+ *
+ * A partial sum whose terms are all subtracted is the opposite of the sum of their
+ * opposites, its sign carried up the balanced tree and the sum that reads it : a - b
+ * instead of a + -(b), the same value bit for bit, no negation computed.
+ *
+ * The rounding changes : the pass runs on the computation form, after the certified
+ * typing (computeForm.hh), and leaves a sum whose value may reach a delay amount, an index
+ * or an integer conversion as the certification bounded it (decisionCone.hh). It reads the
  * attributes in the types and leaves its result typed (typedAttributes.hh) ; image, when
  * given, receives every node of L with its rewriting.
  *
