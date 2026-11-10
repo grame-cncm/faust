@@ -557,6 +557,12 @@ static Tree fusedFirKey()
     return key;
 }
 
+static Tree fusedIntoKey()
+{
+    static Tree key = tree(symbol("FIRFUSEDINTOIIR"));
+    return key;
+}
+
 void markLateTaps(Tree L)
 {
     const TypedAttributes               exact;
@@ -569,11 +575,12 @@ void markLateTaps(Tree L)
         }
     }
     for (Tree t : nodes) {
-        tvec V;
-        if (isSigIIR(t, V) && lateTapsLast(t) && isSigFIR(V[0]) && lateTapsLast(V[0])) {
+        tvec V, F;
+        if (isSigIIR(t, V) && lateTapsLast(t) && isSigFIR(V[0], F) && lateTapsLast(V[0]) && !isZero(F[1])) {
             auto it = reads.find(V[0]);
             if (it != reads.end() && it->second == 1) {
                 t->setProperty(fusedFirKey(), fusedFirKey());
+                V[0]->setProperty(fusedIntoKey(), fusedIntoKey());
             }
         }
     }
@@ -587,4 +594,9 @@ bool lateTapsLast(Tree sig)
 bool fusedFirInput(Tree iir)
 {
     return iir->getProperty(fusedFirKey()) != nullptr;
+}
+
+bool firFusedIntoIIR(Tree fir)
+{
+    return fir->getProperty(fusedIntoKey()) != nullptr;
 }

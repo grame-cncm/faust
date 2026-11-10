@@ -83,3 +83,7 @@ bool lateTapsLast(Tree sig);
  * computed in the sample ; the recurrence keeps two operations from y@1 to y.
  */
 bool fusedFirInput(Tree iir);
+
+/// the FIR input of an IIR marked by fusedFirInput : the schedule of ocpp does not compile
+/// it before its IIR (an expression compiled in line, and never read)
+bool firFusedIntoIIR(Tree fir);
