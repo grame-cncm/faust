@@ -153,6 +153,10 @@ void ComputeForm::lower(LaneOrder order)
         composeImage(fImage, memo);
         endTiming("sumLanes");
     }
+    if (gGlobal->gLateTaps) {
+        // the late term of a filter added last (-nolt)
+        markLateTaps(fProgram);
+    }
 }
 
 Tree ComputeForm::translate(Tree t)

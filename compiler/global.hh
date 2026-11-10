@@ -404,6 +404,7 @@ struct global {
     bool gExactWeights;  // -xw option, (1 + w) * y written w * y + y, w read exactly
     double gMinCertifiedSeconds;  // -mcs option, the shortest certified duration accepted (10 s)
     bool gSumLanes;      // the long sums in interleaved partial sums (default, -nosl)
+    bool gLateTaps;      // the late term of a real filter added last (default, -nolt)
     bool gNeedManualPow;     // If manual pow(x, y) generation when y is an integer is needed
     bool gRemoveVarAddress;  // If use of variable addresses (like &foo or &foo[n]) have to be
                              // removed

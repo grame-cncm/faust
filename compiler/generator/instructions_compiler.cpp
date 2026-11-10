@@ -2808,6 +2808,47 @@ ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& iir)
         setVectorNameProperty(sig, vname);
     }
     ValueInst* acc = CS(iir[0]);
+    if (getCertifiedSigType(sig)->nature() == kReal && lateTapsLast(sig)) {
+        // 3f.5 : the feedback taps first, from the last delay to y@1, then the input,
+        // computed in the sample, added : X + (c_n * y@n + ... + c_1 * y@1), or
+        // X - (m_n * y@n + ... + m_1 * y@1) when every tap is subtracted (sumLanes.hh)
+        std::vector<std::pair<bool, ValueInst*>> terms;  // (subtracted, product)
+        for (size_t i = iir.size() - 1; i >= 1; i--) {
+            if (isZero(iir[i])) {
+                continue;
+            }
+            ValueInst* access = lineRead(vname, mxd, int(i));
+            Tree       m;
+            const bool sub  = negativeCoefficient(iir[i], m);
+            Tree       c    = sub ? m : iir[i];
+            ValueInst* term = access;
+            if (c != nullptr && !isOne(c)) {
+                ValueInst* vc = sub ? operandAtRate(c) : CS(c);
+                term          = IB::genBinopInst(kMul, vc, access);
+            }
+            terms.push_back({sub, term});
+        }
+        if (!terms.empty()) {
+            bool allSub = true;
+            for (auto& t : terms) {
+                allSub = allSub && t.first;
+            }
+            if (!allSub) {
+                // the chain starts with a positive tap
+                size_t f = 0;
+                while (terms[f].first) {
+                    f++;
+                }
+                std::rotate(terms.begin(), terms.begin() + f, terms.begin() + f + 1);
+            }
+            ValueInst* fb = terms[0].second;
+            for (size_t k = 1; k < terms.size(); k++) {
+                fb = IB::genBinopInst((!allSub && terms[k].first) ? kSub : kAdd, fb, terms[k].second);
+            }
+            acc = IB::genBinopInst(allSub ? kSub : kAdd, acc, fb);
+        }
+        return writeIIRLine(sig, acc, ctype, vname, mxd);
+    }
     for (size_t i = 1; i < iir.size(); i++) {
         if (isZero(iir[i])) {
             continue;
@@ -3032,6 +3073,11 @@ ValueInst* InstructionsCompiler::generateFIR(Tree sig, const tvec& fir)
         if (!isZero(fir[i])) {
             taps.push_back(i);
         }
+    }
+    if (real && lateTapsLast(sig)) {
+        // 3f.5 : from the last delay to the first, the tap of delay 0, computed in the
+        // sample, added last (sumLanes.hh)
+        std::reverse(taps.begin(), taps.end());
     }
     if (Tree m0, m1; real && taps.size() >= 2 && negativeCoefficient(fir[taps[0]], m0) &&
                      !negativeCoefficient(fir[taps[1]], m1)) {
