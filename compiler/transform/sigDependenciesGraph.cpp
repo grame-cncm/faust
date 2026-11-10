@@ -25,6 +25,7 @@
 #include "ppsig.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
+#include "sumLanes.hh"
 #include "exception.hh"
 
 #undef TRACE
@@ -127,10 +128,36 @@ void SigDependenciesGraph::visit(Tree t)
             }
         }
         faustassert(dmin > 0 && dmin < INT32_MAX);
-        fGraph.add(t, V[0], 0);
         if (fFullGraph) {
             fGraph.add(t, t, dmin);
         }
+        if (tvec F; fusedFirInput(t) && firFusedIntoIIR(V[0]) && isSigFIR(V[0], F)) {
+            // 3f.5 : an IIR and the FIR input it takes in, read by it alone, are one node
+            // (sumLanes.hh) : the IIR depends on the non-zero coefficients of the FIR, and on
+            // its source with the delay of its first non-zero tap (immediate : its tap of
+            // delay 0 is not zero) ; the FIR is no node of the graph
+            int fmin = INT32_MAX;
+            for (unsigned int k = 1; k < F.size(); k++) {
+                if (!isZero(F[k])) {
+                    fGraph.add(t, F[k], 0);
+                    fmin = std::min(fmin, int(k) - 1);
+                }
+            }
+            faustassert(fmin == 0);
+            fGraph.add(t, F[0], fmin);
+            for (unsigned int k = 1; k < V.size(); k++) {
+                if (!isZero(V[k])) {
+                    self(V[k]);
+                }
+            }
+            for (auto s2 : F) {
+                if (!isZero(s2)) {
+                    self(s2);
+                }
+            }
+            return;
+        }
+        fGraph.add(t, V[0], 0);
         for (auto s2 : V) {
             if (!isNil(s2) && !isZero(s2)) {
                 self(s2);
