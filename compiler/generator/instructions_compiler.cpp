@@ -2792,6 +2792,21 @@ ValueInst* InstructionsCompiler::lineRead(const string& vname, int mxd, int dela
  * x, then the taps from the first delay to the last, a neg(c) or -1 coefficient
  * subtracted) reads it, and the line is written with the result.
  */
+/**
+ * 3f.5 : whether the code of an IIR may take in the taps of its FIR input, besides the mark
+ * of the computation form (fusedFirInput) : the FIR occurs once, at delay 0, in one context
+ * and under one condition (its occurrences and its sharing), and its code, when the
+ * schedule compiled it before the IIR, was not stored in a variable or a line
+ * (fStoredFirs) : an expression compiled in line and never read is no code. A FIR stored or
+ * read elsewhere is computed once, and the IIR reads it.
+ */
+bool InstructionsCompiler::fusableFirInput(Tree fir)
+{
+    Occurrences* o = fOccMarkup ? fOccMarkup->retrieve(fir) : nullptr;
+    return o != nullptr && !o->hasMultiOccurrences() && o->getMaxDelay() == 0 &&
+           getSharingCount(fir, fSharingKey) <= 1 && fStoredFirs.count(fir) == 0;
+}
+
 ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& iir)
 {
     faustassert(iir.size() > 1);
@@ -2809,7 +2824,8 @@ ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& iir)
     }
     tvec       fir;
     const bool late  = getCertifiedSigType(sig)->nature() == kReal && lateTapsLast(sig);
-    const bool fused = late && fusedFirInput(sig) && isSigFIR(iir[0], fir) && !isZero(fir[1]);
+    const bool fused = late && fusedFirInput(sig) && isSigFIR(iir[0], fir) && !isZero(fir[1]) &&
+                       fusableFirInput(iir[0]);
     if (late) {
         // 3f.5 : the terms that read delay lines first, the term computed in the sample
         // last (sumLanes.hh) : the feedback taps from the last delay to y@1, then the input
@@ -2853,8 +2869,12 @@ ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& iir)
             for (size_t k = 1; k < early.size(); k++) {
                 fb = IB::genBinopInst((early[k].first != flip) ? kSub : kAdd, fb, early[k].second);
             }
-            if (!flip) {
-                y = IB::genBinopInst(last.first ? kSub : kAdd, fb, last.second);
+            if (!flip && !last.first) {
+                // the late term on the left : of two products, a C++ compiler contracts the
+                // left one into the FMA, x * b + fb (clang)
+                y = IB::genBinopInst(kAdd, last.second, fb);
+            } else if (!flip) {
+                y = IB::genBinopInst(kSub, fb, last.second);
             } else if (!last.first) {
                 y = IB::genBinopInst(kSub, last.second, fb);
             } else {
@@ -3117,7 +3137,11 @@ ValueInst* InstructionsCompiler::generateFIR(Tree sig, const tvec& fir)
         acc = (getCertifiedSigType(sig)->nature() == kInt) ? static_cast<ValueInst*>(IB::genInt32NumInst(0))
                                                            : static_cast<ValueInst*>(IB::genRealNumInst(itfloat(), 0.0));
     }
-    return generateCacheCode(sig, acc);
+    ValueInst* r = generateCacheCode(sig, acc);
+    if (r != acc) {
+        fStoredFirs.insert(sig);  // stored : an IIR reading it does not fuse it (fusableFirInput)
+    }
+    return r;
 }
 
 ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
