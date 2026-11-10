@@ -58,3 +58,19 @@
 enum class LaneOrder { kInterleaved, kContiguous };
 
 Tree sumLanes(Tree L, LaneOrder order, std::unordered_map<Tree, Tree>* image = nullptr);
+
+/**
+ * The taps of the filters (step 3f.5 of the computation form ; by default, -nolt keeps the
+ * order of the definition). The code of a FIR computes the chain of its taps, and the code
+ * of an IIR its input, then its feedback taps : the term computed in the sample (the tap of
+ * delay 0, the input) comes first, and every other operation waits for it, while the other
+ * terms read delay lines, ready from the start of the sample. In a cascade of filters each
+ * section waits for the whole chain of the previous one. markLateTaps marks the real FIR and
+ * IIR filters of L outside the cone of the memory decisions (decisionCone.hh) : their code
+ * adds the late term last, a FIR its taps from the last delay to the first, an IIR its
+ * feedback taps from the last delay to y@1, then its input. The rounding changes ; the
+ * recurrence of an IIR keeps two operations from y@1 to y. lateTapsLast tells the code
+ * generators whether a filter is marked.
+ */
+void markLateTaps(Tree L);
+bool lateTapsLast(Tree sig);

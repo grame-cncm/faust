@@ -592,6 +592,7 @@ void global::reset()
     gMinCertifiedSeconds  = 10;
     gNoCert               = false;
     gSumLanes             = true;
+    gLateTaps             = true;
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
     gOneSample            = false;
@@ -990,6 +991,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gSumLanes) {
         dst << "-sl ";
+    }
+    if (gLateTaps) {
+        dst << "-lt ";
     }
     if (gMathExceptions) {
         dst << "-me ";
@@ -1785,6 +1789,14 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-nosl", "--no-sum-lanes")) {
             gSumLanes = false;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-lt", "--late-taps")) {
+            gLateTaps = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-nolt", "--no-late-taps")) {
+            gLateTaps = false;
             i += 1;
 
         } else if (isCmd(argv[i], "-ns", "--namespace")) {
@@ -2868,6 +2880,10 @@ string global::printHelp()
     sstr << tab
          << "-nosl       --no-sum-lanes              keep the long sums as chains (by default their "
             "sample-rate terms are added in 4 interleaved partial sums)."
+         << endl;
+    sstr << tab
+         << "-nolt       --no-late-taps              keep the taps of the filters in their order (by "
+            "default a real FIR adds its tap of delay 0 last, and an IIR its input)."
          << endl;
     sstr << tab
          << "-noreprc    --no-reprc                  (Rust only) Don't force dsp struct layout to "

@@ -544,3 +544,27 @@ Tree sumLanes(Tree L, LaneOrder order, std::unordered_map<Tree, Tree>* image)
     }
     return r;
 }
+
+static Tree lateTapsKey()
+{
+    static Tree key = tree(symbol("LATETAPSLAST"));
+    return key;
+}
+
+void markLateTaps(Tree L)
+{
+    const TypedAttributes          exact;
+    const std::unordered_set<Tree> cone = decisionCone(L, /*discontinuities*/ false);
+    std::vector<Tree>              nodes;
+    readCounts(L, nodes);
+    for (Tree t : nodes) {
+        if ((isSigFIR(t) || isSigIIR(t)) && exact.nature(t) == kReal && cone.count(t) == 0) {
+            t->setProperty(lateTapsKey(), lateTapsKey());
+        }
+    }
+}
+
+bool lateTapsLast(Tree sig)
+{
+    return sig->getProperty(lateTapsKey()) != nullptr;
+}
