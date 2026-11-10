@@ -2898,52 +2898,64 @@ class LoopSplitEmitter {
             // bit-exact : X, then the taps in ascending order, a negative
             // coefficient subtracted ; an int recurrence wraps.
             const bool kInt2 = (getCertifiedSigType(t)->nature() == kInt);
-            Operand    acc   = walk(V[0], curScc, false);
             if (!kInt2 && lateTapsLast(t)) {
-                // 3f.5 : the feedback taps first, from the last delay to y@1, then the
-                // input added (as ScalarCompiler::generateIIR)
-                std::vector<std::pair<bool, Operand>> terms;
-                for (size_t k = V.size() - 1; k >= 1; k--) {
-                    if (isZero(V[k])) {
-                        continue;
-                    }
-                    Operand    tap = refOperand(ixSelf, T(int(k)), false, curScc);
+                // 3f.5 : the terms that read delay lines first, the term computed in the
+                // sample last (as ScalarCompiler::generateIIR)
+                tvec      F;
+                const int ixFir = (fusedFirInput(t) && isSigFIR(V[0], F) && !isZero(F[1])) ? fSN.indexOf(F[0]) : -1;
+                const bool fused = ixFir >= 0;
+                std::vector<std::pair<bool, Operand>> early;
+                auto product = [&](Tree coef, const Operand& tap) -> std::pair<bool, Operand> {
                     Tree       m;
-                    const bool sub = negativeCoefficient(V[k], m);
-                    Tree       c   = sub ? m : V[k];
-                    Operand    term;
-                    if (c == nullptr || isOne(c)) {
-                        term = tap;
-                    } else {
-                        Operand oc = walk(c, curScc, false);
-                        term       = bodyOp("($0 * $1)", {oc, tap}, false);
+                    const bool sub = negativeCoefficient(coef, m);
+                    if (m != nullptr && !isOne(m)) {
+                        Operand oc = walk(m, curScc, false);
+                        return {sub, bodyOp("($0 * $1)", {oc, tap}, false)};
                     }
-                    terms.push_back({sub, term});
-                }
-                if (!terms.empty()) {
-                    bool allSub = true;
-                    for (auto& tm : terms) {
-                        allSub = allSub && tm.first;
-                    }
-                    if (!allSub) {
-                        size_t f = 0;
-                        while (terms[f].first) {
-                            f++;
+                    return {sub, tap};
+                };
+                std::pair<bool, Operand> last;
+                if (fused) {
+                    for (size_t k = F.size() - 1; k >= 2; k--) {
+                        if (!isZero(F[k])) {
+                            early.push_back(product(F[k], refOperand(ixFir, T(int(k) - 1), false, curScc)));
                         }
-                        std::rotate(terms.begin(), terms.begin() + f, terms.begin() + f + 1);
                     }
-                    Operand fb = terms[0].second;
-                    for (size_t k = 1; k < terms.size(); k++) {
-                        fb = bodyOp((!allSub && terms[k].first) ? "($0 - $1)" : "($0 + $1)", {fb, terms[k].second}, false);
-                    }
-                    acc = bodyOp(allSub ? "($0 - $1)" : "($0 + $1)", {acc, fb}, false);
+                } else {
+                    last = {false, walk(V[0], curScc, false)};
                 }
-                o = acc;
+                for (size_t k = V.size() - 1; k >= 1; k--) {
+                    if (!isZero(V[k])) {
+                        early.push_back(product(V[k], refOperand(ixSelf, T(int(k)), false, curScc)));
+                    }
+                }
+                if (fused) {
+                    last = product(F[1], refOperand(ixFir, T(0), true, curScc));
+                }
+                Operand y;
+                if (early.empty()) {
+                    y = last.first ? bodyOp("(-$0)", {last.second}, false) : last.second;
+                } else {
+                    const bool flip = early[0].first;
+                    Operand    fb   = early[0].second;
+                    for (size_t k = 1; k < early.size(); k++) {
+                        fb = bodyOp((early[k].first != flip) ? "($0 - $1)" : "($0 + $1)", {fb, early[k].second}, false);
+                    }
+                    if (!flip) {
+                        y = bodyOp(last.first ? "($0 - $1)" : "($0 + $1)", {fb, last.second}, false);
+                    } else if (!last.first) {
+                        y = bodyOp("($0 - $1)", {last.second, fb}, false);
+                    } else {
+                        y = bodyOp("(-($0 + $1))", {fb, last.second}, false);
+                    }
+                }
+                o = y;
                 if (o.op >= 0) {
                     fOpOf[t] = o.op;
                 }
                 return o;
             }
+            Operand    acc   = walk(V[0], curScc, false);
             for (size_t k = 1; k < V.size(); k++) {
                 if (isZero(V[k])) {
                     continue;
@@ -8020,45 +8032,59 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
     }
 
     const bool isInt = (ty->nature() == kInt);
-    string     acc   = CS(coefs[0]);
-    if (!isInt && lateTapsLast(sig)) {
-        // 3f.5 : the feedback taps first, from the last delay to y@1, then the input,
-        // computed in the sample, added : X + (c_n * y@n + ... + c_1 * y@1), or
-        // X - (m_n * y@n + ... + m_1 * y@1) when every tap is subtracted (sumLanes.hh)
-        std::vector<std::pair<bool, string>> terms;  // (subtracted, product)
-        for (unsigned int i = coefs.size() - 1; i >= 1; i--) {
-            if (isZero(coefs[i])) {
-                continue;
-            }
-            string     access = generateDelayAccessRaw(sig, sig, int(i));
+    tvec       fir;
+    const bool late  = !isInt && lateTapsLast(sig);
+    const bool fused = late && fusedFirInput(sig) && isSigFIR(coefs[0], fir) && !isZero(fir[1]);
+    if (late) {
+        // 3f.5 : the terms that read delay lines first, the term computed in the sample
+        // last (as InstructionsCompiler::generateIIR, sumLanes.hh)
+        std::vector<std::pair<bool, string>> early;  // (subtracted, term)
+        auto product = [&](Tree coef, const string& access) -> std::pair<bool, string> {
             Tree       m;
-            const bool sub = negativeCoefficient(coefs[i], m);
-            Tree       c   = sub ? m : coefs[i];
-            string     term =
-                (c == nullptr || isOne(c)) ? access : subst("($0 * $1)", sub ? operandAtRate(c) : CS(c), access);
-            terms.push_back({sub, term});
-        }
-        if (!terms.empty()) {
-            bool allSub = true;
-            for (auto& t : terms) {
-                allSub = allSub && t.first;
+            const bool sub = negativeCoefficient(coef, m);
+            if (m != nullptr && !isOne(m)) {
+                return {sub, subst("($0 * $1)", sub ? operandAtRate(m) : CS(m), access)};
             }
-            if (!allSub) {
-                // the chain starts with a positive tap
-                size_t f = 0;
-                while (terms[f].first) {
-                    f++;
+            return {sub, access};
+        };
+        std::pair<bool, string> last;
+        if (fused) {
+            for (size_t i = fir.size() - 1; i >= 2; i--) {
+                if (!isZero(fir[i])) {
+                    early.push_back(product(fir[i], generateDelayAccessRaw(coefs[0], fir[0], int(i) - 1)));
                 }
-                std::rotate(terms.begin(), terms.begin() + f, terms.begin() + f + 1);
             }
-            string fb = terms[0].second;
-            for (size_t k = 1; k < terms.size(); k++) {
-                fb = subst("($0 $1 $2)", fb, (!allSub && terms[k].first) ? "-" : "+", terms[k].second);
-            }
-            acc = subst("($0 $1 $2)", acc, allSub ? "-" : "+", fb);
+        } else {
+            last = {false, CS(coefs[0])};
         }
-        return generateDelayVec(sig, acc, ctype, vname, o->getMaxDelay(), o->getDelayCount());
+        for (size_t i = coefs.size() - 1; i >= 1; i--) {
+            if (!isZero(coefs[i])) {
+                early.push_back(product(coefs[i], generateDelayAccessRaw(sig, sig, int(i))));
+            }
+        }
+        if (fused) {
+            last = product(fir[1], generateDelayAccessRaw(coefs[0], fir[0], 0));
+        }
+        string y;
+        if (early.empty()) {
+            y = last.first ? subst("(-$0)", last.second) : last.second;
+        } else {
+            const bool flip = early[0].first;
+            string     fb   = early[0].second;
+            for (size_t k = 1; k < early.size(); k++) {
+                fb = subst("($0 $1 $2)", fb, (early[k].first != flip) ? "-" : "+", early[k].second);
+            }
+            if (!flip) {
+                y = subst("($0 $1 $2)", fb, last.first ? "-" : "+", last.second);
+            } else if (!last.first) {
+                y = subst("($0 - $1)", last.second, fb);
+            } else {
+                y = subst("(-($0 + $1))", fb, last.second);
+            }
+        }
+        return generateDelayVec(sig, y, ctype, vname, o->getMaxDelay(), o->getDelayCount());
     }
+    string acc = CS(coefs[0]);
     for (unsigned int i = 1; i < coefs.size(); i++) {
         if (isZero(coefs[i])) {
             continue;
