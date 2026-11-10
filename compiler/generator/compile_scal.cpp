@@ -5554,11 +5554,7 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
                 faustassert(false);
             }
             [[maybe_unused]] int lSTEP = gGlobal->gSTEP;  // convenient for debug
-            if (!(firFusedIntoIIR(s) && firOccursOnce(s))) {
-                // a FIR its IIR takes in (3f.5) is not compiled ahead : its IIR reads its
-                // taps, and compiles it on demand if it does not fuse it
-                CS(s);
-            }
+            CS(s);
             gGlobal->gSTEP++;
         }
 
@@ -5654,9 +5650,7 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
             faustassert(false);
         }
         [[maybe_unused]] int lSTEP = gGlobal->gSTEP;  // convenient for debug
-        if (!(firFusedIntoIIR(s) && firOccursOnce(s))) {
-            CS(s);  // a FIR its IIR takes in is not compiled ahead (3f.5)
-        }
+        CS(s);
         gGlobal->gSTEP++;
     }
 
