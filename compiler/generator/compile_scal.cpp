@@ -2902,7 +2902,11 @@ class LoopSplitEmitter {
                 // 3f.5 : the terms that read delay lines first, the term computed in the
                 // sample last (as ScalarCompiler::generateIIR)
                 tvec      F;
-                const int ixFir = (fusedFirInput(t) && isSigFIR(V[0], F) && !isZero(F[1])) ? fSN.indexOf(F[0]) : -1;
+                // fused only when the FIR is no member of its own (a member is computed and
+                // stored where the schedule puts it, and read here) and its source is one
+                const int ixFir = (fusedFirInput(t) && isSigFIR(V[0], F) && !isZero(F[1]) && fSN.indexOf(V[0]) < 0)
+                                      ? fSN.indexOf(F[0])
+                                      : -1;
                 const bool fused = ixFir >= 0;
                 std::vector<std::pair<bool, Operand>> early;
                 auto product = [&](Tree coef, const Operand& tap) -> std::pair<bool, Operand> {
