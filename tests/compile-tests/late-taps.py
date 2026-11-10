@@ -10,7 +10,12 @@ biquads below (coefficients of a control, and numbers) and the resonators (a pos
 tap, a negative y@2 tap) give FIR and IIR nodes, in cpp, ocpp and ocpp -ls, single and double
 precision.
 
-1. The code : the default and -nolt differ.
+The third program has a FIR read by its IIR alone (fused), a FIR shared by its IIR and an
+output, a FIR read by two IIRs, and a FIR read by its IIR and at a delay (none fused : each
+is computed once, and its IIRs read it).
+
+1. The code : the default and -nolt differ, and compute() counts as many multiplications
+   and additions in both : the fusion computes nothing twice.
 2. The values : the default and -nolt compute the same outputs, up to the rounding of a
    reassociation : over 2 000 samples of a deterministic input, the largest difference is
    below 1e-5 (single) or 1e-12 (double) of the largest output. A tap subtracted instead of
@@ -32,6 +37,16 @@ bq(b0, b1, b2, a1, a2) = (+ ~ (_ <: *(0-a1), (_' : *(0-a2)) :> _)) <: *(b0), (_'
 process = bq(0.2 + g, 0.4, 0.2, -0.5 * g, 0.25) : bq(0.3, -0.1 * g, 0.2, 0.3, 0.1 + 0.2 * g)
         : bq(0.25, 0.5, 0.25, -0.9, 0.4 * g) : bq(1, -2 * g, 1, -1.2 * g, 0.5)
         <: _, (_ : bq(0.5, 0, -0.5, 0.1, -0.3));
+""",
+    "shared": """
+g = hslider("gain", 0.3, 0, 1, 0.001);
+fir(b0, b1, b2) = _ <: *(b0), (_' : *(b1)), (_'' : *(b2)) :> _;
+iir(a1, a2) = + ~ (_ <: *(0-a1), (_' : *(0-a2)) :> _);
+alone = fir(0.2 + g, 0.4, 0.2) : iir(-0.5 * g, 0.25);
+output = fir(0.3, -0.1 * g, 0.2) <: iir(0.3, 0.1 + 0.2 * g), _;
+twoiirs = fir(0.25, 0.5 * g, 0.25) <: iir(-0.9, 0.4 * g), iir(0.2 * g, -0.3);
+delayed = fir(1, -2 * g, 1) <: iir(-1.2 * g, 0.5), @(3);
+process = _ <: alone, output, twoiirs, delayed;
 """,
     "resonators": """
 f = hslider("freq", 0.1, 0.01, 0.5, 0.001);
@@ -68,16 +83,21 @@ struct InitUI : public UI {
 int main()
 {
     const int n = 2000;
-    static FAUSTFLOAT input[n], out0[n], out1[n];
+    static FAUSTFLOAT input[n], outs[8][n];
     for (int i = 0; i < n; i++) input[i] = FAUSTFLOAT(std::sin(0.01 * i) + 0.3 * std::cos(0.37 * i));
     FAUSTFLOAT* inputs[1]  = {input};
-    FAUSTFLOAT* outputs[2] = {out0, out1};
+    FAUSTFLOAT* outputs[8];
+    for (int j = 0; j < 8; j++) outputs[j] = outs[j];
     mydsp dsp;
     dsp.init(48000);
     InitUI ui;
     dsp.buildUserInterface(&ui);
     dsp.compute(n, inputs, outputs);
-    for (int i = 0; i < n; i++) printf("%a %a\n", double(out0[i]), double(out1[i]));
+    const int m = dsp.getNumOutputs();
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) printf("%a ", double(outs[j][i]));
+        printf("\n");
+    }
     return 0;
 }
 """
@@ -89,6 +109,13 @@ def faust(args, dsp, lang, prec, extra, out):
     if r.returncode != 0:
         raise RuntimeError(f"faust {' '.join(cmd[1:])} : {r.stderr.strip()}")
     return out.read_text()
+
+
+def operations(text):
+    """the multiplications and the additions or subtractions of compute(), its slow part
+    included : a fusion rearranges the taps and computes nothing twice"""
+    c = text[text.index("virtual void compute"):]
+    return (len(re.findall(r" \* ", c)), len(re.findall(r" [-+] ", c)))
 
 
 def body(text):
@@ -132,6 +159,10 @@ def main():
                     if body(dflt) == body(nosl):
                         fails.append(f"{case} : the default code is the code of -nolt")
                         print(f"FAIL {case} : no late tap")
+                        continue
+                    if operations(dflt) != operations(nosl):
+                        fails.append(f"{case} : operations {operations(dflt)} against {operations(nosl)} under -nolt")
+                        print(f"FAIL {case} : (multiplications, additions) {operations(dflt)}, under -nolt {operations(nosl)}")
                         continue
                     a, b = run(args, work, dflt, prec), run(args, work, nosl, prec)
                     scale = max(abs(v) for row in b for v in row)

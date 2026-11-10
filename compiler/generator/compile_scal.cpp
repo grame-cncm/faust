@@ -2904,7 +2904,9 @@ class LoopSplitEmitter {
                 tvec      F;
                 // fused only when the FIR is no member of its own (a member is computed and
                 // stored where the schedule puts it, and read here) and its source is one
-                const int ixFir = (fusedFirInput(t) && isSigFIR(V[0], F) && !isZero(F[1]) && fSN.indexOf(V[0]) < 0)
+                // and when it occurs once and is neither lowered in this loop nor compiled
+                const int ixFir = (fusedFirInput(t) && isSigFIR(V[0], F) && !isZero(F[1]) && fSN.indexOf(V[0]) < 0 &&
+                                   fOpOf.find(V[0]) == fOpOf.end() && fC->firOccursOnce(V[0]))
                                       ? fSN.indexOf(F[0])
                                       : -1;
                 const bool fused = ixFir >= 0;
@@ -2945,8 +2947,10 @@ class LoopSplitEmitter {
                     for (size_t k = 1; k < early.size(); k++) {
                         fb = bodyOp((early[k].first != flip) ? "($0 - $1)" : "($0 + $1)", {fb, early[k].second}, false);
                     }
-                    if (!flip) {
-                        y = bodyOp(last.first ? "($0 - $1)" : "($0 + $1)", {fb, last.second}, false);
+                    if (!flip && !last.first) {
+                        y = bodyOp("($0 + $1)", {last.second, fb}, false);
+                    } else if (!flip) {
+                        y = bodyOp("($0 - $1)", {fb, last.second}, false);
                     } else if (!last.first) {
                         y = bodyOp("($0 - $1)", {last.second, fb}, false);
                     } else {
@@ -7984,6 +7988,30 @@ string ScalarCompiler::generateDelayAccessRaw(Tree sig, Tree exp, int delay)
  * the association of its interval : X, then the taps from the first delay to the last, a
  * neg(c) or -1 coefficient subtracted (the same value, bit for bit).
  */
+/**
+ * 3f.5 : the FIR input of an IIR occurs once, at delay 0, in one context and under one
+ * condition (its occurrences), and is not shared.
+ */
+bool ScalarCompiler::firOccursOnce(Tree fir)
+{
+    Occurrences* o = fOccMarkup ? fOccMarkup->retrieve(fir) : nullptr;
+    return o != nullptr && !o->hasMultiOccurrences() && o->getMaxDelay() == 0 &&
+           getSharingCount(fir, fSharingKey) <= 1;
+}
+
+/**
+ * 3f.5 : whether the code of an IIR may take in the taps of its FIR input, besides the mark
+ * of the computation form (fusedFirInput) : the FIR occurs once (firOccursOnce), and its
+ * code, when the schedule compiled it before the IIR (as it does : ocpp compiles the
+ * operands first), was not stored in a variable or a line (fStoredFirs) : an expression
+ * compiled in line and never read is no code (as InstructionsCompiler::fusableFirInput).
+ * A FIR stored or read elsewhere is computed once, and the IIR reads it.
+ */
+bool ScalarCompiler::fusableFirInput(Tree fir)
+{
+    return firOccursOnce(fir) && fStoredFirs.count(fir) == 0;
+}
+
 string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
 {
     Type         ty = getCertifiedSigType(sig);
@@ -8038,7 +8066,8 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
     const bool isInt = (ty->nature() == kInt);
     tvec       fir;
     const bool late  = !isInt && lateTapsLast(sig);
-    const bool fused = late && fusedFirInput(sig) && isSigFIR(coefs[0], fir) && !isZero(fir[1]);
+    const bool fused = late && fusedFirInput(sig) && isSigFIR(coefs[0], fir) && !isZero(fir[1]) &&
+                       fusableFirInput(coefs[0]);
     if (late) {
         // 3f.5 : the terms that read delay lines first, the term computed in the sample
         // last (as InstructionsCompiler::generateIIR, sumLanes.hh)
@@ -8078,8 +8107,11 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
             for (size_t k = 1; k < early.size(); k++) {
                 fb = subst("($0 $1 $2)", fb, (early[k].first != flip) ? "-" : "+", early[k].second);
             }
-            if (!flip) {
-                y = subst("($0 $1 $2)", fb, last.first ? "-" : "+", last.second);
+            if (!flip && !last.first) {
+                // the late term on the left (as InstructionsCompiler::generateIIR)
+                y = subst("($0 + $1)", last.second, fb);
+            } else if (!flip) {
+                y = subst("($0 - $1)", fb, last.second);
             } else if (!last.first) {
                 y = subst("($0 - $1)", last.second, fb);
             } else {
@@ -8204,7 +8236,12 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
             acc = subst("($0 $1 $2)", acc, sub ? "-" : "+", term);
         }
     }
-    return generateCacheCode(sig, acc.empty() ? string("0") : acc);
+    const string e = acc.empty() ? string("0") : acc;
+    const string r = generateCacheCode(sig, e);
+    if (r != e) {
+        fStoredFirs.insert(sig);  // stored : an IIR reading it does not fuse it (fusableFirInput)
+    }
+    return r;
 }
 
 string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
