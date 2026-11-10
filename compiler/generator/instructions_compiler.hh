@@ -257,6 +257,8 @@ class InstructionsCompiler : public virtual Garbageable {
     ValueInst*         generateProd(Tree sig, const tvec& factors);
     ValueInst*         generateFIR(Tree sig, const tvec& fir);
     ValueInst*         generateIIR(Tree sig, const tvec& iir);
+    bool               fusableFirInput(Tree fir);
+    std::set<Tree>     fStoredFirs;  ///< the FIR filters compiled into a variable or a line
     ValueInst*         operandAtRate(Tree x);
     ValueInst*         compoundProduct(ValueInst* lead, int vlead, Tree t, int consumer);
     virtual ValueInst* generateRemainder(Tree sig, Tree x, xtended* round);

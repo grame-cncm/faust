@@ -213,6 +213,9 @@ class ScalarCompiler : public Compiler {
     std::string         generateDelayAccessRaw(Tree sig, Tree exp, int delay);
     std::string         generateFIR(Tree sig, const tvec& coefs);
     std::string         generateIIR(Tree sig, const tvec& coefs);
+    bool                fusableFirInput(Tree fir);
+    bool                firOccursOnce(Tree fir);
+    std::set<Tree>      fStoredFirs;  ///< the FIR filters compiled into a variable or a line
     std::string         generateSum(Tree sig, const tvec& subs);
     std::string         generateProd(Tree sig, const tvec& factors);
     std::string         operandAtRate(Tree x);
