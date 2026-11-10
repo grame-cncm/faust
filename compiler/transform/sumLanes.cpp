@@ -551,15 +551,30 @@ static Tree lateTapsKey()
     return key;
 }
 
+static Tree fusedFirKey()
+{
+    static Tree key = tree(symbol("FUSEDFIRINPUT"));
+    return key;
+}
+
 void markLateTaps(Tree L)
 {
-    const TypedAttributes          exact;
-    const std::unordered_set<Tree> cone = decisionCone(L, /*discontinuities*/ false);
-    std::vector<Tree>              nodes;
-    readCounts(L, nodes);
+    const TypedAttributes               exact;
+    const std::unordered_set<Tree>      cone = decisionCone(L, /*discontinuities*/ false);
+    std::vector<Tree>                   nodes;
+    const std::unordered_map<Tree, int> reads = readCounts(L, nodes);
     for (Tree t : nodes) {
         if ((isSigFIR(t) || isSigIIR(t)) && exact.nature(t) == kReal && cone.count(t) == 0) {
             t->setProperty(lateTapsKey(), lateTapsKey());
+        }
+    }
+    for (Tree t : nodes) {
+        tvec V;
+        if (isSigIIR(t, V) && lateTapsLast(t) && isSigFIR(V[0]) && lateTapsLast(V[0])) {
+            auto it = reads.find(V[0]);
+            if (it != reads.end() && it->second == 1) {
+                t->setProperty(fusedFirKey(), fusedFirKey());
+            }
         }
     }
 }
@@ -567,4 +582,9 @@ void markLateTaps(Tree L)
 bool lateTapsLast(Tree sig)
 {
     return sig->getProperty(lateTapsKey()) != nullptr;
+}
+
+bool fusedFirInput(Tree iir)
+{
+    return iir->getProperty(fusedFirKey()) != nullptr;
 }
