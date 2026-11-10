@@ -84,6 +84,7 @@ bool lateTapsLast(Tree sig);
  */
 bool fusedFirInput(Tree iir);
 
-/// the FIR input of an IIR marked by fusedFirInput : the schedule of ocpp does not compile
-/// it before its IIR (an expression compiled in line, and never read)
+/// the FIR input of an IIR marked by fusedFirInput : with its IIR, one node of the graph of
+/// dependencies of ocpp (sigDependenciesGraph.hh), the IIR depending on the source and the
+/// coefficients of the FIR ; the schedule never compiles it ahead
 bool firFusedIntoIIR(Tree fir);
