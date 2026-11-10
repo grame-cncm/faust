@@ -2705,7 +2705,15 @@ class LoopSplitEmitter {
             const bool kInt2 = (getCertifiedSigType(t)->nature() == kInt);
             Operand    acc;
             bool       first = true;
+            std::vector<size_t> ks;
             for (size_t k = 1; k < V.size(); k++) {
+                ks.push_back(k);
+            }
+            if (!kInt2 && lateTapsLast(t)) {
+                // 3f.5 : the tap of delay 0, computed in the sample, added last
+                std::reverse(ks.begin(), ks.end());
+            }
+            for (size_t k : ks) {
                 if (isZero(V[k])) {
                     continue;
                 }
@@ -2891,6 +2899,51 @@ class LoopSplitEmitter {
             // coefficient subtracted ; an int recurrence wraps.
             const bool kInt2 = (getCertifiedSigType(t)->nature() == kInt);
             Operand    acc   = walk(V[0], curScc, false);
+            if (!kInt2 && lateTapsLast(t)) {
+                // 3f.5 : the feedback taps first, from the last delay to y@1, then the
+                // input added (as ScalarCompiler::generateIIR)
+                std::vector<std::pair<bool, Operand>> terms;
+                for (size_t k = V.size() - 1; k >= 1; k--) {
+                    if (isZero(V[k])) {
+                        continue;
+                    }
+                    Operand    tap = refOperand(ixSelf, T(int(k)), false, curScc);
+                    Tree       m;
+                    const bool sub = negativeCoefficient(V[k], m);
+                    Tree       c   = sub ? m : V[k];
+                    Operand    term;
+                    if (c == nullptr || isOne(c)) {
+                        term = tap;
+                    } else {
+                        Operand oc = walk(c, curScc, false);
+                        term       = bodyOp("($0 * $1)", {oc, tap}, false);
+                    }
+                    terms.push_back({sub, term});
+                }
+                if (!terms.empty()) {
+                    bool allSub = true;
+                    for (auto& tm : terms) {
+                        allSub = allSub && tm.first;
+                    }
+                    if (!allSub) {
+                        size_t f = 0;
+                        while (terms[f].first) {
+                            f++;
+                        }
+                        std::rotate(terms.begin(), terms.begin() + f, terms.begin() + f + 1);
+                    }
+                    Operand fb = terms[0].second;
+                    for (size_t k = 1; k < terms.size(); k++) {
+                        fb = bodyOp((!allSub && terms[k].first) ? "($0 - $1)" : "($0 + $1)", {fb, terms[k].second}, false);
+                    }
+                    acc = bodyOp(allSub ? "($0 - $1)" : "($0 + $1)", {acc, fb}, false);
+                }
+                o = acc;
+                if (o.op >= 0) {
+                    fOpOf[t] = o.op;
+                }
+                return o;
+            }
             for (size_t k = 1; k < V.size(); k++) {
                 if (isZero(V[k])) {
                     continue;
@@ -7968,6 +8021,44 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
 
     const bool isInt = (ty->nature() == kInt);
     string     acc   = CS(coefs[0]);
+    if (!isInt && lateTapsLast(sig)) {
+        // 3f.5 : the feedback taps first, from the last delay to y@1, then the input,
+        // computed in the sample, added : X + (c_n * y@n + ... + c_1 * y@1), or
+        // X - (m_n * y@n + ... + m_1 * y@1) when every tap is subtracted (sumLanes.hh)
+        std::vector<std::pair<bool, string>> terms;  // (subtracted, product)
+        for (unsigned int i = coefs.size() - 1; i >= 1; i--) {
+            if (isZero(coefs[i])) {
+                continue;
+            }
+            string     access = generateDelayAccessRaw(sig, sig, int(i));
+            Tree       m;
+            const bool sub = negativeCoefficient(coefs[i], m);
+            Tree       c   = sub ? m : coefs[i];
+            string     term =
+                (c == nullptr || isOne(c)) ? access : subst("($0 * $1)", sub ? operandAtRate(c) : CS(c), access);
+            terms.push_back({sub, term});
+        }
+        if (!terms.empty()) {
+            bool allSub = true;
+            for (auto& t : terms) {
+                allSub = allSub && t.first;
+            }
+            if (!allSub) {
+                // the chain starts with a positive tap
+                size_t f = 0;
+                while (terms[f].first) {
+                    f++;
+                }
+                std::rotate(terms.begin(), terms.begin() + f, terms.begin() + f + 1);
+            }
+            string fb = terms[0].second;
+            for (size_t k = 1; k < terms.size(); k++) {
+                fb = subst("($0 $1 $2)", fb, (!allSub && terms[k].first) ? "-" : "+", terms[k].second);
+            }
+            acc = subst("($0 $1 $2)", acc, allSub ? "-" : "+", fb);
+        }
+        return generateDelayVec(sig, acc, ctype, vname, o->getMaxDelay(), o->getDelayCount());
+    }
     for (unsigned int i = 1; i < coefs.size(); i++) {
         if (isZero(coefs[i])) {
             continue;
@@ -8050,6 +8141,11 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
         if (!isZero(coefs[i])) {
             taps.push_back(i);
         }
+    }
+    if (!isInt && lateTapsLast(sig)) {
+        // 3f.5 : from the last delay to the first, the tap of delay 0, computed in the
+        // sample, added last (sumLanes.hh)
+        std::reverse(taps.begin(), taps.end());
     }
     if (Tree m0, m1; !isInt && taps.size() >= 2 && negativeCoefficient(coefs[taps[0]], m0) &&
                      !negativeCoefficient(coefs[taps[1]], m1)) {
