@@ -406,7 +406,9 @@ struct global {
     bool gSumLanes;      // the long sums in interleaved partial sums (default, -nosl)
     bool gLateTaps;      // the late term of a real filter added last (default, -nolt)
     bool gFamilies;      // -fam option, the sum families emitted as loops (ocpp)
-    int  gFamilyLanes;   // -fam-lanes option, the lanes of a family's sum (4)
+    int  gFamilySplit;   // -fam-split option, the nodes of a member from which its loop is split (32)
+    int  gFamilyLanes;   // -fam-lanes option, the lanes of a family's sum (0 : 4 for a family, a
+                         // register of 256 bits for an automaton)
     bool gNeedManualPow;     // If manual pow(x, y) generation when y is an integer is needed
     bool gRemoveVarAddress;  // If use of variable addresses (like &foo or &foo[n]) have to be
                              // removed
