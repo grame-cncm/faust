@@ -501,15 +501,26 @@ struct FamIso {
     }
 };
 
-/// a state the loop can read at a past sample : a recursive filter, a projection of a
-/// group, a constant delay of one
-bool famIsState(Tree x)
+/// the audio slots whose past an automaton's loop reads in its group's arrays : its
+/// neighbourhood, set by checkPlan for the plan it checks
+TreeSet famNeighbourhood;
+
+/// a node the loop can read at a past sample : a state it computes (a recursive filter, a
+/// projection of a group, a constant delay of one), or the automaton's neighbourhood. A slot
+/// or a common is computed outside the loop, which keeps no past of it
+bool famHasPast(Tree x, const TreeSet& slots, const TreeSet& commons)
 {
+    if (famNeighbourhood.count(x)) {
+        return true;
+    }
+    if (slots.count(x) || commons.count(x)) {
+        return false;
+    }
     Tree x2, y, W, defs;
     int  d, i;
     tvec V;
     if (isSigDelay(x, x2, y)) {
-        return isSigInt(y, &d) && famIsState(x2);
+        return isSigInt(y, &d) && famHasPast(x2, slots, commons);
     }
     return isSigIIR(x, V) || (isProj(x, &i, x2) && isRec(x2, W, defs));
 }
@@ -551,8 +562,8 @@ bool famCheckNode(Tree t, const TreeSet& slots, const TreeSet& commons, TreeSet&
         return famReal(t);
     }
     if (isSigFIR(t, V)) {
-        // FIR[X, c0, c1, ...] : c0.X + c1.X' + ... ; a history of a state only
-        if (V.size() > 2 && !famIsState(V[0])) {
+        // FIR[X, c0, c1, ...] : c0.X + c1.X' + ... ; a history the loop can read only
+        if (V.size() > 2 && !famHasPast(V[0], slots, commons)) {
             return false;
         }
         for (Tree v : V) {
@@ -565,7 +576,7 @@ bool famCheckNode(Tree t, const TreeSet& slots, const TreeSet& commons, TreeSet&
     Tree x, y, grp, W, defs;
     int  d, i;
     if (isSigDelay(t, x, y)) {
-        return isSigInt(y, &d) && (d == 0 || famIsState(x)) && famCheck(x, slots, commons, seen);
+        return isSigInt(y, &d) && (d == 0 || famHasPast(x, slots, commons)) && famCheck(x, slots, commons, seen);
     }
     if (isProj(t, &i, grp)) {
         if (!isRec(grp, W, defs)) {
@@ -903,6 +914,12 @@ class Planner {
         }
         TreeSet slotSet(plan.leaves.begin(), plan.leaves.end()), seen, com = plan.commons;
         com.insert(plan.aleaves.begin(), plan.aleaves.end());
+        famNeighbourhood.clear();
+        for (size_t k = 0; k < plan.neighbour.size() && k < plan.aleaves.size(); k++) {
+            if (plan.neighbour[k] != INT_MIN) {
+                famNeighbourhood.insert(plan.aleaves[k]);
+            }
+        }
         famCulprit = nullptr;
         if (!famCheck(plan.tmpl, slotSet, com, seen)) {
             std::ostringstream os;
