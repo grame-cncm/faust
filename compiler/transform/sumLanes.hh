@@ -60,6 +60,18 @@ enum class LaneOrder { kInterleaved, kContiguous };
 Tree sumLanes(Tree L, LaneOrder order, std::unordered_map<Tree, Tree>* image = nullptr);
 
 /**
+ * The gathering of the sums alone (3f.1 and 3f.3, without the partial sums), before the
+ * sharing of the sums (shareSums.hh) : the sharing reads each sum as one row of a linear
+ * combination, and a staircase of nested sums is a row per step. Shared before it is
+ * gathered, each step is read by several sums and no longer gathered : the like terms stay
+ * apart (the decoder of oneSourceToStereo : 125 additions and 128 multiplications in the
+ * loop, 32 and 63 without the sharing). A gathered sum stays one flat sum, its like terms
+ * merged, its numbers into one, first, its slower terms by rate ; sumLanes lays it out
+ * afterwards, in partial sums or as a balanced tree, unless the sharing rewrote it.
+ */
+Tree gatherSums(Tree L, std::unordered_map<Tree, Tree>* image = nullptr);
+
+/**
  * The taps of the filters (step 3f.5 of the computation form ; by default, -nolt keeps the
  * order of the definition). The code of a FIR computes the chain of its taps, and the code
  * of an IIR its input, then its feedback taps : the term computed in the sample (the tap of

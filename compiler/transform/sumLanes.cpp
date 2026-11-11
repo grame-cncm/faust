@@ -359,11 +359,176 @@ struct Gathering {
             }
         }
     }
+
+    /// the terms of the sum S gathered hold a signal twice, or two numbers : 3f.3 merges them
+    bool holdsLikeTerms(Tree S, std::unordered_set<Tree>& seen, int& numbers) const
+    {
+        tvec ts;
+        isSigSum(S, ts);
+        for (Tree u : ts) {
+            bool neg;
+            if (Tree t = nested(u, neg)) {
+                if (holdsLikeTerms(t, seen, numbers)) {
+                    return true;
+                }
+                continue;
+            }
+            double c, v;
+            Tree   x;
+            coefficientOf(u, c, x);
+            if (isSigReal(x, &v)) {
+                if (++numbers >= 2) {
+                    return true;
+                }
+            } else if (!seen.insert(x).second) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// the sum R and its nested sums left as they are
+    void release(Tree R)
+    {
+        roots.erase(R);
+        absorbed.erase(R);
+        tvec ts;
+        isSigSum(R, ts);
+        for (Tree u : ts) {
+            bool neg;
+            if (Tree t = nested(u, neg)) {
+                release(t);
+            }
+        }
+    }
 };
+
+/// the like terms c1 * x + c2 * x + ... of a gathered sum into one, (c1 + c2 + ...) * x, at
+/// the place of the first (3f.3) : the nested sums held the shares of a same signal apart
+std::vector<std::pair<Tree, int>> mergeLikeTerms(const std::vector<std::pair<Tree, int>>& terms)
+{
+    std::unordered_map<Tree, size_t>     first;  // x -> its index in like
+    std::vector<std::pair<double, Tree>> like;
+    std::vector<int>                     uses;
+    std::vector<size_t>                  at(terms.size());
+    for (size_t k = 0; k < terms.size(); k++) {
+        double c, v;
+        Tree   x;
+        coefficientOf(terms[k].first, c, x);
+        if (isSigReal(x, &v)) {
+            at[k] = SIZE_MAX;
+            continue;
+        }
+        auto it = first.find(x);
+        if (it == first.end()) {
+            first[x] = like.size();
+            at[k]    = like.size();
+            like.push_back({c, x});
+            uses.push_back(1);
+        } else {
+            at[k] = it->second;
+            like[it->second].first += c;
+            uses[it->second]++;
+        }
+    }
+    std::vector<std::pair<Tree, int>> merged;
+    std::vector<bool>                 placed(like.size(), false);
+    for (size_t k = 0; k < terms.size(); k++) {
+        const size_t i = at[k];
+        if (i == SIZE_MAX || uses[i] == 1) {
+            merged.push_back(terms[k]);
+        } else if (!placed[i]) {
+            placed[i] = true;
+            if (Tree t = scaledTerm(like[i].first, like[i].second)) {
+                merged.push_back({t, terms[k].second});
+            }
+        }
+    }
+    return merged;
+}
+
+/// the terms of a gathered sum in the order of the normal form : the numbers added into one,
+/// first, then the slower terms by rate, then the sample-rate terms ; s receives the number
+/// of terms before the sample-rate ones
+tvec orderedTerms(const std::vector<std::pair<Tree, int>>& terms, size_t& s)
+{
+    double sum  = 0;
+    int    nums = 0;
+    std::vector<std::pair<Tree, int>> rest;
+    for (const auto& tv : terms) {
+        double v;
+        if (isSigReal(tv.first, &v)) {
+            sum += v;
+            nums++;
+        } else {
+            rest.push_back(tv);
+        }
+    }
+    std::stable_sort(rest.begin(), rest.end(),
+                     [](const auto& a, const auto& b) { return a.second < b.second; });
+    tvec ts;
+    if (nums > 0 && sum != 0) {
+        ts.push_back(sigReal(sum));
+    }
+    s = ts.size();
+    for (const auto& tv : rest) {
+        ts.push_back(tv.first);
+        if (tv.second < kSamp) {
+            s++;
+        }
+    }
+    return ts;
+}
+
+/// a gathered sum laid out : at least 8 sample-rate terms in partial sums, fewer in a
+/// balanced tree, after the slower terms ts[0..s)
+Tree layOut(const tvec& ts, size_t s, LaneOrder order)
+{
+    if (ts.size() - s >= size_t(2 * kLanes)) {
+        return laneSum(ts, s, order);
+    }
+    std::vector<Part> parts;
+    for (size_t k = s; k < ts.size(); k++) {
+        parts.push_back(lanePart({ts[k]}));
+    }
+    if (parts.empty()) {
+        return (ts.size() == 1) ? ts[0] : sigSum(ts.empty() ? tvec{sigReal(0.0)} : ts);
+    }
+    Part fast = balancedSum(parts);
+    Tree f    = (fast.sign > 0) ? fast.sum : sigNeg(fast.sum);
+    if (s == 0) {
+        return f;
+    }
+    tvec outer(ts.begin(), ts.begin() + s);
+    outer.push_back(f);
+    return sigSum(outer);
+}
+
+Tree gatheredKey()
+{
+    static Tree key = tree(symbol("GATHEREDSUM"));
+    return key;
+}
+
+/// the gathering of the sums (3f.1, 3f.3), then, given an order, their layout : without
+/// one, a gathered sum stays one flat sum, marked for the layout to come
+Tree gatherAndLay(Tree L, const LaneOrder* order, std::unordered_map<Tree, Tree>* image);
 
 }  // namespace
 
+Tree gatherSums(Tree L, std::unordered_map<Tree, Tree>* image)
+{
+    return gatherAndLay(L, nullptr, image);
+}
+
 Tree sumLanes(Tree L, LaneOrder order, std::unordered_map<Tree, Tree>* image)
+{
+    return gatherAndLay(L, &order, image);
+}
+
+namespace {
+
+Tree gatherAndLay(Tree L, const LaneOrder* order, std::unordered_map<Tree, Tree>* image)
 {
     const TypedAttributes                exact;
     const std::unordered_set<Tree>       cone  = decisionCone(L, /*discontinuities*/ false);
@@ -390,6 +555,17 @@ Tree sumLanes(Tree L, LaneOrder order, std::unordered_map<Tree, Tree>* image)
         for (Tree t : sums) {
             if (inner.count(t) == 0) {
                 G.decide(t);
+            }
+        }
+        if (order == nullptr) {
+            // before the sharing, only the sums whose gathering merges like terms : the
+            // others keep the association the sharing and the layout give them
+            for (Tree t : sums) {
+                std::unordered_set<Tree> seen;
+                int                      numbers = 0;
+                if (G.roots.count(t) && !G.holdsLikeTerms(t, seen, numbers)) {
+                    G.release(t);
+                }
             }
         }
     }
@@ -432,95 +608,21 @@ Tree sumLanes(Tree L, LaneOrder order, std::unordered_map<Tree, Tree>* image)
                 gathered[g] = terms;
                 return g;
             }
-            // the root (3f.3) : the like terms c1 * x + c2 * x + ... gathered into one,
-            // (c1 + c2 + ...) * x, at the place of the first ; the nested sums held the
-            // shares of a same signal apart
-            {
-                std::unordered_map<Tree, size_t> first;  // x -> its index in like
-                std::vector<std::pair<double, Tree>> like;
-                std::vector<int>                     uses;
-                std::vector<size_t>                  at(terms.size());
-                for (size_t k = 0; k < terms.size(); k++) {
-                    double c, v;
-                    Tree   x;
-                    coefficientOf(terms[k].first, c, x);
-                    if (isSigReal(x, &v)) {
-                        at[k] = SIZE_MAX;
-                        continue;
-                    }
-                    auto it = first.find(x);
-                    if (it == first.end()) {
-                        first[x] = like.size();
-                        at[k]    = like.size();
-                        like.push_back({c, x});
-                        uses.push_back(1);
-                    } else {
-                        at[k] = it->second;
-                        like[it->second].first += c;
-                        uses[it->second]++;
-                    }
-                }
-                std::vector<std::pair<Tree, int>> merged;
-                std::vector<bool>                 placed(like.size(), false);
-                for (size_t k = 0; k < terms.size(); k++) {
-                    const size_t i = at[k];
-                    if (i == SIZE_MAX || uses[i] == 1) {
-                        merged.push_back(terms[k]);
-                    } else if (!placed[i]) {
-                        placed[i] = true;
-                        if (Tree t = scaledTerm(like[i].first, like[i].second)) {
-                            merged.push_back({t, terms[k].second});
-                        }
-                    }
-                }
-                terms = merged;
+            // the root : its like terms merged, its terms in the order of the normal form
+            size_t     s  = 0;
+            const tvec ts = orderedTerms(mergeLikeTerms(terms), s);
+            if (order != nullptr) {
+                return layOut(ts, s, *order);
             }
-            // the numbers added into one, first, then the slower terms by rate (the order
-            // of the normal form), then the sample-rate terms in partial sums
-            double sum = 0;
-            int    nums = 0;
-            std::vector<std::pair<Tree, int>> rest;
-            for (const auto& tv : terms) {
-                double v;
-                if (isSigReal(tv.first, &v)) {
-                    sum += v;
-                    nums++;
-                } else {
-                    rest.push_back(tv);
-                }
+            if (ts.size() == 1) {
+                return ts[0];
             }
-            std::stable_sort(rest.begin(), rest.end(),
-                             [](const auto& a, const auto& b) { return a.second < b.second; });
-            tvec ts;
-            if (nums > 0 && sum != 0) {
-                ts.push_back(sigReal(sum));
-            }
-            size_t s = ts.size();
-            for (const auto& tv : rest) {
-                ts.push_back(tv.first);
-                if (tv.second < kSamp) {
-                    s++;
-                }
-            }
-            if (ts.size() - s >= size_t(2 * kLanes)) {
-                return laneSum(ts, s, order);
-            }
-            // fewer terms once the like terms gathered : a balanced tree of them
-            std::vector<Part> parts;
-            for (size_t k = s; k < ts.size(); k++) {
-                parts.push_back(lanePart({ts[k]}));
-            }
-            if (parts.empty()) {
-                return (ts.size() == 1) ? ts[0] : sigSum(ts.empty() ? tvec{sigReal(0.0)} : ts);
-            }
-            Part fast = balancedSum(parts);
-            Tree f    = (fast.sign > 0) ? fast.sum : sigNeg(fast.sum);
-            if (s == 0) {
-                return f;
-            }
-            tvec outer(ts.begin(), ts.begin() + s);
-            outer.push_back(f);
-            return sigSum(outer);
+            Tree g = sigSum(ts.empty() ? tvec{sigReal(0.0)} : ts);
+            g->setProperty(gatheredKey(), gatheredKey());
+            return g;
+        }
+        if (order == nullptr) {
+            return rebuilt;
         }
         // the slower terms first, then only sample-rate terms (the order of the normal form)
         size_t s = 0;
@@ -532,10 +634,14 @@ Tree sumLanes(Tree L, LaneOrder order, std::unordered_map<Tree, Tree>* image)
                 return rebuilt;
             }
         }
+        if (orig->getProperty(gatheredKey()) != nullptr) {
+            // a sum gathered before the sharing of the sums, which left it as it was
+            return layOut(rt, s, *order);
+        }
         if (ot.size() - s < size_t(2 * kLanes)) {
             return rebuilt;
         }
-        return laneSum(rt, s, order);
+        return laneSum(rt, s, *order);
     };
     Tree r = treeRewritePaired(L, rule, memo);
     completeTypes(r, memo);
@@ -544,6 +650,8 @@ Tree sumLanes(Tree L, LaneOrder order, std::unordered_map<Tree, Tree>* image)
     }
     return r;
 }
+
+}  // namespace
 
 static Tree lateTapsKey()
 {
