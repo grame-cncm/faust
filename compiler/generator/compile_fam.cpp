@@ -331,6 +331,13 @@ void ScalarCompiler::checkFamilyOrder()
     }
 }
 
+/// the row of the automaton's arrays holding the generation d samples ago : the rows rotate
+/// through the index fFam<id>R instead of being copied at every sample
+static std::string famRow(const std::string& S, const std::string& d)
+{
+    return subst("$0[$1R[$2]]", S, S.substr(0, S.size() - 1), d);
+}
+
 std::string ScalarCompiler::famHist(FamCtx& g, Tree x, int k)
 {
     if (g.failed) {
@@ -343,7 +350,7 @@ std::string ScalarCompiler::famHist(FamCtx& g, Tree x, int k)
                                         g.neighbour[it->second] != INT_MIN) {
         // the automaton's neighbourhood : the projection at its offset from the cell, read in
         // the group's arrays at the past sample k
-        return subst("$0[$1][cell + $2]", g.states, T(k), T(g.neighbour[it->second]));
+        return subst("$0[cell + $1]", famRow(g.states, T(k)), T(g.neighbour[it->second]));
     }
     Tree x2, y;
     int  d;
@@ -719,6 +726,25 @@ static std::string famLaneTree(const std::string& acc, int W)
     return S[0];
 }
 
+/// the sum of the n terms acc##Tm in W lanes : term k into lane k mod W, the terms beyond the
+/// last whole group of W into lane 0, in order, the lanes added in a balanced tree (a
+/// reassociation outside the cone of the decisions, spec LA-FORME-DE-CALCUL). The terms are
+/// stored by a loop of their own : a loop that both computes the members and accumulates the
+/// lanes carries the lanes from one iteration to the next, and a C++ compiler may then
+/// vectorize across the iterations and add every term one at a time, in order
+static std::vector<std::string> famLaneSum(const std::string& ty, const std::string& acc, int n, int W)
+{
+    const int                main = (n / W) * W;
+    std::vector<std::string> code{subst("$0 \t$1L[$2] = {};", ty, acc, T(W)),
+                                  subst("for (int c0 = 0; c0 < $0; c0 += $1) { for (int j = 0; j < $1; j++) { $2L[j] += $2Tm[c0 + j]; } }",
+                                        T(main), T(W), acc)};
+    if (main < n) {
+        code.push_back(subst("for (int c = $0; c < $1; c++) { $2L[0] += $2Tm[c]; }", T(main), T(n), acc));
+    }
+    code.push_back(subst("$0 \t$1 = $2;", ty, acc, famLaneTree(acc + "L", W)));
+    return code;
+}
+
 void ScalarCompiler::emitFamily(Family& f)
 {
     if (f.emitted || f.dismantled) {
@@ -763,9 +789,7 @@ void ScalarCompiler::emitFamily(Family& f)
     for (const std::string& l : g.body) {
         bodyCode += " " + l;
     }
-    // one loop per host over its members, the sum in lanes : member c0 + j into lane j, the
-    // loop unrolled by the number of lanes, the lanes added in a balanced tree (a
-    // reassociation outside the cone of the decisions, spec LA-FORME-DE-CALCUL)
+    // one loop per host over its members, each member's term stored, then summed in lanes
     for (size_t h = 0; h < plan.hosts.size(); h++) {
         int lo = -1, hi = -1;
         for (int m = 0; m < P; m++) {
@@ -774,25 +798,14 @@ void ScalarCompiler::emitFamily(Family& f)
                 hi = m + 1;
             }
         }
-        const int         n    = hi - lo;
-        const int         W    = std::max(1, std::min(gGlobal->gFamilyLanes, n));
-        const int         main = lo + (n / W) * W;
-        const std::string acc  = subst("fFam$0H$1", T(g.id), T(int(h)));
-        // the statements of member c, accumulated into a lane
-        auto member = [&](int lane) {
-            return subst("$0 $1L[$2] += $3;$4", bodyCode, acc, T(lane), term, shifts.str());
-        };
-        fClass->addExecCode(Statement("", subst("$0 \t$1L[$2] = {};", g.ty, acc, T(W))));
-        std::string unrolled;
-        for (int j = 0; j < W; j++) {
-            unrolled += subst(" { int c = c0 + $0;$1 }", T(j), member(j));
+        const int         n   = hi - lo;
+        const std::string acc = subst("fFam$0H$1", T(g.id), T(int(h)));
+        fClass->addExecCode(Statement("", subst("$0 \t$1Tm[$2];", g.ty, acc, T(n))));
+        fClass->addExecCode(Statement("", subst("for (int c = $0; c < $1; c++) {$2 $3Tm[c - $0] = $4;$5 }", T(lo), T(hi),
+                                                bodyCode, acc, term, shifts.str())));
+        for (const std::string& s : famLaneSum(g.ty, acc, n, std::max(1, std::min(gGlobal->gFamilyLanes, n)))) {
+            fClass->addExecCode(Statement("", s));
         }
-        fClass->addExecCode(
-            Statement("", subst("for (int c0 = $0; c0 < $1; c0 += $2) {$3 }", T(lo), T(main), T(W), unrolled)));
-        if (main < hi) {
-            fClass->addExecCode(Statement("", subst("for (int c = $0; c < $1; c++) {$2 }", T(main), T(hi), member(0))));
-        }
-        fClass->addExecCode(Statement("", subst("$0 \t$1 = $2;", g.ty, acc, famLaneTree(acc + "L", W))));
         f.hostExpr.push_back(acc);
     }
     if (famTrace()) {
@@ -817,8 +830,8 @@ bool ScalarCompiler::famAutoRead(Tree exp, const std::string& delayidx, std::str
     if (delayidx == "0") {
         emitAutomaton(f);  // the current generation : computed by the automaton
     }
-    // the group's arrays : S[0] the current generation, S[d] the generation d samples ago
-    out = subst("fFam$0S[$1][$2]", T(f.id), delayidx, T(j));
+    // the group's arrays : row R[0] the current generation, row R[d] the generation d samples ago
+    out = subst("$0[$1]", famRow(subst("fFam$0S", T(f.id)), delayidx), T(j));
     return true;
 }
 
@@ -833,16 +846,19 @@ void ScalarCompiler::emitAutomaton(Family& f)
     const int         N    = plan.size;
     const int         D    = plan.depth;
     const std::string S    = subst("fFam$0S", T(f.id));
-    // the arrays of the group : one row per generation, cleared with the other states, shifted
-    // at the end of the sample, after every read
+    // the arrays of the group : one row per generation, cleared with the other states ; the
+    // index R names the row of each generation and rotates at the end of the sample, after
+    // every read : the oldest row becomes the current one
+    const std::string R = subst("fFam$0R", T(f.id));
     fClass->addDeclCode(subst("$0 \t$1[$2][$3];", ifloat(), S, T(D + 1), T(N)));
-    fClass->addClearCode(
-        subst("for (int d = 0; d < $0; d++) { for (int j = 0; j < $1; j++) { $2[d][j] = 0; } }", T(D + 1), T(N), S));
-    std::string shift;
+    fClass->addDeclCode(subst("int \t$0[$1];", R, T(D + 1)));
+    fClass->addClearCode(subst("for (int d = 0; d < $0; d++) { $1[d] = d; for (int j = 0; j < $2; j++) { $3[d][j] = 0; } }",
+                               T(D + 1), R, T(N), S));
+    std::string rotate = subst("int r = $0[$1];", R, T(D));
     for (int d = D; d >= 1; d--) {
-        shift += subst(" $0[$1][j] = $0[$2][j];", S, T(d), T(d - 1));
+        rotate += subst(" $0[$1] = $0[$2];", R, T(d), T(d - 1));
     }
-    fClass->addPostCode(Statement("", subst("for (int j = 0; j < $0; j++) {$1 }", T(N), shift)));
+    fClass->addPostCode(Statement("", subst("{ $0 $1[0] = r; }", rotate, R)));
 
     // the cells : the template, read in the arrays at its neighbourhood
     FamCtx g;
@@ -888,7 +904,7 @@ void ScalarCompiler::emitAutomaton(Family& f)
         u.in.idx  = u.out.idx = "m";
         u.in.cellSlot = u.out.cellSlot = ff.plan.cellSlot;
         u.in.cellValue  = "v";
-        u.out.cellValue = subst("$0[0][cell]", S);
+        u.out.cellValue = subst("$0[cell]", famRow(S, "0"));
         u.termIn        = famExpr(u.in, ff.plan.tmpl);
         u.termOut       = famExpr(u.out, ff.plan.tmpl);
         for (const std::string& l : u.in.body) {
@@ -920,42 +936,30 @@ void ScalarCompiler::emitAutomaton(Family& f)
     for (Tree l = defs; isList(l); l = tl(l), j++) {
         if (j < plan.base || j >= plan.base + P) {
             const std::string code = CS(hd(l));
-            fClass->addExecCode(Statement("", subst("$0[0][$1] = $2;", S, T(j), code)));
+            fClass->addExecCode(Statement("", subst("$0[$1] = $2;", famRow(S, "0"), T(j), code)));
         }
     }
     std::string bodyCode;
     for (const std::string& l : g.body) {
         bodyCode += " " + l;
     }
-    // the cell c : its value stored, then the members that read it accumulated in a lane
-    auto cellCode = [&](const std::string& c, const std::string& lane) {
-        std::string code = subst(" int c = $0; int cell = c + $1;$2 $3 v = $4; $5[0][cell] = v;$6", c, T(plan.base),
-                                 bodyCode, g.ty, term, S, shifts.str());
-        for (Fused& u : fused) {
-            code += subst(" { int m = c + $0;$1 fFam$2H0L[$3] += $4; }", T(u.first), u.bodyIn, T(u.f->id), lane,
-                          u.termIn);
-        }
-        return code;
-    };
-    if (fused.empty()) {
-        fClass->addExecCode(Statement("", subst("for (int c0 = 0; c0 < $0; c0++) {$1 }", T(P), cellCode("c0", "0"))));
-    } else {
-        // the lanes : a register of 256 bits, 8 floats or 4 doubles, written as an inner loop
-        // the C++ compiler vectorizes whole (four or eight copies of the cell are not)
-        const int W    = std::max(1, std::min(gGlobal->gFloatSize == 1 ? 8 : 4, P));
-        const int main = (P / W) * W;
-        for (Fused& u : fused) {
-            fClass->addExecCode(Statement("", subst("$0 \tfFam$1H0L[$2] = {};", g.ty, T(u.f->id), T(W))));
-        }
-        fClass->addExecCode(Statement("", subst("for (int c0 = 0; c0 < $0; c0 += $1) { for (int j = 0; j < $1; j++) {$2 } }",
-                                                T(main), T(W), cellCode("c0 + j", "j"))));
-        if (main < P) {
-            fClass->addExecCode(Statement("", subst("for (int c0 = $0; c0 < $1; c0++) {$2 }", T(main), T(P), cellCode("c0", "0"))));
-        }
-        // the lanes in a balanced tree, then the members of the borders, in order
+    // the cell c : its value stored, then the terms of the members that read it
+    std::string code = subst(" int cell = c + $0;$1 $2 v = $3; $4[cell] = v;$5", T(plan.base), bodyCode, g.ty, term,
+                             famRow(S, "0"), shifts.str());
+    for (Fused& u : fused) {
+        fClass->addExecCode(Statement("", subst("$0 \tfFam$1H0Tm[$2];", g.ty, T(u.f->id), T(P))));
+        code += subst(" { int m = c + $0;$1 fFam$2H0Tm[c] = $3; }", T(u.first), u.bodyIn, T(u.f->id), u.termIn);
+    }
+    fClass->addExecCode(Statement("", subst("for (int c = 0; c < $0; c++) {$1 }", T(P), code)));
+    if (!fused.empty()) {
+        // the lanes : a register of 256 bits, 8 floats or 4 doubles ; the lanes in a balanced
+        // tree, then the members of the borders, in order
+        const int W = std::max(1, std::min(gGlobal->gFloatSize == 1 ? 8 : 4, P));
         for (Fused& u : fused) {
             const std::string acc = subst("fFam$0H0", T(u.f->id));
-            fClass->addExecCode(Statement("", subst("$0 \t$1 = $2;", g.ty, acc, famLaneTree(acc + "L", W))));
+            for (const std::string& s : famLaneSum(g.ty, acc, P, W)) {
+                fClass->addExecCode(Statement("", s));
+            }
             const int Pf = int(u.f->plan.members.size());
             for (int m = 0; m < Pf; m++) {
                 const int cell = u.f->plan.cell[m];
