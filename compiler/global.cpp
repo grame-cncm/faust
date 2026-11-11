@@ -593,6 +593,8 @@ void global::reset()
     gNoCert               = false;
     gSumLanes             = true;
     gLateTaps             = true;
+    gFamilies             = false;
+    gFamilyLanes          = 4;
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
     gOneSample            = false;
@@ -994,6 +996,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gLateTaps) {
         dst << "-lt ";
+    }
+    if (gFamilies) {
+        dst << "-fam -fam-lanes " << gFamilyLanes << " ";
     }
     if (gMathExceptions) {
         dst << "-me ";
@@ -1798,6 +1803,14 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-nolt", "--no-late-taps")) {
             gLateTaps = false;
             i += 1;
+
+        } else if (isCmd(argv[i], "-fam", "--families")) {
+            gFamilies = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-fam-lanes", "--family-lanes") && (i + 1 < argc)) {
+            gFamilyLanes = std::max(1, std::atoi(argv[i + 1]));
+            i += 2;
 
         } else if (isCmd(argv[i], "-ns", "--namespace")) {
             gNamespace = argv[i + 1];
@@ -2884,6 +2897,14 @@ string global::printHelp()
     sstr << tab
          << "-nolt       --no-late-taps              keep the taps of the filters in their order (by "
             "default a real FIR adds its tap of delay 0 last, and an IIR its input)."
+         << endl;
+    sstr << tab
+         << "-fam        --families                  (ocpp) compute the families of identical "
+            "computations on different data, read by a sum, in one loop over arrays, their sum in "
+            "lanes."
+         << endl;
+    sstr << tab
+         << "-fam-lanes <n> --family-lanes <n>       the lanes of a family's sum (default 4)."
          << endl;
     sstr << tab
          << "-noreprc    --no-reprc                  (Rust only) Don't force dsp struct layout to "
