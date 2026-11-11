@@ -26,6 +26,7 @@
 #include "sigtransform.hh"
 #include "exactWeights.hh"
 #include "factorSums.hh"
+#include "families.hh"
 #include "shareSums.hh"
 #include "sigtyperules.hh"
 #include "timing.hh"
@@ -115,17 +116,30 @@ class Translation : public TransformAlgebra {
 
 }  // namespace
 
-ComputeForm::ComputeForm(Tree L, bool lower, LaneOrder order) : fSource(L)
+ComputeForm::ComputeForm(Tree L, bool lower, LaneOrder order, bool families) : fSource(L)
 {
     fProgram = translate(L);
     if (lower && gGlobal->gFloatSize != 4) {
-        this->lower(order);
+        this->lower(order, families);
     }
 }
 
-void ComputeForm::lower(LaneOrder order)
+void ComputeForm::lower(LaneOrder order, bool families)
 {
     std::unordered_map<Tree, Tree> memo;
+    std::unordered_map<Tree, Tree> frozen;  // opaque leaf -> the node of a family it stands for
+    if (families) {
+        // the sum families are found before the rewrites that change the rounding, and
+        // frozen through them : a family split into partial sums, or sharing a sub-sum with
+        // another member, would no longer be one
+        startTiming("families");
+        const TreeSet nodes = familyFrozenSet(fProgram, findFamilies(fProgram));
+        if (!nodes.empty()) {
+            fProgram = freezeFamilies(fProgram, nodes, frozen, memo);
+            composeImage(fImage, memo);
+        }
+        endTiming("families");
+    }
     if (gGlobal->gShareSums) {
         // the sums of products factored, then the dense sums factored by coefficient and
         // their common sub-sums shared (-noshs)
@@ -152,6 +166,11 @@ void ComputeForm::lower(LaneOrder order)
         fProgram = sumLanes(fProgram, order, &memo);
         composeImage(fImage, memo);
         endTiming("sumLanes");
+    }
+    if (!frozen.empty()) {
+        memo.clear();
+        fProgram = thawFamilies(fProgram, frozen, memo);
+        composeImage(fImage, memo);
     }
     if (gGlobal->gLateTaps) {
         // the late term of a filter added last (-nolt)

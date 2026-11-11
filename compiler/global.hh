@@ -405,6 +405,8 @@ struct global {
     double gMinCertifiedSeconds;  // -mcs option, the shortest certified duration accepted (10 s)
     bool gSumLanes;      // the long sums in interleaved partial sums (default, -nosl)
     bool gLateTaps;      // the late term of a real filter added last (default, -nolt)
+    bool gFamilies;      // -fam option, the sum families emitted as loops (ocpp)
+    int  gFamilyLanes;   // -fam-lanes option, the lanes of a family's sum (4)
     bool gNeedManualPow;     // If manual pow(x, y) generation when y is an integer is needed
     bool gRemoveVarAddress;  // If use of variable addresses (like &foo or &foo[n]) have to be
                              // removed
