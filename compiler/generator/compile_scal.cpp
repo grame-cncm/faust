@@ -2462,6 +2462,55 @@ class LoopSplitEmitter {
         }
     };
 
+    // the operations of the layout of the filters (sumLayout.hh, emitFIR and emitIIR) in this
+    // lowering : the taps read the members' buffers, an int filter wraps
+    struct FilterOps {
+        LoopSplitEmitter* fE;
+        int               fScc;
+        Tree              fNode;  // the FIR or the IIR
+        int               fSrc;   // the buffer of the source of the FIR, or of the fused FIR
+        bool              real;
+
+        bool    fixed(Tree) { return true; }
+        Operand input()
+        {
+            tvec V;
+            isSigIIR(fNode, V);
+            return fE->walk(V[0], fScc, false);
+        }
+        Operand self(int d) { return fE->refOperand(fE->fSN.indexOf(fNode), T(d), false, fScc); }
+        Operand tap(int d) { return fE->refOperand(fSrc, T(d), d == 0, fScc); }
+        Operand firTap(int d) { return fE->refOperand(fSrc, T(d), d == 0, fScc); }
+        bool    fusable(Tree fir)
+        {
+            // fused only when the FIR is no member of its own (a member is computed and stored
+            // where the schedule puts it, and read here) and its source is one, and when it
+            // occurs once and is neither lowered in this loop nor compiled
+            tvec F;
+            isSigFIR(fir, F);
+            fSrc = (fE->fSN.indexOf(fir) < 0 && fE->fOpOf.find(fir) == fE->fOpOf.end() && fE->fC->firOccursOnce(fir))
+                       ? fE->fSN.indexOf(F[0])
+                       : -1;
+            return fSrc >= 0;
+        }
+        Operand coef(Tree c, bool) { return fE->walk(c, fScc, false); }
+        Operand mul(const Operand& a, const Operand& b)
+        {
+            return fE->bodyOp(real ? "($0 * $1)" : "faust_wrap_mul($0, $1)", {a, b}, !real);
+        }
+        Operand add(const Operand& a, const Operand& b)
+        {
+            return fE->bodyOp(real ? "($0 + $1)" : "faust_wrap_add($0, $1)", {a, b}, !real);
+        }
+        Operand sub(const Operand& a, const Operand& b)
+        {
+            return fE->bodyOp(real ? "($0 - $1)" : "faust_wrap_sub($0, $1)", {a, b}, !real);
+        }
+        Operand neg(const Operand& a) { return fE->bodyOp("(-$0)", {a}, false); }
+        Operand negAdd(const Operand& a, const Operand& b) { return fE->bodyOp("(-($0 + $1))", {a, b}, false); }
+        Operand zero() { return leafOperand("0"); }
+    };
+
     // read access into a materialized signal's buffer
     std::string accessCode(int idx, const std::string& dcode) const
     {
@@ -2700,49 +2749,10 @@ class LoopSplitEmitter {
             }
             const int ix = fSN.indexOf(V[0]);
             faustassert(ix >= 0);
-            // lowering at scheduling time : one product op per tap, then a
-            // left chain of adds -- the association of generateFIR : ascending
-            // taps, a negative coefficient after the first tap subtracted, an
-            // int kernel wrapping
-            const bool kInt2 = (getCertifiedSigType(t)->nature() == kInt);
-            Operand    acc;
-            bool       first = true;
-            std::vector<size_t> ks;
-            for (size_t k = 1; k < V.size(); k++) {
-                ks.push_back(k);
-            }
-            if (!kInt2 && lateTapsLast(t)) {
-                // 3f.5 : the tap of delay 0, computed in the sample, added last
-                std::reverse(ks.begin(), ks.end());
-            }
-            for (size_t k : ks) {
-                if (isZero(V[k])) {
-                    continue;
-                }
-                Operand    tap = refOperand(ix, T(int(k) - 1), k == 1, curScc);
-                Tree       m;
-                const bool sub = !first && negativeCoefficient(V[k], m);
-                Tree       c   = sub ? m : V[k];
-                Operand    term;
-                if (c == nullptr || isOne(c)) {
-                    term = tap;
-                } else {
-                    Operand oc = walk(c, curScc, false);
-                    term = bodyOp(kInt2 ? "faust_wrap_mul($0, $1)" : "($0 * $1)", {oc, tap}, kInt2);
-                }
-                if (first) {
-                    acc   = term;
-                    first = false;
-                } else {
-                    const char* pattern = kInt2 ? (sub ? "faust_wrap_sub($0, $1)" : "faust_wrap_add($0, $1)")
-                                                : (sub ? "($0 - $1)" : "($0 + $1)");
-                    acc = bodyOp(pattern, {acc, term}, kInt2);
-                }
-            }
-            if (first) {
-                acc = leafOperand("0");
-            }
-            o = acc;
+            // lowering at scheduling time : one product op per tap, then a chain of adds, in
+            // the layout of generateFIR (sumLayout.hh, emitFIR)
+            FilterOps fops{this, curScc, t, ix, getCertifiedSigType(t)->nature() != kInt};
+            o = emitFIR<Operand>(t, V, fops);
             if (o.op >= 0) {
                 fOpOf[t] = o.op;
             }
@@ -2891,101 +2901,13 @@ class LoopSplitEmitter {
             // stage 1 : DIRECT form only (y = X + sum ci*y@i) -- under -ls
             // the transposed election stands down, so the occurrence
             // self-marks size this member's buffer.
-            const int ixSelf = fSN.indexOf(t);
-            faustassert(ixSelf >= 0);
-            // lowering at scheduling time : the recurrence stays a chain
-            // PER KERNEL (its nature) but fifty kernels' chains interleave
-            // BETWEEN them -- which is where plain fusion's win on the
-            // modal banks came from. The association of generateIIR,
-            // bit-exact : X, then the taps in ascending order, a negative
-            // coefficient subtracted ; an int recurrence wraps.
-            const bool kInt2 = (getCertifiedSigType(t)->nature() == kInt);
-            if (!kInt2 && lateTapsLast(t)) {
-                // 3f.5 : the terms that read delay lines first, the term computed in the
-                // sample last (as ScalarCompiler::generateIIR)
-                tvec      F;
-                // fused only when the FIR is no member of its own (a member is computed and
-                // stored where the schedule puts it, and read here) and its source is one
-                // and when it occurs once and is neither lowered in this loop nor compiled
-                const int ixFir = (fusedFirInput(t) && isSigFIR(V[0], F) && !isZero(F[1]) && fSN.indexOf(V[0]) < 0 &&
-                                   fOpOf.find(V[0]) == fOpOf.end() && fC->firOccursOnce(V[0]))
-                                      ? fSN.indexOf(F[0])
-                                      : -1;
-                const bool fused = ixFir >= 0;
-                std::vector<std::pair<bool, Operand>> early;
-                auto product = [&](Tree coef, const Operand& tap) -> std::pair<bool, Operand> {
-                    Tree       m;
-                    const bool sub = negativeCoefficient(coef, m);
-                    if (m != nullptr && !isOne(m)) {
-                        Operand oc = walk(m, curScc, false);
-                        return {sub, bodyOp("($0 * $1)", {oc, tap}, false)};
-                    }
-                    return {sub, tap};
-                };
-                std::pair<bool, Operand> last;
-                if (fused) {
-                    for (size_t k = F.size() - 1; k >= 2; k--) {
-                        if (!isZero(F[k])) {
-                            early.push_back(product(F[k], refOperand(ixFir, T(int(k) - 1), false, curScc)));
-                        }
-                    }
-                } else {
-                    last = {false, walk(V[0], curScc, false)};
-                }
-                for (size_t k = V.size() - 1; k >= 1; k--) {
-                    if (!isZero(V[k])) {
-                        early.push_back(product(V[k], refOperand(ixSelf, T(int(k)), false, curScc)));
-                    }
-                }
-                if (fused) {
-                    last = product(F[1], refOperand(ixFir, T(0), true, curScc));
-                }
-                Operand y;
-                if (early.empty()) {
-                    y = last.first ? bodyOp("(-$0)", {last.second}, false) : last.second;
-                } else {
-                    const bool flip = early[0].first;
-                    Operand    fb   = early[0].second;
-                    for (size_t k = 1; k < early.size(); k++) {
-                        fb = bodyOp((early[k].first != flip) ? "($0 - $1)" : "($0 + $1)", {fb, early[k].second}, false);
-                    }
-                    if (!flip && !last.first) {
-                        y = bodyOp("($0 + $1)", {last.second, fb}, false);
-                    } else if (!flip) {
-                        y = bodyOp("($0 - $1)", {fb, last.second}, false);
-                    } else if (!last.first) {
-                        y = bodyOp("($0 - $1)", {last.second, fb}, false);
-                    } else {
-                        y = bodyOp("(-($0 + $1))", {fb, last.second}, false);
-                    }
-                }
-                o = y;
-                if (o.op >= 0) {
-                    fOpOf[t] = o.op;
-                }
-                return o;
-            }
-            Operand    acc   = walk(V[0], curScc, false);
-            for (size_t k = 1; k < V.size(); k++) {
-                if (isZero(V[k])) {
-                    continue;
-                }
-                Operand    tap = refOperand(ixSelf, T(int(k)), false, curScc);
-                Tree       m;
-                const bool sub = negativeCoefficient(V[k], m);
-                Tree       c   = sub ? m : V[k];
-                Operand    term;
-                if (c == nullptr || isOne(c)) {
-                    term = tap;
-                } else {
-                    Operand oc = walk(c, curScc, false);
-                    term = bodyOp(kInt2 ? "faust_wrap_mul($0, $1)" : "($0 * $1)", {oc, tap}, kInt2);
-                }
-                const char* pattern = kInt2 ? (sub ? "faust_wrap_sub($0, $1)" : "faust_wrap_add($0, $1)")
-                                            : (sub ? "($0 - $1)" : "($0 + $1)");
-                acc = bodyOp(pattern, {acc, term}, kInt2);
-            }
-            o = acc;
+            faustassert(fSN.indexOf(t) >= 0);
+            // lowering at scheduling time : the recurrence stays a chain PER KERNEL (its
+            // nature) but fifty kernels' chains interleave BETWEEN them -- which is where plain
+            // fusion's win on the modal banks came from. The layout of generateIIR
+            // (sumLayout.hh, emitIIR), bit-exact.
+            FilterOps fops{this, curScc, t, -1, getCertifiedSigType(t)->nature() != kInt};
+            o = emitIIR<Operand>(t, V, fops);
             if (o.op >= 0) {
                 fOpOf[t] = o.op;
             }
@@ -8081,86 +8003,32 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
         return ycached;
     }
 
-    const bool isInt = (ty->nature() == kInt);
-    tvec       fir;
-    const bool late  = !isInt && lateTapsLast(sig);
-    const bool fused = late && fusedFirInput(sig) && isSigFIR(coefs[0], fir) && !isZero(fir[1]) &&
-                       fusableFirInput(coefs[0]);
-    if (late) {
-        // 3f.5 : the terms that read delay lines first, the term computed in the sample
-        // last (as InstructionsCompiler::generateIIR, sumLanes.hh)
-        std::vector<std::pair<bool, string>> early;  // (subtracted, term)
-        auto product = [&](Tree coef, const string& access) -> std::pair<bool, string> {
-            Tree       m;
-            const bool sub = negativeCoefficient(coef, m);
-            if (m != nullptr && !isOne(m)) {
-                return {sub, subst("($0 * $1)", sub ? operandAtRate(m) : CS(m), access)};
-            }
-            return {sub, access};
-        };
-        std::pair<bool, string> last;
-        if (fused) {
-            for (size_t i = fir.size() - 1; i >= 2; i--) {
-                if (!isZero(fir[i])) {
-                    early.push_back(product(fir[i], generateDelayAccessRaw(coefs[0], fir[0], int(i) - 1)));
-                }
-            }
-        } else {
-            last = {false, CS(coefs[0])};
+    // the layout of the filters (sumLayout.hh, emitIIR) ; an int recurrence wraps
+    struct Ops {
+        ScalarCompiler* fC;
+        Tree            fSig;
+        const tvec&     fIIR;
+        bool            real;
+        bool   fixed(Tree) { return true; }
+        string input() { return fC->CS(fIIR[0]); }
+        string self(int d) { return fC->generateDelayAccessRaw(fSig, fSig, d); }
+        string tap(int) { faustassert(false); return ""; }
+        string firTap(int d)
+        {
+            tvec fir;
+            isSigFIR(fIIR[0], fir);
+            return fC->generateDelayAccessRaw(fIIR[0], fir[0], d);
         }
-        for (size_t i = coefs.size() - 1; i >= 1; i--) {
-            if (!isZero(coefs[i])) {
-                early.push_back(product(coefs[i], generateDelayAccessRaw(sig, sig, int(i))));
-            }
-        }
-        if (fused) {
-            last = product(fir[1], generateDelayAccessRaw(coefs[0], fir[0], 0));
-        }
-        string y;
-        if (early.empty()) {
-            y = last.first ? subst("(-$0)", last.second) : last.second;
-        } else {
-            const bool flip = early[0].first;
-            string     fb   = early[0].second;
-            for (size_t k = 1; k < early.size(); k++) {
-                fb = subst("($0 $1 $2)", fb, (early[k].first != flip) ? "-" : "+", early[k].second);
-            }
-            if (!flip && !last.first) {
-                // the late term on the left (as InstructionsCompiler::generateIIR)
-                y = subst("($0 + $1)", last.second, fb);
-            } else if (!flip) {
-                y = subst("($0 - $1)", fb, last.second);
-            } else if (!last.first) {
-                y = subst("($0 - $1)", last.second, fb);
-            } else {
-                y = subst("(-($0 + $1))", fb, last.second);
-            }
-        }
-        return generateDelayVec(sig, y, ctype, vname, o->getMaxDelay(), o->getDelayCount());
-    }
-    string acc = CS(coefs[0]);
-    for (unsigned int i = 1; i < coefs.size(); i++) {
-        if (isZero(coefs[i])) {
-            continue;
-        }
-        string     access = generateDelayAccessRaw(sig, sig, int(i));
-        Tree       m;
-        const bool sub = negativeCoefficient(coefs[i], m);
-        Tree       c   = sub ? m : coefs[i];
-        string     term;
-        if (c == nullptr || isOne(c)) {
-            term = access;
-        } else {
-            string sc = sub ? operandAtRate(c) : CS(c);
-            term      = isInt ? subst("faust_wrap_mul($0, $1)", sc, access) : subst("($0 * $1)", sc, access);
-        }
-        if (isInt) {
-            acc = subst("$0($1, $2)", sub ? "faust_wrap_sub" : "faust_wrap_add", acc, term);
-        } else {
-            acc = subst("($0 $1 $2)", acc, sub ? "-" : "+", term);
-        }
-    }
-    return generateDelayVec(sig, acc, ctype, vname, o->getMaxDelay(), o->getDelayCount());
+        bool   fusable(Tree f) { return fC->fusableFirInput(f); }
+        string coef(Tree c, bool negated) { return negated ? fC->operandAtRate(c) : fC->CS(c); }
+        string mul(const string& a, const string& b) { return subst(real ? "($0 * $1)" : "faust_wrap_mul($0, $1)", a, b); }
+        string add(const string& a, const string& b) { return subst(real ? "($0 + $1)" : "faust_wrap_add($0, $1)", a, b); }
+        string sub(const string& a, const string& b) { return subst(real ? "($0 - $1)" : "faust_wrap_sub($0, $1)", a, b); }
+        string neg(const string& a) { return subst("(-$0)", a); }
+        string negAdd(const string& a, const string& b) { return subst("(-($0 + $1))", a, b); }
+        string zero() { return "0"; }
+    } ops{this, sig, coefs, ty->nature() != kInt};
+    return generateDelayVec(sig, emitIIR<string>(sig, coefs, ops), ctype, vname, o->getMaxDelay(), o->getDelayCount());
 }
 
 /**
@@ -8207,54 +8075,27 @@ string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
  */
 string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
 {
-    // the chain of the definition, the association of its interval : the taps from the
-    // first delay to the last, c[k] * x@k, the null coefficients left out ; an int FIR wraps.
-    // A real FIR whose first tap is negative and the second positive starts with the second
-    // (-a + b and b - a are the same value, bit for bit) ; a first tap of coefficient -1 is
-    // a negation, not a product by -1 (as InstructionsCompiler::generateFIR)
-    faustassert(coefs.size() > 1);
-    const bool                isInt = (getCertifiedSigType(sig)->nature() == kInt);
-    Tree                      x     = coefs[0];
-    string                    acc;
-    std::vector<unsigned int> taps;
-    for (unsigned int i = 1; i < coefs.size(); ++i) {
-        if (!isZero(coefs[i])) {
-            taps.push_back(i);
-        }
-    }
-    if (!isInt && lateTapsLast(sig)) {
-        // 3f.5 : from the last delay to the first, the tap of delay 0, computed in the
-        // sample, added last (sumLanes.hh)
-        std::reverse(taps.begin(), taps.end());
-    }
-    if (Tree m0, m1; !isInt && taps.size() >= 2 && negativeCoefficient(coefs[taps[0]], m0) &&
-                     !negativeCoefficient(coefs[taps[1]], m1)) {
-        std::swap(taps[0], taps[1]);
-    }
-    for (unsigned int i : taps) {
-        string access = generateDelayAccessRaw(sig, x, int(i) - 1);
-        // a negative coefficient after the first tap : the tap subtracted
-        Tree       m;
-        const bool sub = !acc.empty() && negativeCoefficient(coefs[i], m);
-        Tree       c   = sub ? m : coefs[i];
-        string     term;
-        if (acc.empty() && !isInt && isMinusOne(c)) {
-            term = subst("(-$0)", access);
-        } else if (c == nullptr || isOne(c)) {
-            term = access;
-        } else {
-            string sc = sub ? operandAtRate(c) : CS(c);
-            term      = isInt ? subst("faust_wrap_mul($0, $1)", sc, access) : subst("($0 * $1)", sc, access);
-        }
-        if (acc.empty()) {
-            acc = term;
-        } else if (isInt) {
-            acc = subst("$0($1, $2)", sub ? "faust_wrap_sub" : "faust_wrap_add", acc, term);
-        } else {
-            acc = subst("($0 $1 $2)", acc, sub ? "-" : "+", term);
-        }
-    }
-    const string e = acc.empty() ? string("0") : acc;
+    // the layout of the filters (sumLayout.hh, emitFIR) ; an int FIR wraps
+    struct Ops {
+        ScalarCompiler* fC;
+        Tree            fSig;
+        Tree            fX;
+        bool            real;
+        bool   fixed(Tree) { return true; }
+        string input() { faustassert(false); return ""; }
+        string self(int) { faustassert(false); return ""; }
+        string tap(int d) { return fC->generateDelayAccessRaw(fSig, fX, d); }
+        string firTap(int) { faustassert(false); return ""; }
+        bool   fusable(Tree) { return false; }
+        string coef(Tree c, bool negated) { return negated ? fC->operandAtRate(c) : fC->CS(c); }
+        string mul(const string& a, const string& b) { return subst(real ? "($0 * $1)" : "faust_wrap_mul($0, $1)", a, b); }
+        string add(const string& a, const string& b) { return subst(real ? "($0 + $1)" : "faust_wrap_add($0, $1)", a, b); }
+        string sub(const string& a, const string& b) { return subst(real ? "($0 - $1)" : "faust_wrap_sub($0, $1)", a, b); }
+        string neg(const string& a) { return subst("(-$0)", a); }
+        string negAdd(const string& a, const string& b) { return subst("(-($0 + $1))", a, b); }
+        string zero() { return "0"; }
+    } ops{this, sig, coefs[0], getCertifiedSigType(sig)->nature() != kInt};
+    const string e = emitFIR<string>(sig, coefs, ops);
     const string r = generateCacheCode(sig, e);
     if (r != e) {
         fStoredFirs.insert(sig);  // stored : an IIR reading it does not fuse it (fusableFirInput)
