@@ -726,6 +726,38 @@ static std::string famLaneTree(const std::string& acc, int W)
     return S[0];
 }
 
+/// the operations of a member : the nodes of the template, its leaves and the expressions
+/// common to every member aside
+static int famOps(const FamilyPlan& plan)
+{
+    TreeSet leaves(plan.leaves.begin(), plan.leaves.end());
+    leaves.insert(plan.aleaves.begin(), plan.aleaves.end());
+    TreeSet           seen;
+    std::vector<Tree> st{plan.tmpl};
+    int               ops = 0;
+    while (!st.empty()) {
+        Tree t = st.back();
+        st.pop_back();
+        if (!seen.insert(t).second || leaves.count(t) || plan.commons.count(t)) {
+            continue;
+        }
+        Tree id, body;
+        if (isRec(t, id, body) && body) {
+            st.push_back(body);
+            continue;
+        }
+        ops += (t->arity() > 0) ? 1 : 0;
+        for (int k = 0; k < t->arity(); k++) {
+            st.push_back(t->branch(k));
+        }
+    }
+    return ops;
+}
+
+/// the operations of a member from which its loop is split (emitFamily) : englishBell's
+/// resonators (16 nodes) gain from one loop, vocoder's bands (50 nodes) from two
+static const int kFamSplitOps = 32;
+
 /// the sum of the n terms acc##Tm in W lanes : term k into lane k mod W, the terms beyond the
 /// last whole group of W into lane 0, in order, the lanes added in a balanced tree (a
 /// reassociation outside the cone of the decisions, spec LA-FORME-DE-CALCUL). The terms are
@@ -789,7 +821,14 @@ void ScalarCompiler::emitFamily(Family& f)
     for (const std::string& l : g.body) {
         bodyCode += " " + l;
     }
-    // one loop per host over its members, each member's term stored, then summed in lanes
+    // one loop per host over its members. A member of many operations : its term stored, then
+    // summed in lanes by a loop of its own (famLaneSum). A member of few operations : the lanes
+    // accumulated in the loop, member c0 + j into lane j, where storing and reloading the term
+    // would cost more than the member ; the outer loop is kept from clang's loop vectorizer,
+    // which would vectorize across c0 and add the terms one at a time, so that the lanes are
+    // vectorized whole
+    const int  ops   = famOps(plan);
+    const bool split = ops >= kFamSplitOps;
     for (size_t h = 0; h < plan.hosts.size(); h++) {
         int lo = -1, hi = -1;
         for (int m = 0; m < P; m++) {
@@ -799,19 +838,39 @@ void ScalarCompiler::emitFamily(Family& f)
             }
         }
         const int         n   = hi - lo;
+        const int         W   = std::max(1, std::min(gGlobal->gFamilyLanes, n));
         const std::string acc = subst("fFam$0H$1", T(g.id), T(int(h)));
-        fClass->addExecCode(Statement("", subst("$0 \t$1Tm[$2];", g.ty, acc, T(n))));
-        fClass->addExecCode(Statement("", subst("for (int c = $0; c < $1; c++) {$2 $3Tm[c - $0] = $4;$5 }", T(lo), T(hi),
-                                                bodyCode, acc, term, shifts.str())));
-        for (const std::string& s : famLaneSum(g.ty, acc, n, std::max(1, std::min(gGlobal->gFamilyLanes, n)))) {
-            fClass->addExecCode(Statement("", s));
+        if (split) {
+            fClass->addExecCode(Statement("", subst("$0 \t$1Tm[$2];", g.ty, acc, T(n))));
+            fClass->addExecCode(Statement("", subst("for (int c = $0; c < $1; c++) {$2 $3Tm[c - $0] = $4;$5 }", T(lo),
+                                                    T(hi), bodyCode, acc, term, shifts.str())));
+            for (const std::string& s : famLaneSum(g.ty, acc, n, W)) {
+                fClass->addExecCode(Statement("", s));
+            }
+        } else {
+            const int main   = lo + (n / W) * W;
+            auto      member = [&](const std::string& lane) {
+                return subst("$0 $1L[$2] += $3;$4", bodyCode, acc, lane, term, shifts.str());
+            };
+            fClass->addExecCode(Statement("", subst("$0 \t$1L[$2] = {};", g.ty, acc, T(W))));
+            fClass->addExecCode(Statement("", "#if defined(__clang__)"));
+            fClass->addExecCode(Statement("", "#pragma clang loop vectorize(disable)"));
+            fClass->addExecCode(Statement("", "#endif"));
+            fClass->addExecCode(Statement(
+                "", subst("for (int c0 = $0; c0 < $1; c0 += $2) { for (int j = 0; j < $2; j++) { int c = c0 + j;$3 } }",
+                          T(lo), T(main), T(W), member("j"))));
+            if (main < hi) {
+                fClass->addExecCode(Statement("", subst("for (int c = $0; c < $1; c++) {$2 }", T(main), T(hi), member("0"))));
+            }
+            fClass->addExecCode(Statement("", subst("$0 \t$1 = $2;", g.ty, acc, famLaneTree(acc + "L", W))));
         }
         f.hostExpr.push_back(acc);
     }
     if (famTrace()) {
         std::cerr << "fam emitted : family " << g.id << ", " << P << " members, " << plan.hosts.size() << " host(s), "
                   << g.need.size() << " states, " << g.usedSlots.size() << " tables, " << g.usedASlots.size()
-                  << " input arrays, " << g.body.size() << " statements per member" << std::endl;
+                  << " input arrays, " << g.body.size() << " statements per member, " << ops << " operations, "
+                  << (split ? "split" : "one loop") << std::endl;
     }
 }
 
