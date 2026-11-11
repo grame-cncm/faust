@@ -754,12 +754,6 @@ static int famOps(const FamilyPlan& plan)
     return ops;
 }
 
-/// the lanes of a sum : -fam-lanes, or W by default
-static int famLanes(int W)
-{
-    return (gGlobal->gFamilyLanes > 0) ? gGlobal->gFamilyLanes : W;
-}
-
 /// the sum of the n terms acc##Tm in W lanes : term k into lane k mod W, the terms beyond the
 /// last whole group of W into lane 0, in order, the lanes added in a balanced tree (a
 /// reassociation outside the cone of the decisions, spec LA-FORME-DE-CALCUL). The terms are
@@ -840,7 +834,7 @@ void ScalarCompiler::emitFamily(Family& f)
             }
         }
         const int         n   = hi - lo;
-        const int         W   = std::max(1, std::min(famLanes(4), n));
+        const int         W   = std::max(1, std::min(4, n));
         const std::string acc = subst("fFam$0H$1", T(g.id), T(int(h)));
         if (split) {
             fClass->addExecCode(Statement("", subst("$0 \t$1Tm[$2];", g.ty, acc, T(n))));
@@ -1015,7 +1009,7 @@ void ScalarCompiler::emitAutomaton(Family& f)
     if (!fused.empty()) {
         // the lanes : a register of 256 bits, 8 floats or 4 doubles ; the lanes in a balanced
         // tree, then the members of the borders, in order
-        const int W = std::max(1, std::min(famLanes(gGlobal->gFloatSize == 1 ? 8 : 4), P));
+        const int W = std::max(1, std::min(gGlobal->gFloatSize == 1 ? 8 : 4, P));
         for (Fused& u : fused) {
             const std::string acc = subst("fFam$0H0", T(u.f->id));
             for (const std::string& s : famLaneSum(g.ty, acc, P, W)) {
