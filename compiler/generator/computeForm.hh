@@ -36,8 +36,10 @@ class ComputeForm {
     /// ordre", step 2) : shareSums, exactWeights and sumLanes (lanes in the given order),
     /// each under its option, outside the cone of the memory decisions (a delay amount, an
     /// index, an integer conversion), never under -fx (whose fixed-point types are read in
-    /// the intervals)
-    explicit ComputeForm(Tree L, bool lower = false, LaneOrder order = LaneOrder::kInterleaved);
+    /// the intervals). With families (-fam, LES-FAMILLES-DE-LA-FORME-DE-CALCUL), the sum
+    /// families are found first and frozen through the lowerings, which leave them as they are
+    explicit ComputeForm(Tree L, bool lower = false, LaneOrder order = LaneOrder::kInterleaved,
+                         bool families = false);
 
     /// translates t, a part of the program or another root the emitter compiles (a
     /// condition atom, a display signal) : the same translation, shared nodes once
@@ -55,5 +57,5 @@ class ComputeForm {
     Tree                           fSource;     ///< the certified program
     Tree                           fProgram;
     void                           annotate();
-    void                           lower(LaneOrder order);
+    void                           lower(LaneOrder order, bool families);
 };

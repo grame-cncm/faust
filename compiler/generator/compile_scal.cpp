@@ -978,7 +978,8 @@ Tree ScalarCompiler::prepare(Tree LS)
             faustassert(isList(t));
             extra++;
         }
-        ComputeForm cf(Lx, /*lower*/ true, LaneOrder::kContiguous);
+        ComputeForm cf(Lx, /*lower*/ true, LaneOrder::kContiguous,
+                       /*families*/ gGlobal->gFamilies && !gGlobal->gLoopSplit);
         Lx = cf.program();
         L2 = Lx;
         for (int k = 0; k < extra; k++) {
@@ -1130,6 +1131,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     fDefinitions.build(Lx);  // the subterms of compound definitions the program holds
     fDefinitions.countReads(fSharingKey);
     endTiming("occurrences analysis");
+    fFamRoot = Lx;  // -fam : the families are planned on every root the emitter compiles
 
 
     endTiming("prepare");
@@ -5218,7 +5220,9 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
             }
         }
     }
+    planFamilies();
     auto G = immediateGraph(Lg);
+    famScheduleEdges(G);  // -fam : a family's loop, emitted at its first host, reads every input of its members
     int rfAdded = 0;
     {
         // READERS FIRST (default since 2026-08-12) : for every delayed
@@ -5296,6 +5300,7 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         // internal graph (shared_ptr), a plain copy would alias the mutated
         // one -- the very bug that made the gauge blind on its first run
         auto G0   = immediateGraph(Lg);  // the SAME roots as G (display S included)
+        famScheduleEdges(G0);
         auto memf = std::function<bool(const Tree&)>(ocppIsMemNode);
         auto sq1  = squality(G, S.elements(), 8, 4, ocppShapeFunctor(G), memf, 3);
         auto S0   = ocppSchedule(G0);
@@ -5334,6 +5339,7 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
             }
         }
     }
+    checkFamilyOrder();  // -fam : a family whose inputs come after its first host is dismantled
     // self-describing artifact : the schedule's quality vector, on the
     // COMMON evaluation machine (R=8, U=4, M=3), as a comment at the top
     // of compute() -- campaigns and archaeology read it straight from
@@ -5554,6 +5560,9 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
                 faustassert(false);
             }
             [[maybe_unused]] int lSTEP = gGlobal->gSTEP;  // convenient for debug
+            if (fFamPrivate.count(s)) {
+                continue;  // -fam : computed in its family's loop, at the host
+            }
             CS(s);
             gGlobal->gSTEP++;
         }
@@ -5765,6 +5774,9 @@ string ScalarCompiler::generateCode(Tree sig)
     } else if (isSigBpf(sig)) {
         return generateBpf(sig);
     } else if (tvec subs; isSigSum(sig, subs)) {
+        if (fFamHost.count(sig)) {
+            return generateFamilySum(sig);  // -fam : the loop of its family, its lanes
+        }
         return generateSum(sig, subs);
     } else if (tvec fs; isSigProd(sig, fs)) {
         return generateProd(sig, fs);

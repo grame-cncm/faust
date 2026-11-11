@@ -29,7 +29,9 @@
 #include <unordered_set>
 #include <utility>
 
+#include "DirectedGraph.hh"
 #include "definitionIndex.hh"
+#include "families.hh"
 #include "sumLayout.hh"
 #include "compile.hh"
 #include "dcond.hh"
@@ -162,6 +164,29 @@ class ScalarCompiler : public Compiler {
     // maxtaps, nonzero coefficient count) -- consumers : delay-line
     // implementation policy, fusion oracle.
     std::map<Tree, std::pair<int, int>, treeorder> fFirFacts;
+
+    // -fam (LES-FAMILLES-DE-LA-FORME-DE-CALCUL, compile_fam.cpp) : the sum families, each
+    // emitted as one loop at its first host ; its private nodes leave the schedule
+    struct FamCtx;
+    struct Family {
+        FamilyPlan               plan;
+        int                      id         = 0;
+        bool                     emitted    = false;
+        bool                     dismantled = false;
+        std::vector<std::string> hostExpr;  ///< per host, the variable of its lanes' sum
+    };
+    Tree                          fFamRoot = nullptr;  ///< every root the emitter compiles
+    std::vector<Family>           fFamilies;
+    std::unordered_map<Tree, int> fFamHost;  ///< host sum -> its family
+    std::unordered_set<Tree>      fFamPrivate;
+    void                          planFamilies();
+    void                          famScheduleEdges(digraph<Tree>& G);
+    void                          checkFamilyOrder();
+    void                          dismantleFamily(Family& f);
+    void                          emitFamily(Family& f);
+    std::string                   generateFamilySum(Tree sig);
+    std::string                   famExpr(FamCtx& g, Tree t);
+    std::string                   famHist(FamCtx& g, Tree x, int k);
 
    public:
     ScalarCompiler(const std::string& name, const std::string& super, int numInputs, int numOutputs)
