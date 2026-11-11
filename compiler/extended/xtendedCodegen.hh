@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 
+#include "directed_rounding.hh"
 #include "exception.hh"
 #include "floats.hh"
 #include "instructions.hh"
@@ -55,8 +56,9 @@ class xtendedCodegen : public xtended {
     //  - kMinMaxFree : the first operand proven not NaN, no tie between +0 and -0 possible :
     //    fmax (fmin) and the comparison (a < b) ? b : a ((b < a) ? b : a) have this value,
     //    each C++ compiler takes the form it compiles best ;
-    //  - kMinMaxCompare : a tie of zeros possible, the literal zero that wins first (+0 of a
-    //    max, -0 of a min) or the one that loses second : the comparison has this value ;
+    //  - kMinMaxCompare : such a tie possible, the comparison with first an operand proven not
+    //    NaN that is not the losing zero of the tie (-0 of a max, +0 of a min), from the zeros
+    //    the intervals allow (zerosOf) : the comparison has this value ;
     //  - kMinMaxFull : otherwise, the comparison with the NaN test and the sign of the zeros.
     // swap tells to write the operands in the other order, a proven operand first. zero0 and
     // zero1 : +1 for a literal +0, -1 for a literal -0, 0 for anything else
@@ -78,6 +80,30 @@ class xtendedCodegen : public xtended {
         return (b < a) ? b : a;
     }
 
+    // the zeros a value of the interval i may be : -0 when lo <= -0 <= hi, +0 when
+    // lo <= +0 <= hi, in the total order of IEEE 754 (interval_def.hh, leTotal). The sign of a
+    // zero bound is read where the division reads it (intervalDiv.cpp) : in float and double,
+    // on an interval of negative lsb ; elsewhere an interval holding zero holds both zeros. A
+    // literal zero (zero = +1 or -1) holds its own zero only
+    static void zerosOf(const interval& i, int zero, bool& neg, bool& pos)
+    {
+        if (zero != 0) {
+            neg = (zero < 0);
+            pos = (zero > 0);
+            return;
+        }
+        if (i.isEmpty()) {
+            neg = pos = true;
+            return;
+        }
+        if (!itv::detail::usesNativeBounds() || i.lsb() >= 0) {
+            neg = pos = i.hasZero();
+            return;
+        }
+        neg = itv::leTotal(i.lo(), -0.0) && itv::leTotal(-0.0, i.hi());
+        pos = itv::leTotal(i.lo(), 0.0) && itv::leTotal(0.0, i.hi());
+    }
+
     static MinMaxForm minMaxForm(bool isMax, ConstTypes types, int zero0, int zero1, bool& swap)
     {
         const interval a  = types[0]->getInterval();
@@ -88,24 +114,25 @@ class xtendedCodegen : public xtended {
         if (na && nb) {
             return kMinMaxFull;
         }
-        const bool tie = (a.isEmpty() || a.hasZero()) && (b.isEmpty() || b.hasZero());
-        if (!tie) {
+        bool negA, posA, negB, posB;
+        zerosOf(a, zero0, negA, posA);
+        zerosOf(b, zero1, negB, posB);
+        // no tie between zeros of different signs : every form has the value
+        if (!(negA && posB) && !(posA && negB)) {
             return kMinMaxFree;
         }
-        // the comparison gives its first operand on a tie of zeros : it is exact when that
-        // operand is the result, the literal zero that wins (+0 of a max, -0 of a min) first,
-        // or the literal zero that loses second (max(x, -0) = min(x, +0) = x for x = +-0)
-        const int  wins   = isMax ? 1 : -1;
-        const int  first  = swap ? zero1 : zero0;
-        const int  second = swap ? zero0 : zero1;
-        const bool nfirst = swap ? nb : na;  // false : first is not NaN
-        const bool nsec   = swap ? na : nb;
-        if (first == wins || (second == -wins && !nfirst)) {
+        // the comparison gives its first operand p on a tie and against a NaN : exact when p is
+        // not NaN and is not the losing zero of a tie, -0 of a max against a +0, +0 of a min
+        // against a -0 (LES-NAN-DU-MAX-ET-DU-MIN, « Le signe des zéros lu dans les intervalles »)
+        auto exactFirst = [isMax](bool negP, bool posP, bool negQ, bool posQ) {
+            return isMax ? !(negP && posQ) : !(posP && negQ);
+        };
+        if (!na && exactFirst(negA, posA, negB, posB)) {
+            swap = false;
             return kMinMaxCompare;
         }
-        if (second == wins || (first == -wins && !nsec)) {
-            // the other order : the winning literal first, or the losing one second
-            swap = !swap;
+        if (!nb && exactFirst(negB, posB, negA, posA)) {
+            swap = true;
             return kMinMaxCompare;
         }
         return kMinMaxFull;
