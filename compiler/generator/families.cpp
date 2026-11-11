@@ -18,6 +18,7 @@
 #include <functional>
 #include <iostream>
 #include <map>
+#include <set>
 #include <sstream>
 #include <unordered_set>
 
@@ -155,7 +156,7 @@ struct FamShapes {
     {
         int  i;
         Tree id, body, x, y;
-        if (isSigInt(t, &i)) {
+        if (isSigInt(t, &i) && t->getType() == nullptr) {
             return make("I" + std::to_string(i), 1, std::to_string(i), {});
         }
         if (t->getType() == nullptr && t->arity() == 0 && isNum(t)) {
@@ -192,6 +193,12 @@ struct FamShapes {
         }
         if (isSigDelay(t, x, y) && isZero(y)) {
             return holes.count(x) ? AUDIO : shapeOf(x);  // a delay of zero is its signal
+        }
+        if (isSigDelay(t, x, y) && isSigInt(y, &i) && i != 0) {
+            // the amount of a delay is structural ; an integer elsewhere is a coefficient
+            Shape sx = holes.count(x) ? AUDIO : shapeOf(x);
+            return make("DELAY" + std::to_string(i) + "(" + std::to_string(sx) + ")", 1 + size(sx),
+                        "@" + std::to_string(i), {sx});
         }
         std::vector<Shape> br;
         for (int k = 0; k < t->arity(); k++) {
@@ -574,10 +581,14 @@ bool famCheckNode(Tree t, const TreeSet& slots, const TreeSet& commons, TreeSet&
     Tree a, b;
     if (isSigBinOp(t, &op, a, b)) {
         // the real arithmetic, spelled as the operator itself, and the comparison of two reals
-        // (exact : its 0 or 1 is held exactly by a real local)
+        // or of two integers (exact : its 0 or 1 is held exactly by a real local)
+        auto       isInt   = [](Tree u) {
+            AudioType* ty = (AudioType*)u->getType();
+            return ty != nullptr && ty->nature() == kInt;
+        };
         const bool arith   = famReal(t) && (op == kAdd || op == kSub || op == kMul || op == kDiv);
         const bool compare = (op == kGT || op == kLT || op == kGE || op == kLE || op == kEQ || op == kNE) &&
-                             famReal(a) && famReal(b);
+                             ((famReal(a) && famReal(b)) || (isInt(a) && isInt(b)));
         return (arith || compare) && famCheck(a, slots, commons, seen) && famCheck(b, slots, commons, seen);
     }
     if (isSigNeg(t, a)) {
@@ -659,9 +670,46 @@ int famStates(const TreeSet& priv, int members)
     return n / std::max(1, members);
 }
 
+/// whether t reads the group g at the current step : a projection of g read otherwise than
+/// through a constant delay of 1 or more, or than as the source of a FIR whose tap of delay 0
+/// is zero ; a projection of another group reads what its group reads
+bool readsNow(Tree t, Tree g, TreeSet& seen)
+{
+    if (!seen.insert(t).second) {
+        return false;
+    }
+    int  i, d;
+    Tree h, x, y, id, body;
+    tvec V;
+    if (isProj(t, &i, h)) {
+        return h == g || readsNow(h, g, seen);
+    }
+    if (isRec(t, id, body)) {
+        return body != nullptr && readsNow(body, g, seen);
+    }
+    if (isSigDelay(t, x, y) && isSigInt(y, &d) && d >= 1 && isProj(x, &i, h) && h == g) {
+        return false;
+    }
+    if (isSigFIR(t, V) && isProj(V[0], &i, h) && h == g && isZero(V[1])) {
+        for (size_t k = 2; k < V.size(); k++) {
+            if (readsNow(V[k], g, seen)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    for (int k = 0; k < t->arity(); k++) {
+        if (readsNow(t->branch(k), g, seen)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 class Planner {
-    std::map<Tree, TreeSet, treeorder> fParents;  // node -> the nodes that read it
-    std::unordered_set<Tree>           fCone;     // the cone of the memory decisions
+    std::map<Tree, TreeSet, treeorder>               fParents;  // node -> the nodes that read it
+    std::unordered_set<Tree>                         fCone;     // the cone of the memory decisions
+    std::map<Tree, std::pair<Tree, int>, treeorder>  fDefCell;  // a cell of a group's definitions -> (group, index)
 
    public:
     explicit Planner(Tree L) : fCone(decisionCone(L, /*discontinuities*/ false))
@@ -677,6 +725,10 @@ class Planner {
             Tree id, body;
             if (isRec(t, id, body) && body) {
                 fParents[body].insert(t);
+                int j = 0;
+                for (Tree l = body; isList(l); l = tl(l), j++) {
+                    fDefCell.emplace(l, std::make_pair(t, j));
+                }
                 st.push_back(body);
                 continue;
             }
@@ -687,9 +739,12 @@ class Planner {
         }
     }
 
-    /// every private node is read by private nodes or hosts only ; otherwise why says which
-    bool privateOnly(const TreeSet& priv, const TreeSet& hosts, std::string& why) const
+    /// every private node is read by private nodes or hosts only ; otherwise why says which.
+    /// In an automaton (group), a private node without state of its own may be read outside :
+    /// its reader computes it again from the automaton's arrays
+    bool privateOnly(const TreeSet& priv, const TreeSet& hosts, std::string& why, Tree group = nullptr) const
     {
+        std::map<Tree, bool, treeorder> memo;
         for (Tree n : priv) {
             auto it = fParents.find(n);
             if (it == fParents.end()) {
@@ -697,6 +752,9 @@ class Planner {
             }
             for (Tree p : it->second) {
                 if (!hosts.count(p) && !priv.count(p)) {
+                    if (group != nullptr && stateless(n, group, priv, memo)) {
+                        continue;
+                    }
                     std::ostringstream os;
                     os << "a node of a member is read elsewhere (" << n->node() << "/" << n->arity() << " read by "
                        << (isList(p) ? "a list cell " : "") << p->node() << "/" << p->arity() << ")";
@@ -722,9 +780,139 @@ class Planner {
         return true;
     }
 
+    /// a private node with no state of its own : no group, no filter, no delay line but the
+    /// automaton's (a constant delay of a projection of the group, a FIR on one) ; the nodes
+    /// it reads outside the member are computed by the schedule
+    static bool stateless(Tree t, Tree group, const TreeSet& priv, std::map<Tree, bool, treeorder>& memo)
+    {
+        if (!priv.count(t)) {
+            return true;
+        }
+        if (auto it = memo.find(t); it != memo.end()) {
+            return it->second;
+        }
+        bool r = true;
+        int  i, d;
+        Tree h, x, y, id, body;
+        tvec V;
+        if (isProj(t, &i, h)) {
+            r = (h == group);
+        } else if (isRec(t, id, body) || isSigIIR(t, V)) {
+            r = false;
+        } else if (isSigDelay(t, x, y)) {
+            r = isSigInt(y, &d) && ((isProj(x, &i, h) && h == group) || d == 0) && stateless(x, group, priv, memo);
+        } else if (isSigFIR(t, V)) {
+            r = (V.size() == 2 || (isProj(V[0], &i, h) && h == group));
+            for (size_t k = 0; r && k < V.size(); k++) {
+                r = stateless(V[k], group, priv, memo);
+            }
+        } else {
+            for (int k = 0; r && k < t->arity(); k++) {
+                r = stateless(t->branch(k), group, priv, memo);
+            }
+        }
+        return memo[t] = r;
+    }
+
+    /// The members aligned on a template : the first member, unless a leaf it shares between
+    /// two positions is not shared by the others ; another template is tried only after such
+    /// a collision, never after a shape mismatch. Fills the template, the slots, the commons
+    /// and the private nodes of plan.
+    bool align(const std::vector<Tree>& nodes, FamilyPlan& plan, std::string& why, FamShapes& S) const
+    {
+        std::vector<FamIso> isos(nodes.size());
+        size_t              tj    = 0;
+        bool                found = false;
+        for (bool retry = true; tj < nodes.size() && retry && !found; tj += found ? 0 : 1) {
+            Tree t0    = nodes[tj];
+            bool first = true, ok = true;
+            retry      = false;
+            for (size_t m = 0; m < nodes.size() && ok; m++) {
+                if (m == tj) {
+                    continue;
+                }
+                isos[m]        = FamIso();
+                isos[m].holes  = &S.holes;
+                isos[m].shapes = &S;
+                isos[m].topA   = t0;
+                isos[m].topB   = nodes[m];
+                if (!isos[m].iso(t0, nodes[m])) {
+                    why   = isos[m].collided ? "a leaf the template shares is not shared by a member"
+                                             : "a member is not isomorphic to the template";
+                    ok    = false;
+                    retry = isos[m].collided;
+                } else if (first) {
+                    plan.leaves  = isos[m].slotA;
+                    plan.aleaves = isos[m].aslotA;
+                    plan.commons = isos[m].commonA;
+                    plan.priv    = isos[m].privA;
+                    first        = false;
+                } else if (isos[m].slotA != plan.leaves || isos[m].aslotA != plan.aleaves ||
+                           isos[m].commonA != plan.commons) {
+                    why = "the members do not line up on the same slots and commons";
+                    ok  = false;
+                }
+            }
+            if (ok) {
+                found = true;
+                continue;
+            }
+            plan.leaves.clear();
+            plan.aleaves.clear();
+            plan.commons.clear();
+            plan.priv.clear();
+        }
+        if (!found) {
+            return false;
+        }
+        plan.tmpl = nodes[tj];
+        for (size_t m = 0; m < nodes.size(); m++) {
+            if (m != tj) {
+                plan.priv.insert(isos[m].privB.begin(), isos[m].privB.end());
+            }
+        }
+        if (plan.leaves.empty() && plan.aleaves.empty()) {
+            why = "the members differ by nothing";
+            return false;
+        }
+        plan.members = nodes;
+        for (size_t m = 0; m < nodes.size(); m++) {
+            plan.slots.push_back(m == tj ? plan.leaves : isos[m].slotB);
+            plan.aslots.push_back(m == tj ? plan.aleaves : isos[m].aslotB);
+        }
+        return true;
+    }
+
+    /// what the loop can write, the cone of the decisions, and the private nodes read only
+    /// inside the family
+    bool checkPlan(FamilyPlan& plan, const TreeSet& hostSet, std::string& why, Tree group) const
+    {
+        for (Tree t : plan.priv) {
+            if (fCone.count(t)) {
+                why = "a node of a member reaches a memory decision";
+                return false;
+            }
+        }
+        if (!privateOnly(plan.priv, hostSet, why, group)) {
+            return false;
+        }
+        TreeSet slotSet(plan.leaves.begin(), plan.leaves.end()), seen, com = plan.commons;
+        com.insert(plan.aleaves.begin(), plan.aleaves.end());
+        famCulprit = nullptr;
+        if (!famCheck(plan.tmpl, slotSet, com, seen)) {
+            std::ostringstream os;
+            os << "the template holds a node the family loop cannot generate (" << famCulprit->node() << "/"
+               << famCulprit->arity() << (famReal(famCulprit) ? "" : ", not real") << ")";
+            why = os.str();
+            return false;
+        }
+        return true;
+    }
+
     /// A shape class as a family : the members aligned on a template, their hosts the sums
-    /// they feed, the members grouped by host
-    bool planClass(const std::vector<Tree>& cls, FamilyPlan& plan, std::string& why, FamShapes& S) const
+    /// they feed, the members grouped by host ; or, when the members are definitions of one
+    /// recursive group, an automaton
+    bool planClass(const std::vector<Tree>& cls, FamilyPlan& plan, std::string& why, FamShapes& S, Tree root) const
     {
         // a delay of zero has the shape of its signal : the member is the delay, the node a
         // sum reads, and the signal under it a node of the member
@@ -746,6 +934,9 @@ class Planner {
         if (nodes0.size() < 4) {
             why = "fewer than 4 members";
             return false;
+        }
+        if (Tree group = automatonGroup(nodes0); group != nullptr) {
+            return planAutomaton(nodes0, group, plan, why, S, root);
         }
         std::map<Tree, int, treeorder> hostIndex;
         std::vector<Tree>              hosts;
@@ -807,91 +998,13 @@ class Planner {
             why = "not real";
             return false;
         }
-        // every member against the template : the first member, unless a leaf it shares
-        // between two positions is not shared by the others ; another template is tried
-        // only after such a collision, never after a shape mismatch
-        std::vector<FamIso> isos(nodes.size());
-        TreeSet             hostSet(hosts.begin(), hosts.end());
-        plan        = FamilyPlan();
-        size_t tj   = 0;
-        bool  found = false;
-        for (bool retry = true; tj < nodes.size() && retry && !found; tj += found ? 0 : 1) {
-            Tree t0    = nodes[tj];
-            bool first = true, ok = true;
-            retry      = false;
-            for (size_t m = 0; m < nodes.size() && ok; m++) {
-                if (m == tj) {
-                    continue;
-                }
-                isos[m]        = FamIso();
-                isos[m].holes  = &S.holes;
-                isos[m].shapes = &S;
-                isos[m].topA   = t0;
-                isos[m].topB   = nodes[m];
-                if (!isos[m].iso(t0, nodes[m])) {
-                    why   = isos[m].collided ? "a leaf the template shares is not shared by a member"
-                                             : "a member is not isomorphic to the template";
-                    ok    = false;
-                    retry = isos[m].collided;
-                } else if (first) {
-                    plan.leaves  = isos[m].slotA;
-                    plan.aleaves = isos[m].aslotA;
-                    plan.commons = isos[m].commonA;
-                    plan.priv    = isos[m].privA;
-                    first        = false;
-                } else if (isos[m].slotA != plan.leaves || isos[m].aslotA != plan.aleaves ||
-                           isos[m].commonA != plan.commons) {
-                    why = "the members do not line up on the same slots and commons";
-                    ok  = false;
-                }
-            }
-            if (ok) {
-                found = true;
-                continue;
-            }
-            plan.leaves.clear();
-            plan.aleaves.clear();
-            plan.commons.clear();
-            plan.priv.clear();
-        }
-        if (!found) {
+        plan = FamilyPlan();
+        if (!align(nodes, plan, why, S)) {
             return false;
         }
-        plan.tmpl = nodes[tj];
-        for (size_t m = 0; m < nodes.size(); m++) {
-            if (m != tj) {
-                plan.priv.insert(isos[m].privB.begin(), isos[m].privB.end());
-            }
-        }
-        if (plan.leaves.empty() && plan.aleaves.empty()) {
-            why = "the members differ by nothing";
+        TreeSet hostSet(hosts.begin(), hosts.end());
+        if (!checkPlan(plan, hostSet, why, nullptr)) {
             return false;
-        }
-        for (Tree t : plan.priv) {
-            if (fCone.count(t)) {
-                why = "a node of a member reaches a memory decision";
-                return false;
-            }
-        }
-        if (!privateOnly(plan.priv, hostSet, why)) {
-            return false;
-        }
-        {
-            TreeSet slotSet(plan.leaves.begin(), plan.leaves.end()), seen, com = plan.commons;
-            com.insert(plan.aleaves.begin(), plan.aleaves.end());
-            famCulprit = nullptr;
-            if (!famCheck(plan.tmpl, slotSet, com, seen)) {
-                std::ostringstream os;
-                os << "the template holds a node the family loop cannot generate (" << famCulprit->node() << "/"
-                   << famCulprit->arity() << (famReal(famCulprit) ? "" : ", not real") << ")";
-                why = os.str();
-                return false;
-            }
-        }
-        plan.members = nodes;
-        for (size_t m = 0; m < nodes.size(); m++) {
-            plan.slots.push_back(m == tj ? plan.leaves : isos[m].slotB);
-            plan.aslots.push_back(m == tj ? plan.aleaves : isos[m].aslotB);
         }
         // a member fed, through an audio slot, by another member of the class : the loop
         // reads its input arrays before its first iteration
@@ -927,6 +1040,161 @@ class Planner {
         plan.memberHost = mh;
         return true;
     }
+
+    /// the group whose definitions the members all are, each read by its cell of the list of
+    /// definitions only ; nullptr otherwise
+    Tree automatonGroup(const std::vector<Tree>& nodes) const
+    {
+        Tree group = nullptr;
+        for (Tree m : nodes) {
+            auto it = fParents.find(m);
+            if (it == fParents.end() || it->second.size() != 1) {
+                return nullptr;
+            }
+            Tree l  = *it->second.begin();
+            auto dc = fDefCell.find(l);
+            if (dc == fDefCell.end() || hd(l) != m || (group != nullptr && dc->second.first != group)) {
+                return nullptr;
+            }
+            group = dc->second.first;
+        }
+        return group;
+    }
+
+    /// The automaton : the members are contiguous definitions of the group, its cells ; each
+    /// audio slot reads, in every cell, the projection at the same offset from the cell, or no
+    /// projection of the group ; no definition reads the group at the current step
+    bool planAutomaton(const std::vector<Tree>& nodes0, Tree group, FamilyPlan& plan, std::string& why, FamShapes& S,
+                       Tree root) const
+    {
+        Tree W, defs;
+        isRec(group, W, defs);
+        std::vector<std::pair<int, Tree>> cells;
+        TreeSet                           listCells;
+        for (Tree m : nodes0) {
+            Tree l = *fParents.at(m).begin();
+            cells.push_back({fDefCell.at(l).second, m});
+            listCells.insert(l);
+        }
+        std::sort(cells.begin(), cells.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+        const int N = len(defs), P = int(cells.size());
+        for (int c = 1; c < P; c++) {
+            if (cells[c].first != cells[0].first + c) {
+                why = "an automaton whose cells are not contiguous definitions";
+                return false;
+            }
+        }
+        if (2 * P < N) {
+            why = "an automaton whose cells are fewer than half of the group's definitions";
+            return false;
+        }
+        std::vector<Tree> nodes;
+        for (auto& c : cells) {
+            nodes.push_back(c.second);
+        }
+        for (Tree l = defs; isList(l); l = tl(l)) {
+            if (!famReal(hd(l))) {
+                why = "a definition of the automaton's group is not real";  // its arrays are real
+                return false;
+            }
+        }
+        for (Tree m : nodes) {
+            if (fCone.count(m)) {
+                why = "a member reaches a memory decision";
+                return false;
+            }
+        }
+        plan = FamilyPlan();
+        if (!align(nodes, plan, why, S)) {
+            return false;
+        }
+        const int base = cells[0].first;
+        // the neighbourhood : per audio slot, the projection at a constant offset from the cell
+        for (size_t k = 0; k < plan.aleaves.size(); k++) {
+            int  off = INT_MIN, i;
+            bool any = false, all = true;
+            for (int c = 0; c < P; c++) {
+                Tree h;
+                if (isProj(plan.aslots[c][k], &i, h) && h == group) {
+                    any = true;
+                    if (c == 0) {
+                        off = i - base;
+                    } else if (i - (base + c) != off) {
+                        why = "an automaton whose neighbourhood is not at a constant offset";
+                        return false;
+                    }
+                } else {
+                    all = false;
+                }
+            }
+            if (any && !all) {
+                why = "an audio slot of the automaton reads the group in some cells only";
+                return false;
+            }
+            plan.neighbour.push_back(any ? off : INT_MIN);
+        }
+        // the generations : every definition reads the group in the past only, and so do the
+        // audio slots computed before the loop and the commons
+        {
+            TreeSet seen;
+            for (Tree l = defs; isList(l); l = tl(l)) {
+                if (readsNow(hd(l), group, seen)) {
+                    why = "a definition of the automaton's group reads the group at the current step";
+                    return false;
+                }
+            }
+            for (size_t k = 0; k < plan.aleaves.size(); k++) {
+                for (int c = 0; c < P && plan.neighbour[k] == INT_MIN; c++) {
+                    if (readsNow(plan.aslots[c][k], group, seen)) {
+                        why = "an input of the automaton reads the group at the current step";
+                        return false;
+                    }
+                }
+            }
+        }
+        // the readers of the group, everywhere : a delay of a projection is a constant
+        {
+            TreeSet           seen;
+            std::vector<Tree> st{root};
+            while (!st.empty()) {
+                Tree t = st.back();
+                st.pop_back();
+                if (!seen.insert(t).second) {
+                    continue;
+                }
+                Tree x, y, h, id, body;
+                int  i, d;
+                if (isSigDelay(t, x, y) && isProj(x, &i, h) && h == group) {
+                    if (!isSigInt(y, &d)) {
+                        why = "a projection of the automaton's group read at a variable delay";
+                        return false;
+                    }
+                    plan.depth = std::max(plan.depth, d);
+                }
+                tvec V;
+                if (isSigFIR(t, V) && isProj(V[0], &i, h) && h == group) {
+                    plan.depth = std::max(plan.depth, int(V.size()) - 2);
+                }
+                if (isRec(t, id, body)) {
+                    if (body) {
+                        st.push_back(body);
+                    }
+                    continue;
+                }
+                for (int k = 0; k < t->arity(); k++) {
+                    st.push_back(t->branch(k));
+                }
+            }
+        }
+        if (!checkPlan(plan, listCells, why, group)) {
+            return false;
+        }
+        plan.group = group;
+        plan.base  = base;
+        plan.size  = N;
+        plan.memberHost.assign(P, 0);
+        return true;
+    }
 };
 
 }  // namespace
@@ -955,11 +1223,12 @@ std::vector<FamilyPlan> findFamilies(Tree L)
         FamilyPlan plan;
         int        coverage;
     };
-    std::vector<Cand> cands;
+    std::vector<Cand>       cands;
+    std::vector<FamilyPlan> stateless;  // the families without a state of their own
     for (auto& kv : classes) {
         FamilyPlan  plan;
         std::string why;
-        if (!planner.planClass(kv.second, plan, why, S)) {
+        if (!planner.planClass(kv.second, plan, why, S, L)) {
             if (trace) {
                 std::cerr << "fam refused : class of " << kv.second.size() << " (" << S.size(kv.first)
                           << " nodes) : " << why << std::endl;
@@ -972,12 +1241,11 @@ std::vector<FamilyPlan> findFamilies(Tree L)
             continue;
         }
         // every member must carry a state : a family without one is per-sample arithmetic,
-        // which the C++ compiler already packs as straight-line code
+        // which the C++ compiler already packs as straight-line code, unless it reads the
+        // cells of an automaton (below) ; an automaton's state is its group
         const int P = int(plan.members.size());
-        if (famStates(plan.priv, P) < 1) {
-            if (trace) {
-                std::cerr << "fam refused : family of " << P << " : no state per member" << std::endl;
-            }
+        if (plan.group == nullptr && famStates(plan.priv, P) < 1) {
+            stateless.push_back(plan);
             continue;
         }
         int coverage = famWork(plan.priv, 1);
@@ -1037,10 +1305,115 @@ std::vector<FamilyPlan> findFamilies(Tree L)
         covered.insert(plan.priv.begin(), plan.priv.end());
         covered.insert(plan.hosts.begin(), plan.hosts.end());
         if (trace) {
-            std::cerr << "fam planned : " << plan.members.size() << " members, " << plan.hosts.size() << " host(s), "
-                      << plan.leaves.size() << " slots, " << plan.aleaves.size() << " audio slots, "
+            std::cerr << "fam planned : " << plan.members.size() << " members, "
+                      << (plan.group ? "an automaton over " + std::to_string(plan.size) + " definitions, depth " +
+                                           std::to_string(plan.depth)
+                                     : std::to_string(plan.hosts.size()) + " host(s)")
+                      << ", " << plan.leaves.size() << " slots, " << plan.aleaves.size() << " audio slots, "
                       << plan.commons.size() << " commons, " << plan.priv.size() << " private nodes, "
                       << cands[i].coverage << " operations" << std::endl;
+        }
+        out.push_back(plan);
+    }
+    // a family without state whose members each read, at the current step, a cell of an
+    // accepted automaton : accumulated in the automaton's loop
+    const size_t automata = out.size();
+    for (FamilyPlan& plan : stateless) {
+        const int P     = int(plan.members.size());
+        bool      fused = false;
+        for (size_t a = 0; a < automata && !fused; a++) {
+            const Tree group = out[a].group;
+            if (group == nullptr) {
+                continue;
+            }
+            for (size_t s = 0; s < plan.aleaves.size() && !fused; s++) {
+                std::vector<int> cell;
+                std::set<int>    distinct;
+                for (int m = 0; m < P; m++) {
+                    int  i;
+                    Tree h;
+                    if (isProj(plan.aslots[m][s], &i, h) && h == group && distinct.insert(i).second) {
+                        cell.push_back(i);
+                    }
+                }
+                if (int(cell.size()) != P) {
+                    continue;
+                }
+                // what the members read besides the cell is computed before the automaton
+                bool    ok = true;
+                TreeSet seen;
+                for (Tree t : plan.commons) {
+                    ok = ok && !readsNow(t, group, seen);
+                }
+                for (size_t k = 0; k < plan.aleaves.size(); k++) {
+                    for (int m = 0; k != s && m < P; m++) {
+                        ok = ok && !readsNow(plan.aslots[m][k], group, seen);
+                    }
+                }
+                for (Tree t : plan.priv) {
+                    ok = ok && !covered.count(t);
+                }
+                for (Tree h : plan.hosts) {
+                    ok = ok && !covered.count(h);
+                }
+                // one host, and a member for every cell of the loop : the members ordered by
+                // their cells, the loop's cells contiguous among them
+                std::set<int> cells(cell.begin(), cell.end());
+                for (int k = out[a].base; ok && k < out[a].base + int(out[a].members.size()); k++) {
+                    ok = cells.count(k) > 0;
+                }
+                if (!ok || plan.hosts.size() != 1) {
+                    continue;
+                }
+                {
+                    std::vector<int> order(P);
+                    for (int m = 0; m < P; m++) {
+                        order[m] = m;
+                    }
+                    std::sort(order.begin(), order.end(), [&](int x, int y) { return cell[x] < cell[y]; });
+                    FamilyPlan sorted = plan;
+                    for (int m = 0; m < P; m++) {
+                        sorted.members[m] = plan.members[order[m]];
+                        sorted.slots[m]   = plan.slots[order[m]];
+                        sorted.aslots[m]  = plan.aslots[order[m]];
+                    }
+                    std::vector<int> sortedCell(P);
+                    for (int m = 0; m < P; m++) {
+                        sortedCell[m] = cell[order[m]];
+                    }
+                    plan = sorted;
+                    cell = sortedCell;
+                }
+                plan.automaton = int(a);
+                plan.cellSlot  = int(s);
+                plan.cell      = cell;
+                for (size_t k = 0; k < plan.leaves.size(); k++) {
+                    int off = INT_MIN, v;
+                    for (int m = 0; m < P; m++) {
+                        if (!isSigInt(plan.slots[m][k], &v) || (m > 0 && v - cell[m] != off)) {
+                            off = INT_MIN;
+                            break;
+                        }
+                        off = v - cell[m];
+                    }
+                    plan.cellOffset.push_back(off);
+                }
+                fused = true;
+            }
+        }
+        if (!fused) {
+            if (trace) {
+                std::cerr << "fam refused : family of " << P << " : no state per member" << std::endl;
+            }
+            continue;
+        }
+        covered.insert(plan.priv.begin(), plan.priv.end());
+        covered.insert(plan.hosts.begin(), plan.hosts.end());
+        if (trace) {
+            std::cerr << "fam planned : " << P << " members, " << plan.hosts.size()
+                      << " host(s), in the loop of the automaton " << plan.automaton << ", " << plan.leaves.size()
+                      << " slots, " << plan.aleaves.size() << " audio slots, " << plan.commons.size() << " commons"
+                      << std::endl;
         }
         out.push_back(plan);
     }
@@ -1052,6 +1425,10 @@ TreeSet familyFrozenSet(Tree L, const std::vector<FamilyPlan>& families)
     TreeSet frozen;
     for (const FamilyPlan& f : families) {
         frozen.insert(f.hosts.begin(), f.hosts.end());
+        if (f.group != nullptr) {
+            // an automaton's cells are in its group's body : the whole group is frozen
+            frozen.insert(f.members.begin(), f.members.end());
+        }
     }
     // what a family reads from outside is frozen with it : the loop reads the node of the
     // tree, and a node the rewrites had rebuilt would be computed twice
