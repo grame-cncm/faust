@@ -174,16 +174,22 @@ class ScalarCompiler : public Compiler {
         bool                     emitted    = false;
         bool                     dismantled = false;
         std::vector<std::string> hostExpr;  ///< per host, the variable of its lanes' sum
+        std::vector<int>         fused;     ///< an automaton : the families accumulated in its loop
     };
     Tree                          fFamRoot = nullptr;  ///< every root the emitter compiles
     std::vector<Family>           fFamilies;
-    std::unordered_map<Tree, int> fFamHost;  ///< host sum -> its family
+    std::unordered_map<Tree, int> fFamHost;   ///< host sum -> its family
+    std::unordered_map<Tree, int> fFamGroup;  ///< an automaton's group -> its family
     std::unordered_set<Tree>      fFamPrivate;
     void                          planFamilies();
     void                          famScheduleEdges(digraph<Tree>& G);
     void                          checkFamilyOrder();
     void                          dismantleFamily(Family& f);
+    void                          famSetup(FamCtx& g, const Family& f);
+    void                          famTables(FamCtx& g);
     void                          emitFamily(Family& f);
+    void                          emitAutomaton(Family& f);
+    bool                          famAutoRead(Tree exp, const std::string& delayidx, std::string& out);
     std::string                   generateFamilySum(Tree sig);
     std::string                   famExpr(FamCtx& g, Tree t);
     std::string                   famHist(FamCtx& g, Tree x, int k);

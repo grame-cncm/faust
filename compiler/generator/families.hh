@@ -40,6 +40,21 @@ struct FamilyPlan {
     TreeSet                        priv;        ///< the nodes of the members, every member
     std::vector<Tree>              hosts;       ///< the sums that read the members
     std::vector<int>               memberHost;  ///< per member, the index of its host
+
+    // the automaton (section « Les automates ») : the members are the definitions base ..
+    // base + P - 1 of a recursive group, its cells ; the group is their host, hosts is empty
+    Tree             group = nullptr;  ///< the recursive group
+    int              base  = 0;        ///< the definition of the first cell
+    int              size  = 0;        ///< the number of definitions of the group
+    int              depth = 1;        ///< the deepest past sample the program reads of the group
+    std::vector<int> neighbour;        ///< per audio slot, the offset of the projection read, INT_MIN : no projection
+
+    // a sum whose members each read a cell of an automaton at the current step : accumulated
+    // in the automaton's loop
+    int              automaton = -1;  ///< the automaton, an index in the families found
+    int              cellSlot  = -1;  ///< the audio slot that holds the projection read
+    std::vector<int> cell;            ///< per member, the definition it reads
+    std::vector<int> cellOffset;      ///< per coefficient slot, value - cell when that is constant, INT_MIN otherwise
 };
 
 /// the sum families of L (a list of roots, typed), at most one family per node ; under

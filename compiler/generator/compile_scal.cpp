@@ -7374,6 +7374,9 @@ string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree ri)
  */
 string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
 {
+    if (std::string a; famAutoRead(sig, "0", a)) {
+        return a;  // -fam : a projection of an automaton's group, its current generation
+    }
     string pname, ctype;
     Tree   var, le;
 
@@ -7962,6 +7965,9 @@ void ScalarCompiler::emitAdjacentUpdates()
 
 string ScalarCompiler::generateDelayAccessRaw(Tree sig, Tree exp, const string& delayidx)
 {
+    if (std::string a; famAutoRead(exp, delayidx, a)) {
+        return a;  // -fam : a projection of an automaton's group, read in its arrays
+    }
     std::string ctype, pname;
     getTypedNames(getCertifiedSigType(sig), "Veeec", ctype, pname);
     string    vecname = ensureVectorNameProperty(pname, exp);
@@ -8258,6 +8264,11 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
 
 string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 {
+    if (int d; isSigInt(delay, &d)) {
+        if (std::string a; famAutoRead(exp, T(d), a)) {
+            return a;  // -fam : a projection of an automaton's group, read in its arrays
+        }
+    }
 #if OLDDELAY
     // cerr << "ScalarCompiler::generateDelayAccess sig = " << *sig << endl;
     // cerr << "ScalarCompiler::generateDelayAccess exp = " << *exp << endl;
