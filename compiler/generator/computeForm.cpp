@@ -150,6 +150,14 @@ void ComputeForm::lower(LaneOrder order, bool families)
         endTiming("families");
     }
     if (gGlobal->gShareSums) {
+        if (gGlobal->gSumLanes) {
+            // the nested sums gathered and their like terms merged first : the sharing
+            // reads flat rows (sumLanes.hh)
+            startTiming("gatherSums");
+            fProgram = gatherSums(fProgram, &memo);
+            composeImage(fImage, memo);
+            endTiming("gatherSums");
+        }
         // the sums of products factored, then the dense sums factored by coefficient and
         // their common sub-sums shared (-noshs)
         startTiming("factorSums");
