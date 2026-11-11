@@ -593,7 +593,7 @@ void global::reset()
     gNoCert               = false;
     gSumLanes             = true;
     gLateTaps             = true;
-    gFamilies             = false;
+    gFamilies             = true;
     gFamilySplit          = 24;
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
@@ -1808,6 +1808,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gFamilies = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-nofam", "--no-families")) {
+            gFamilies = false;
+            i += 1;
+
         } else if (isCmd(argv[i], "-fam-split", "--family-split") && (i + 1 < argc)) {
             gFamilySplit = std::max(0, std::atoi(argv[i + 1]));
             i += 2;
@@ -2899,9 +2903,9 @@ string global::printHelp()
             "default a real FIR adds its tap of delay 0 last, and an IIR its input)."
          << endl;
     sstr << tab
-         << "-fam        --families                  (ocpp) compute the families of identical "
-            "computations on different data, read by a sum, in one loop over arrays, their sum in "
-            "lanes."
+         << "-nofam      --no-families               (ocpp) keep the members of a family as scalar code "
+            "(by default the identical computations on different data read by a sum are computed in "
+            "one loop over arrays, their sum in lanes)."
          << endl;
     sstr << tab
          << "-fam-split <n> --family-split <n>       the loop of a family split in two (its terms, "
