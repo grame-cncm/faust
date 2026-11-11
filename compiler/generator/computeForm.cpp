@@ -133,7 +133,16 @@ void ComputeForm::lower(LaneOrder order, bool families)
         // frozen through them : a family split into partial sums, or sharing a sub-sum with
         // another member, would no longer be one
         startTiming("families");
-        const TreeSet nodes = familyFrozenSet(fProgram, findFamilies(fProgram));
+        std::vector<FamilyPlan> families;
+        {
+            std::unordered_map<Tree, Tree> flat;
+            Tree                           P = flattenFamilyHosts(fProgram, families, flat);
+            if (P != fProgram) {
+                fProgram = P;
+                composeImage(fImage, flat);
+            }
+        }
+        const TreeSet nodes = familyFrozenSet(fProgram, families);
         if (!nodes.empty()) {
             fProgram = freezeFamilies(fProgram, nodes, frozen, memo);
             composeImage(fImage, memo);

@@ -46,6 +46,12 @@ struct FamilyPlan {
 /// FAUST_FAM_TRACE the classes and their refusals on stderr
 std::vector<FamilyPlan> findFamilies(Tree L);
 
+/// L with every sum that hosts a family once flat written flat : a term that is a sum, or a
+/// product by exactly 1.0, read by nothing else, gives its own terms. Only the association of
+/// the host changes, as the family loop changes it. families : the families of the result ;
+/// image : every node rebuilt -> its rebuilt form
+Tree flattenFamilyHosts(Tree L, std::vector<FamilyPlan>& families, std::unordered_map<Tree, Tree>& image);
+
 /// the nodes a rewrite must leave as they are for the families to stay : the hosts, what the
 /// members read from outside (coefficients, audio slots, commons), and every recursive group
 /// that holds one of them, by all its projections
