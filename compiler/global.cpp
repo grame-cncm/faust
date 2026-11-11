@@ -599,7 +599,8 @@ void global::reset()
     gSumLanes             = true;
     gLateTaps             = true;
     gFamilies             = false;
-    gFamilyLanes          = 4;
+    gFamilySplit          = 32;
+    gFamilyLanes          = 0;
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
     gOneSample            = false;
@@ -1003,7 +1004,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
         dst << "-lt ";
     }
     if (gFamilies) {
-        dst << "-fam -fam-lanes " << gFamilyLanes << " ";
+        dst << "-fam -fam-split " << gFamilySplit << " -fam-lanes " << gFamilyLanes << " ";
     }
     if (gMathExceptions) {
         dst << "-me ";
@@ -1847,6 +1848,10 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-fam", "--families")) {
             gFamilies = true;
             i += 1;
+
+        } else if (isCmd(argv[i], "-fam-split", "--family-split") && (i + 1 < argc)) {
+            gFamilySplit = std::max(0, std::atoi(argv[i + 1]));
+            i += 2;
 
         } else if (isCmd(argv[i], "-fam-lanes", "--family-lanes") && (i + 1 < argc)) {
             gFamilyLanes = std::max(1, std::atoi(argv[i + 1]));
@@ -2944,7 +2949,12 @@ string global::printHelp()
             "lanes."
          << endl;
     sstr << tab
-         << "-fam-lanes <n> --family-lanes <n>       the lanes of a family's sum (default 4)."
+         << "-fam-split <n> --family-split <n>       the loop of a family split in two (its terms, "
+            "then their sum) from n nodes per member (default 32)."
+         << endl;
+    sstr << tab
+         << "-fam-lanes <n> --family-lanes <n>       the lanes of a family's sum (default 4 for a "
+            "family, a register of 256 bits for an automaton)."
          << endl;
     sstr << tab
          << "-noreprc    --no-reprc                  (Rust only) Don't force dsp struct layout to "
