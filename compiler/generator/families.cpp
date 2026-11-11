@@ -508,9 +508,22 @@ bool famReal(Tree t)
     return ty != nullptr && ty->nature() == kReal;
 }
 
+bool famCheckNode(Tree t, const TreeSet& slots, const TreeSet& commons, TreeSet& seen);
+
+Tree famCulprit = nullptr;  // the innermost node famCheck refused, for the trace
+
 /// what the loop can generate, decided when the family is planned : a family is planned
 /// only if its template is generable, since its private nodes then leave the schedule
 bool famCheck(Tree t, const TreeSet& slots, const TreeSet& commons, TreeSet& seen)
+{
+    const bool ok = famCheckNode(t, slots, commons, seen);
+    if (!ok && famCulprit == nullptr) {
+        famCulprit = t;
+    }
+    return ok;
+}
+
+bool famCheckNode(Tree t, const TreeSet& slots, const TreeSet& commons, TreeSet& seen)
 {
     if (slots.count(t) || commons.count(t) || !seen.insert(t).second) {
         return true;
@@ -560,9 +573,12 @@ bool famCheck(Tree t, const TreeSet& slots, const TreeSet& commons, TreeSet& see
     int  op;
     Tree a, b;
     if (isSigBinOp(t, &op, a, b)) {
-        // the real arithmetic, spelled as the operator itself
-        const bool arith = op == kAdd || op == kSub || op == kMul || op == kDiv;
-        return famReal(t) && arith && famCheck(a, slots, commons, seen) && famCheck(b, slots, commons, seen);
+        // the real arithmetic, spelled as the operator itself, and the comparison of two reals
+        // (exact : its 0 or 1 is held exactly by a real local)
+        const bool arith   = famReal(t) && (op == kAdd || op == kSub || op == kMul || op == kDiv);
+        const bool compare = (op == kGT || op == kLT || op == kGE || op == kLE || op == kEQ || op == kNE) &&
+                             famReal(a) && famReal(b);
+        return (arith || compare) && famCheck(a, slots, commons, seen) && famCheck(b, slots, commons, seen);
     }
     if (isSigNeg(t, a)) {
         return famReal(t) && famCheck(a, slots, commons, seen);
@@ -863,8 +879,12 @@ class Planner {
         {
             TreeSet slotSet(plan.leaves.begin(), plan.leaves.end()), seen, com = plan.commons;
             com.insert(plan.aleaves.begin(), plan.aleaves.end());
+            famCulprit = nullptr;
             if (!famCheck(plan.tmpl, slotSet, com, seen)) {
-                why = "the template holds a node the family loop cannot generate";
+                std::ostringstream os;
+                os << "the template holds a node the family loop cannot generate (" << famCulprit->node() << "/"
+                   << famCulprit->arity() << (famReal(famCulprit) ? "" : ", not real") << ")";
+                why = os.str();
                 return false;
             }
         }
@@ -1132,15 +1152,19 @@ TreeSet familyFrozenSet(Tree L, const std::vector<FamilyPlan>& families)
 
 namespace {
 
+using Rebuild = std::function<Tree(Tree)>;
+
 /// L with the nodes of sub replaced, outside the bodies of the groups : the nodes above a
-/// replaced one are rebuilt with the type of the node they rebuild
-Tree substituteOutsideGroups(Tree L, const std::function<Tree(Tree)>& sub, std::unordered_map<Tree, Tree>& image)
+/// replaced one are rebuilt with the type of the node they rebuild ; sub may rebuild the
+/// operands of its replacement
+Tree substituteOutsideGroups(Tree L, const std::function<Tree(Tree, const Rebuild&)>& sub,
+                             std::unordered_map<Tree, Tree>& image)
 {
-    std::function<Tree(Tree)> rebuild = [&](Tree t) -> Tree {
+    Rebuild rebuild = [&](Tree t) -> Tree {
         if (auto it = image.find(t); it != image.end()) {
             return it->second;
         }
-        Tree r = sub(t);
+        Tree r = sub(t, rebuild);
         Tree id, body;
         if (r == nullptr) {
             r = t;
@@ -1171,7 +1195,7 @@ Tree freezeFamilies(Tree L, const TreeSet& frozen, std::unordered_map<Tree, Tree
                     std::unordered_map<Tree, Tree>& image)
 {
     int  n   = 0;
-    auto sub = [&](Tree t) -> Tree {
+    auto sub = [&](Tree t, const Rebuild&) -> Tree {
         if (!frozen.count(t)) {
             return nullptr;
         }
@@ -1186,9 +1210,150 @@ Tree freezeFamilies(Tree L, const TreeSet& frozen, std::unordered_map<Tree, Tree
 
 Tree thawFamilies(Tree L, const std::unordered_map<Tree, Tree>& back, std::unordered_map<Tree, Tree>& image)
 {
-    auto sub = [&](Tree t) -> Tree {
+    auto sub = [&](Tree t, const Rebuild&) -> Tree {
         auto it = back.find(t);
         return it == back.end() ? nullptr : it->second;
     };
     return substituteOutsideGroups(L, sub, image);
+}
+
+namespace {
+
+/// the terms of a sum written flat : an operand that is a sum, or a product by exactly 1.0,
+/// read by nothing else, gives its own terms, recursively, and is absorbed ; the order is
+/// the order met
+void flatTerms(Tree t, const std::map<Tree, int, treeorder>& reads, tvec& terms, TreeSet& absorbed)
+{
+    auto single = [&](Tree x) {
+        auto it = reads.find(x);
+        return it != reads.end() && it->second == 1;
+    };
+    tvec ops;
+    isSigSum(t, ops);
+    for (Tree o : ops) {
+        tvec   fs;
+        double v;
+        Tree   x = o;
+        while (single(x) && isSigProd(x, fs) && fs.size() == 2) {
+            Tree y = (isSigReal(fs[0], &v) && v == 1.0) ? fs[1] : (isSigReal(fs[1], &v) && v == 1.0) ? fs[0] : nullptr;
+            if (y == nullptr) {
+                break;
+            }
+            absorbed.insert(x);
+            x = y;
+        }
+        if (single(x) && isSigSum(x)) {
+            absorbed.insert(x);
+            flatTerms(x, reads, terms, absorbed);
+        } else {
+            terms.push_back(x);
+        }
+    }
+}
+
+}  // namespace
+
+Tree flattenFamilyHosts(Tree L, std::vector<FamilyPlan>& families, std::unordered_map<Tree, Tree>& image)
+{
+    // the number of reads of every node (a node read twice by one parent counts twice), and
+    // the sums outside the groups whose flat form differs : the candidates
+    std::map<Tree, int, treeorder> reads;
+    TreeSet                        outside;
+    {
+        TreeSet           seen;
+        std::vector<Tree> st{L};
+        while (!st.empty()) {
+            Tree t = st.back();
+            st.pop_back();
+            if (!seen.insert(t).second) {
+                continue;
+            }
+            Tree id, body;
+            if (isRec(t, id, body)) {
+                if (body) {
+                    reads[body]++;
+                    st.push_back(body);
+                }
+                continue;
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                reads[t->branch(k)]++;
+                st.push_back(t->branch(k));
+            }
+        }
+        std::vector<Tree> st2{L};
+        while (!st2.empty()) {
+            Tree t = st2.back();
+            st2.pop_back();
+            Tree id, body;
+            if (!outside.insert(t).second || isRec(t, id, body)) {
+                continue;
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                st2.push_back(t->branch(k));
+            }
+        }
+    }
+    std::map<Tree, tvec, treeorder> flat;
+    TreeSet                         absorbed;  // the sub-sums and unit products of the candidates
+    for (Tree t : outside) {
+        tvec    terms;
+        TreeSet abs;
+        if (isSigSum(t) && t->getType() != nullptr) {
+            flatTerms(t, reads, terms, abs);
+            if (!abs.empty()) {
+                flat[t] = terms;
+                absorbed.insert(abs.begin(), abs.end());
+            }
+        }
+    }
+    // the candidates kept are the sums whose flat form hosts a family, to the fixpoint : a
+    // sum written flat that hosts none would only change its rounding
+    TreeSet keep;
+    for (auto& kv : flat) {
+        if (!absorbed.count(kv.first)) {
+            keep.insert(kv.first);
+        }
+    }
+    while (!keep.empty()) {
+        std::unordered_map<Tree, Tree> img;
+        auto                           sub = [&](Tree t, const Rebuild& rebuild) -> Tree {
+            if (!keep.count(t)) {
+                return nullptr;
+            }
+            tvec ops;
+            for (Tree o : flat.at(t)) {
+                Tree r = rebuild(o);
+                ops.push_back(r);
+            }
+            Tree s = sigSum(ops);
+            if (s->getType() == nullptr) {
+                setSigType(s, getSigType(t));
+            }
+            return s;
+        };
+        Tree                    Lk   = substituteOutsideGroups(L, sub, img);
+        std::vector<FamilyPlan> fams = findFamilies(Lk);
+        TreeSet                 hosts;
+        for (const FamilyPlan& f : fams) {
+            hosts.insert(f.hosts.begin(), f.hosts.end());
+        }
+        TreeSet next;
+        for (Tree t : keep) {
+            if (auto it = img.find(t); it != img.end() && hosts.count(it->second)) {
+                next.insert(t);
+            }
+        }
+        if (next == keep) {
+            if (famTrace()) {
+                std::cerr << "fam : " << keep.size() << " host(s) written flat" << std::endl;
+            }
+            families = fams;
+            image    = img;
+            return Lk;
+        }
+        keep = next;
+    }
+    families = findFamilies(L);
+    return L;
 }
