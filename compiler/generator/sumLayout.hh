@@ -21,6 +21,7 @@
 #include "global.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
+#include "sumLanes.hh"
 
 /**
  * The range of an Int32 value, for the decision to wrap an operation on it. Int32 add, sub
@@ -364,4 +365,158 @@ inline bool negativeCoefficient(Tree coef, Tree& magnitude)
     }
     magnitude = coef;
     return false;
+}
+
+/**
+ * negativeCoefficient for a coefficient whose node may differ between the instances of the
+ * code (a coefficient slot of a family, whose members may hold neg(2) and 3) : the sign is
+ * read only on a coefficient fixed for every instance (Ops::fixed).
+ */
+template <class Ops>
+bool filterNegative(Ops& ops, Tree coef, Tree& magnitude)
+{
+    if (ops.fixed(coef) && isSigNeg(coef, magnitude)) {
+        return true;
+    }
+    if (ops.fixed(coef) && isMinusOne(coef)) {
+        magnitude = nullptr;
+        return true;
+    }
+    magnitude = coef;
+    return false;
+}
+
+/**
+ * The layout of the filters, shared by every emitter of a FIR or an IIR : the two code
+ * generators, the lowering of -ls and the loop of a family. FIR[x, c1, c2, ...] adds
+ * ck * x@(k-1) ; IIR[X, C1, ..., Cn] is y = X + C1 * y@1 + ... + Cn * y@n.
+ * - In order : a FIR from its first tap to its last ; an IIR X, then its taps from y@1 to
+ *   y@n. A left chain, a null coefficient left out, a coefficient 1 no product, a negative
+ *   coefficient (negativeCoefficient) after the first term subtracted.
+ * - The late term last (3f.5, markLateTaps : a real filter outside the cone of the memory
+ *   decisions, lateTapsLast) : a FIR from its last tap to its first, the tap of delay 0,
+ *   computed in the sample, last ; an IIR its feedback taps from y@n to y@1, then X, or,
+ *   its FIR input fused (fusedFirInput, Ops::fusable), the delayed taps of the FIR, the
+ *   feedback taps, then the tap of delay 0 of the FIR. The early terms read delay lines,
+ *   ready from the start of the sample, and one operation waits for the late term ; y@1
+ *   last keeps the recurrence at two operations. The chain of the early terms takes the
+ *   sign of its first term (no negation), and the late term is written on the left of the
+ *   last addition : of two products, a C++ compiler contracts the left one into the FMA.
+ * - A real FIR whose first tap is negative and the second positive starts with the second
+ *   (-a + b and b - a are the same value, bit for bit) ; a first tap of coefficient -1 is a
+ *   negation, not a product by -1.
+ * A coefficient is read as zero, one, -1 or a negation only when Ops::fixed says its node is
+ * the same for every instance of the code. Every access is compiled before its coefficient,
+ * the terms in the order of the chain.
+ * Ops provides real (the nature of the filter), fixed(Tree), input() (X), self(int d)
+ * (y@d), tap(int d) (x@d of a FIR), firTap(int d) (the source of the fused FIR at d),
+ * fusable(Tree fir), coef(Tree c, bool negated) (c, negated : the magnitude of a subtracted
+ * coefficient), mul(V, V), add(V, V), sub(V, V), neg(V), negAdd(V, V) (-(a + b)) and zero().
+ */
+template <class V, class Ops>
+V emitFIR(Tree sig, const tvec& fir, Ops& ops)
+{
+    faustassert(fir.size() > 1);
+    std::vector<size_t> taps;
+    for (size_t i = 1; i < fir.size(); i++) {
+        if (!(ops.fixed(fir[i]) && isZero(fir[i]))) {
+            taps.push_back(i);
+        }
+    }
+    if (ops.real && lateTapsLast(sig)) {
+        std::reverse(taps.begin(), taps.end());
+    }
+    if (Tree m0, m1; ops.real && taps.size() >= 2 && filterNegative(ops, fir[taps[0]], m0) &&
+                     !filterNegative(ops, fir[taps[1]], m1)) {
+        std::swap(taps[0], taps[1]);
+    }
+    V    acc{};
+    bool first = true;
+    for (size_t i : taps) {
+        V          access = ops.tap(int(i) - 1);
+        Tree       m;
+        const bool sub = !first && filterNegative(ops, fir[i], m);
+        Tree       c   = sub ? m : fir[i];
+        V          term;
+        if (first && ops.real && ops.fixed(c) && isMinusOne(c)) {
+            term = ops.neg(access);
+        } else if (c != nullptr && !(ops.fixed(c) && isOne(c))) {
+            term = ops.mul(ops.coef(c, sub), access);
+        } else {
+            term = access;
+        }
+        acc   = first ? term : (sub ? ops.sub(acc, term) : ops.add(acc, term));
+        first = false;
+    }
+    return first ? ops.zero() : acc;
+}
+
+template <class V, class Ops>
+V emitIIR(Tree sig, const tvec& iir, Ops& ops)
+{
+    faustassert(iir.size() > 1);
+    // a tap : (subtracted, the product of its magnitude and its access)
+    auto product = [&](Tree coef, const V& access) -> std::pair<bool, V> {
+        Tree       m;
+        const bool sub = filterNegative(ops, coef, m);
+        if (m != nullptr && !(ops.fixed(m) && isOne(m))) {
+            return {sub, ops.mul(ops.coef(m, sub), access)};
+        }
+        return {sub, access};
+    };
+    if (ops.real && lateTapsLast(sig)) {
+        tvec       fir;
+        const bool fused = fusedFirInput(sig) && isSigFIR(iir[0], fir) && !(ops.fixed(fir[1]) && isZero(fir[1])) &&
+                           ops.fusable(iir[0]);
+        std::vector<std::pair<bool, V>> early;
+        std::pair<bool, V>              last;
+        if (fused) {
+            for (size_t i = fir.size() - 1; i >= 2; i--) {
+                if (!(ops.fixed(fir[i]) && isZero(fir[i]))) {
+                    V access = ops.firTap(int(i) - 1);
+                    early.push_back(product(fir[i], access));
+                }
+            }
+        } else {
+            last = {false, ops.input()};
+        }
+        for (size_t i = iir.size() - 1; i >= 1; i--) {
+            if (!(ops.fixed(iir[i]) && isZero(iir[i]))) {
+                V access = ops.self(int(i));
+                early.push_back(product(iir[i], access));
+            }
+        }
+        if (fused) {
+            V access = ops.firTap(0);
+            last     = product(fir[1], access);
+        }
+        if (early.empty()) {
+            return last.first ? ops.neg(last.second) : last.second;
+        }
+        const bool flip = early[0].first;
+        V          fb   = early[0].second;
+        for (size_t k = 1; k < early.size(); k++) {
+            fb = (early[k].first != flip) ? ops.sub(fb, early[k].second) : ops.add(fb, early[k].second);
+        }
+        if (!flip && !last.first) {
+            return ops.add(last.second, fb);  // the late term on the left
+        }
+        if (!flip) {
+            return ops.sub(fb, last.second);
+        }
+        if (!last.first) {
+            return ops.sub(last.second, fb);
+        }
+        return ops.negAdd(fb, last.second);
+    }
+    V acc = ops.input();
+    for (size_t i = 1; i < iir.size(); i++) {
+        if (ops.fixed(iir[i]) && isZero(iir[i])) {
+            continue;
+        }
+        V    access = ops.self(int(i));
+        auto t      = product(iir[i], access);
+        acc         = t.first ? ops.sub(acc, t.second) : ops.add(acc, t.second);
+    }
+    return acc;
 }

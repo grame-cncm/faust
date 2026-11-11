@@ -2822,84 +2822,33 @@ ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& iir)
         getTypedNames(getCertifiedSigType(sig), "IIR", ctype, vname);
         setVectorNameProperty(sig, vname);
     }
-    tvec       fir;
-    const bool late  = getCertifiedSigType(sig)->nature() == kReal && lateTapsLast(sig);
-    const bool fused = late && fusedFirInput(sig) && isSigFIR(iir[0], fir) && !isZero(fir[1]) &&
-                       fusableFirInput(iir[0]);
-    if (late) {
-        // 3f.5 : the terms that read delay lines first, the term computed in the sample
-        // last (sumLanes.hh) : the feedback taps from the last delay to y@1, then the input
-        // X ; or, the FIR input fused, its delayed taps, the feedback taps, then its tap of
-        // delay 0. The chain takes the sign of its first term : a first term subtracted
-        // makes it the sum of the opposites, subtracted (no negation, y@1 stays last)
-        std::vector<std::pair<bool, ValueInst*>> early;  // (subtracted, term)
-        auto product = [&](Tree coef, ValueInst* access) -> std::pair<bool, ValueInst*> {
-            Tree       m;
-            const bool sub  = negativeCoefficient(coef, m);
-            ValueInst* term = access;
-            if (m != nullptr && !isOne(m)) {
-                term = IB::genBinopInst(kMul, sub ? operandAtRate(m) : CS(m), access);
-            }
-            return {sub, term};
-        };
-        std::pair<bool, ValueInst*> last;
-        if (fused) {
-            for (size_t i = fir.size() - 1; i >= 2; i--) {
-                if (!isZero(fir[i])) {
-                    early.push_back(product(fir[i], generateTapAccess(fir[0], int(i) - 1)));
-                }
-            }
-        } else {
-            last = {false, CS(iir[0])};
+    // the layout of the filters (sumLayout.hh, emitIIR)
+    struct Ops {
+        InstructionsCompiler* fC;
+        const tvec&           fIIR;
+        const string&         fName;
+        int                   fMxd;
+        bool                  real;
+        bool       fixed(Tree) { return true; }
+        ValueInst* input() { return fC->CS(fIIR[0]); }
+        ValueInst* self(int d) { return fC->lineRead(fName, fMxd, d); }
+        ValueInst* tap(int) { faustassert(false); return nullptr; }
+        ValueInst* firTap(int d)
+        {
+            tvec fir;
+            isSigFIR(fIIR[0], fir);
+            return fC->generateTapAccess(fir[0], d);
         }
-        for (size_t i = iir.size() - 1; i >= 1; i--) {
-            if (!isZero(iir[i])) {
-                early.push_back(product(iir[i], lineRead(vname, mxd, int(i))));
-            }
-        }
-        if (fused) {
-            last = product(fir[1], generateTapAccess(fir[0], 0));
-        }
-        ValueInst* y;
-        if (early.empty()) {
-            y = last.first ? IB::genNeg(last.second, true) : last.second;
-        } else {
-            const bool flip = early[0].first;
-            ValueInst* fb   = early[0].second;
-            for (size_t k = 1; k < early.size(); k++) {
-                fb = IB::genBinopInst((early[k].first != flip) ? kSub : kAdd, fb, early[k].second);
-            }
-            if (!flip && !last.first) {
-                // the late term on the left : of two products, a C++ compiler contracts the
-                // left one into the FMA, x * b + fb (clang)
-                y = IB::genBinopInst(kAdd, last.second, fb);
-            } else if (!flip) {
-                y = IB::genBinopInst(kSub, fb, last.second);
-            } else if (!last.first) {
-                y = IB::genBinopInst(kSub, last.second, fb);
-            } else {
-                y = IB::genNeg(IB::genBinopInst(kAdd, fb, last.second), true);
-            }
-        }
-        return writeIIRLine(sig, y, ctype, vname, mxd);
-    }
-    ValueInst* acc = CS(iir[0]);
-    for (size_t i = 1; i < iir.size(); i++) {
-        if (isZero(iir[i])) {
-            continue;
-        }
-        ValueInst* access = lineRead(vname, mxd, int(i));
-        Tree       m;
-        const bool sub  = negativeCoefficient(iir[i], m);
-        Tree       c    = sub ? m : iir[i];
-        ValueInst* term = access;
-        if (c != nullptr && !isOne(c)) {
-            ValueInst* vc = sub ? operandAtRate(c) : CS(c);
-            term          = IB::genBinopInst(kMul, vc, access);
-        }
-        acc = IB::genBinopInst(sub ? kSub : kAdd, acc, term);
-    }
-    return writeIIRLine(sig, acc, ctype, vname, mxd);
+        bool       fusable(Tree f) { return fC->fusableFirInput(f); }
+        ValueInst* coef(Tree c, bool negated) { return negated ? fC->operandAtRate(c) : fC->CS(c); }
+        ValueInst* mul(ValueInst* a, ValueInst* b) { return IB::genBinopInst(kMul, a, b); }
+        ValueInst* add(ValueInst* a, ValueInst* b) { return IB::genBinopInst(kAdd, a, b); }
+        ValueInst* sub(ValueInst* a, ValueInst* b) { return IB::genBinopInst(kSub, a, b); }
+        ValueInst* neg(ValueInst* a) { return IB::genNeg(a, true); }
+        ValueInst* negAdd(ValueInst* a, ValueInst* b) { return IB::genNeg(IB::genBinopInst(kAdd, a, b), true); }
+        ValueInst* zero() { return IB::genRealNumInst(itfloat(), 0.0); }
+    } ops{this, iir, vname, mxd, getCertifiedSigType(sig)->nature() == kReal};
+    return writeIIRLine(sig, emitIIR<ValueInst*>(sig, iir, ops), ctype, vname, mxd);
 }
 
 /**
@@ -3099,44 +3048,30 @@ ValueInst* InstructionsCompiler::writeIIRLine(Tree sig, ValueInst* exp, BasicTyp
  */
 ValueInst* InstructionsCompiler::generateFIR(Tree sig, const tvec& fir)
 {
-    faustassert(fir.size() > 1);
-    Tree                x    = fir[0];
-    ValueInst*          acc  = nullptr;
-    const bool          real = getCertifiedSigType(sig)->nature() == kReal;
-    std::vector<size_t> taps;
-    for (size_t i = 1; i < fir.size(); i++) {
-        if (!isZero(fir[i])) {
-            taps.push_back(i);
+    // the layout of the filters (sumLayout.hh, emitFIR)
+    struct Ops {
+        InstructionsCompiler* fC;
+        Tree                  fX;
+        bool                  real;
+        bool       fixed(Tree) { return true; }
+        ValueInst* input() { faustassert(false); return nullptr; }
+        ValueInst* self(int) { faustassert(false); return nullptr; }
+        ValueInst* tap(int d) { return fC->generateTapAccess(fX, d); }
+        ValueInst* firTap(int) { faustassert(false); return nullptr; }
+        bool       fusable(Tree) { return false; }
+        ValueInst* coef(Tree c, bool negated) { return negated ? fC->operandAtRate(c) : fC->CS(c); }
+        ValueInst* mul(ValueInst* a, ValueInst* b) { return IB::genBinopInst(kMul, a, b); }
+        ValueInst* add(ValueInst* a, ValueInst* b) { return IB::genBinopInst(kAdd, a, b); }
+        ValueInst* sub(ValueInst* a, ValueInst* b) { return IB::genBinopInst(kSub, a, b); }
+        ValueInst* neg(ValueInst* a) { return IB::genNeg(a, true); }
+        ValueInst* negAdd(ValueInst* a, ValueInst* b) { return IB::genNeg(IB::genBinopInst(kAdd, a, b), true); }
+        ValueInst* zero()
+        {
+            return real ? static_cast<ValueInst*>(IB::genRealNumInst(itfloat(), 0.0))
+                        : static_cast<ValueInst*>(IB::genInt32NumInst(0));
         }
-    }
-    if (real && lateTapsLast(sig)) {
-        // 3f.5 : from the last delay to the first, the tap of delay 0, computed in the
-        // sample, added last (sumLanes.hh)
-        std::reverse(taps.begin(), taps.end());
-    }
-    if (Tree m0, m1; real && taps.size() >= 2 && negativeCoefficient(fir[taps[0]], m0) &&
-                     !negativeCoefficient(fir[taps[1]], m1)) {
-        std::swap(taps[0], taps[1]);
-    }
-    for (size_t i : taps) {
-        ValueInst* access = generateTapAccess(x, int(i) - 1);
-        // a negative coefficient after the first tap : the tap subtracted
-        Tree       m;
-        const bool sub  = acc && negativeCoefficient(fir[i], m);
-        Tree       c    = sub ? m : fir[i];
-        ValueInst* term = access;
-        if (!acc && real && isMinusOne(c)) {
-            term = IB::genNeg(access, true);
-        } else if (c != nullptr && !isOne(c)) {
-            ValueInst* vc = sub ? operandAtRate(c) : CS(c);
-            term          = IB::genBinopInst(kMul, vc, access);
-        }
-        acc = acc ? IB::genBinopInst(sub ? kSub : kAdd, acc, term) : term;
-    }
-    if (acc == nullptr) {
-        acc = (getCertifiedSigType(sig)->nature() == kInt) ? static_cast<ValueInst*>(IB::genInt32NumInst(0))
-                                                           : static_cast<ValueInst*>(IB::genRealNumInst(itfloat(), 0.0));
-    }
+    } ops{this, fir[0], getCertifiedSigType(sig)->nature() == kReal};
+    ValueInst* acc = emitFIR<ValueInst*>(sig, fir, ops);
     ValueInst* r = generateCacheCode(sig, acc);
     if (r != acc) {
         fStoredFirs.insert(sig);  // stored : an IIR reading it does not fuse it (fusableFirInput)
