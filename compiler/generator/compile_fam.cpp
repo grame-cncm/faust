@@ -427,52 +427,78 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
         g.usedASlots.insert(it->second);
         return g.val[t] = subst("fFam$0In$1[$2]", T(g.id), T(it->second), g.idx);
     }
+    // the layout of the filters (sumLayout.hh, emitFIR and emitIIR), the late term last as in
+    // the scalar code : the states in their arrays, a coefficient that differs between the
+    // members read in its table and never as 0, 1 or -1
+    struct Ops {
+        ScalarCompiler* fC;
+        FamCtx&         fG;
+        Tree            fNode;
+        bool            real = true;  // a family is real (famCheck)
+
+        bool fixed(Tree c)
+        {
+            auto it = fG.slotIndex.find(c);
+            return it == fG.slotIndex.end() || fG.uniform[it->second];
+        }
+        std::string input()
+        {
+            tvec V;
+            isSigIIR(fNode, V);
+            return fC->famExpr(fG, V[0]);
+        }
+        std::string self(int d)
+        {
+            const std::string key = fG.stateKey(fNode, 0);
+            fG.need[key]          = std::max(fG.need[key], d);
+            return subst("$0_$1[c]", key, T(d));
+        }
+        std::string tap(int d)
+        {
+            tvec V;
+            isSigFIR(fNode, V);
+            return fC->famHist(fG, V[0], d);
+        }
+        std::string firTap(int d)
+        {
+            tvec V, F;
+            isSigIIR(fNode, V);
+            isSigFIR(V[0], F);
+            return fC->famHist(fG, F[0], d);
+        }
+        // the FIR input read by its IIR alone in the template, and not computed yet
+        bool fusable(Tree fir) { return fG.uses[fir] <= 1 && !fG.val.count(fir); }
+        // a coefficient of the member (a slot, a node of its own), or the magnitude of a
+        // negation read on a fixed coefficient, computed outside the loop
+        std::string coef(Tree c, bool)
+        {
+            if (fG.plan->priv.count(c) || fG.slotIndex.count(c) || fG.aslotIndex.count(c)) {
+                return fC->famExpr(fG, c);
+            }
+            return fC->CS(c);
+        }
+        std::string mul(const std::string& a, const std::string& b) { return subst("($0 * $1)", a, b); }
+        std::string add(const std::string& a, const std::string& b) { return subst("($0 + $1)", a, b); }
+        std::string sub(const std::string& a, const std::string& b) { return subst("($0 - $1)", a, b); }
+        std::string neg(const std::string& a) { return subst("(-$0)", a); }
+        std::string negAdd(const std::string& a, const std::string& b) { return subst("(-($0 + $1))", a, b); }
+        std::string zero() { return "0"; }
+    };
     tvec V;
     if (isSigIIR(t, V)) {
-        // IIR[X, C1, ..., Cn] : y = X + C1.y' + ... + Cn.y@n
-        std::ostringstream oss;
-        oss << "(" << famExpr(g, V[0]);
-        for (size_t k = 1; k < V.size(); k++) {
-            auto sl = g.slotIndex.find(V[k]);
-            if (sl != g.slotIndex.end() && g.uniform[sl->second] && isZero(V[k])) {
-                continue;
-            }
-            const std::string key = g.stateKey(t, 0);
-            g.need[key]           = std::max(g.need[key], int(k));
-            const std::string c   = famExpr(g, V[k]);
-            oss << " + " << c << " * " << subst("$0_$1[c]", key, T(int(k)));
+        Ops               ops{this, g, t};
+        const std::string e = emitIIR<std::string>(t, V, ops);
+        if (g.failed) {
+            return "0";
         }
-        oss << ")";
         const std::string l = g.local();
-        g.body.push_back(subst("$0 $1 = $2;", g.ty, l, oss.str()));
+        g.body.push_back(subst("$0 $1 = $2;", g.ty, l, e));
         g.stateValue[g.stateKey(t, 0)] = l;
         return g.val[t] = l;
     }
     if (isSigFIR(t, V)) {
-        // FIR[X, c0, c1, ...] : c0.X + c1.X' + ...
-        std::ostringstream oss;
-        std::string        sep;
-        oss << "(";
-        for (size_t k = 1; k < V.size(); k++) {
-            auto       sl      = g.slotIndex.find(V[k]);
-            const bool uniform = sl != g.slotIndex.end() && g.uniform[sl->second];
-            if (uniform && isZero(V[k])) {
-                continue;
-            }
-            const std::string h = famHist(g, V[0], int(k) - 1);
-            if (uniform && isOne(V[k])) {
-                oss << sep << h;
-            } else {
-                const std::string c = famExpr(g, V[k]);
-                oss << sep << c << " * " << h;
-            }
-            sep = " + ";
-        }
-        if (sep.empty()) {
-            oss << "0";
-        }
-        oss << ")";
-        return keep(oss.str());
+        Ops ops{this, g, t};
+        return keep(emitFIR<std::string>(t, V, ops));
     }
     Tree x, y;
     int  d;
