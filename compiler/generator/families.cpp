@@ -32,6 +32,11 @@
 
 namespace {
 
+/// the fewest cells of an automaton : below, the loop over the cells and the rotation of its
+/// rows cost more than the scalar code (measured on 1dDampedWaveEquation : the automaton loses
+/// up to 30 cells and wins from 46, on x86 and on arm)
+const int kAutomatonMinCells = 40;
+
 bool famTrace()
 {
     static const bool trace = getenv("FAUST_FAM_TRACE") != nullptr;
@@ -1078,6 +1083,10 @@ class Planner {
         }
         std::sort(cells.begin(), cells.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
         const int N = len(defs), P = int(cells.size());
+        if (P < kAutomatonMinCells) {
+            why = "an automaton of fewer than " + std::to_string(kAutomatonMinCells) + " cells";
+            return false;
+        }
         for (int c = 1; c < P; c++) {
             if (cells[c].first != cells[0].first + c) {
                 why = "an automaton whose cells are not contiguous definitions";
