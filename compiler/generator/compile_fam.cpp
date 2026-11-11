@@ -67,6 +67,13 @@ struct ScalarCompiler::FamCtx {
     std::map<Tree, int, treeorder>                   sid;
     bool                                             failed = false;
     std::string                                      reason;
+    std::string                                      idx = "c";  // the member's index in the tables and arrays
+    // the automaton : its state arrays, and per audio slot the offset of the projection read
+    std::string                                      states;
+    std::vector<int>                                 neighbour;
+    // a family accumulated in an automaton's loop : the audio slot of the cell, its value
+    int                                              cellSlot = -1;
+    std::string                                      cellValue;
 
     std::string local() { return subst("fFam$0L$1", T(id), T(locals++)); }
     std::string stateKey(Tree node, int j)
@@ -88,11 +95,15 @@ void ScalarCompiler::planFamilies()
 {
     fFamilies.clear();
     fFamHost.clear();
+    fFamGroup.clear();
     fFamPrivate.clear();
     if (!gGlobal->gFamilies || gGlobal->gLoopSplit || fFamRoot == nullptr) {
         return;
     }
+    std::map<int, int> idOf;  // the index of a family found -> its family
+    int                index = -1;
     for (FamilyPlan& p : findFamilies(fFamRoot)) {
+        index++;
         bool conditional = false;
         for (Tree t : p.priv) {
             conditional = conditional || !getConditionCode(t).empty();
@@ -100,31 +111,73 @@ void ScalarCompiler::planFamilies()
         for (Tree h : p.hosts) {
             conditional = conditional || !getConditionCode(h).empty();
         }
+        if (Tree W, defs; p.group != nullptr && isRec(p.group, W, defs)) {
+            for (Tree l = defs; isList(l); l = tl(l)) {
+                conditional = conditional || !getConditionCode(hd(l)).empty();
+            }
+        }
         if (conditional) {
             if (famTrace()) {
                 std::cerr << "fam refused : family of " << p.members.size() << " : conditional" << std::endl;
             }
             continue;
         }
+        if (p.automaton >= 0) {
+            auto it = idOf.find(p.automaton);
+            if (it == idOf.end()) {
+                continue;  // its automaton was refused
+            }
+            p.automaton = it->second;
+        }
         Family f;
         f.plan = p;
         f.id   = int(fFamilies.size());
+        idOf[index] = f.id;
         for (Tree h : p.hosts) {
             fFamHost[h] = f.id;
+        }
+        if (p.group != nullptr) {
+            fFamGroup[p.group] = f.id;
+        }
+        if (p.automaton >= 0) {
+            fFamilies[p.automaton].fused.push_back(f.id);
         }
         fFamPrivate.insert(p.priv.begin(), p.priv.end());
         fFamilies.push_back(f);
     }
 }
 
-/// the audio nodes a family reads from outside : its commons and audio slots
-static TreeSet famInputs(const FamilyPlan& p)
+/// the audio nodes a family reads from outside : its commons and audio slots ; for an
+/// automaton or a family in its loop, not the projections of the automaton's group
+static TreeSet famInputs(const FamilyPlan& p, Tree group = nullptr)
 {
     TreeSet inputs(p.commons.begin(), p.commons.end());
     for (auto& v : p.aslots) {
-        inputs.insert(v.begin(), v.end());
+        for (Tree t : v) {
+            int  i;
+            Tree h;
+            if (group == nullptr || !(isProj(t, &i, h) && h == group)) {
+                inputs.insert(t);
+            }
+        }
     }
     return inputs;
+}
+
+/// the projections of a group among the nodes, in serial order
+template <typename Nodes>
+static std::vector<Tree> famProjections(const Nodes& nodes, Tree group)
+{
+    std::vector<Tree> r;
+    for (Tree t : nodes) {
+        int  i;
+        Tree h;
+        if (isProj(t, &i, h) && h == group) {
+            r.push_back(t);
+        }
+    }
+    std::sort(r.begin(), r.end(), [](Tree a, Tree b) { return a->serial() < b->serial(); });
+    return r;
 }
 
 void ScalarCompiler::famScheduleEdges(digraph<Tree>& G)
@@ -151,6 +204,34 @@ void ScalarCompiler::famScheduleEdges(digraph<Tree>& G)
         return false;
     };
     for (Family& f : fFamilies) {
+        if (f.plan.group != nullptr) {
+            // the automaton is emitted at the first read of its current generation : every
+            // projection of the group depends on every definition (none reads the group at
+            // the current step, the plan checked it) and on the inputs of the families in
+            // its loop
+            Tree W, defs;
+            isRec(f.plan.group, W, defs);
+            TreeSet fusedInputs;
+            for (int k : f.fused) {
+                const TreeSet in = famInputs(fFamilies[k].plan, f.plan.group);
+                fusedInputs.insert(in.begin(), in.end());
+            }
+            for (Tree p : famProjections(G.nodes(), f.plan.group)) {
+                for (Tree l = defs; isList(l); l = tl(l)) {
+                    if (hd(l) != p && G.nodes().count(hd(l))) {
+                        G.add(p, hd(l), 0);
+                    }
+                }
+                for (Tree i : fusedInputs) {
+                    int k;
+                    if (isSigInput(i, &k) || !G.nodes().count(i) || i == p || reaches(i, p)) {
+                        continue;
+                    }
+                    G.add(p, i, 0);
+                }
+            }
+            continue;
+        }
         const TreeSet inputs = famInputs(f.plan);
         for (Tree h : f.plan.hosts) {
             if (!G.nodes().count(h)) {
@@ -175,21 +256,23 @@ void ScalarCompiler::dismantleFamily(Family& f)
     for (Tree h : f.plan.hosts) {
         fFamHost.erase(h);
     }
+    if (f.plan.group != nullptr) {
+        fFamGroup.erase(f.plan.group);
+    }
     f.dismantled = true;
+    for (int k : f.fused) {
+        if (!fFamilies[k].dismantled) {
+            dismantleFamily(fFamilies[k]);
+        }
+    }
 }
 
 void ScalarCompiler::checkFamilyOrder()
 {
-    for (Family& f : fFamilies) {
-        int first = INT_MAX;
-        for (Tree h : f.plan.hosts) {
-            if (auto it = fSchedPos.find(h); it != fSchedPos.end()) {
-                first = std::min(first, it->second);
-            }
-        }
-        int  latest  = -1;
-        Tree culprit = nullptr;
-        for (Tree t : famInputs(f.plan)) {
+    // every input of a family is scheduled before the family : its first host, or for an
+    // automaton the first projection of its group
+    auto latestOf = [&](const TreeSet& inputs, int& latest, Tree& culprit) {
+        for (Tree t : inputs) {
             int k;
             if (isSigInput(t, &k) || getCertifiedSigType(t)->variability() < kSamp) {
                 continue;
@@ -199,6 +282,43 @@ void ScalarCompiler::checkFamilyOrder()
                 culprit = t;
             }
         }
+    };
+    for (Family& f : fFamilies) {
+        if (f.dismantled) {
+            continue;
+        }
+        int     first = INT_MAX, latest = -1;
+        Tree    culprit = nullptr;
+        TreeSet inputs;
+        if (f.plan.group != nullptr) {
+            for (auto& kv : fSchedPos) {
+                int  i;
+                Tree h;
+                if (isProj(kv.first, &i, h) && h == f.plan.group) {
+                    first = std::min(first, kv.second);
+                }
+            }
+            inputs = famInputs(f.plan, f.plan.group);
+            Tree W, defs;
+            isRec(f.plan.group, W, defs);
+            for (Tree l = defs; isList(l); l = tl(l)) {
+                if (!fFamPrivate.count(hd(l))) {
+                    inputs.insert(hd(l));  // a border : computed by the schedule, read by the automaton
+                }
+            }
+            for (int k : f.fused) {
+                const TreeSet in = famInputs(fFamilies[k].plan, f.plan.group);
+                inputs.insert(in.begin(), in.end());
+            }
+        } else {
+            for (Tree h : f.plan.hosts) {
+                if (auto it = fSchedPos.find(h); it != fSchedPos.end()) {
+                    first = std::min(first, it->second);
+                }
+            }
+            inputs = famInputs(f.plan);
+        }
+        latestOf(inputs, latest, culprit);
         if (first == INT_MAX || latest > first) {
             if (famTrace()) {
                 std::cerr << "fam dismantled : family of " << f.plan.members.size() << ", "
@@ -218,6 +338,12 @@ std::string ScalarCompiler::famHist(FamCtx& g, Tree x, int k)
     }
     if (k == 0) {
         return famExpr(g, x);
+    }
+    if (auto it = g.aslotIndex.find(x); it != g.aslotIndex.end() && it->second < int(g.neighbour.size()) &&
+                                        g.neighbour[it->second] != INT_MIN) {
+        // the automaton's neighbourhood : the projection at its offset from the cell, read in
+        // the group's arrays at the past sample k
+        return subst("$0[$1][cell + $2]", g.states, T(k), T(g.neighbour[it->second]));
     }
     Tree x2, y;
     int  d;
@@ -270,18 +396,29 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
         if (g.uniform[it->second]) {
             return g.val[t] = CS(t);
         }
+        if (it->second < int(g.plan->cellOffset.size()) && g.plan->cellOffset[it->second] != INT_MIN) {
+            // an integer that is the index of the member's cell, up to a constant : exact
+            return g.val[t] = subst("(cell + $0)", T(g.plan->cellOffset[it->second]));
+        }
         g.usedSlots.insert(it->second);
-        return g.val[t] = subst("fFam$0T$1[c]", T(g.id), T(it->second));
+        return g.val[t] = subst("fFam$0T$1[$2]", T(g.id), T(it->second), g.idx);
     }
     if (g.plan->commons.count(t)) {
         return g.val[t] = CS(t);  // what the family reads from outside is the tree's node
     }
     if (auto it = g.aslotIndex.find(t); it != g.aslotIndex.end()) {
+        if (it->second == g.cellSlot) {
+            return g.val[t] = g.cellValue;  // the cell the member reads, at the current step
+        }
+        if (it->second < int(g.neighbour.size()) && g.neighbour[it->second] != INT_MIN) {
+            g.fail("the automaton's group read at the current step");
+            return "0";
+        }
         if (g.auniform[it->second]) {
             return g.val[t] = CS(t);
         }
         g.usedASlots.insert(it->second);
-        return g.val[t] = subst("fFam$0In$1[c]", T(g.id), T(it->second));
+        return g.val[t] = subst("fFam$0In$1[$2]", T(g.id), T(it->second), g.idx);
     }
     tvec V;
     if (isSigIIR(t, V)) {
@@ -497,19 +634,14 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
     return "0";
 }
 
-void ScalarCompiler::emitFamily(Family& f)
+void ScalarCompiler::famSetup(FamCtx& g, const Family& f)
 {
-    if (f.emitted || f.dismantled) {
-        return;
-    }
-    f.emitted               = true;
-    const FamilyPlan& plan  = f.plan;
-    const int         P     = int(plan.members.size());
-    FamCtx            g;
-    g.id   = f.id;
-    g.P    = P;
-    g.ty   = ifloat();
-    g.plan = &plan;
+    const FamilyPlan& plan = f.plan;
+    const int         P    = int(plan.members.size());
+    g.id                   = f.id;
+    g.P                    = P;
+    g.ty                   = ifloat();
+    g.plan                 = &plan;
     g.uniform.assign(plan.leaves.size(), true);
     for (size_t k = 0; k < plan.leaves.size(); k++) {
         g.slotIndex.emplace(plan.leaves[k], int(k));
@@ -524,27 +656,83 @@ void ScalarCompiler::emitFamily(Family& f)
             g.auniform[k] = g.auniform[k] && plan.aslots[m][k] == plan.aleaves[k];
         }
     }
-    {
-        // the parents inside the template, to name a shared subexpression once
-        TreeSet           seen;
-        std::vector<Tree> st{plan.tmpl};
-        while (!st.empty()) {
-            Tree t = st.back();
-            st.pop_back();
-            if (!seen.insert(t).second || g.slotIndex.count(t) || g.aslotIndex.count(t) || plan.commons.count(t)) {
-                continue;
-            }
-            Tree id, body;
-            if (isRec(t, id, body) && body) {
-                st.push_back(body);
-                continue;
-            }
-            for (int k = 0; k < t->arity(); k++) {
-                g.uses[t->branch(k)]++;
-                st.push_back(t->branch(k));
-            }
+    // the parents inside the template, to name a shared subexpression once
+    TreeSet           seen;
+    std::vector<Tree> st{plan.tmpl};
+    while (!st.empty()) {
+        Tree t = st.back();
+        st.pop_back();
+        if (!seen.insert(t).second || g.slotIndex.count(t) || g.aslotIndex.count(t) || plan.commons.count(t)) {
+            continue;
+        }
+        Tree id, body;
+        if (isRec(t, id, body) && body) {
+            st.push_back(body);
+            continue;
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            g.uses[t->branch(k)]++;
+            st.push_back(t->branch(k));
         }
     }
+}
+
+void ScalarCompiler::famTables(FamCtx& g)
+{
+    const FamilyPlan& plan = *g.plan;
+    // the coefficients that differ between members : a table, filled once per block
+    for (int k : g.usedSlots) {
+        const std::string ct = (getCertifiedSigType(plan.leaves[k])->nature() == kInt) ? "int" : g.ty;
+        fClass->addDeclCode(subst("$0 \tfFam$1T$2[$3];", ct, T(g.id), T(k), T(g.P)));
+        for (int m = 0; m < g.P; m++) {
+            const std::string cc = CS(plan.slots[m][k]);
+            fClass->addZone3(subst("fFam$0T$1[$2] = $3;", T(g.id), T(k), T(m), cc));
+        }
+    }
+    // the audio inputs that differ between members : an array filled every sample
+    for (int k : g.usedASlots) {
+        fClass->addExecCode(Statement("", subst("$0 \tfFam$1In$2[$3];", g.ty, T(g.id), T(k), T(g.P))));
+        for (int m = 0; m < g.P; m++) {
+            const std::string cc = CS(plan.aslots[m][k]);
+            fClass->addExecCode(Statement("", subst("fFam$0In$1[$2] = $3;", T(g.id), T(k), T(m), cc)));
+        }
+    }
+}
+
+/// the balanced tree of the lanes acc[0] .. acc[W - 1]
+static std::string famLaneTree(const std::string& acc, int W)
+{
+    std::vector<std::string> S;
+    for (int j = 0; j < W; j++) {
+        S.push_back(subst("$0[$1]", acc, T(j)));
+    }
+    while (S.size() > 1) {
+        std::vector<std::string> R;
+        for (size_t k = 0; k + 1 < S.size(); k += 2) {
+            R.push_back(subst("($0 + $1)", S[k], S[k + 1]));
+        }
+        if (S.size() % 2) {
+            R.push_back(S.back());
+        }
+        S = R;
+    }
+    return S[0];
+}
+
+void ScalarCompiler::emitFamily(Family& f)
+{
+    if (f.emitted || f.dismantled) {
+        return;
+    }
+    if (f.plan.automaton >= 0) {
+        emitAutomaton(fFamilies[f.plan.automaton]);  // the family is accumulated in its loop
+        return;
+    }
+    f.emitted              = true;
+    const FamilyPlan& plan = f.plan;
+    const int         P    = int(plan.members.size());
+    FamCtx            g;
+    famSetup(g, f);
     const std::string term = famExpr(g, plan.tmpl);
     for (const auto& kv : g.need) {
         if (!g.stateValue.count(kv.first)) {
@@ -570,23 +758,7 @@ void ScalarCompiler::emitFamily(Family& f)
         }
         shifts << subst(" $0_1[c] = $1;", kv.first, g.stateValue[kv.first]);
     }
-    // the coefficients that differ between members : a table, filled once per block
-    for (int k : g.usedSlots) {
-        const std::string ct = (getCertifiedSigType(plan.leaves[k])->nature() == kInt) ? "int" : g.ty;
-        fClass->addDeclCode(subst("$0 \tfFam$1T$2[$3];", ct, T(g.id), T(k), T(P)));
-        for (int m = 0; m < P; m++) {
-            const std::string cc = CS(plan.slots[m][k]);
-            fClass->addZone3(subst("fFam$0T$1[$2] = $3;", T(g.id), T(k), T(m), cc));
-        }
-    }
-    // the audio inputs that differ between members : an array filled every sample
-    for (int k : g.usedASlots) {
-        fClass->addExecCode(Statement("", subst("$0 \tfFam$1In$2[$3];", g.ty, T(g.id), T(k), T(P))));
-        for (int m = 0; m < P; m++) {
-            const std::string cc = CS(plan.aslots[m][k]);
-            fClass->addExecCode(Statement("", subst("fFam$0In$1[$2] = $3;", T(g.id), T(k), T(m), cc)));
-        }
-    }
+    famTables(g);
     std::string bodyCode;
     for (const std::string& l : g.body) {
         bodyCode += " " + l;
@@ -620,27 +792,188 @@ void ScalarCompiler::emitFamily(Family& f)
         if (main < hi) {
             fClass->addExecCode(Statement("", subst("for (int c = $0; c < $1; c++) {$2 }", T(main), T(hi), member(0))));
         }
-        std::vector<std::string> S;
-        for (int j = 0; j < W; j++) {
-            S.push_back(subst("$0L[$1]", acc, T(j)));
-        }
-        while (S.size() > 1) {
-            std::vector<std::string> R;
-            for (size_t k = 0; k + 1 < S.size(); k += 2) {
-                R.push_back(subst("($0 + $1)", S[k], S[k + 1]));
-            }
-            if (S.size() % 2) {
-                R.push_back(S.back());
-            }
-            S = R;
-        }
-        fClass->addExecCode(Statement("", subst("$0 \t$1 = $2;", g.ty, acc, S[0])));
+        fClass->addExecCode(Statement("", subst("$0 \t$1 = $2;", g.ty, acc, famLaneTree(acc + "L", W))));
         f.hostExpr.push_back(acc);
     }
     if (famTrace()) {
         std::cerr << "fam emitted : family " << g.id << ", " << P << " members, " << plan.hosts.size() << " host(s), "
                   << g.need.size() << " states, " << g.usedSlots.size() << " tables, " << g.usedASlots.size()
                   << " input arrays, " << g.body.size() << " statements per member" << std::endl;
+    }
+}
+
+bool ScalarCompiler::famAutoRead(Tree exp, const std::string& delayidx, std::string& out)
+{
+    int  j;
+    Tree group;
+    if (fFamGroup.empty() || !isProj(exp, &j, group)) {
+        return false;
+    }
+    auto it = fFamGroup.find(group);
+    if (it == fFamGroup.end()) {
+        return false;
+    }
+    Family& f = fFamilies[it->second];
+    if (delayidx == "0") {
+        emitAutomaton(f);  // the current generation : computed by the automaton
+    }
+    // the group's arrays : S[0] the current generation, S[d] the generation d samples ago
+    out = subst("fFam$0S[$1][$2]", T(f.id), delayidx, T(j));
+    return true;
+}
+
+void ScalarCompiler::emitAutomaton(Family& f)
+{
+    if (f.emitted || f.dismantled) {
+        return;
+    }
+    f.emitted              = true;
+    const FamilyPlan& plan = f.plan;
+    const int         P    = int(plan.members.size());
+    const int         N    = plan.size;
+    const int         D    = plan.depth;
+    const std::string S    = subst("fFam$0S", T(f.id));
+    // the arrays of the group : one row per generation, cleared with the other states, shifted
+    // at the end of the sample, after every read
+    fClass->addDeclCode(subst("$0 \t$1[$2][$3];", ifloat(), S, T(D + 1), T(N)));
+    fClass->addClearCode(
+        subst("for (int d = 0; d < $0; d++) { for (int j = 0; j < $1; j++) { $2[d][j] = 0; } }", T(D + 1), T(N), S));
+    std::string shift;
+    for (int d = D; d >= 1; d--) {
+        shift += subst(" $0[$1][j] = $0[$2][j];", S, T(d), T(d - 1));
+    }
+    fClass->addPostCode(Statement("", subst("for (int j = 0; j < $0; j++) {$1 }", T(N), shift)));
+
+    // the cells : the template, read in the arrays at its neighbourhood
+    FamCtx g;
+    famSetup(g, f);
+    g.states    = S;
+    g.neighbour = plan.neighbour;
+    const std::string term = famExpr(g, plan.tmpl);
+    for (const auto& kv : g.need) {
+        if (!g.stateValue.count(kv.first)) {
+            g.fail("a state read but never computed");
+        }
+    }
+    std::ostringstream shifts;
+    for (const auto& kv : g.need) {
+        for (int k = 1; k <= kv.second; k++) {
+            fClass->addDeclCode(subst("$0 \t$1_$2[$3];", g.ty, kv.first, T(k), T(P)));
+            fClass->addClearCode(subst("for (int c = 0; c < $1; c++) { $0_$2[c] = 0; }", kv.first, T(P), T(k)));
+        }
+        for (int k = kv.second; k >= 2; k--) {
+            shifts << subst(" $0_$1[c] = $0_$2[c];", kv.first, T(k), T(k - 1));
+        }
+        shifts << subst(" $0_1[c] = $1;", kv.first, g.stateValue[kv.first]);
+    }
+    // the families accumulated in the loop : in the loop, the member reads the cell's value
+    // still in a register ; outside, a member of a border reads the cell in the arrays
+    struct Fused {
+        Family*     f;
+        FamCtx      in, out;
+        std::string termIn, termOut, bodyIn, bodyOut;
+        int         first = 0;  // the member of the loop's first cell
+    };
+    std::vector<Fused> fused;
+    for (int k : f.fused) {
+        Family& ff = fFamilies[k];
+        if (ff.dismantled) {
+            continue;
+        }
+        fused.push_back(Fused());
+        Fused& u = fused.back();
+        u.f      = &ff;
+        famSetup(u.in, ff);
+        famSetup(u.out, ff);
+        u.in.idx  = u.out.idx = "m";
+        u.in.cellSlot = u.out.cellSlot = ff.plan.cellSlot;
+        u.in.cellValue  = "v";
+        u.out.cellValue = subst("$0[0][cell]", S);
+        u.termIn        = famExpr(u.in, ff.plan.tmpl);
+        u.termOut       = famExpr(u.out, ff.plan.tmpl);
+        for (const std::string& l : u.in.body) {
+            u.bodyIn += " " + l;
+        }
+        for (const std::string& l : u.out.body) {
+            u.bodyOut += " " + l;
+        }
+        while (ff.plan.cell[u.first] != plan.base) {
+            u.first++;
+        }
+        g.failed = g.failed || u.in.failed || u.out.failed;
+        g.reason += u.in.reason + u.out.reason;
+    }
+    if (g.failed) {
+        std::cerr << "ASSERT : the loop of a planned automaton cannot be written : " << g.reason << std::endl;
+        faustassert(false);
+    }
+    famTables(g);
+    for (Fused& u : fused) {
+        u.in.usedSlots.insert(u.out.usedSlots.begin(), u.out.usedSlots.end());
+        u.in.usedASlots.insert(u.out.usedASlots.begin(), u.out.usedASlots.end());
+        famTables(u.in);
+    }
+    // the borders : computed by the schedule, stored in the current generation
+    Tree W, defs;
+    isRec(plan.group, W, defs);
+    int j = 0;
+    for (Tree l = defs; isList(l); l = tl(l), j++) {
+        if (j < plan.base || j >= plan.base + P) {
+            const std::string code = CS(hd(l));
+            fClass->addExecCode(Statement("", subst("$0[0][$1] = $2;", S, T(j), code)));
+        }
+    }
+    std::string bodyCode;
+    for (const std::string& l : g.body) {
+        bodyCode += " " + l;
+    }
+    // the cell c : its value stored, then the members that read it accumulated in a lane
+    auto cellCode = [&](const std::string& c, const std::string& lane) {
+        std::string code = subst(" int c = $0; int cell = c + $1;$2 $3 v = $4; $5[0][cell] = v;$6", c, T(plan.base),
+                                 bodyCode, g.ty, term, S, shifts.str());
+        for (Fused& u : fused) {
+            code += subst(" { int m = c + $0;$1 fFam$2H0L[$3] += $4; }", T(u.first), u.bodyIn, T(u.f->id), lane,
+                          u.termIn);
+        }
+        return code;
+    };
+    if (fused.empty()) {
+        fClass->addExecCode(Statement("", subst("for (int c0 = 0; c0 < $0; c0++) {$1 }", T(P), cellCode("c0", "0"))));
+    } else {
+        // the lanes : a register of 256 bits, 8 floats or 4 doubles, written as an inner loop
+        // the C++ compiler vectorizes whole (four or eight copies of the cell are not)
+        const int W    = std::max(1, std::min(gGlobal->gFloatSize == 1 ? 8 : 4, P));
+        const int main = (P / W) * W;
+        for (Fused& u : fused) {
+            fClass->addExecCode(Statement("", subst("$0 \tfFam$1H0L[$2] = {};", g.ty, T(u.f->id), T(W))));
+        }
+        fClass->addExecCode(Statement("", subst("for (int c0 = 0; c0 < $0; c0 += $1) { for (int j = 0; j < $1; j++) {$2 } }",
+                                                T(main), T(W), cellCode("c0 + j", "j"))));
+        if (main < P) {
+            fClass->addExecCode(Statement("", subst("for (int c0 = $0; c0 < $1; c0++) {$2 }", T(main), T(P), cellCode("c0", "0"))));
+        }
+        // the lanes in a balanced tree, then the members of the borders, in order
+        for (Fused& u : fused) {
+            const std::string acc = subst("fFam$0H0", T(u.f->id));
+            fClass->addExecCode(Statement("", subst("$0 \t$1 = $2;", g.ty, acc, famLaneTree(acc + "L", W))));
+            const int Pf = int(u.f->plan.members.size());
+            for (int m = 0; m < Pf; m++) {
+                const int cell = u.f->plan.cell[m];
+                if (cell >= plan.base && cell < plan.base + P) {
+                    continue;
+                }
+                fClass->addExecCode(Statement("", subst("{ int m = $0; int cell = $1;$2 $3 = ($3 + $4); }", T(m), T(cell),
+                                                        u.bodyOut, acc, u.termOut)));
+            }
+            u.f->hostExpr.push_back(acc);
+            u.f->emitted = true;
+        }
+    }
+    if (famTrace()) {
+        std::cerr << "fam emitted : automaton " << g.id << ", " << P << " cells of " << N << " definitions, depth " << D
+                  << ", " << g.usedSlots.size() << " tables, " << g.usedASlots.size() << " input arrays, "
+                  << fused.size() << " famil" << (fused.size() == 1 ? "y" : "ies") << " in its loop, " << g.body.size()
+                  << " statements per cell" << std::endl;
     }
 }
 
