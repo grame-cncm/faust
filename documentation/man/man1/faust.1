@@ -181,11 +181,8 @@ experimental) instruction order of the loop body: 0 depth\-first
 (default), 8 aligned, 9 bank\-compositional, 11/12 compositional
 deep/wide spine.
 .PP
-\f[B]\-fir\f[R] \f[B]\-\-fir\-iir\f[R] (ocpp, experimental) recognise
-FIR/IIR kernels in the signal graph and emit their dedicated forms.
-.PP
 \f[B]\-iirt\f[R] \f[B]\-\-iir\-transposed\f[R] (ocpp, experimental)
-transposed emission for the all\-pole kernels recognised by \-fir.
+transposed emission for the all\-pole IIRs of order 2 or more.
 .PP
 \f[B]\-lsum\f[R] \f[B]\-\-lower\-sums\f[R] (ocpp, experimental) recover
 the polynomial form of large sums before emission.

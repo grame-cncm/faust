@@ -132,9 +132,7 @@ Code generation options:
 
   **-ss** \<n>     **--scheduling-strategy** \<n>   (ocpp, experimental) instruction order of the loop body: 0 depth-first (default), 8 aligned, 9 bank-compositional, 11/12 compositional deep/wide spine.
 
-  **-fir**        **--fir-iir**                   (ocpp, experimental) recognise FIR/IIR kernels in the signal graph and emit their dedicated forms.
-
-  **-iirt**       **--iir-transposed**            (ocpp, experimental) transposed emission for the all-pole kernels recognised by -fir.
+  **-iirt**       **--iir-transposed**            (ocpp, experimental) transposed emission for the all-pole IIRs of order 2 or more.
 
   **-lsum**       **--lower-sums**                (ocpp, experimental) recover the polynomial form of large sums before emission.
 

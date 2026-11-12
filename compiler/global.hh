@@ -319,16 +319,15 @@ struct global {
                           // (stopped at state boundaries), so the emitter's guarded statements
                           // skip the STATELESS crowns of unselected branches -- the stateful
                           // parts keep Faust's strict semantics (state ticks unconditionally)
-    bool gLoopSplit;
-    bool gReconstructFIRIIRs;
+    bool gLoopSplit;  // -ls option (ocpp, experimental): emit the materialized-signal DAG as
+                      // separate loops (one per recursive group / delayed / shared signal /
+                      // output) instead of one big sample loop
     bool gLowerSums;  // -lsum : butterfly lowering of the revealed sums
     bool gMatrixRows;  // -mxr : matrix-row regime for dense coefficient
                        // families (spec LA-FORME-MATRICE) -- spares them
                        // from the sum lowering and, under -ls, emits
                        // recurrence-carried rows as table dot products
-    bool gIIRTransposed;  // -iirt : transposed all-pole emission of the IIR kernels  // -fir : signal-level FIR/IIR recognition (side-channel)       // -ls option (ocpp, experimental): emit the materialized-signal DAG as
-                           // separate loops (one per recursive group / delayed / shared signal /
-                           // output) instead of one big sample loop
+    bool gIIRTransposed;  // -iirt : transposed all-pole emission of the IIRs
     int  gLSSched;         // -ls-sched option: intra-loop op scheduling strategy,
                            // 0 = df (depth-first, the control), 1 = bf (breadth-first levels),
                            // 2 = model (pressure-aware list scheduler under R/U)

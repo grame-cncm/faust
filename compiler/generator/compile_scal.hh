@@ -159,11 +159,6 @@ class ScalarCompiler : public Compiler {
     void censusAdjacentReads(Tree L);
     void emitAdjacentUpdates();
     std::map<Tree, int, treeorder>                fScheduleOrder;
-    // -fir bridge : recognized FIR kernels, keyed by their SOURCE tree
-    // (the signal whose delay line the kernel reads). value = (read span
-    // maxtaps, nonzero coefficient count) -- consumers : delay-line
-    // implementation policy, fusion oracle.
-    std::map<Tree, std::pair<int, int>, treeorder> fFirFacts;
 
     // -fam (LES-FAMILLES-DE-LA-FORME-DE-CALCUL, compile_fam.cpp) : the sum families, each
     // emitted as one loop at its first host ; its private nodes leave the schedule

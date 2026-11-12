@@ -355,7 +355,7 @@ make -C tests/determinism lint                # the static check, no second comp
 `check` generates sixteen witness programs — chosen among those that
 diverged most before the fix, one per family of sites, and a few tiny
 ones for speed — under six option sets (`-lang cpp` and `-lang ocpp`,
-scalar and `-vec`, then `-ftz 2` and ocpp `-fir`) with both binaries, and
+scalar and `-vec`, then `-ftz 2` and ocpp `-ls`) with both binaries, and
 compares the outputs byte for byte. All six sets are in double
 precision. It takes a minute or two once the binaries exist (the library
 witnesses dominate). Expected : every cell `same`, exit status 0. A
