@@ -436,9 +436,27 @@ grep -c "ERROR: AddressSanitizer" <log>; grep -c "runtime error" <log>
 then the same with `-O2 -march=native -ffast-math -ffp-contract=fast` in
 place of `-O1`, so that contraction and reassociation act on the code, and
 the same again with `outdir=ocpp/asan lang=ocpp` for the legacy backend.
-Expected: 100 responses (`prefix` and `osc_enable` are left out, see Gate 1), zero
-AddressSanitizer report, zero `runtime error`. `SAN=asan` in `Make.gcc`
-adds AddressSanitizer only; the explicit `GCCOPTIONS` adds the undefined
+
+Then the code as it is measured (the basket of `mesure.py`), at `-O3`, where
+the loop vectorizer rewrites the accesses, in single and double precision
+(`FAUSTOPTIONS="-I dsp"` and `"-I dsp -double"`), for `cpp` and `ocpp`,
+under the two execution contracts in place of `-O1` :
+
+- the contract of the branch : `-O3 -march=native -fno-fast-math
+  -ffp-contract=fast -fno-math-errno -include ftz.h`, where `ftz.h` sets
+  flush-to-zero and denormals-are-zero at the start of the program (the
+  file `mesure.py` writes beside its results) ;
+- the contract of the reference : `-O3 -march=native -ffast-math`.
+
+Expected, on every leg : the 101 programs compiled and run (`prefix` and
+`osc_enable` are left out, see Gate 1), zero AddressSanitizer report, zero
+`runtime error`. The comparison with the references is not this gate's
+verdict, and a failed comparison deletes the `.ir` : count the programs
+that ran, not the `.ir` files. The references are in double, so a
+single-precision leg differs on about thirty programs ; `reverb_designer`
+differs under `-ffast-math`, with the same output from `master-dev`.
+
+`SAN=asan` in `Make.gcc` adds AddressSanitizer only; the explicit `GCCOPTIONS` adds the undefined
 behaviour sanitizer too. `detect_leaks=0` is required: see "Known harness
 defects".
 
