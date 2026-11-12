@@ -623,6 +623,9 @@ ValueInst* DAGInstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, B
 
     if (verySimple(sig)) {
         return exp;
+    } else if (access == Address::kStruct) {
+        // a ring line : the current sample is at the loop index plus the index of the ring
+        return lineRead(vname, mxd, 0);
     } else {
         return IB::genLoadArrayVar(vname, access, getCurrentLoopIndex());
     }
