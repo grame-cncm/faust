@@ -136,6 +136,7 @@ Here are the available options:
   - `-test` : to generate special 'RB_XX' prefix for parameters (for testing)
   - `-sp` : to generate codebox subpatchers as a file.rnbopat file
   - `-mc` : to connect the `rnbo~` object with MC (multichannel) audio: `rnbo~` only has single-channel signal inlets/outlets, so the outputs are merged by `mc.pack~ <outputs>` into `mc.dac~`, and the inputs come from `mc.adc~` split by `mc.unpack~ <inputs>`
+  - `-abstr` : to generate a GUI-less abstraction, to be used as an object in other patches: N audio inlets followed by a control inlet receiving the parameter messages (`<name> <value>`), and M audio outlets. Combined with `-mc`, the abstraction has one multichannel audio inlet followed by the control inlet, and one multichannel audio outlet. When the DSP has no inputs, the control inlet is the only inlet. With MIDI, the abstraction keeps its internal `midiin`/`midiout` objects
   - `-cpp_path <path>` : to set C++ export folder 
   - `-cpp_filename <filename>` : to set C++ export filename
  

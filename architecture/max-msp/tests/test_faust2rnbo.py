@@ -246,6 +246,90 @@ class Faust2RnboTests(unittest.TestCase):
         self.assertEqual(boxes[ids["mc.unpack~"]]["numoutlets"], 3)
         self.assert_no_compiler_temporaries(dsp)
 
+    def abstraction_ports(self, patch: dict[str, Any], maxclass: str) -> list[dict[str, Any]]:
+        """Return the inlet or outlet boxes of an abstraction in Max port order."""
+
+        boxes = [box["box"] for box in patch["patcher"]["boxes"]]
+        return sorted(
+            (box for box in boxes if box["maxclass"] == maxclass),
+            key=lambda box: box["patching_rect"][0],
+        )
+
+    def test_abstraction_option_exposes_audio_and_control_ports(self):
+        """Generate GUI-less abstractions with standard and MC port layouts."""
+
+        dsp = self.write_dsp(
+            "abstraction",
+            'process = _*hslider("gain", 0.5, 0, 1, 0.01), _, _, 0;\n',
+        )
+
+        # Standard mode: 3 audio inlets, then the control inlet, and 4 outlets.
+        result = self.run_script("-abstr", dsp)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        patch = self.load_patch(dsp.with_suffix(".maxpat"))
+        texts = self.texts(patch)
+        maxclasses = list(nested_values(patch["patcher"]["boxes"], "maxclass"))
+        self.assertNotIn("attrui", maxclasses)
+        self.assertNotIn("toggle", texts)
+        self.assertFalse(any("dac~" in text or "adc~" in text for text in texts))
+        self.assertIn("set gain", texts)
+
+        lines = [line["patchline"] for line in patch["patcher"]["lines"]]
+        rnbo_id = next(
+            box["box"]["id"] for box in patch["patcher"]["boxes"]
+            if box["box"].get("text", "").startswith("rnbo~")
+        )
+        inlets = self.abstraction_ports(patch, "inlet")
+        outlets = self.abstraction_ports(patch, "outlet")
+        self.assertEqual(len(inlets), 4)
+        self.assertEqual(len(outlets), 4)
+        targets = [
+            [l["destination"] for l in lines if l["source"][0] == inlet["id"]]
+            for inlet in inlets
+        ]
+        self.assertEqual(targets, [[[rnbo_id, 0]], [[rnbo_id, 1]], [[rnbo_id, 2]], [[rnbo_id, 0]]])
+        sources = [
+            [l["source"] for l in lines if l["destination"][0] == outlet["id"]]
+            for outlet in outlets
+        ]
+        self.assertEqual(sources, [[[rnbo_id, i]] for i in range(4)])
+
+        # MC mode: one MC audio inlet, the control inlet, and one MC outlet.
+        result = self.run_script("-abstr", "-mc", dsp)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        patch = self.load_patch(dsp.with_suffix(".maxpat"))
+        texts = self.texts(patch)
+        self.assertIn("mc.unpack~ 3", texts)
+        self.assertIn("mc.pack~ 4", texts)
+        self.assertFalse(any("dac~" in text or "adc~" in text for text in texts))
+        ids = {box["box"].get("text", "").split(" ")[0]: box["box"]["id"]
+               for box in patch["patcher"]["boxes"]}
+        lines = [line["patchline"] for line in patch["patcher"]["lines"]]
+        inlets = self.abstraction_ports(patch, "inlet")
+        outlets = self.abstraction_ports(patch, "outlet")
+        self.assertEqual(len(inlets), 2)
+        self.assertEqual(len(outlets), 1)
+        first = [l["destination"] for l in lines if l["source"][0] == inlets[0]["id"]]
+        second = [l["destination"] for l in lines if l["source"][0] == inlets[1]["id"]]
+        self.assertEqual(first, [[ids["mc.unpack~"], 0]])
+        self.assertEqual(second, [[ids["rnbo~"], 0]])
+        out = [l["source"] for l in lines if l["destination"][0] == outlets[0]["id"]]
+        self.assertEqual(out, [[ids["mc.pack~"], 0]])
+        self.assert_no_compiler_temporaries(dsp)
+
+    def test_abstraction_without_inputs_has_only_control_inlet(self):
+        """Expose only the control inlet when the DSP has no audio input."""
+
+        dsp = self.write_dsp("abstraction source")
+        for options in (("-abstr",), ("-abstr", "-mc"), ("-abstr", "-nvoices", 4, "-sp")):
+            with self.subTest(options=options):
+                result = self.run_script(*options, dsp)
+                self.assertEqual(result.returncode, 0, result.stdout)
+                patch = self.load_patch(dsp.with_suffix(".maxpat"))
+                self.assertEqual(len(self.abstraction_ports(patch, "inlet")), 1)
+                self.assertEqual(len(self.abstraction_ports(patch, "outlet")), 1)
+                self.assertNotIn("attrui", list(nested_values(patch["patcher"]["boxes"], "maxclass")))
+
     def test_codebox_test_mode_uses_prefixed_parameters(self):
         """Generate the RB_ parameter ABI expected by the RNBO C++ test app."""
 

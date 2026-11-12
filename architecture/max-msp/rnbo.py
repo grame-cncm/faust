@@ -32,6 +32,9 @@ The 'subpatcher' option allows to generate sub-patch as foo.rnbopat files.
 The 'mc' option presents the rnbo~ object with a Max multichannel (MC) interface: since rnbo~
 only has single-channel signal inlets/outlets, the inputs are split by a 'mc.unpack~' object and
 the outputs are merged by a 'mc.pack~' object, connected to 'mc.adc~' and 'mc.dac~'.
+The 'abstraction' option generates a GUI-less patch to be used as an abstraction in other patches:
+N audio inlets followed by a control inlet (forwarded to the rnbo~ object), and M audio outlets.
+Combined with 'mc', it has one MC audio inlet followed by the control inlet, and one MC audio outlet.
 
 Parsing the JSON file gives:
     - the list of parameters (button, checkbox, sliders, nentry) to be added as "set param" objects
@@ -420,6 +423,7 @@ def add_codebox_object(
     test: bool,
     num_inputs: int,
     num_outputs: int,
+    gui: bool = True,
 ) -> None:
     """
     Add a codebox~ object and parameter controls to a Max/MSP subpatcher.
@@ -441,6 +445,7 @@ def add_codebox_object(
         test (bool): Whether the code is for testing purposes.
         num_inputs (int): Number of audio inputs.
         num_outputs (int): Number of audio outputs.
+        gui (bool): Whether to add the 'attrui' controls in the main patcher.
     """
     # Create codebox~ section in the subpatcher
     codebox = sub_patcher.add_codebox_tilde(
@@ -481,30 +486,31 @@ def add_codebox_object(
             set_param = sub_patcher.add_textbox(f"set {label}")
 
             # Upper level parameter control with a 'toggle' and 'attrui' objects
-            toggle = patcher.add_textbox("toggle")
-            # Set the position and size of the toggle button on the canvas
-            toggle.patching_rect = [
-                toggle.patching_rect[0],
-                toggle.patching_rect[1],
-                24.0,
-                24.0,
-            ]
-            param_wrap = patcher.add_textbox(
-                "attrui",
-                maxclass="attrui",
-                attr=label,
-                parameter_enable=1,
-                minimum=0,
-                maximum=1,
-                saved_attribute_attributes={
-                    "valueof": {
-                        "parameter_initial": [label_path, 0],
-                        "parameter_initial_enable": 1,
-                    }
-                },
-            )
-            patcher.add_line(toggle, param_wrap)
-            patcher.add_line(param_wrap, rnbo)
+            if gui:
+                toggle = patcher.add_textbox("toggle")
+                # Set the position and size of the toggle button on the canvas
+                toggle.patching_rect = [
+                    toggle.patching_rect[0],
+                    toggle.patching_rect[1],
+                    24.0,
+                    24.0,
+                ]
+                param_wrap = patcher.add_textbox(
+                    "attrui",
+                    maxclass="attrui",
+                    attr=label,
+                    parameter_enable=1,
+                    minimum=0,
+                    maximum=1,
+                    saved_attribute_attributes={
+                        "valueof": {
+                            "parameter_initial": [label_path, 0],
+                            "parameter_initial_enable": 1,
+                        }
+                    },
+                )
+                patcher.add_line(toggle, param_wrap)
+                patcher.add_line(param_wrap, rnbo)
 
             param = sub_patcher.add_textbox(
                 f"param {label} 0 @min 0 @max 1",
@@ -527,21 +533,22 @@ def add_codebox_object(
             max_value = item["max"]
 
             # Upper level parameter control with a 'attrui' object
-            param_wrap = patcher.add_textbox(
-                "attrui",
-                maxclass="attrui",
-                attr=label,
-                minimum=min_value,
-                maximum=max_value,
-                parameter_enable=1,
-                saved_attribute_attributes={
-                    "valueof": {
-                        "parameter_initial": [label_path, 0],
-                        "parameter_initial_enable": 1,
-                    }
-                },
-            )
-            patcher.add_line(param_wrap, rnbo)
+            if gui:
+                param_wrap = patcher.add_textbox(
+                    "attrui",
+                    maxclass="attrui",
+                    attr=label,
+                    minimum=min_value,
+                    maximum=max_value,
+                    parameter_enable=1,
+                    saved_attribute_attributes={
+                        "valueof": {
+                            "parameter_initial": [label_path, 0],
+                            "parameter_initial_enable": 1,
+                        }
+                    },
+                )
+                patcher.add_line(param_wrap, rnbo)
 
             param = sub_patcher.add_textbox(
                 f"param {label} 0 @min {min_value} @max {max_value}",
@@ -576,21 +583,22 @@ def add_codebox_object(
             set_param = sub_patcher.add_textbox(f"set {label}")
 
             # Upper level parameter control with a 'attrui' object
-            param_wrap = patcher.add_textbox(
-                "attrui",
-                maxclass="attrui",
-                attr=label,
-                minimum=min_value,
-                maximum=max_value,
-                parameter_enable=1,
-                saved_attribute_attributes={
-                    "valueof": {
-                        "parameter_initial": [label_path, init_value],
-                        "parameter_initial_enable": 1,
-                    }
-                },
-            )
-            patcher.add_line(param_wrap, rnbo)
+            if gui:
+                param_wrap = patcher.add_textbox(
+                    "attrui",
+                    maxclass="attrui",
+                    attr=label,
+                    minimum=min_value,
+                    maximum=max_value,
+                    parameter_enable=1,
+                    saved_attribute_attributes={
+                        "valueof": {
+                            "parameter_initial": [label_path, init_value],
+                            "parameter_initial_enable": 1,
+                        }
+                    },
+                )
+                patcher.add_line(param_wrap, rnbo)
 
             param = sub_patcher.add_textbox(
                 # Does not work with @steps, with parameter values slightly different
@@ -698,6 +706,7 @@ def add_rnbo_object_flat(
     test: bool,
     num_inputs: int,
     num_outputs: int,
+    gui: bool = True,
 ) -> Box:
     """
     Adds DSP elements, routing, and parameter controls for a DSP to the given Patcher object in flat mode.
@@ -733,6 +742,7 @@ def add_rnbo_object_flat(
         test,
         num_inputs,
         num_outputs,
+        gui,
     )
 
     return rnbo
@@ -749,6 +759,7 @@ def add_rnbo_object_subpatcher(
     test: bool,
     num_inputs: int,
     num_outputs: int,
+    gui: bool = True,
 ) -> Box:
     """
     Adds DSP elements, routing, and parameter controls for a DSP to the given Patcher object in 'p' subpatcher.
@@ -785,6 +796,7 @@ def add_rnbo_object_subpatcher(
         test,
         num_inputs,
         num_outputs,
+        gui,
     )
 
     # Save the rnbopat file
@@ -840,6 +852,7 @@ def add_rnbo_object_poly_effect(
     dsp_num_outputs: int,
     effect_num_inputs: int,
     effect_num_outputs: int,
+    gui: bool = True,
 ) -> Box:
     """
     Adds DSP elements, routing, and parameter controls for a DSP to the given Patcher object for DSP and effect.
@@ -883,6 +896,7 @@ def add_rnbo_object_poly_effect(
         test,
         dsp_num_inputs,
         dsp_num_outputs,
+        gui,
     )
 
     # Save the rnbo_pat file
@@ -902,6 +916,7 @@ def add_rnbo_object_poly_effect(
         False,
         effect_num_inputs,
         effect_num_outputs,
+        gui,
     )
 
     # Save the rnbo_effect_pat file
@@ -1225,6 +1240,121 @@ def create_mc_audio_input(patcher: Patcher, rnbo: Box, num_inputs: int) -> None:
         patcher.add_line(mc_unpack, rnbo, inlet=i, outlet=i)
 
 
+def add_port(
+    patcher: Patcher, maxclass: str, x: float, y: float, comment: str
+) -> Box:
+    """
+    Adds an 'inlet' or 'outlet' object to an abstraction.
+
+    Max orders the inlets (and the outlets) of an abstraction by their horizontal
+    position, so the caller gives increasing 'x' values.
+
+    Parameters:
+        patcher (Patcher): The abstraction patcher.
+        maxclass (str): 'inlet' or 'outlet'.
+        x (float): The horizontal position, which gives the port order.
+        y (float): The vertical position.
+        comment (str): The assistance text displayed when hovering the port.
+
+    Returns:
+        Box: The created port object.
+    """
+    is_inlet = maxclass == "inlet"
+    return patcher.add_box(
+        Box(
+            id=patcher.get_id(maxclass),
+            maxclass=maxclass,
+            numinlets=0 if is_inlet else 1,
+            numoutlets=1 if is_inlet else 0,
+            outlettype=[""] if is_inlet else [],
+            patching_rect=[x, y, 30.0, 30.0],
+            comment=comment,
+        )
+    )
+
+
+def create_abstraction_ports(
+    patcher: Patcher, rnbo: Box, num_inputs: int, num_outputs: int, mc: bool
+) -> None:
+    """
+    Creates the inlets and outlets of a GUI-less abstraction around the rnbo~ object.
+
+    Parameters:
+        patcher (Patcher): The abstraction patcher.
+        rnbo (Box): The rnbo DSP module
+        num_inputs (int): The number of audio inputs.
+        num_outputs (int): The number of audio outputs.
+        mc (bool): Whether audio is carried by a single MC inlet and a single MC outlet.
+
+    Returns:
+        None
+
+    Description:
+        Standard mode: N audio inlets, then the control inlet, and M audio outlets.
+        MC mode: one MC audio inlet split by 'mc.unpack~', then the control inlet,
+        and one MC audio outlet merged by 'mc.pack~'. When the DSP has no inputs,
+        the control inlet is the only inlet. The control inlet is connected to the
+        left inlet of rnbo~, which receives the parameter messages ('<name> <value>').
+    """
+
+    step = 60.0
+    x = 20.0
+    rnbo.patching_rect = [20.0, 200.0, max(200.0, step * max(num_inputs, num_outputs, 1)), 22.0]
+
+    # Audio inlets
+    if num_inputs > 0:
+        if mc:
+            mc_in = add_port(
+                patcher, "inlet", x, 50.0, f"(multichannel signal) audio inputs ({num_inputs} channels)"
+            )
+            x += step
+            mc_unpack = patcher.add_textbox(
+                f"mc.unpack~ {num_inputs}",
+                numinlets=1,
+                numoutlets=num_inputs,
+                outlettype=["signal"] * num_inputs,
+                patching_rect=[20.0, 120.0, max(100.0, step * num_inputs), 22.0],
+            )
+            patcher.add_line(mc_in, mc_unpack)
+            for i in range(num_inputs):
+                patcher.add_line(mc_unpack, rnbo, inlet=i, outlet=i)
+        else:
+            for i in range(num_inputs):
+                audio_in = add_port(patcher, "inlet", x, 50.0, f"(signal) audio input {i + 1}")
+                x += step
+                patcher.add_line(audio_in, rnbo, inlet=i)
+
+    # Control inlet, after the audio inlets
+    control_in = add_port(
+        patcher, "inlet", x, 50.0, "(messages) parameter control: <name> <value>"
+    )
+    patcher.add_line(control_in, rnbo, inlet=0)
+
+    # Audio outlets
+    if num_outputs <= 0:
+        return
+    if mc:
+        mc_pack = patcher.add_textbox(
+            f"mc.pack~ {num_outputs}",
+            numinlets=num_outputs,
+            numoutlets=1,
+            outlettype=["multichannelsignal"],
+            patching_rect=[20.0, 280.0, max(100.0, step * num_outputs), 22.0],
+        )
+        for i in range(num_outputs):
+            patcher.add_line(rnbo, mc_pack, inlet=i, outlet=i)
+        mc_out = add_port(
+            patcher, "outlet", 20.0, 350.0, f"(multichannel signal) audio outputs ({num_outputs} channels)"
+        )
+        patcher.add_line(mc_pack, mc_out)
+    else:
+        for i in range(num_outputs):
+            audio_out = add_port(
+                patcher, "outlet", 20.0 + i * step, 350.0, f"(signal) audio output {i + 1}"
+            )
+            patcher.add_line(rnbo, audio_out, outlet=i)
+
+
 def connect_midi_rnbo(patcher: Patcher, rnbo: Box, midi_in: Box, midi_out: Box) -> None:
     """
     Connects MIDI input, a DSP, and MIDI output in a Max/MSP patcher.
@@ -1431,6 +1561,7 @@ def create_rnbo_patch(
     test: bool = False,
     subpatcher: bool = False,
     mc: bool = False,
+    abstraction: bool = False,
 ) -> None:
     """
     This function creates an RNBO Max patcher with the specified parameters.
@@ -1454,6 +1585,7 @@ def create_rnbo_patch(
     - test (bool): A flag indicating whether the patch is for testing purposes.
     - subpatcher (bool): A flag indicating whether to save subpatchers as foo.rnbopat files.
     - mc (bool): A flag indicating whether to use MC audio inputs/outputs around the rnbo~ object.
+    - abstraction (bool): A flag indicating whether to generate a GUI-less abstraction with inlets/outlets.
 
     Returns:
         None
@@ -1487,6 +1619,7 @@ def create_rnbo_patch(
             dsp_num_outputs,
             effect_num_inputs,
             effect_num_outputs,
+            not abstraction,
         )
     else:
         if subpatcher:
@@ -1502,6 +1635,7 @@ def create_rnbo_patch(
                 test,
                 dsp_num_inputs,
                 dsp_num_outputs,
+                not abstraction,
             )
         else:
             # Create the DSP rnbo~ object in flat mode with DSP
@@ -1515,6 +1649,7 @@ def create_rnbo_patch(
                 test,
                 dsp_num_inputs,
                 dsp_num_outputs,
+                not abstraction,
             )
 
     # Possibly add MIDI input/output control in the global patcher
@@ -1527,6 +1662,12 @@ def create_rnbo_patch(
     # Add loadbang and 'compile C++ and export' machinery
     if compile:
         add_compile_test(patcher, dsp_rnbo, export_path, cpp_filename)
+
+    # In abstraction mode, the audio and control ports are inlet/outlet objects
+    if abstraction:
+        create_abstraction_ports(patcher, dsp_rnbo, dsp_num_inputs, dsp_num_outputs, mc)
+        patcher.save()
+        return
 
     # Create the audio driver output, possibly in MC mode
     if mc:
@@ -1560,6 +1701,7 @@ def load_files_create_rnbo_patch(
     test: bool,
     subpatcher: bool,
     mc: bool = False,
+    abstraction: bool = False,
 ) -> None:
     """
     This function loads the codebox and JSON files, extracts relevant data in the JSON, and creates the RNBO Max patch.
@@ -1579,6 +1721,7 @@ def load_files_create_rnbo_patch(
     - test (bool): A flag indicating whether the patch is for testing purposes (causing control parameter special naming).
     - subpatcher (bool): A flag indicating whether to save subpatchers as foo.rnbopat files.
     - mc (bool): A flag indicating whether to use MC audio inputs/outputs around the rnbo~ object.
+    - abstraction (bool): A flag indicating whether to generate a GUI-less abstraction with inlets/outlets.
 
     Returns:
         None
@@ -1634,6 +1777,7 @@ def load_files_create_rnbo_patch(
             test,
             subpatcher,
             mc,
+            abstraction,
         )
     else:
         create_rnbo_patch(
@@ -1657,6 +1801,7 @@ def load_files_create_rnbo_patch(
             test=test,
             subpatcher=subpatcher,
             mc=mc,
+            abstraction=abstraction,
         )
 
 
@@ -1689,6 +1834,11 @@ def main():
         type=str,
         help="Whether to use MC (multichannel) audio inputs/outputs",
     )
+    parser.add_argument(
+        "--abstraction",
+        type=str,
+        help="Whether to generate a GUI-less abstraction with audio and control inlets/outlets",
+    )
     args = parser.parse_args()
     # print(args)
 
@@ -1707,6 +1857,7 @@ def main():
         args.test == "True",
         args.subpatcher == "True",
         args.mc == "True",
+        args.abstraction == "True",
     )
 
 

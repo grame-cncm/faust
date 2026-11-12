@@ -16,6 +16,7 @@ ARCHFILE="$FAUSTARCH/max-msp/rnbo.py"
 MIDI=False
 SUB_PATCHER=False
 MC=False
+ABSTRACTION=False
 NVOICES=-1
 COMPILE=False
 EXPORT_PATH="/tmp/foo"
@@ -40,6 +41,7 @@ echoHelp()
     option -test "to generate special 'RB_XX' prefix for parameters (for testing)"
     option -sp "to generate codebox subpatcher as a file.rnbopat file"
     option -mc "to connect the rnbo~ object with MC (multichannel) audio inputs/outputs"
+    option -abstr "to generate a GUI-less abstraction with audio and control inlets, and audio outlets"
     option "-cpp_path <path>"
     option "-cpp_filename <filename>"
     option "Faust options"
@@ -76,6 +78,8 @@ while [ "$#" -gt 0 ]; do
         SUB_PATCHER=True
     elif [ "$p" = "-mc" ]; then
         MC=True
+    elif [ "$p" = "-abstr" ]; then
+        ABSTRACTION=True
     elif [ "$p" = "-nvoices" ]; then
         shift
         requireValue -nvoices "${1:-}"
@@ -160,7 +164,7 @@ for f in "${FILES[@]}"; do
             --dsp-name "$dsp_base" --dsp-codebox "$dsp_codebox" \
             --dsp-json "$dsp_json" --maxpat "$dsp_base.maxpat" \
             --cpp-export "$EXPORT_PATH" --cpp-filename "$EXPORT_FILENAME" \
-            --compile "$COMPILE" --test "$TEST" --subpatcher "$SUB_PATCHER" --mc "$MC"
+            --compile "$COMPILE" --test "$TEST" --subpatcher "$SUB_PATCHER" --mc "$MC" --abstraction "$ABSTRACTION"
     else
         faust "${OPTIONS[@]}" "$f" -lang codebox -double -json -o "$dsp_codebox"
         if [ "$POLY" = "POLY2" ]; then
@@ -182,7 +186,7 @@ for f in "${FILES[@]}"; do
                     --effect-json "$auto_dsp.json" --maxpat "$dsp_base.maxpat" \
                     --cpp-export "$EXPORT_PATH" --cpp-filename "$EXPORT_FILENAME" \
                     --midi "$MIDI" --nvoices "$NVOICES" --compile "$COMPILE" \
-                    --subpatcher "$SUB_PATCHER" --mc "$MC"
+                    --subpatcher "$SUB_PATCHER" --mc "$MC" --abstraction "$ABSTRACTION"
                 rm -rf "$auto_dir"
                 auto_dir=""
             else
@@ -196,7 +200,7 @@ for f in "${FILES[@]}"; do
                     --effect-json "$EFFECT.json" --maxpat "$dsp_base.maxpat" \
                     --cpp-export "$EXPORT_PATH" --cpp-filename "$EXPORT_FILENAME" \
                     --midi "$MIDI" --nvoices "$NVOICES" --compile "$COMPILE" \
-                    --subpatcher "$SUB_PATCHER" --mc "$MC"
+                    --subpatcher "$SUB_PATCHER" --mc "$MC" --abstraction "$ABSTRACTION"
             fi
         else
             python3 "$ARCHFILE" \
@@ -204,7 +208,7 @@ for f in "${FILES[@]}"; do
                 --dsp-json "$dsp_json" --maxpat "$dsp_base.maxpat" \
                 --cpp-export "$EXPORT_PATH" --cpp-filename "$EXPORT_FILENAME" \
                 --midi "$MIDI" --nvoices "$NVOICES" --compile "$COMPILE" \
-                --subpatcher "$SUB_PATCHER" --mc "$MC"
+                --subpatcher "$SUB_PATCHER" --mc "$MC" --abstraction "$ABSTRACTION"
         fi
     fi
 
