@@ -213,6 +213,39 @@ class Faust2RnboTests(unittest.TestCase):
         self.assert_no_compiler_temporaries(multichannel)
         self.assert_no_compiler_temporaries(controls)
 
+    def test_mc_option_uses_multichannel_audio_io(self):
+        """Wrap the rnbo~ signal ports with mc.unpack~/mc.pack~ and MC drivers."""
+
+        dsp = self.write_dsp("mc channels", "process = _,_,_,0;\n")
+        result = self.run_script("-mc", dsp)
+        self.assertEqual(result.returncode, 0, result.stdout)
+
+        patch = self.load_patch(dsp.with_suffix(".maxpat"))
+        texts = self.texts(patch)
+        for expected in ("mc.adc~ 1 2 3", "mc.unpack~ 3", "mc.pack~ 4", "mc.dac~ 1 2 3 4"):
+            self.assertIn(expected, texts)
+        self.assertNotIn("adc~ 1 2 3", texts)
+        self.assertNotIn("dac~ 1 2 3 4", texts)
+
+        # Every rnbo~ signal port is connected to the MC adaptors.
+        boxes = {box["box"]["id"]: box["box"] for box in patch["patcher"]["boxes"]}
+        ids = {box.get("text", "").split(" ")[0]: box_id for box_id, box in boxes.items()}
+        lines = [line["patchline"] for line in patch["patcher"]["lines"]]
+        rnbo_id = next(i for i, box in boxes.items() if box.get("text", "").startswith("rnbo~"))
+        inlets = sorted(
+            l["destination"][1] for l in lines
+            if l["source"][0] == ids["mc.unpack~"] and l["destination"][0] == rnbo_id
+        )
+        outlets = sorted(
+            l["source"][1] for l in lines
+            if l["source"][0] == rnbo_id and l["destination"][0] == ids["mc.pack~"]
+        )
+        self.assertEqual(inlets, [0, 1, 2])
+        self.assertEqual(outlets, [0, 1, 2, 3])
+        self.assertEqual(boxes[ids["mc.pack~"]]["numinlets"], 4)
+        self.assertEqual(boxes[ids["mc.unpack~"]]["numoutlets"], 3)
+        self.assert_no_compiler_temporaries(dsp)
+
     def test_codebox_test_mode_uses_prefixed_parameters(self):
         """Generate the RB_ parameter ABI expected by the RNBO C++ test app."""
 

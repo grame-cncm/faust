@@ -15,6 +15,7 @@ set -e
 ARCHFILE="$FAUSTARCH/max-msp/rnbo.py"
 MIDI=False
 SUB_PATCHER=False
+MC=False
 NVOICES=-1
 COMPILE=False
 EXPORT_PATH="/tmp/foo"
@@ -38,6 +39,7 @@ echoHelp()
     option -compile "to trigger C++ compilation at load time"
     option -test "to generate special 'RB_XX' prefix for parameters (for testing)"
     option -sp "to generate codebox subpatcher as a file.rnbopat file"
+    option -mc "to connect the rnbo~ object with MC (multichannel) audio inputs/outputs"
     option "-cpp_path <path>"
     option "-cpp_filename <filename>"
     option "Faust options"
@@ -72,6 +74,8 @@ while [ "$#" -gt 0 ]; do
         MIDI=True
     elif [ "$p" = "-sp" ]; then
         SUB_PATCHER=True
+    elif [ "$p" = "-mc" ]; then
+        MC=True
     elif [ "$p" = "-nvoices" ]; then
         shift
         requireValue -nvoices "${1:-}"
@@ -156,7 +160,7 @@ for f in "${FILES[@]}"; do
             --dsp-name "$dsp_base" --dsp-codebox "$dsp_codebox" \
             --dsp-json "$dsp_json" --maxpat "$dsp_base.maxpat" \
             --cpp-export "$EXPORT_PATH" --cpp-filename "$EXPORT_FILENAME" \
-            --compile "$COMPILE" --test "$TEST" --subpatcher "$SUB_PATCHER"
+            --compile "$COMPILE" --test "$TEST" --subpatcher "$SUB_PATCHER" --mc "$MC"
     else
         faust "${OPTIONS[@]}" "$f" -lang codebox -double -json -o "$dsp_codebox"
         if [ "$POLY" = "POLY2" ]; then
@@ -178,7 +182,7 @@ for f in "${FILES[@]}"; do
                     --effect-json "$auto_dsp.json" --maxpat "$dsp_base.maxpat" \
                     --cpp-export "$EXPORT_PATH" --cpp-filename "$EXPORT_FILENAME" \
                     --midi "$MIDI" --nvoices "$NVOICES" --compile "$COMPILE" \
-                    --subpatcher "$SUB_PATCHER"
+                    --subpatcher "$SUB_PATCHER" --mc "$MC"
                 rm -rf "$auto_dir"
                 auto_dir=""
             else
@@ -192,7 +196,7 @@ for f in "${FILES[@]}"; do
                     --effect-json "$EFFECT.json" --maxpat "$dsp_base.maxpat" \
                     --cpp-export "$EXPORT_PATH" --cpp-filename "$EXPORT_FILENAME" \
                     --midi "$MIDI" --nvoices "$NVOICES" --compile "$COMPILE" \
-                    --subpatcher "$SUB_PATCHER"
+                    --subpatcher "$SUB_PATCHER" --mc "$MC"
             fi
         else
             python3 "$ARCHFILE" \
@@ -200,7 +204,7 @@ for f in "${FILES[@]}"; do
                 --dsp-json "$dsp_json" --maxpat "$dsp_base.maxpat" \
                 --cpp-export "$EXPORT_PATH" --cpp-filename "$EXPORT_FILENAME" \
                 --midi "$MIDI" --nvoices "$NVOICES" --compile "$COMPILE" \
-                --subpatcher "$SUB_PATCHER"
+                --subpatcher "$SUB_PATCHER" --mc "$MC"
         fi
     fi
 

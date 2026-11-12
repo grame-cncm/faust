@@ -135,6 +135,7 @@ Here are the available options:
   - `-compile` : to trigger C++ compilation at load time
   - `-test` : to generate special 'RB_XX' prefix for parameters (for testing)
   - `-sp` : to generate codebox subpatchers as a file.rnbopat file
+  - `-mc` : to connect the `rnbo~` object with MC (multichannel) audio: `rnbo~` only has single-channel signal inlets/outlets, so the outputs are merged by `mc.pack~ <outputs>` into `mc.dac~`, and the inputs come from `mc.adc~` split by `mc.unpack~ <inputs>`
   - `-cpp_path <path>` : to set C++ export folder 
   - `-cpp_filename <filename>` : to set C++ export filename
  

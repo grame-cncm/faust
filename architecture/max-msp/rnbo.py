@@ -29,6 +29,9 @@ will be exported and compiled if 'compile' is True.
 The 'test' option allows to generate a patch with the 'RB_xx' prefixed labels for the parameters, 
 to be used with the C++ RNBO test application with the rnbo_dsp class. 
 The 'subpatcher' option allows to generate sub-patch as foo.rnbopat files.
+The 'mc' option presents the rnbo~ object with a Max multichannel (MC) interface: since rnbo~
+only has single-channel signal inlets/outlets, the inputs are split by a 'mc.unpack~' object and
+the outputs are merged by a 'mc.pack~' object, connected to 'mc.adc~' and 'mc.dac~'.
 
 Parsing the JSON file gives:
     - the list of parameters (button, checkbox, sliders, nentry) to be added as "set param" objects
@@ -47,7 +50,8 @@ The maxpat file is generated with the following structure:
     - the polyphony control is added if the MIDI state is True and the nvoices count is > 0. Effect is added as a 'p' subpatcher.
     - possibly loadbang box and 'compile C++ and export' machinery
     - possibly midiin/midiout objects
-    - dac~ object and possibly adc~ object (if the DSP has inputs)
+    - dac~ object and possibly adc~ object (if the DSP has inputs),
+      or mc.pack~/mc.dac~ and possibly mc.adc~/mc.unpack~ objects in MC mode
 """
 
 import argparse
@@ -1136,6 +1140,91 @@ def create_audio_input(patcher: Patcher, rnbo: Box, num_inputs: int) -> None:
         patcher.add_line(audio_in, rnbo, inlet=i, outlet=i)
 
 
+def create_mc_audio_output(patcher: Patcher, rnbo: Box, num_outputs: int) -> None:
+    """
+    Creates the multichannel (MC) output audio objects.
+
+    Parameters:
+        patcher (Patcher): The main patcher where objects will be added.
+        rnbo (Box): The rnbo DSP module
+        num_outputs (int): The number of output channels.
+
+    Returns:
+        None
+
+    Description:
+        rnbo~ only has single-channel signal outlets: they are merged in a single
+        MC signal by a 'mc.pack~' object, then sent to a 'mc.dac~' object.
+    """
+
+    if num_outputs <= 0:
+        return
+
+    # Merge the rnbo~ signal outlets in a single MC signal
+    mc_pack = patcher.add_textbox(
+        f"mc.pack~ {num_outputs}",
+        numinlets=num_outputs,
+        numoutlets=1,
+        outlettype=["multichannelsignal"],
+    )
+    for i in range(num_outputs):
+        patcher.add_line(rnbo, mc_pack, inlet=i, outlet=i)
+
+    # Create the toggle button for audio output activation
+    toggle = patcher.add_textbox("toggle")
+    toggle.patching_rect = [
+        toggle.patching_rect[0],
+        toggle.patching_rect[1],
+        24.0,
+        24.0,
+    ]
+
+    # 'mc.dac~' has a single MC inlet
+    dac_str = "mc.dac~ " + " ".join(str(i + 1) for i in range(num_outputs))
+    audio_out = patcher.add_textbox(dac_str, numinlets=1, numoutlets=0)
+
+    patcher.add_line(toggle, audio_out)
+    patcher.add_line(mc_pack, audio_out)
+
+
+def create_mc_audio_input(patcher: Patcher, rnbo: Box, num_inputs: int) -> None:
+    """
+    Creates the multichannel (MC) input audio objects.
+
+    Parameters:
+        patcher (Patcher): The main patcher where objects will be added.
+        rnbo (Box): The rnbo DSP module
+        num_inputs (int): The number of input channels.
+
+    Returns:
+        None
+
+    Description:
+        A 'mc.adc~' object produces a single MC signal, split by a 'mc.unpack~'
+        object into the single-channel signal inlets of rnbo~.
+    """
+
+    if num_inputs <= 0:
+        return
+
+    # 'mc.adc~' has a single MC outlet
+    adc_str = "mc.adc~ " + " ".join(str(i + 1) for i in range(num_inputs))
+    audio_in = patcher.add_textbox(
+        adc_str, numinlets=1, numoutlets=1, outlettype=["multichannelsignal"]
+    )
+
+    # Split the MC signal into the rnbo~ signal inlets
+    mc_unpack = patcher.add_textbox(
+        f"mc.unpack~ {num_inputs}",
+        numinlets=1,
+        numoutlets=num_inputs,
+        outlettype=["signal"] * num_inputs,
+    )
+    patcher.add_line(audio_in, mc_unpack)
+    for i in range(num_inputs):
+        patcher.add_line(mc_unpack, rnbo, inlet=i, outlet=i)
+
+
 def connect_midi_rnbo(patcher: Patcher, rnbo: Box, midi_in: Box, midi_out: Box) -> None:
     """
     Connects MIDI input, a DSP, and MIDI output in a Max/MSP patcher.
@@ -1204,6 +1293,7 @@ def create_rnbo_patch_flat(
     compile: bool = False,
     test: bool = False,
     subpatcher: bool = False,
+    mc: bool = False,
 ) -> None:
     """
     This function creates an RNBO Max patcher with the specified parameters.
@@ -1226,6 +1316,7 @@ def create_rnbo_patch_flat(
     - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
     - test (bool): A flag indicating whether the patch is for testing purposes.
     - subpatcher (bool): A flag indicating whether to save subpatchers as foo.rnbopat files.
+    - mc (bool): A flag indicating whether to use MC audio inputs/outputs around the rnbo~ object.
 
     Returns:
         None
@@ -1303,16 +1394,18 @@ def create_rnbo_patch_flat(
         add_compile_test(patcher, dsp_rnbo, export_path, cpp_filename)
 
     # Connect the appropriate rnbo~ object to audio_out
+    audio_output = create_mc_audio_output if mc else create_audio_output
     if effect_codebox_code:
         # Create the audio driver output
-        create_audio_output(patcher, effect_rnbo, effect_num_outputs)
+        audio_output(patcher, effect_rnbo, effect_num_outputs)
     else:
         # Create the audio driver output
-        create_audio_output(patcher, dsp_rnbo, dsp_num_outputs)
+        audio_output(patcher, dsp_rnbo, dsp_num_outputs)
 
     # Possibly create the audio driver input
     if dsp_num_inputs > 0:
-        create_audio_input(patcher, dsp_rnbo, dsp_num_inputs)
+        audio_input = create_mc_audio_input if mc else create_audio_input
+        audio_input(patcher, dsp_rnbo, dsp_num_inputs)
 
     # And finally save the patch
     patcher.save()
@@ -1337,6 +1430,7 @@ def create_rnbo_patch(
     compile: bool = False,
     test: bool = False,
     subpatcher: bool = False,
+    mc: bool = False,
 ) -> None:
     """
     This function creates an RNBO Max patcher with the specified parameters.
@@ -1359,6 +1453,7 @@ def create_rnbo_patch(
     - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
     - test (bool): A flag indicating whether the patch is for testing purposes.
     - subpatcher (bool): A flag indicating whether to save subpatchers as foo.rnbopat files.
+    - mc (bool): A flag indicating whether to use MC audio inputs/outputs around the rnbo~ object.
 
     Returns:
         None
@@ -1433,12 +1528,18 @@ def create_rnbo_patch(
     if compile:
         add_compile_test(patcher, dsp_rnbo, export_path, cpp_filename)
 
-    # Create the audio driver output
-    create_audio_output(patcher, dsp_rnbo, dsp_num_outputs)
+    # Create the audio driver output, possibly in MC mode
+    if mc:
+        create_mc_audio_output(patcher, dsp_rnbo, dsp_num_outputs)
+    else:
+        create_audio_output(patcher, dsp_rnbo, dsp_num_outputs)
 
-    # Possibly create the audio driver input
+    # Possibly create the audio driver input, possibly in MC mode
     if dsp_num_inputs > 0:
-        create_audio_input(patcher, dsp_rnbo, dsp_num_inputs)
+        if mc:
+            create_mc_audio_input(patcher, dsp_rnbo, dsp_num_inputs)
+        else:
+            create_audio_input(patcher, dsp_rnbo, dsp_num_inputs)
 
     # And finally save the patch
     patcher.save()
@@ -1458,6 +1559,7 @@ def load_files_create_rnbo_patch(
     compile: bool,
     test: bool,
     subpatcher: bool,
+    mc: bool = False,
 ) -> None:
     """
     This function loads the codebox and JSON files, extracts relevant data in the JSON, and creates the RNBO Max patch.
@@ -1476,6 +1578,7 @@ def load_files_create_rnbo_patch(
     - compile (bool): A flag indicating whether to include the C++ compilation and export machinery.
     - test (bool): A flag indicating whether the patch is for testing purposes (causing control parameter special naming).
     - subpatcher (bool): A flag indicating whether to save subpatchers as foo.rnbopat files.
+    - mc (bool): A flag indicating whether to use MC audio inputs/outputs around the rnbo~ object.
 
     Returns:
         None
@@ -1530,6 +1633,7 @@ def load_files_create_rnbo_patch(
             compile,
             test,
             subpatcher,
+            mc,
         )
     else:
         create_rnbo_patch(
@@ -1552,6 +1656,7 @@ def load_files_create_rnbo_patch(
             compile=compile,
             test=test,
             subpatcher=subpatcher,
+            mc=mc,
         )
 
 
@@ -1579,6 +1684,11 @@ def main():
         type=str,
         help="Whether to generate subpatchers as foo.rnbopat files",
     )
+    parser.add_argument(
+        "--mc",
+        type=str,
+        help="Whether to use MC (multichannel) audio inputs/outputs",
+    )
     args = parser.parse_args()
     # print(args)
 
@@ -1596,6 +1706,7 @@ def main():
         args.compile == "True",
         args.test == "True",
         args.subpatcher == "True",
+        args.mc == "True",
     )
 
 
