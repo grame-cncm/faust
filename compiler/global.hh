@@ -486,7 +486,8 @@ struct global {
     int gDummyInput;
 
     // Used in eval
-    int gBoxSlotNumber;  // counter for unique slot number
+    int    gBoxSlotNumber;  // counter for unique slot number
+    size_t gDefNameCount;   // number of definition names given, see defNameStamp()
 
     bool& gCausality = sigs::g.gCausality;  // FIXME: global used as a parameter of typeAnnotation when true trigs
                       // causality errors (negative delay)
@@ -507,6 +508,9 @@ struct global {
     Tree& RECURSIVNESS = sigs::g.RECURSIVNESS;
     Tree NORMALFORM;
     Tree DEFNAMEPROPERTY;
+    Tree DEFNAMESTAMP;      // when the definition name was given, see defNameStamp()
+    Tree DEFNAMESHARED;     // the tree is the value of several definitions, see names.hh
+    Tree DEFNAMEUNCERTAIN;  // the definition name may be wrong, see names.hh
     Tree NICKNAMEPROPERTY;
     Tree BCOMPLEXITY;  // Node used for memoization purposes
     Tree LETRECBODY;
