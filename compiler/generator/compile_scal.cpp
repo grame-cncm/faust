@@ -35,6 +35,7 @@
 #include <sstream>
 #include <vector>
 
+#include "sigclock.hh"
 #include "mixForm.hh"
 #include "aterm.hh"
 #include "Schedule.hh"
@@ -797,6 +798,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     endTiming("L2 typeAnnotation");
     checkCertificates();  // a program bounded for less than 10 seconds is refused
     checkLightTypes(L2);  // FAUST_CHECK_LIGHT_TYPES : the light typing against the certified one
+    checkClockConcordance(L2);  // FAUST_CHECK_CLOCKS : the clocks against the variability
     // the display cones need every annotation the emitters and the rewrites read
     const bool display        = fDisplayList != nullptr && isList(fDisplayList);
     auto       annotateDisplay = [&]() {

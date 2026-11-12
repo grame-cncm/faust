@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <string>
 
+#include "sigclock.hh"
 #include "mixForm.hh"
 #include "aterm.hh"
 #include "Text.hh"
@@ -155,6 +156,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     checkCertificates();  // a program bounded for less than 10 seconds is refused
     checkValidity(L2);    // an integer remainder that may stop, a signal never valid
     checkLightTypes(L2);  // FAUST_CHECK_LIGHT_TYPES : the light typing against the certified one
+    checkClockConcordance(L2);  // FAUST_CHECK_CLOCKS : the clocks against the variability
 
     // the computation form : the decisions of the code, taken once on the certified
     // program, then the lowerings that change the rounding, outside the cone of the memory
