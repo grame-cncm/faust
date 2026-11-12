@@ -3,7 +3,7 @@
 around ONE program, under the promoted judge.
 
 Genome: one allele per gene (scheduler, R, U, fusion, split,
-staging, fir, lsum, lazy, gatequiv, selectn, rp, tau, atoms).
+staging, iirt, lsum, lazy, gatequiv, selectn, rp, tau, atoms).
 Fitness: flash ns/sample (promotion spin active), min of 2 runs;
 a broken build = infinite fitness (selection cleans it out).
 CORRECTNESS: hard constraint -- the best of each generation must
@@ -22,7 +22,7 @@ GENES = {
     "fuse":  [[], ["-ls-fuse","-ls-sched","model"]],
     "ls":    [[], ["-ls","-ls-sched","model"]],
     "temp":  [[], ["-temp","1"], ["-temp","2"], ["-temp","4"], ["-temp","8"]],
-    "fir":   [[], ["-fir","-iirt"]],
+    "iirt":  [[], ["-iirt"]],
     "lsum":  [[], ["-lsum"]],
     "lazy":  [[], ["-lazyselect"]],
     "gq":    [[], ["-gatequiv"]],

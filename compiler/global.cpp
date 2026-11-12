@@ -536,7 +536,6 @@ void global::reset()
     gGateEquiv      = false;
     gEtaIterations  = 1;
     gLoopSplit      = false;
-    gReconstructFIRIIRs = false;
     gLowerSums          = false;
     gMatrixRows         = false;
     gIIRTransposed      = false;
@@ -1977,10 +1976,6 @@ bool global::processCmdline(int argc, const char* argv[])
             gMathExceptions = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-fir", "--fir-iir")) {
-            gReconstructFIRIIRs = true;
-            i += 1;
-
         } else if (isCmd(argv[i], "-iirt", "--iir-transposed")) {
             gIIRTransposed = true;
             i += 1;
@@ -2773,12 +2768,8 @@ string global::printHelp()
             "compositional deep/wide spine."
          << endl;
     sstr << tab
-         << "-fir        --fir-iir                   (ocpp, experimental) recognise FIR/IIR "
-            "kernels in the signal graph and emit their dedicated forms."
-         << endl;
-    sstr << tab
          << "-iirt       --iir-transposed            (ocpp, experimental) transposed emission "
-            "for the all-pole kernels recognised by -fir."
+            "for the all-pole IIRs of order 2 or more."
          << endl;
     sstr << tab
          << "-lsum       --lower-sums                (ocpp, experimental) recover the polynomial "

@@ -66,15 +66,13 @@
 #include "sigprint.hh"
 #include "rewrite.hh"
 #include "superNodes.hh"
-#include "revealFIR.hh"
 #include "revealIIR.hh"
 #include "placeTemps.hh"
 #include "reassociate.hh"
 #include "nestSums.hh"
 #include "revealSum.hh"
 #include "descend.hh"
-#include "factorizeFIRs.hh"
-#include "kernelCandidacy.hh"
+#include "kernelWorkVec.hh"
 #include "groupPlan.hh"
 #include "revealMatrix.hh"
 #include "lowerSums.hh"
@@ -722,14 +720,12 @@ Tree ScalarCompiler::prepare(Tree LS)
         walk(sigs);
         return found;
     };
-    if (gGlobal->gLowerSums && !gGlobal->gReconstructFIRIIRs &&
-        !hasEnableControl(L2)) {
-        // -lsum STANDALONE (the old_freeverb bisection, 2026-08-18) :
-        // lowerSums was trapped inside the -fir reveal lambda -- alone it
-        // was a silent no-op. It needs revealSum's n-ary rows but NOT the
-        // kernel injection (-fir costs +46 muls on old_freeverb : kernels
-        // revealed where they do not pay). Own big-stack thread, the
-        // reveal precedent.
+    if (gGlobal->gLowerSums && !hasEnableControl(L2)) {
+        // -lsum : the n-ary sums of revealSum become binary adds whose
+        // shared pairs and canonical prefixes rebuild the structural
+        // sharing the flattening destroyed (fdnRev : 823 -> 3056 additions
+        // without it). The recursions are as deep as the signal graph :
+        // dedicated big-stack thread, joined immediately.
         std::function<void()> lsOnly = [&]() {
             startTiming("Sum revealer (lsum standalone)");
             L2 = revealSum(L2);
@@ -759,47 +755,6 @@ Tree ScalarCompiler::prepare(Tree LS)
             endTiming("gatequiv");
         };
         callWithLargeStack(gq);
-    }
-    if (gGlobal->gReconstructFIRIIRs) {
-        // -fir stage 1 : the revealed kernels are INJECTED into the
-        // pipeline -- n-ary sums (revealSum) then FIR kernels (revealFIR).
-        // revealIIR waits for its typing rule (WCPG, see PILE n.12). The
-        // reveal recursions are as deep as the signal graph : dedicated
-        // big-stack thread, joined immediately (thunder, drumkit).
-        std::function<void()> reveal = [&]() {
-            startTiming("Sum revealer");
-            L2 = revealSum(L2);
-            endTiming("Sum revealer");
-            startTiming("FIR revealer");
-            L2 = revealFIR(L2);
-            endTiming("FIR revealer");
-            startTiming("IIR revealer");
-            L2 = revealIIR(L2);
-            endTiming("IIR revealer");
-            startTiming("FIR factorizer");
-            L2 = factorizeFIRs(L2);
-            L2 = kernelCandidacy(L2);  // the retiming law, per site
-            endTiming("FIR factorizer");
-            if (gGlobal->gLowerSums) {
-                // experimental co-occurrence lowering : the n-ary sums
-                // become binary adds whose shared pairs and canonical
-                // prefixes rebuild the structural sharing the flattening
-                // destroyed (fdnRev : 823 -> 3056 additions without it)
-                startTiming("Sum lowering");
-                std::set<Tree> keepRows;
-                if (gGlobal->gMatrixRows) {
-                    // matrix rows stay n-ary through the lowering : the
-                    // -ls row-op regime consumes them whole (spec
-                    // LA-FORME-MATRICE)
-                    for (auto& [row, id] : revealMatrix(L2).rowOf) {
-                        keepRows.insert(row);
-                    }
-                }
-                L2 = lowerSums(L2, keepRows.empty() ? nullptr : &keepRows);
-                endTiming("Sum lowering");
-            }
-        };  // fin du lambda reveal (-fir)
-        callWithLargeStack(reveal);
     }
 
     startTiming("conditionAnnotation");
@@ -2280,8 +2235,8 @@ class LoopSplitEmitter {
             return;
         }
         if (tvec V; isSigSum(t, V) || kernelWorkVec(t, V)) {
-            // -fir kernels, stage 1 : plain forms (Sum n-ary, FIR weighted
-            // taps, IIR direct). V = terms for Sum, [source, c0..cn] for FIR
+            // the n-ary Sum and the FIR : V = terms for Sum, [source,
+            // c0..cn] for FIR
             for (Tree b : V) {
                 prescan(b, seen);
             }
@@ -4159,48 +4114,6 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // the lattice of legal partitions.
     if (gGlobal->gLSFuse) {
         std::map<int, long> costMemo;  // block id -> shadow cost (per campaign step)
-        // -fir barrier : a KERNEL block is dominated by dense recognized-FIR
-        // tap reads. Fusing kernel with non-kernel code destroys the
-        // vectorizable form the informed delay-line layout just created ;
-        // kernel+kernel stays legal (parallel kernels are the profitable
-        // tiles). Only active when -fir filled the facts.
-        // per-MEMBER tap counts, computed ONCE : contractions only merge
-        // member lists, so a block's taps are the sum of its members'
-        std::map<int, int> memberTaps;
-        if (!fC->fFirFacts.empty()) {
-            const std::vector<Tree>& matv = fSN.materialized();
-            for (int m = 0; m < int(matv.size()); m++) {
-                int                       taps = 0;
-                std::set<Tree>            seen;
-                std::function<void(Tree)> walkd = [&](Tree t) {
-                    if (!seen.insert(t).second) {
-                        return;
-                    }
-                    Tree x, y;
-                    if (isSigDelay(t, x, y) && fC->fFirFacts.count(x)) {
-                        // only DENSE kernels raise the barrier : a span < 4
-                        // kernel is dust (bell modes, shelves) whose tap
-                        // reads are ordinary reads -- barring their fusion
-                        // left the resonator banks as separate buffered
-                        // loops, twice the canonical fused time
-                        if (fC->fFirFacts[x].first >= 4) {
-                            taps++;
-                        }
-                    }
-                    for (int k = 0; k < t->arity(); k++) {
-                        Tree br = t->branch(k);
-                        if (fSN.indexOf(br) >= 0) {
-                            continue;  // other members' territory
-                        }
-                        walkd(br);
-                    }
-                };
-                walkd(SuperNodeGraph::defOf(matv[m]));
-                if (taps > 0) {
-                    memberTaps[m] = taps;
-                }
-            }
-        }
         // -- STREAM term of the oracle (prefetcher budget, measured
         // S ~ 10-16 on karplus : G4 has 9 streams and wins, G8 has 17 and
         // stalls). A stream : a real HISTORY buffer (maxDelay >= 16
@@ -4260,20 +4173,6 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             }
             return long(u.size());
         };
-        auto isKernelBlock = [&](int b) -> bool {
-            if (memberTaps.empty()) {
-                return false;
-            }
-            int taps = 0;
-            for (int m : fSN.blockMembers(b)) {
-                auto mt = memberTaps.find(m);
-                if (mt != memberTaps.end()) {
-                    taps += mt->second;
-                }
-            }
-            bool k = (taps >= 4) && (2 * taps >= fSN.opsEstimate(b));
-            return k;
-        };
         auto costOfBlock = [&](int b) -> long {
             auto it = costMemo.find(b);
             if (it != costMemo.end()) {
@@ -4292,9 +4191,6 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             }
             if (!fSN.canContract(b, c)) {
                 return false;
-            }
-            if (isKernelBlock(b) != isKernelBlock(c)) {
-                return false;  // -fir barrier
             }
             if (streamBudget > 0 && streamsUnion(b, c) > streamBudget) {
                 return false;  // prefetcher stream budget
@@ -4320,9 +4216,6 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             }
             if (!fSN.canContract(b, c)) {
                 return 0;
-            }
-            if (isKernelBlock(b) != isKernelBlock(c)) {
-                return 0;  // -fir barrier
             }
             if (streamBudget > 0 && streamsUnion(b, c) > streamBudget) {
                 return 0;  // prefetcher stream budget
@@ -4577,21 +4470,6 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         fIsInt[i] = getCertifiedSigType(mat[i])->nature() == kInt;
         fLocal[i] = (fMaxD[i] == 0);
         fRing[i]  = (fMaxD[i] > gGlobal->gMaxCopyDelay);
-        // -fir consumer : a DENSE recognized FIR reads its whole window
-        // every sample -- the linear layout (contiguous prefix reads, one
-        // end-of-chunk shift) is the vectorizable form ; the masked ring
-        // defeats it (measured x4.2 on par_fir_32). Sparse kernels
-        // (tapiir) keep the ring.
-        if (fRing[i]) {
-            auto it = fC->fFirFacts.find(mat[i]);
-            if (it != fC->fFirFacts.end()) {
-                int span = it->second.first, nz = it->second.second;
-                if (span == fMaxD[i] && span <= gGlobal->gMaxDenseDelay &&
-                    100 * nz >= 50 * span) {
-                    fRing[i] = false;
-                }
-            }
-        }
         if (fAliasIx[i] >= 0) {
             fBufName[i] = "<aliased>";  // never emitted: accessCode redirects
             continue;
@@ -5009,94 +4887,6 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         fClass->addZone3(subst("$1* output$0 = &output[$0][index]; // Zone 3", T(i), xfloat()));
     }
 
-    // -fir : signal-level FIR/IIR recognition, SIDE-CHANNEL ONLY at this
-    // stage -- the reveal passes run on a copy of the signal list, the
-    // recognized kernels are counted and reported, and the copy is
-    // discarded : the emitted code is unchanged to the byte. The
-    // information exists (oracle barriers, bank seeding, auto selector
-    // are the intended consumers) ; emission changes are a later,
-    // separately-judged stage.
-    if (gGlobal->gReconstructFIRIIRs) {
-        // The reveal traversals and the dependency analysis recurse as
-        // deep as the signal graph ; on large programs (thunder,
-        // drumkit) this exceeds the default 8 MB main stack. The whole
-        // side channel therefore runs in a dedicated thread with a
-        // comfortable stack, joined immediately : still one thread at a
-        // time in tlib.
-        std::function<void()> sideChannel = [&]() {
-        // revealSum first : the FIR-merge rule of revealFIR only listens
-        // to n-ary SigSum nodes, never to the binary sigAdd chains of the
-        // normal form (fir18 pipeline order). revealIIR last : it needs
-        // the recursive definitions already in Sum-of-FIR form. The
-        // typing probe below runs on Lf (pre-IIR) : IIR nodes have no
-        // typing rule yet (recursive equation, fixpoint-domain rule).
-        // The input arrives already normalized : normalizeRecGroups runs
-        // unconditionally at the birth of the symbolic form (normalform.cpp),
-        // so the letrecs are minimal and the IIR hosts are exactly the
-        // single-definition self-recursive groups.
-        Tree Lf = L;  // Sum and FIR are already revealed by prepare (injection)
-        Tree Li = Lf;  // IIRs revealed by prepare (stage-2 injection)
-        int  nfir = 0, niir = 0, maxtaps = 0;
-        long taps = 0;
-        std::set<Tree>    seen;
-        std::vector<Tree> work;
-        for (Tree l = Li; isList(l); l = tl(l)) {
-            work.push_back(hd(l));
-        }
-        // the display roots too : the frontier rooted the stateful parts
-        // of the harvested display cones (kernels included) OUTSIDE L,
-        // and the facts must describe every kernel the emitters meet --
-        // a kernel without facts is fused like plain code and laid out
-        // without the informed delay line (spectralLevel under -fir :
-        // fifteen band kernels, SS_FIR 15 -> 0, loop 0 440 -> 618 ops)
-        for (Tree sd : fDisplayStateful) {
-            work.push_back(sd);
-        }
-        for (Tree p : fDisplayCapturePoints) {
-            work.push_back(p);
-        }
-        while (!work.empty()) {
-            Tree t = work.back();
-            work.pop_back();
-            if (!seen.insert(t).second) {
-                continue;
-            }
-            tvec cs;
-            if (kernelWorkVec(t, cs)) {
-                nfir++;
-                taps += long(cs.size()) - 1;
-                maxtaps = std::max(maxtaps, int(cs.size()) - 1);
-                // bridge : record the kernel on its source (branch 0). The
-                // reveal leaves non-FIR sources untouched, so the pointer
-                // matches the prepared tree the emitters work on.
-                // branches = [S, c0..cN] : N+1 coefficients cover delays
-                // 0..N, so the read span in delay terms is size-2
-                int span = int(cs.size()) - 2;
-                int nz   = 0;
-                for (unsigned int k = 1; k < cs.size(); k++) {
-                    if (!isZero(cs[k])) {
-                        nz++;
-                    }
-                }
-                // aggregate PER SOURCE : kernels reading the same delay
-                // line pool their taps (siblings on one source merge in
-                // the reveal, but distinct outputs can still share a
-                // source, and their union is what the delay line serves)
-                auto& f = fFirFacts[cs[0]];
-                f.first = std::max(f.first, span);
-                f.second += nz;
-            } else if (isSigIIR(t, cs)) {
-                niir++;
-            }
-            for (int k = 0; k < t->arity(); k++) {
-                work.push_back(t->branch(k));
-            }
-        }
-        std::cerr << "SS_FIR fir=" << nfir << " iir=" << niir << " taps=" << taps
-                  << " maxtaps=" << maxtaps << " sources=" << fFirFacts.size() << std::endl;
-        };
-        callWithLargeStack(sideChannel);
-    }
 
     // -ss 10 : auto-regime hybrid -- the tight-nest recurrence bound
     // picks the pole of the bank-compositional family : deep nests want

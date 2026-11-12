@@ -25,7 +25,7 @@ export FAUST_LIB_PATH=$(cd "$LIB" && pwd)
 OUT=$HERE/out; rm -rf "$OUT"; mkdir -p "$OUT/a" "$OUT/b"
 INC="-I ../impulse-tests/dsp -I $LIB"
 SETS=("-lang cpp -double -t 0" "-lang cpp -double -t 0 -vec" "-lang ocpp -double -t 0" "-lang ocpp -double -t 0 -vec"
-      "-lang cpp -double -t 0 -ftz 2" "-lang ocpp -double -t 0 -fir")
+      "-lang cpp -double -t 0 -ftz 2" "-lang ocpp -double -t 0 -ls")
 echo "A : $A"; "$A" --version | sed 's/^/    /'
 echo "B : $B"; "$B" --version | sed 's/^/    /'
 echo "libraries : $FAUST_LIB_PATH $(git -C "$LIB" rev-parse --short HEAD 2>/dev/null || echo '(not a git checkout)')"

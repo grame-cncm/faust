@@ -21,7 +21,7 @@
 
 #include "sigDependenciesGraph.hh"
 
-#include "factorizeFIRs.hh"
+#include "kernelWorkVec.hh"
 #include "ppsig.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"

@@ -22,7 +22,7 @@
 #include "computeSignals.hh"
 #include "superNodes.hh"
 
-#include "factorizeFIRs.hh"
+#include "kernelWorkVec.hh"
 
 #include "Schedule.hh"
 

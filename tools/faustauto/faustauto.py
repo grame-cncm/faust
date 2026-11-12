@@ -62,17 +62,17 @@ CAND = {
     "t4":  ["-temp", "4"],
     "t4fu": ["-temp", "4", "-ls-fuse", "-ls-sched", "model"],
     "t1fu": ["-temp", "1", "-ls-fuse", "-ls-sched", "model"],
-    "fi":  ["-fir", "-iirt"],
-    "fib": ["-fir", "-iirt", "-lsum"],
-    "fifu":  ["-fir", "-iirt", "-ls-fuse", "-ls-sched", "model"],
-    "fibfu": ["-fir", "-iirt", "-lsum", "-ls-fuse", "-ls-sched", "model"],
+    "fi":  ["-iirt"],
+    "fib": ["-iirt", "-lsum"],
+    "fifu":  ["-iirt", "-ls-fuse", "-ls-sched", "model"],
+    "fibfu": ["-iirt", "-lsum", "-ls-fuse", "-ls-sched", "model"],
     # fibmx: fibfu + the matrix form (-mxr). Two effects: dense families
     # escape the -lsum butterfly (DNN x0.50 from that saving alone), and
     # under -ls the rows of recurrent blocks become contiguous
     # table+vector dot products (statespace 9.46 -> 7.76). With no
     # family present it is byte-identical to fibfu -- only invite it
     # when the signature sees nmatrix >= 1.
-    "fibmx": ["-fir", "-iirt", "-lsum", "-mxr", "-ls-fuse", "-ls-sched", "model"],
+    "fibmx": ["-iirt", "-lsum", "-mxr", "-ls-fuse", "-ls-sched", "model"],
     "lz":  ["-lazyselect"],
     "lzh": ["-lazyselect", "-ss", "9", "-ls-R", "32", "-ls-U", "4"],
     "gq":  ["-gatequiv"],
@@ -114,7 +114,7 @@ def signature(dsp):
     # only exist after revealSum, outside the signature's default world)
     # -- ~0.5 s, which only pays for inviting fibmx where it can differ
     # from fibfu.
-    r = subprocess.run([FAUST, "-lang", "ocpp", "-fir", "-iirt", "-lsum", dsp,
+    r = subprocess.run([FAUST, "-lang", "ocpp", "-iirt", "-lsum", dsp,
                         "-o", os.devnull],
                        env=dict(os.environ, FAUST_MATRIX_CENSUS="1"),
                        capture_output=True, text=True)

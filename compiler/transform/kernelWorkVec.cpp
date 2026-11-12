@@ -19,12 +19,43 @@
  ************************************************************************
  ************************************************************************/
 
-#pragma once
+#include "kernelWorkVec.hh"
 
 #include "signals.hh"
 
-Tree revealFIR(Tree L);
+// source of a kernel read : unwrap ONE literal delay. x@d -> (x, d) ;
+// anything else -> (t, 0).
+static Tree kernelSrc(Tree t, int& sh)
+{
+    Tree a, b;
+    int  d;
+    if (isSigDelay(t, a, b) && isSigInt(b, &d)) {
+        sh = d;
+        return a;
+    }
+    sh = 0;
+    return t;
+}
 
-// sig is a recursive projection and
-// can represented by an IIR, return that IIR
-Tree revealIIR(Tree sig);
+bool kernelWorkVec(Tree t, tvec& V)
+{
+    tvec W;
+    if (!isSigFIR(t, W)) {
+        return false;
+    }
+    int  sh;
+    Tree src = kernelSrc(W[0], sh);
+    if (sh == 0) {
+        V = W;
+        return true;
+    }
+    V.clear();
+    V.push_back(src);
+    for (int k = 0; k < sh; k++) {
+        V.push_back(sigInt(0));
+    }
+    for (size_t i = 1; i < W.size(); i++) {
+        V.push_back(W[i]);
+    }
+    return true;
+}
