@@ -27,7 +27,7 @@
 #include "global.hh"
 #include "occurrences.hh"
 #include "recursivness.hh"
-#include "factorizeFIRs.hh"
+#include "kernelWorkVec.hh"
 #include "sigtyperules.hh"
 
 using namespace std;

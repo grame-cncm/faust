@@ -6,14 +6,15 @@
 # only starting points elsewhere -- regenerate with genetic.py --book.
 # basename	date	flags	env
 # 2026-09-03 : the compiler's environment variables were removed ; FAUST_SS_RINGPRELOAD=1 became the -rp option, FAUST_GATEQUIV_TAU and FAUST_LZ_ATOMS values were dropped (fixed at 12 and 4) -- those recipes are to be re-elected
+# 2026-11-12 : the -fir option was removed (its gain on the staircase sums is taken by default, step 3f.6 of the computation form) ; dropped from the recipes below
 reverbTank.dsp	2026-08-24	-ss 11 -ls-R 16 -ls-U 8 -ls -ls-sched model -temp 1 -lsum -gatequiv -rp	-
-virtualAnalogForBrowser.dsp	2026-08-23	-ls-R 2 -ls-U 2 -temp 4 -fir -iirt -lsum -lazyselect -gatequiv	-
+virtualAnalogForBrowser.dsp	2026-08-23	-ls-R 2 -ls-U 2 -temp 4 -iirt -lsum -lazyselect -gatequiv	-
 pluckedString.dsp	2026-08-23	-ss 11 -ls-R 2 -ls-U 4 -gatequiv -rp	-
 2dKirchhoffThinPlate.dsp	2026-08-23	-ss 11 -ls-R 64 -ls-U 2 -ls-fuse -ls-sched model -ls -ls-sched model -temp 2 -lsum	-
-karplus.dsp	2026-08-23	-ss 9 -ls-R 8 -ls-U 8 -ls -ls-sched model -temp 1 -fir -iirt -lsum	-
+karplus.dsp	2026-08-23	-ss 9 -ls-R 8 -ls-U 8 -ls -ls-sched model -temp 1 -iirt -lsum	-
 autopan.dsp	2026-08-23	-ss 8 -ls-R 64 -ls-U 4 -temp 2 -lazyselect -selectn	-
 granulator.dsp	2026-08-23	-ls-R 8 -ls-U 4 -ls-fuse -ls-sched model -ls -ls-sched model -temp 8 -lazyselect	-
 korg35LPF.dsp	2026-08-23	-ss 9 -ls-R 16 -ls-U 2 -temp 2 -selectn	-
-modularInterpInstrMIDI.dsp	2026-08-23	-ls-R 16 -ls-U 8 -ls-fuse -ls-sched model -fir -iirt -lsum -gatequiv	-
-quadEcho.dsp	2026-08-23	-ss 11 -ls-R 16 -ls-U 2 -ls-fuse -ls-sched model -fir -iirt -gatequiv	-
+modularInterpInstrMIDI.dsp	2026-08-23	-ls-R 16 -ls-U 8 -ls-fuse -ls-sched model -iirt -lsum -gatequiv	-
+quadEcho.dsp	2026-08-23	-ss 11 -ls-R 16 -ls-U 2 -ls-fuse -ls-sched model -iirt -gatequiv	-
 STunedBar.dsp	2026-09-02	-ss 9 -ls-R 2 -ls-U 8 -ls -ls-sched model -temp 2 -lsum -lazyselect	-
