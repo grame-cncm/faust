@@ -682,6 +682,15 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
     } else if (isBoxPatternMatcher(exp)) {
         return exp;
 
+    } else if (isBoxOndemand(exp, body)) {
+        return boxOndemand(eval(body, visited, localValEnv));
+
+    } else if (isBoxUpsampling(exp, body)) {
+        return boxUpsampling(eval(body, visited, localValEnv));
+
+    } else if (isBoxDownsampling(exp, body)) {
+        return boxDownsampling(eval(body, visited, localValEnv));
+
     } else if (isBoxRoute(exp, ins, outs, routes)) {
         // Evaluate the route description
         Tree v1 = a2sb(eval(ins, visited, localValEnv));
@@ -1937,6 +1946,14 @@ static Tree insideBoxSimplification(Tree box)
         Tree s1 = boxSimplification(ins);
         Tree s2 = boxSimplification(outs);
         return boxRoute(s1, s2, routes);
+    }
+
+    else if (isBoxOndemand(box, t1)) {
+        return boxOndemand(boxSimplification(t1));
+    } else if (isBoxUpsampling(box, t1)) {
+        return boxUpsampling(boxSimplification(t1));
+    } else if (isBoxDownsampling(box, t1)) {
+        return boxDownsampling(boxSimplification(t1));
     }
 
     cerr << "ASSERT : in file " << __FILE__ << ':' << __LINE__

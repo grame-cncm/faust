@@ -209,6 +209,11 @@ static int computeBoxComplexity(Tree box)
         return 0;
     }
 
+    // a clock region : its frame and its body
+    else if (isBoxClockRegion(box, t1)) {
+        return 1 + BC(t1);
+    }
+
     // to complete
     else {
         stringstream error;

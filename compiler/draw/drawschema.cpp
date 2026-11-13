@@ -585,6 +585,15 @@ static schema* generateInsideSchema(Tree t)
     } else if (isBoxEnvironment(t)) {
         return makeBlockSchema(0, 0, "environment{...}", normalcolor, "");
 
+    } else if (isBoxOndemand(t, a)) {
+        return makeClockRegionSchema(generateDiagramSchema(a), "ondemand", "run");
+
+    } else if (isBoxUpsampling(t, a)) {
+        return makeClockRegionSchema(generateDiagramSchema(a), "upsampling", "rate");
+
+    } else if (isBoxDownsampling(t, a)) {
+        return makeClockRegionSchema(generateDiagramSchema(a), "downsampling", "rate");
+
     } else if (isBoxRoute(t, a, b, c)) {
         int         ins, outs;
         vector<int> route;

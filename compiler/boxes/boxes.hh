@@ -94,6 +94,25 @@ LIBFAUST_API Tree boxRoute(Tree n, Tree m, Tree r);
 LIBFAUST_API bool isBoxRoute(Tree s, Tree& n, Tree& m, Tree& r);
 
 /*****************************************************************************
+                                Clock regions
+    ondemand(P), upsampling(P), downsampling(P)
+    P computed on a clock derived from the clock of the context : if P has n
+    inputs and m outputs, the region has 1+n inputs and m outputs, and its
+    first input is the rate of the derived clock (a demand for ondemand, a
+    factor for upsampling and downsampling).
+*****************************************************************************/
+
+Tree boxOndemand(Tree body);
+bool isBoxOndemand(Tree t, Tree& body);
+Tree boxUpsampling(Tree body);
+bool isBoxUpsampling(Tree t, Tree& body);
+Tree boxDownsampling(Tree body);
+bool isBoxDownsampling(Tree t, Tree& body);
+
+/// The keyword of a clock region and its body, or nullptr for any other box.
+const char* isBoxClockRegion(Tree t, Tree& body);
+
+/*****************************************************************************
                                 Wire and Cut
 *****************************************************************************/
 

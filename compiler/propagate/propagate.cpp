@@ -724,6 +724,13 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         faustassert(lsig.size() == 0);
         return siglist();
 
+    } else if (const char* region = isBoxClockRegion(box, t1)) {
+        // the front end knows the clock regions ; the signals do not have clocks yet
+        stringstream error;
+        error << "ERROR : '" << region << "' is not supported yet : the clock regions are parsed, "
+              << "typed and drawn, but not compiled" << endl;
+        throw faustexception(error.str());
+
     } else if (isBoxRoute(box, t1, t2, t3)) {
         int         ins, outs;
         vector<int> route;

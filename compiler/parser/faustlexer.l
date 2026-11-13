@@ -223,6 +223,10 @@ NSID     {ID}("::"{ID})*
 
 "waveform"    return WAVEFORM;
 "route"       return ROUTE;
+
+"ondemand"     return ONDEMAND;
+"upsampling"   return UPSAMPLING;
+"downsampling" return DOWNSAMPLING;
 "enable"      return ENABLE;
 "control"     return CONTROL;
 

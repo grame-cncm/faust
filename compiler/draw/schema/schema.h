@@ -176,5 +176,6 @@ schema* makeTopSchema(schema* s1, double margin, const std::string& text, const 
 schema* makeDecorateSchema(schema* s1, double margin, const std::string& text);
 schema* makeConnectorSchema();
 schema* makeRouteSchema(unsigned int inputs, unsigned int outputs, const std::vector<int>& routes);
+schema* makeClockRegionSchema(schema* s, const std::string& name, const std::string& rate);
 
 #endif

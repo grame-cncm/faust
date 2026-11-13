@@ -373,6 +373,16 @@ static bool inferBoxType(Tree box, int* inum, int* onum)
     } else if (isBoxRoute(box, ins, outs, lroutes)) {
         return isBoxInt(ins, inum) && isBoxInt(outs, onum);
 
+    } else if (isBoxClockRegion(box, a)) {
+        // the rate of the derived clock, then the inputs of the body
+        int u, v;
+        if (!getBoxType(a, &u, &v)) {
+            return false;
+        }
+        *inum = u + 1;
+        *onum = v;
+        return true;
+
     } else {
         stringstream error;
         error << "ERROR : boxType() internal error, unrecognized box expression : " << boxpp(box)

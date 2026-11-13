@@ -15,7 +15,7 @@ Type `make help` for details on the available targets.
 
 Each script below checks one defect once fixed. `make check-scripts
 FAUST=<binary>` runs those that need only faust and a C/C++ compiler
-(`directed-rounding`, `display-contexts`, `display-tail-sharing`, `division-by-zero`, `exe-path`,
+(`clock-regions`, `directed-rounding`, `display-contexts`, `display-tail-sharing`, `division-by-zero`, `exe-path`,
 `filter-gain`, `hoist-negation`,
 `multiplicative-algebra`,
 `infinite-coefficients`, `integer-pow`, `defined-integer-operations`, `power-nature`,
@@ -322,6 +322,18 @@ an ffunction, under eight option sets (C++, C, ocpp, -vec, -double, -os, -svg,
 
 ```sh
 python3 tests/compile-tests/primitive-labels.py --faust build/bin/faust
+```
+
+### The front end of the clock regions
+
+`clock-regions.py` checks the front end of `ondemand(P)`, `upsampling(P)` and
+`downsampling(P)`: a region has one input more than `P`, the rate of its clock;
+the three words are reserved; a region is printed by its keyword in the error
+messages and by `-e`, and drawn by `-svg` as a labelled frame. The signals have
+no clocks yet, and the propagation refuses a region with a message that names it.
+
+```sh
+python3 tests/compile-tests/clock-regions.py --faust build/bin/faust
 ```
 
 ### Empty letrec

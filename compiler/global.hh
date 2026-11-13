@@ -551,6 +551,9 @@ struct global {
     Sym BOXCUT;
     Sym BOXWAVEFORM;
     Sym BOXROUTE;
+    Sym BOXONDEMAND;
+    Sym BOXUPSAMPLING;
+    Sym BOXDOWNSAMPLING;
     Sym BOXWIRE;
     Sym BOXSLOT;
     Sym BOXSYMBOLIC;

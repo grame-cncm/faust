@@ -95,6 +95,12 @@ void BoxVisitor::visit(Tree box)
         return;
     }
 
+    // CLOCK REGIONS
+    else if (isBoxClockRegion(box, x)) {
+        self(x);
+        return;
+    }
+
     // PRIMITIVE OPERATIONS
     else if (isBoxPrim0(box)) {
         return;

@@ -99,6 +99,15 @@ Tree BoxIdentity::transformation(Tree box)
         return boxModulation(self(x), self(y));
     }
 
+    // CLOCK REGIONS
+    else if (isBoxOndemand(box, x)) {
+        return boxOndemand(self(x));
+    } else if (isBoxUpsampling(box, x)) {
+        return boxUpsampling(self(x));
+    } else if (isBoxDownsampling(box, x)) {
+        return boxDownsampling(self(x));
+    }
+
     // PRIMITIVE OPERATIONS
     else if (isBoxPrim0(box)) {
         return box;

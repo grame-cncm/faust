@@ -219,6 +219,9 @@ inline Tree unquote(char* str)
 %token ENVIRONMENT
 %token WAVEFORM
 %token ROUTE
+%token ONDEMAND
+%token UPSAMPLING
+%token DOWNSAMPLING
 %token ENABLE
 %token CONTROL
 
@@ -620,6 +623,9 @@ primitive       : INT                           { $$ = boxInt(str2int(FAUSTtext)
                 | WAVEFORM LBRAQ vallist RBRAQ     { $$ = boxWaveform(gGlobal->gWaveForm); gGlobal->gWaveForm.clear(); }
                 | ROUTE LPAR argument PAR argument RPAR       { Tree z = boxInt(0); Tree p = boxPar(z,z); $$ = boxRoute($3, $5, p); } // fake route
                 | ROUTE LPAR argument PAR argument PAR expression RPAR       { $$ = boxRoute($3, $5, $7); }
+                | ONDEMAND LPAR expression RPAR      { $$ = boxOndemand($3); }
+                | UPSAMPLING LPAR expression RPAR    { $$ = boxUpsampling($3); }
+                | DOWNSAMPLING LPAR expression RPAR  { $$ = boxDownsampling($3); }
                 | button                        { $$ = $1; }
                 | checkbox                      { $$ = $1; }
                 | vslider                       { $$ = $1; }

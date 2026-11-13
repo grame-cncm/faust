@@ -318,6 +318,9 @@ global::global()
     BOXCUT           = symbol("BoxCut");
     BOXWAVEFORM      = symbol("BoxWaveform");
     BOXROUTE         = symbol("BoxRoute");
+    BOXONDEMAND      = symbol("BoxOndemand");
+    BOXUPSAMPLING    = symbol("BoxUpsampling");
+    BOXDOWNSAMPLING  = symbol("BoxDownsampling");
     BOXWIRE          = symbol("BoxWire");
     BOXSLOT          = symbol("BoxSlot");
     BOXSYMBOLIC      = symbol("BoxSymbolic");

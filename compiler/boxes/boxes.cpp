@@ -131,6 +131,54 @@ LIBFAUST_API bool isBoxRoute(Tree s, Tree& n, Tree& m, Tree& r)
 }
 
 /*****************************************************************************
+                             Clock regions
+*****************************************************************************/
+
+Tree boxOndemand(Tree body)
+{
+    return tree(gGlobal->BOXONDEMAND, body);
+}
+
+bool isBoxOndemand(Tree t, Tree& body)
+{
+    return isTree(t, gGlobal->BOXONDEMAND, body);
+}
+
+Tree boxUpsampling(Tree body)
+{
+    return tree(gGlobal->BOXUPSAMPLING, body);
+}
+
+bool isBoxUpsampling(Tree t, Tree& body)
+{
+    return isTree(t, gGlobal->BOXUPSAMPLING, body);
+}
+
+Tree boxDownsampling(Tree body)
+{
+    return tree(gGlobal->BOXDOWNSAMPLING, body);
+}
+
+bool isBoxDownsampling(Tree t, Tree& body)
+{
+    return isTree(t, gGlobal->BOXDOWNSAMPLING, body);
+}
+
+const char* isBoxClockRegion(Tree t, Tree& body)
+{
+    if (isBoxOndemand(t, body)) {
+        return "ondemand";
+    }
+    if (isBoxUpsampling(t, body)) {
+        return "upsampling";
+    }
+    if (isBoxDownsampling(t, body)) {
+        return "downsampling";
+    }
+    return nullptr;
+}
+
+/*****************************************************************************
                                 Wire and Cut
 *****************************************************************************/
 
@@ -1048,6 +1096,12 @@ static Tree preparePattern(Tree box)
         Tree p2 = preparePattern(t2);
         Tree p3 = preparePattern(t3);
         return boxRoute(p1, p2, p3);
+    } else if (isBoxOndemand(box, t1)) {
+        return boxOndemand(preparePattern(t1));
+    } else if (isBoxUpsampling(box, t1)) {
+        return boxUpsampling(preparePattern(t1));
+    } else if (isBoxDownsampling(box, t1)) {
+        return boxDownsampling(preparePattern(t1));
     }
 
     // Iterative block diagram construction

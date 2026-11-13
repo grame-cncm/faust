@@ -519,6 +519,10 @@ ostream& boxpp::print(ostream& fout) const
         fout << "route(" << boxpp(ins) << "," << boxpp(outs) << "," << boxpp(lroutes) << ")";
     }
 
+    else if (const char* region = isBoxClockRegion(fBox, body)) {
+        fout << region << "(" << boxpp(body) << ")";
+    }
+
     else if (isBoxModulation(fBox, ident, body)) {
         fout << "modulate(" << *(ident) << ").(" << boxpp(body) << ")";
     }
@@ -790,6 +794,10 @@ ostream& boxppShared::print(ostream& fout) const
     else if (isBoxRoute(fBox, ins, outs, lroutes)) {
         BOX_INSERT_ID(s << "route(" << boxppShared(ins) << "," << boxppShared(outs) << ","
                         << boxppShared(lroutes) << ")");
+    }
+
+    else if (const char* region = isBoxClockRegion(fBox, body)) {
+        BOX_INSERT_ID(s << region << "(" << boxppShared(body) << ")");
     }
 
     else if (isBoxError(fBox)) {
