@@ -2894,7 +2894,8 @@ string global::printHelp()
          << "-sst <n>   --svg-step <n>               print block-diagram to svg files you can "
             "step through, sample by sample, in a web browser: each wire shows its value for "
             "samples 0 to n-1, computed at 44100 Hz with the controls at their default values "
-            "unless -ssc changes them (implies -svg)."
+            "unless -ssc changes them; a folded diagram used at several places holds the values "
+            "of each use (implies -svg)."
          << endl;
     sstr << tab
          << "-ssi <expr> --svg-step-input <expr>      Faust expression (0 inputs, 1 or "

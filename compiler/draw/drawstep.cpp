@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <functional>
 #include <map>
 #include <set>
 #include <sstream>
@@ -518,6 +519,8 @@ extern const char* gStepPlayerJS3;
 // signals in each batch), then the files are written.
 struct StepFile {
     std::string               fPath;
+    int                       fUse;   // the index of this use among the uses of the box
+    std::string               fBack;  // the back link of this use : parent file and use
     schema*                   fTop;
     collector*                fTraits;
     std::vector<Tree>         fSigs;   // closed signals, indexed as in the SVG
@@ -529,9 +532,26 @@ struct StepFile {
 };
 static std::vector<StepFile> gStepFiles;
 
+// The uses (contexts) of each folded box : key (box and context) -> index of the use
+static std::map<Tree, int> gUseIndex;
+static std::map<Tree, int> gUseCount;
+
+int stepContextIndex(Tree box, Tree key)
+{
+    auto it = gUseIndex.find(key);
+    if (it != gUseIndex.end()) {
+        return it->second;
+    }
+    int k          = gUseCount[box]++;
+    gUseIndex[key] = k;
+    return k;
+}
+
 static void clearStepFiles()
 {
     gStepFiles.clear();
+    gUseIndex.clear();
+    gUseCount.clear();
 }
 
 static void prepareFile(StepFile& f)
@@ -668,46 +688,119 @@ static void prepareFile(StepFile& f)
     }
 }
 
-static void emitFile(SVGDev& dev, const StepFile& f)
+// "freeverb-123.svg#c=1" -> "freeverb (use 2)" : how a use names the diagram it comes from
+static std::string useOrigin(const std::string& back)
 {
-    const std::vector<Tree>&         sigs   = f.fSigs;
-    const std::vector<std::string>&  descs  = f.fDescs;
-    const std::vector<const trait*>& wires  = f.fWires;
-    const std::vector<int>&          tag    = f.fTags;
-    const std::vector<StepLabel>&    labels = f.fLabels;
+    if (back.empty()) {
+        return "";
+    }
+    std::string file = back.substr(0, back.find('#'));
+    std::string name = file.substr(0, file.rfind('.'));
+    size_t      dash = name.rfind('-');
+    if (dash != std::string::npos && dash > 0 &&
+        name.find_first_not_of("0123456789", dash + 1) == std::string::npos) {
+        name = name.substr(0, dash);
+    }
+    size_t c = back.find("#c=");
+    if (c != std::string::npos && back.substr(c + 3) != "0") {
+        name += " (use " + std::to_string(std::atoi(back.c_str() + c + 3) + 1) + ")";
+    }
+    return name;
+}
+
+// Writes the uses of a box in one file : the drawing of the first use, and for each use its
+// values. A wire or a label is a slot : the slots are the distinct tuples of the signals the
+// element carries in each use, so that each use gives every slot its own value.
+static void emitUses(SVGDev& dev, const std::vector<const StepFile*>& uses)
+{
+    const StepFile& f0 = *uses[0];
+    size_t          nu = uses.size();
+    for (const StepFile* f : uses) {
+        faustassert(f->fWires.size() == f0.fWires.size() &&
+                    f->fLabels.size() == f0.fLabels.size() && f->fIns.size() == f0.fIns.size() &&
+                    f->fOuts.size() == f0.fOuts.size() && f->fDelays.size() == f0.fDelays.size() &&
+                    f->fControls.size() == f0.fControls.size());
+    }
+    std::map<std::vector<int>, int> slotOf;
+    std::vector<std::vector<int>>   slots;  // slot -> the signal it carries in each use
+    auto                            slot = [&](std::function<int(const StepFile&)> sig) -> int {
+        std::vector<int> t;
+        bool             any = false;
+        for (const StepFile* f : uses) {
+            t.push_back(sig(*f));
+            any = any || t.back() >= 0;
+        }
+        if (!any) {
+            return -1;
+        }
+        auto it = slotOf.find(t);
+        if (it != slotOf.end()) {
+            return it->second;
+        }
+        int k     = int(slots.size());
+        slotOf[t] = k;
+        slots.push_back(t);
+        return k;
+    };
+    std::vector<int> wireSlot, labelSlot;
+    for (size_t i = 0; i < f0.fWires.size(); i++) {
+        wireSlot.push_back(slot([i](const StepFile& f) { return f.fTags[i]; }));
+    }
+    for (size_t i = 0; i < f0.fLabels.size(); i++) {
+        labelSlot.push_back(slot([i](const StepFile& f) { return f.fLabels[i].fSig; }));
+    }
+    auto slotList = [&](std::function<const std::vector<int>&(const StepFile&)> list) {
+        std::vector<int> r;
+        for (size_t i = 0; i < list(f0).size(); i++) {
+            r.push_back(slot([&, i](const StepFile& f) { return list(f)[i]; }));
+        }
+        return r;
+    };
+    std::vector<int> ins =
+        slotList([](const StepFile& f) -> const std::vector<int>& { return f.fIns; });
+    std::vector<int> outs =
+        slotList([](const StepFile& f) -> const std::vector<int>& { return f.fOuts; });
+    std::vector<int> delays =
+        slotList([](const StepFile& f) -> const std::vector<int>& { return f.fDelays; });
+    std::vector<int> controls =
+        slotList([](const StepFile& f) -> const std::vector<int>& { return f.fControls; });
 
     // 4) the wires, then invisible wider copies to hover them, then the value labels
     stringstream out;
     out << "<g class=\"fsw\">\n";
-    for (size_t i = 0; i < wires.size(); i++) {
-        const trait* t = wires[i];
+    for (size_t i = 0; i < f0.fWires.size(); i++) {
+        const trait* t = f0.fWires[i];
         char         buf[512];
         snprintf(buf, sizeof(buf),
                  "<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\"  style=\"stroke:black; "
                  "stroke-linecap:round; stroke-width:0.25;\"",
                  t->start.x, t->start.y, t->end.x, t->end.y);
         out << buf;
-        if (tag[i] >= 0) {
-            out << " data-s=\"" << tag[i] << "\"";
+        if (wireSlot[i] >= 0) {
+            out << " data-s=\"" << wireSlot[i] << "\"";
         }
         out << "/>\n";
     }
     out << "</g>\n<g class=\"fsh\">\n";
-    for (size_t i = 0; i < wires.size(); i++) {
-        if (tag[i] >= 0) {
-            const trait* t = wires[i];
+    for (size_t i = 0; i < f0.fWires.size(); i++) {
+        if (wireSlot[i] >= 0) {
+            const trait* t = f0.fWires[i];
             char         buf[256];
             snprintf(buf, sizeof(buf), "<line x1=\"%.3f\" y1=\"%.3f\" x2=\"%.3f\" y2=\"%.3f\"",
                      t->start.x, t->start.y, t->end.x, t->end.y);
-            out << buf << " data-s=\"" << tag[i] << "\"/>\n";
+            out << buf << " data-s=\"" << wireSlot[i] << "\"/>\n";
         }
     }
     out << "</g>\n<g class=\"fsv\">\n";
-    for (const StepLabel& l : labels) {
+    for (size_t i = 0; i < f0.fLabels.size(); i++) {
+        const StepLabel& l = f0.fLabels[i];
+        if (labelSlot[i] < 0) {
+            continue;
+        }
         char buf[128];
         snprintf(buf, sizeof(buf), "translate(%.3f,%.3f)", l.fX, l.fY);
         out << "<g class=\"v" << (l.fClass.empty() ? "" : " " + l.fClass) << "\" data-s=\""
-            << l.fSig << "\" data-a=\"" << l.fAnchor << "\"";
+            << labelSlot[i] << "\" data-a=\"" << l.fAnchor << "\"";
         if (!l.fPrefix.empty()) {
             out << " data-p=\"" << xmlEscape(l.fPrefix) << "\"";
         }
@@ -715,7 +808,7 @@ static void emitFile(SVGDev& dev, const StepFile& f)
     }
     out << "</g>\n";
 
-    // 5) the values and the player
+    // 5) the values of each use and the player
     out << "<style type=\"text/css\"><![CDATA[" << gStepPlayerCSS << "]]></style>\n";
     out << "<script type=\"text/javascript\"><![CDATA[\nvar FAUST_SVG_STEP = {\"n\":"
         << gGlobal->gSVGStepSamples << ",\"input\":" << jsonString(gGlobal->gSVGStepInput)
@@ -724,7 +817,7 @@ static void emitFile(SVGDev& dev, const StepFile& f)
     for (const std::string& c : gGlobal->gSVGStepControls) {
         ctl += (ctl.empty() ? "" : ", ") + c;
     }
-    out << ",\"ctl\":" << jsonString(ctl);
+    out << ",\"ctl\":" << jsonString(ctl) << ",\"ctx\":[";
     auto indices = [&](const char* key, const std::vector<int>& v) {
         out << ",\"" << key << "\":[";
         for (size_t k = 0; k < v.size(); k++) {
@@ -732,37 +825,53 @@ static void emitFile(SVGDev& dev, const StepFile& f)
         }
         out << "]";
     };
-    indices("in", f.fIns);
-    indices("out", f.fOuts);
-    indices("z", f.fDelays);
-    indices("c", f.fControls);
-    out << ",\"s\":[\n";
-    for (size_t k = 0; k < sigs.size(); k++) {
-        const StepValues& v = gStepValues[sigs[k]];
-        out << (k ? ",\n" : "") << "{\"d\":" << jsonString(descs[k]);
-        int    iv;
-        double rv;
-        if (isSigInt(sigs[k], &iv) || isSigReal(sigs[k], &rv)) {
-            out << ",\"k\":1";  // a literal number : given, never guessed
-        }
-        if (v.fOK) {
-            out << ",\"i\":" << (v.fIsInt ? 1 : 0) << ",\"v\":[";
-            for (size_t j = 0; j < v.fValues.size(); j++) {
-                out << (j ? "," : "") << jsNumber(v.fValues[j], v.fIsInt);
+    for (size_t u = 0; u < nu; u++) {
+        const StepFile& f = *uses[u];
+        out << (u ? ",\n" : "\n") << "{\"back\":" << jsonString(f.fBack)
+            << ",\"from\":" << jsonString(useOrigin(f.fBack));
+        indices("in", ins);
+        indices("out", outs);
+        indices("z", delays);
+        indices("c", controls);
+        out << ",\"s\":[\n";
+        for (size_t k = 0; k < slots.size(); k++) {
+            int sig = slots[k][u];
+            out << (k ? ",\n" : "");
+            if (sig < 0) {
+                out << "{\"d\":\"\"}";
+                continue;
             }
-            out << "]";
+            Tree              closed = f.fSigs[sig];
+            const StepValues& v      = gStepValues[closed];
+            out << "{\"d\":" << jsonString(f.fDescs[sig]);
+            int    iv;
+            double rv;
+            if (isSigInt(closed, &iv) || isSigReal(closed, &rv)) {
+                out << ",\"k\":1";  // a literal number : given, never guessed
+            }
+            if (v.fOK) {
+                out << ",\"i\":" << (v.fIsInt ? 1 : 0) << ",\"v\":[";
+                for (size_t j = 0; j < v.fValues.size(); j++) {
+                    out << (j ? "," : "") << jsNumber(v.fValues[j], v.fIsInt);
+                }
+                out << "]";
+            }
+            out << "}";
         }
-        out << "}";
+        out << "]}";
     }
     out << "]};\n" << gStepPlayerJS1 << gStepPlayerJS2 << gStepPlayerJS3 << "]]></script>\n";
     dev.raw(out.str());
 }
 
-void stepDeferFile(const std::string& path, schema* top, collector* traits)
+void stepDeferFile(const std::string& path, int use, const std::string& back, schema* top,
+                   collector* traits)
 {
     gStepFiles.push_back(StepFile());
     StepFile& f = gStepFiles.back();
     f.fPath     = path;
+    f.fUse      = use;
+    f.fBack     = back;
     f.fTop      = top;
     f.fTraits   = traits;
     prepareFile(f);
@@ -782,10 +891,24 @@ void stepWriteFiles()
     }
     computeValues(all);
 
+    // the uses of each box, in the order of their index, in one file
+    std::vector<std::string>                            order;
+    std::map<std::string, std::vector<const StepFile*>> files;
     for (const StepFile& f : gStepFiles) {
-        SVGDev dev(f.fPath.c_str(), f.fTop->width(), f.fTop->height(), kStepTopBand, kStepMinWidth);
-        f.fTop->draw(dev);
-        emitFile(dev, f);
+        if (files.find(f.fPath) == files.end()) {
+            order.push_back(f.fPath);
+        }
+        files[f.fPath].push_back(&f);
+    }
+    for (const std::string& path : order) {
+        std::vector<const StepFile*>& uses = files[path];
+        std::stable_sort(uses.begin(), uses.end(),
+                         [](const StepFile* a, const StepFile* b) { return a->fUse < b->fUse; });
+        const StepFile& f0  = *uses[0];
+        double          top = kStepTopBand + ((uses.size() > 1) ? kStepUseBand : 0);
+        SVGDev          dev(path.c_str(), f0.fTop->width(), f0.fTop->height(), top, kStepMinWidth);
+        f0.fTop->draw(dev);
+        emitUses(dev, uses);
     }
     gStepFiles.clear();
 }
@@ -843,7 +966,15 @@ const char* gStepPlayerCSS = R"CSS(
 const char* gStepPlayerJS1 = R"JS(
 (function () {
 'use strict';
-var D = FAUST_SVG_STEP, NS = 'http://www.w3.org/2000/svg';
+var D = FAUST_SVG_STEP, NS = 'http://www.w3.org/2000/svg', XL = 'http://www.w3.org/1999/xlink';
+// the uses of this diagram (one per place it is drawn from) and the one shown
+var CTX = D.ctx, U = 0;
+function setUse(u) {
+  U = u;
+  D.s = CTX[u].s; D['in'] = CTX[u]['in']; D.out = CTX[u].out; D.z = CTX[u].z; D.c = CTX[u].c;
+}
+var mu = /c=(\d+)/.exec(location.hash);
+setUse(mu ? Math.min(CTX.length - 1, parseInt(mu[1], 10)) : 0);
 var svg = document.documentElement;
 var N = D.n, n = 0, timer = null, prevN = -1;
 var O = D.o || 0, guess = false, revealed = {};  // offset of sample 0, guess mode
@@ -1001,7 +1132,8 @@ function update() {
   guessB.classList.toggle('on', guess);
   renderTable();
   if (tipK >= 0 && tipEvt) showTip(tipK, tipEvt);
-  try { history.replaceState(null, '', '#n=' + (O + n)); } catch (e) { /* ignore */ }
+  try { history.replaceState(null, '', '#' + (CTX.length > 1 ? 'c=' + U + '&' : '') + 'n=' + (O + n)); }
+  catch (e) { /* ignore */ }
 }
 function go(k) {
   k = Math.max(0, Math.min(N - 1, Math.floor(k) || 0));
@@ -1028,6 +1160,8 @@ document.addEventListener('keydown', function (e) {
   else if (e.key === ' ') { e.preventDefault(); togglePlay(); }
   else if (e.key === 't' || e.key === 'T') { e.preventDefault(); toggleTable(); }
   else if (e.key === 'g' || e.key === 'G') { e.preventDefault(); toggleGuess(); }
+  else if (e.key === '[') { e.preventDefault(); switchUse(U - 1); }
+  else if (e.key === ']') { e.preventDefault(); switchUse(U + 1); }
 });
 
 // links to the other diagrams keep the current sample
@@ -1037,7 +1171,9 @@ for (var i = 0; i < links.length; i++) {
     var h = this.getAttributeNS('http://www.w3.org/1999/xlink', 'href') || this.getAttribute('href');
     if (!h) return;
     e.preventDefault();
-    location.href = h.split('#')[0] + '#n=' + (O + n);
+    // the link names the use of the target diagram (#c=), the sample is kept
+    var parts = h.split('#'), cm = /c=(\d+)/.exec(parts[1] || '');
+    location.href = parts[0] + '#' + (cm ? 'c=' + cm[1] + '&' : '') + 'n=' + (O + n);
   });
 }
 
@@ -1179,6 +1315,46 @@ svg.addEventListener('click', function (e) {
 });
 
 // default columns : inputs, controls, recursion delays, outputs (at most 10)
+// switching between the uses of this diagram
+var backLinks = [], useText = null;
+(function () {
+  var as = document.querySelectorAll('a');
+  for (var i = 0; i < as.length; i++) {
+    if (CTX[0].back && as[i].getAttributeNS(XL, 'href') === CTX[0].back) backLinks.push(as[i]);
+  }
+})();
+if (CTX.length > 1) {
+  var uy = 19.5, ux = 0;
+  [['\u2039', 'Previous use of this diagram ([)', -1], ['\u203A', 'Next use of this diagram (])', 1]]
+    .forEach(function (b) {
+      var g = el('g', { 'class': 'fsb', transform: 'translate(' + ux + ',' + uy + ')' }, bar);
+      el('title', {}, g).textContent = b[1];
+      el('rect', { width: 9, height: 7, rx: 1.5 }, g);
+      text(g, 4.5, 5.6, b[0]);
+      g.addEventListener('click', function (e) { e.stopPropagation(); switchUse(U + b[2]); });
+      ux += 11;
+    });
+  useText = text(bar, ux + 2, uy + 5.4, '', { 'class': 'fsk' });
+}
+function showUse() {
+  if (!useText) return;
+  useText.textContent = 'use ' + (U + 1) + ' of ' + CTX.length +
+    (CTX[U].from ? ' \u00B7 from ' + CTX[U].from : '') + ' \u00B7 [ ] switch';
+  for (var i = 0; i < backLinks.length; i++) backLinks[i].setAttributeNS(XL, 'xlink:href', CTX[U].back);
+}
+function switchUse(u) {
+  if (CTX.length < 2) return;
+  setUse((u + CTX.length) % CTX.length);
+  Z = D.z || []; C = D.c || [];
+  names = {}; usedNames = {};
+  cols.forEach(function (c) { c.w = colWidth(c.k); });
+  revealed = {};
+  showUse();
+  paint();
+  prevN = n;  // no change flash
+  update();
+}
+
 var seen = {};
 [D['in'], C, Z, D.out].forEach(function (l) {
   (l || []).forEach(function (k) {
@@ -1188,6 +1364,7 @@ var seen = {};
 
 var m = /n=(\d+)/.exec(location.hash);
 n = m ? Math.max(0, Math.min(N - 1, parseInt(m[1], 10) - O)) : 0;
+showUse();
 paint();
 update();
 })();

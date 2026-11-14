@@ -64,8 +64,10 @@ enum StepKind {
     kStepIO        // value labels on the inputs and outputs of the whole file
 };
 
-// Space (in SVG units) above the diagram for the stepping controls, smallest width, margin
+// Space (in SVG units) above the diagram for the stepping controls (more with several uses),
+// smallest width, margin
 const double kStepTopBand  = 22;
+const double kStepUseBand  = 9;
 const double kStepMinWidth = 190;
 const double kStepMargin   = 50;
 
@@ -82,7 +84,12 @@ void stepRecordDelays(schema* rec, const siglist& delayed, Tree recs);
 // A file of the drawing, placed, with its traits collected : prepared now (signals of the
 // wires, value labels), written by stepWriteFiles with the wires carrying their signals,
 // the value labels, the values and the player
-void stepDeferFile(const std::string& path, schema* top, collector* traits);
+void stepDeferFile(const std::string& path, int use, const std::string& back, schema* top,
+                   collector* traits);
+
+// The index of a use (context) of a folded box among the uses of that box, <key> naming the
+// box and its context : the uses of a box share its file
+int stepContextIndex(Tree box, Tree key);
 // Computes the values of all the deferred files in one batch, then writes them
 void stepWriteFiles();
 
