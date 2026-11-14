@@ -63,6 +63,13 @@
       the host, when the DSP has more channels than the host (fewer channels need no adapter: the
       DSP only uses the first channels of the buffer).
 
+    When the host has more output channels than the DSP, 'compute' clears the channels the DSP
+    does not write. The host does not guarantee their content: JUCE's VST3 wrapper hands the
+    plugin scratch channels that are allocated uninitialized and never cleared between blocks,
+    so an unwritten channel sends stale memory, possibly huge values, to the speakers
+    (https://github.com/grame-cncm/faust/issues/1392). In place, such a channel can also hold
+    an input, which would otherwise pass through unprocessed.
+
     The DSP itself is never wrapped: the adapters do not own it (they are created with
     to_delete = false), so when the configuration changes they are simply deleted and rebuilt
     around the same DSP, which is left untouched: its controls, bound to the user interface and
@@ -139,7 +146,8 @@ class FaustHostAdapter {
         /*
             Computes the DSP 'base' in place on the 'count' frames of 'buffer' starting at frame
             'start': the inputs are read from the first 'hw_inputs' channels of the buffer, the
-            outputs written to its first 'hw_outputs' channels. Builds the adapter chain first
+            outputs written to its first 'hw_outputs' channels, those beyond the DSP outputs
+            being cleared. Builds the adapter chain first
             if 'prepare' has not been called for this configuration.
         */
         template <typename FloatType>
@@ -157,6 +165,12 @@ class FaustHostAdapter {
                 }
                 // MIDI timestamp is expressed in frames
                 fCompute->compute(-1, slice, (FAUSTFLOAT**)fInputs.data(), (FAUSTFLOAT**)fOutputs.data());
+                // Silence the host outputs the DSP has not written, after the DSP has read its
+                // inputs, which can share these channels
+                const int last_output = std::min(hw_outputs, buffer.getNumChannels());
+                for (int chan = int(fOutputs.size()); chan < last_output; chan++) {
+                    juce::FloatVectorOperations::clear(buffer.getWritePointer(chan, start + offset), slice);
+                }
             }
         }
 
