@@ -1046,8 +1046,22 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
 
 bool FaustPlugInAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-    // Always return true and have the DSP adapts its buffer layout with a dsp_adapter (see 'prepareToPlay' and 'process')
-    return true;
+    /*
+        Any number of input channels, and any number of output channels up to the DSP outputs:
+        the DSP adapts to fewer channels with a dsp_adapter (see FaustHostAdapter). More output
+        channels are refused, since the DSP would leave them unwritten: the host then routes
+        the DSP outputs itself, as it does for the CLAP plugin. FaustHostAdapter still clears
+        such channels, should a host use them anyway (and the standalone, whose channels are
+        those of the audio device).
+        See https://github.com/grame-cncm/faust/issues/1392
+    */
+#ifdef JUCE_POLY
+    const int dsp_outputs = FAUST_OUTPUTS;
+#else
+    // The DSP actually computed: with -effect, the outputs of the effect
+    const int dsp_outputs = fDSP ? fDSP->getNumOutputs() : FAUST_OUTPUTS;
+#endif
+    return layouts.getMainOutputChannels() <= dsp_outputs;
 }
 
 template <typename FloatType>
