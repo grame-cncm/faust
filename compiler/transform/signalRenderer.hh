@@ -26,8 +26,10 @@
 #include <fstream>
 #include <iterator>
 #include <map>
+#include <set>
 #include <stack>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #ifndef FAUSTFLOAT
@@ -485,7 +487,7 @@ struct SignalRenderer : public SignalVisitor {
      */
     Node computeSample(Tree exp)
     {
-        fVisited.clear();  // Clear visited for each top-level signal evaluation per sample
+        startSample();
         self(exp);
         Node res = popRes();
         // Increment the delay lines and waveforms shared index
@@ -553,6 +555,29 @@ struct SignalRenderer : public SignalVisitor {
     int                             fSampleRate = -1;
     int                             fSample     = 0;  // Current sample in a buffer
     int                             fIOTA       = 0;  // Used as index counter for all delay lines
+
+    // Per-sample memoization: the value of each signal is computed once per sample. While a
+    // recursive projection is being computed (fInProgress), reading it gives the previous
+    // content of its delay line, a stale value : the values computed from such reads
+    // (counted in fStaleReads, by projection in fStaleBy) are not memoized. A projection
+    // itself is memoized once computed, and its own stale reads stop counting.
+    std::unordered_map<Tree, Node> fSampleCache;
+    std::set<Tree>                 fInProgress;
+    std::map<Tree, int>            fStaleBy;
+    int                            fStaleReads = 0;
+
+    // The last value of each control(x, c) signal, kept while c is zero
+    std::unordered_map<Tree, Node> fControlHold;
+
+    void startSample()
+    {
+        fVisited.clear();  // Clear visited for each top-level signal evaluation per sample
+        fSampleCache.clear();
+    }
+
+    // A REAL result rounded to the precision of REAL (float with -single), as the compiled
+    // code computes it, instead of the double precision of Node.
+    static Node realValue(double v) { return Node(double(REAL(v))); }
     FAUSTFLOAT**                    fInputs     = nullptr;  // Set at each call of 'compute'
     Tree                            fOutputSig;             // The output tree to be rendered
 
@@ -564,6 +589,7 @@ struct SignalRenderer : public SignalVisitor {
         for (auto& it : fRealDelays) {
             it.second.reset();
         }
+        fControlHold.clear();
         fIOTA = 0;
     }
 
@@ -582,6 +608,7 @@ struct SignalRenderer : public SignalVisitor {
     void pushRes(Node val) { fValueStack.push(val); }
 
     virtual void visit(Tree t) override;
+    void         visitNode(Tree t);  // the evaluation proper, memoized by visit
 };
 
 /**
