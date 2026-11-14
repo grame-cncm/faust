@@ -256,6 +256,12 @@ void CCodeContainer::produceClass()
              "(unsigned int)b); }"
           << endl;
     *fOut << "#endif" << endl;
+    // Before the sub containers: the fill function of a table generator can use them
+    *fOut << "#ifndef FAUSTMAXI" << endl;
+    *fOut << "#define FAUSTMAXI" << endl;
+    *fOut << "static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }" << endl;
+    *fOut << "static inline int faustmini(int a, int b) { return (a < b) ? a : b; }" << endl;
+    *fOut << "#endif" << endl;
     tab(n, *fOut);
 
     if (gGlobal->gInlineTable) {
@@ -280,12 +286,6 @@ void CCodeContainer::produceClass()
     *fOut << "#ifdef __APPLE__ " << endl;
     *fOut << "#define exp10f __exp10f" << endl;
     *fOut << "#define exp10 __exp10" << endl;
-    *fOut << "#endif" << endl;
-
-    *fOut << "#ifndef FAUSTMAXI" << endl;
-    *fOut << "#define FAUSTMAXI" << endl;
-    *fOut << "static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }" << endl;
-    *fOut << "static inline int faustmini(int a, int b) { return (a < b) ? a : b; }" << endl;
     *fOut << "#endif" << endl;
 
     tab(n, *fOut);
