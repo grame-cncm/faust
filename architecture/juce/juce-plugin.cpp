@@ -844,23 +844,41 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     startTimerHz(25);
 }
 
+/*
+    Number of outputs of the DSP the plugin computes. FAUST_OUTPUTS is that of mydsp, which
+    with -effect only feeds the effect: the plugin outputs are then those of the effect (whose
+    class, compiled without -uim, defines no FAUST_OUTPUTS). Known before any DSP is built,
+    since getBusesProperties is called by the base class constructor.
+*/
+static int getDSPOutputs()
+{
+#ifdef POLY2
+    static const int outputs = std::unique_ptr<effect>(new effect())->getNumOutputs();
+    return outputs;
+#else
+    return FAUST_OUTPUTS;
+#endif
+}
+
 juce::AudioProcessor::BusesProperties FaustPlugInAudioProcessor::getBusesProperties()
 {
+    // The voices of -effect feed the effect: the plugin inputs are still those of mydsp
+    const int outputs = getDSPOutputs();
     if (juce::PluginHostType::getPluginLoadedAs() == wrapperType_Standalone) {
         if (FAUST_INPUTS == 0) {
-            return BusesProperties().withOutput("Output", juce::AudioChannelSet::canonicalChannelSet(std::min<int>(2, FAUST_OUTPUTS)), true);
+            return BusesProperties().withOutput("Output", juce::AudioChannelSet::canonicalChannelSet(std::min<int>(2, outputs)), true);
         } else {
             return BusesProperties()
             .withInput("Input", juce::AudioChannelSet::canonicalChannelSet(std::min<int>(2, FAUST_INPUTS)), true)
-            .withOutput("Output", juce::AudioChannelSet::canonicalChannelSet(std::min<int>(2, FAUST_OUTPUTS)), true);
+            .withOutput("Output", juce::AudioChannelSet::canonicalChannelSet(std::min<int>(2, outputs)), true);
         }
     } else {
         if (FAUST_INPUTS == 0) {
-            return BusesProperties().withOutput("Output", juce::AudioChannelSet::canonicalChannelSet(FAUST_OUTPUTS), true);
+            return BusesProperties().withOutput("Output", juce::AudioChannelSet::canonicalChannelSet(outputs), true);
         } else {
             return BusesProperties()
             .withInput("Input", juce::AudioChannelSet::canonicalChannelSet(FAUST_INPUTS), true)
-            .withOutput("Output", juce::AudioChannelSet::canonicalChannelSet(FAUST_OUTPUTS), true);
+            .withOutput("Output", juce::AudioChannelSet::canonicalChannelSet(outputs), true);
         }
     }
 }
@@ -1055,13 +1073,7 @@ bool FaustPlugInAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
         those of the audio device).
         See https://github.com/grame-cncm/faust/issues/1392
     */
-#ifdef JUCE_POLY
-    const int dsp_outputs = FAUST_OUTPUTS;
-#else
-    // The DSP actually computed: with -effect, the outputs of the effect
-    const int dsp_outputs = fDSP ? fDSP->getNumOutputs() : FAUST_OUTPUTS;
-#endif
-    return layouts.getMainOutputChannels() <= dsp_outputs;
+    return layouts.getMainOutputChannels() <= getDSPOutputs();
 }
 
 template <typename FloatType>
