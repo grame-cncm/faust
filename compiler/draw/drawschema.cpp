@@ -517,9 +517,13 @@ static schema* generateDiagramSchema(Tree t, const StepContext* ctx)
         if (ctx) {
             // step mode : the folded diagram is computed once per context (its use) and the
             // uses of a box share its file ; the link names the use
-            Tree key = stepKey(t, *ctx);
-            l << legalFileName(t, 1024, temp) << "." << gGlobal->gDevSuffix
-              << "#c=" << stepContextIndex(t, key);
+            // the link names the use ; &b= numbers the folded blocks of the file, so that
+            // the player can point them at the targets of the use it shows
+            Tree         key = stepKey(t, *ctx);
+            stringstream target;
+            target << legalFileName(t, 1024, temp) << "." << gGlobal->gDevSuffix
+                   << "#c=" << stepContextIndex(t, key);
+            l << target.str() << "&b=" << stepAddLink(target.str());
             scheduleDrawing(key);
             return stepped(makeBlockSchema(ins, outs, tree2str(id), linkcolor, l.str()), t, ctx,
                            kStepBlock, tree2str(id));

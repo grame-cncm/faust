@@ -70,7 +70,8 @@ struct StepRecord {
     Tree        fDelayRecs;
 };
 
-static std::vector<StepRecord> gStepRecords;  // schemas of the file being generated
+static std::vector<StepRecord>  gStepRecords;  // schemas of the file being generated
+static std::vector<std::string> gStepLinks;    // targets of its folded blocks, by number
 
 // Values of a closed signal for samples 0 to n-1, cached for the whole drawing
 struct StepValues {
@@ -170,6 +171,13 @@ void stepCheckControls(Tree process)
 void stepBeginFile()
 {
     gStepRecords.clear();
+    gStepLinks.clear();
+}
+
+int stepAddLink(const std::string& target)
+{
+    gStepLinks.push_back(target);
+    return int(gStepLinks.size()) - 1;
 }
 
 void stepRecord(schema* s, const StepContext& ctx, const siglist& outs, StepKind kind,
@@ -519,8 +527,9 @@ extern const char* gStepPlayerJS3;
 // signals in each batch), then the files are written.
 struct StepFile {
     std::string               fPath;
-    int                       fUse;   // the index of this use among the uses of the box
-    std::string               fBack;  // the back link of this use : parent file and use
+    int                       fUse;    // the index of this use among the uses of the box
+    std::string               fBack;   // the back link of this use : parent file and use
+    std::vector<std::string>  fLinks;  // the targets of its folded blocks, by number
     schema*                   fTop;
     collector*                fTraits;
     std::vector<Tree>         fSigs;   // closed signals, indexed as in the SVG
@@ -828,7 +837,11 @@ static void emitUses(SVGDev& dev, const std::vector<const StepFile*>& uses)
     for (size_t u = 0; u < nu; u++) {
         const StepFile& f = *uses[u];
         out << (u ? ",\n" : "\n") << "{\"back\":" << jsonString(f.fBack)
-            << ",\"from\":" << jsonString(useOrigin(f.fBack));
+            << ",\"from\":" << jsonString(useOrigin(f.fBack)) << ",\"links\":[";
+        for (size_t k = 0; k < f.fLinks.size(); k++) {
+            out << (k ? "," : "") << jsonString(f.fLinks[k]);
+        }
+        out << "]";
         indices("in", ins);
         indices("out", outs);
         indices("z", delays);
@@ -872,6 +885,7 @@ void stepDeferFile(const std::string& path, int use, const std::string& back, sc
     f.fPath     = path;
     f.fUse      = use;
     f.fBack     = back;
+    f.fLinks    = gStepLinks;
     f.fTop      = top;
     f.fTraits   = traits;
     prepareFile(f);
@@ -959,6 +973,11 @@ const char* gStepPlayerCSS = R"CSS(
 .fstab .row.cur text { font-weight: 700; }
 .fstab .nc, .fstab .na { fill: #8a8a8a; }
 .fstab .qm { fill: #b58900; font-weight: 700; cursor: pointer; }
+.fstab .track { fill: #eef1f2; }
+.fstab .thumb { fill: #b9c3c7; cursor: grab; }
+.fstab .thumb:hover { fill: #268bd2; }
+.fstab .grip { fill: transparent; cursor: ns-resize; }
+.fstab .grip:hover { fill: #268bd2; opacity: 0.35; }
 .fsv .v.guess rect { fill: #fff7d6; stroke: #b58900; stroke-dasharray: 1 0.6; }
 .fsv .v.guess text { fill: #8a6600; }
 )CSS";
@@ -1138,7 +1157,7 @@ function update() {
 function go(k) {
   k = Math.max(0, Math.min(N - 1, Math.floor(k) || 0));
   if (k === n && prevN >= 0) return;
-  if (k !== n) revealed = {};
+  if (k !== n) { revealed = {}; topRow = null; }
   n = k;
   update();
 }
@@ -1182,7 +1201,9 @@ for (var i = 0; i < links.length; i++) {
 const char* gStepPlayerJS3 = R"JS(
 // values table, as in faust-stepper : one row per sample up to n, one column per watched wire
 var PAL = ['#d33682', '#2aa198', '#b58900', '#6c71c4', '#cb4b16', '#859900', '#268bd2', '#dc322f'];
-var ROWS = Math.min(N, 10), RH = 6, TCW = 4.6 * 0.6;
+var RH = 6, TCW = 4.6 * 0.6;
+// rows shown (the bottom edge drags), and the first one (null : follow the current sample)
+var rowsShown = Math.min(N, 10), topRow = null;
 var base = { x: vb.x, y: vb.y, w: vb.width, h: vb.height };
 var wAttr = svg.getAttribute('width') || '', hAttr = svg.getAttribute('height') || '';
 var inMM = /mm$/.test(wAttr) && /mm$/.test(hAttr);
@@ -1255,6 +1276,10 @@ function text(parent, x, y, str, attrs) {
   t.textContent = str;
   return t;
 }
+function firstRow() {
+  var last = Math.max(0, n - rowsShown + 1);
+  return (topRow === null) ? last : Math.max(0, Math.min(last, topRow));
+}
 function renderTable() {
   while (tab.firstChild) tab.removeChild(tab.firstChild);
   tableB.classList.toggle('on', showTable);
@@ -1263,10 +1288,11 @@ function renderTable() {
   var nw = (String(O + N - 1).length + 2) * TCW + 2, tw = nw;
   for (i = 0; i < cols.length; i++) tw += cols[i].w;
   text(tab, x0, y0 + 4, cols.length
-    ? 'Values over time \u00B7 click a wire to add a column, a header to remove it, a row to go to its sample'
+    ? 'Values over time \u00B7 click a wire to add a column, a header to remove it, a row to go to its sample' +
+      ' \u00B7 wheel to scroll, drag the bottom edge to resize'
     : 'Values over time \u00B7 click a wire to add a column', { 'class': 'fsth' });
-  var y = y0 + 7;
-  el('rect', { 'class': 'frame', x: x0, y: y, width: tw, height: RH + 1 + ROWS * RH + 1 }, tab);
+  var y = y0 + 7, bodyH = rowsShown * RH;
+  el('rect', { 'class': 'frame', x: x0, y: y, width: tw, height: RH + 1 + bodyH + 1 }, tab);
   var hd = el('g', { 'class': 'hd' }, tab);
   text(hd, x0 + nw - 2, y + RH - 1.2, 'n', { 'text-anchor': 'end' });
   for (i = 0, x = x0 + nw; i < cols.length; x += cols[i].w, i++) {
@@ -1279,8 +1305,8 @@ function renderTable() {
   }
   y += RH + 1;
   el('line', { 'class': 'sep', x1: x0, y1: y, x2: x0 + tw, y2: y }, tab);
-  var r0 = Math.max(0, n - ROWS + 1);
-  for (var r = r0; r <= n; r++, y += RH) {
+  var bodyY = y, r0 = firstRow();
+  for (var r = r0; r <= n && r < r0 + rowsShown; r++, y += RH) {
     var row = el('g', { 'class': 'row' + (r === n ? ' cur' : ''), 'data-row': r }, tab);
     el('rect', { x: x0, y: y, width: tw, height: RH }, row);
     text(row, x0 + nw - 2, y + RH - 1.5, String(O + r), { 'text-anchor': 'end', 'class': 'nc' });
@@ -1291,8 +1317,43 @@ function renderTable() {
       if (q) cell.setAttribute('data-reveal', k);
     }
   }
-  resizeTo(tw, 7 + RH + 1 + ROWS * RH + 1 + 4);
+  // scroll bar, when the rows up to n do not all fit
+  if (n + 1 > rowsShown) {
+    el('rect', { 'class': 'track', x: x0 + tw + 1, y: bodyY, width: 2.4, height: bodyH, rx: 1.2 }, tab);
+    var th = Math.max(3, bodyH * rowsShown / (n + 1)), ty = bodyY + (bodyH - th) * r0 / (n + 1 - rowsShown);
+    var thumb = el('rect', { 'class': 'thumb', x: x0 + tw + 1, y: ty, width: 2.4, height: th, rx: 1.2 }, tab);
+    thumb.addEventListener('mousedown', function (e) {
+      drag(e, r0, function (start, dy) {
+        topRow = Math.round(start + dy * (n + 1 - rowsShown) / Math.max(1, bodyH - th));
+        if (topRow >= n + 1 - rowsShown) topRow = null;
+      });
+    });
+  }
+  // bottom edge : drag to show more or fewer rows
+  var grip = el('rect', { 'class': 'grip', x: x0, y: bodyY + bodyH - 0.5, width: tw, height: 2.5 }, tab);
+  el('title', {}, grip).textContent = 'Drag to show more or fewer rows';
+  grip.addEventListener('mousedown', function (e) {
+    drag(e, rowsShown, function (start, dy) { rowsShown = Math.max(3, Math.min(Math.max(3, N), Math.round(start + dy / RH))); });
+  });
+  resizeTo(tw + 4, 7 + RH + 1 + bodyH + 1 + 4);
 }
+// drags with the mouse : f(start, dy) with dy in diagram units
+function drag(e, start, f) {
+  e.preventDefault(); e.stopPropagation();
+  var m = svg.getScreenCTM(), scale = m ? m.d : 1, y0 = e.clientY;
+  function move(ev) { f(start, (ev.clientY - y0) / scale); renderTable(); }
+  function up() { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); }
+  document.addEventListener('mousemove', move);
+  document.addEventListener('mouseup', up);
+}
+tab.addEventListener('wheel', function (e) {
+  if (n + 1 <= rowsShown) return;
+  e.preventDefault();
+  var step = (e.deltaY > 0 ? 1 : -1) * (Math.abs(e.deltaY) > 40 ? 3 : 1), last = n + 1 - rowsShown;
+  topRow = Math.max(0, Math.min(last, firstRow() + step));
+  if (topRow >= last) topRow = null;
+  renderTable();
+}, { passive: false });
 function toggleGuess() {
   guess = !guess;
   revealed = {};
@@ -1342,9 +1403,18 @@ function showUse() {
     (CTX[U].from ? ' \u00B7 from ' + CTX[U].from : '') + ' \u00B7 [ ] switch';
   for (var i = 0; i < backLinks.length; i++) backLinks[i].setAttributeNS(XL, 'xlink:href', CTX[U].back);
 }
+// the links to sub-diagrams (numbered by &b=) go to the uses the shown use leads to
+function pointLinks() {
+  var as = document.querySelectorAll('a'), L = CTX[U].links || [];
+  for (var i = 0; i < as.length; i++) {
+    var mb = /[#&]b=(\d+)/.exec(as[i].getAttributeNS(XL, 'href') || '');
+    if (mb && L[+mb[1]]) as[i].setAttributeNS(XL, 'xlink:href', L[+mb[1]] + '&b=' + mb[1]);
+  }
+}
 function switchUse(u) {
   if (CTX.length < 2) return;
   setUse((u + CTX.length) % CTX.length);
+  pointLinks();
   Z = D.z || []; C = D.c || [];
   names = {}; usedNames = {};
   cols.forEach(function (c) { c.w = colWidth(c.k); });
@@ -1365,6 +1435,7 @@ var seen = {};
 var m = /n=(\d+)/.exec(location.hash);
 n = m ? Math.max(0, Math.min(N - 1, parseInt(m[1], 10) - O)) : 0;
 showUse();
+pointLinks();
 paint();
 update();
 })();
