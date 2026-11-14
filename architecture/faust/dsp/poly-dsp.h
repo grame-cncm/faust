@@ -712,6 +712,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         FAUSTFLOAT** fOutBuffer;        // Intermediate buffer for output
         midi_interface* fMidiHandler;   // The midi_interface the DSP is connected to
         int fDate;                      // Current date for managing voices
+        FAUSTFLOAT fStopLevel;          // Stop level threshold
     
         // Fade out the audio in the buffer
         void fadeOut(int count, FAUSTFLOAT** outBuffer)
@@ -913,16 +914,26 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
          * @param group - if true, voices are not individually accessible, a global "Voices" tab will automatically dispatch
          *                a given control on all voices, assuming GUI::updateAllGuis() is called.
          *                If false, all voices can be individually controlled.
-         *
+         * @param stoplevel - custom stop level (10^(dB/20)), defaults to -90dB if unspecified.
+         *                    accepts levels lower than -40dB.
          */
         mydsp_poly(::dsp* dsp,
                    int nvoices,
                    bool control = false,
-                   bool group = true)
+                   bool group = true,
+                   FAUSTFLOAT stoplevel = VOICE_STOP_LEVEL)
         : dsp_voice_group(panic, this, control, group), dsp_poly(dsp) // dsp parameter is deallocated by ~dsp_poly
         {
             fDate = 0;
             fMidiHandler = nullptr;
+
+            // Verify and set stop level.  A -40dB bound should cover all practical cases
+            if (!std::isfinite(stoplevel) || stoplevel <= FAUSTFLOAT(0) || stoplevel > FAUSTFLOAT(0.01)) {
+                fprintf(stderr, "Invalid stop level %g, using default\n", double(stoplevel));
+                fStopLevel = VOICE_STOP_LEVEL;
+            } else {
+                fStopLevel = stoplevel;
+            }
 
             // Create voices
             assert(nvoices > 0);
@@ -1025,7 +1036,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
 
         virtual mydsp_poly* clone()
         {
-            return new mydsp_poly(fDSP->clone(), int(fVoiceTable.size()), fVoiceControl, fGroupControl);
+            return new mydsp_poly(fDSP->clone(), int(fVoiceTable.size()), fVoiceControl, fGroupControl, fStopLevel);
         }
 
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -1052,7 +1063,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                         voice->compute(count, inputs, fMixBuffer);
                         // Mix it in result
                         voice->fLevel = mixCheckVoice(count, fMixBuffer, fOutBuffer);
-                        if ((voice->fCurNote == kReleaseVoice) && (voice->fLevel < VOICE_STOP_LEVEL)) {
+                        if ((voice->fCurNote == kReleaseVoice) && (voice->fLevel < fStopLevel)) {
                             voice->fCurNote = kFreeVoice;
                         }
                     }
