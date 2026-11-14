@@ -503,10 +503,11 @@ static std::string jsonString(const std::string& s)
 
 static std::string jsNumber(double v, bool isInt)
 {
+    // JSON has no NaN or infinities : they are written as strings, read back by the player
     if (std::isnan(v)) {
-        return "NaN";
+        return "\"NaN\"";
     } else if (std::isinf(v)) {
-        return (v > 0) ? "Infinity" : "-Infinity";
+        return (v > 0) ? "\"Infinity\"" : "\"-Infinity\"";
     }
     char buf[64];
     if (isInt) {
@@ -819,7 +820,8 @@ static void emitUses(SVGDev& dev, const std::vector<const StepFile*>& uses)
 
     // 5) the values of each use and the player
     out << "<style type=\"text/css\"><![CDATA[" << gStepPlayerCSS << "]]></style>\n";
-    out << "<script type=\"text/javascript\"><![CDATA[\nvar FAUST_SVG_STEP = {\"n\":"
+    // the data, which no browser runs, then the player (see stepWriteFiles for the contract)
+    out << "<script type=\"application/json\" class=\"faust-svg-step-data\">{\"n\":"
         << gGlobal->gSVGStepSamples << ",\"input\":" << jsonString(gGlobal->gSVGStepInput)
         << ",\"sr\":" << kStepSampleRate << ",\"o\":" << gGlobal->gSVGStepOffset;
     std::string ctl;
@@ -873,7 +875,8 @@ static void emitUses(SVGDev& dev, const std::vector<const StepFile*>& uses)
         }
         out << "]}";
     }
-    out << "]};\n" << gStepPlayerJS1 << gStepPlayerJS2 << gStepPlayerJS3 << "]]></script>\n";
+    out << "]}</script>\n<script type=\"text/javascript\" class=\"faust-svg-step\"><![CDATA["
+        << gStepPlayerJS1 << gStepPlayerJS2 << gStepPlayerJS3 << "]]></script>\n";
     dev.raw(out.str());
 }
 
@@ -928,6 +931,20 @@ void stepWriteFiles()
 }
 
 //------------------------- the player ------------------------------------
+
+// Each SVG carries its data in <script type="application/json" class="faust-svg-step-data">,
+// which no browser runs, and the player in <script class="faust-svg-step">. The player defines
+// window.FaustSvgStep(svg, options) and starts it on the document when the SVG is opened
+// alone. A page that inserts the SVG in its own document (innerHTML runs no script) evaluates
+// the player once, then calls, on the inserted <svg> element :
+//
+//     FaustSvgStep(svg, { use, n, onNavigate({ file, use, n }), onState({ use, n }) })
+//
+// use and n (absolute sample number) are where to start, from the link that led to this file
+// (file.svg#c=use) ; onNavigate is called on a click on a link to another diagram, with the
+// file name without its hash, for the page to load it ; onState is called on each change. In a
+// page, the player only acts on its <svg> : keys when it has the focus (a click gives it),
+// never the page address. FaustSvgStep returns { go(n), use(u), state() }.
 
 // Kept in pieces under 16 KB each (MSVC limit on string literals).
 
@@ -985,16 +1002,27 @@ const char* gStepPlayerCSS = R"CSS(
 const char* gStepPlayerJS1 = R"JS(
 (function () {
 'use strict';
-var D = FAUST_SVG_STEP, NS = 'http://www.w3.org/2000/svg', XL = 'http://www.w3.org/1999/xlink';
+var NS = 'http://www.w3.org/2000/svg', XL = 'http://www.w3.org/1999/xlink';
+// FaustSvgStep(svg, options) starts the player of a steppable diagram (faust -sst) on its <svg>
+// element. A standalone SVG document starts itself ; a page that inserts the SVG calls it.
+function FaustSvgStep(svg, opts) {
+opts = opts || {};
+if (svg.__faustSvgStep) return svg.__faustSvgStep;
+var dataEl = svg.querySelector('script.faust-svg-step-data');
+if (!dataEl) return null;
+var standalone = !!opts.standalone;
+// the values JSON cannot write (NaN, Infinity) come as strings
+var D = JSON.parse(dataEl.textContent, function (k, v) {
+  return (Array.isArray(this) && (v === 'NaN' || v === 'Infinity' || v === '-Infinity')) ? Number(v) : v;
+});
 // the uses of this diagram (one per place it is drawn from) and the one shown
 var CTX = D.ctx, U = 0;
 function setUse(u) {
   U = u;
   D.s = CTX[u].s; D['in'] = CTX[u]['in']; D.out = CTX[u].out; D.z = CTX[u].z; D.c = CTX[u].c;
 }
-var mu = /c=(\d+)/.exec(location.hash);
-setUse(mu ? Math.min(CTX.length - 1, parseInt(mu[1], 10)) : 0);
-var svg = document.documentElement;
+var mu = standalone ? /c=(\d+)/.exec(location.hash) : null;
+setUse(Math.max(0, Math.min(CTX.length - 1, mu ? parseInt(mu[1], 10) : (opts.use | 0))));
 var N = D.n, n = 0, timer = null, prevN = -1;
 var O = D.o || 0, guess = false, revealed = {};  // offset of sample 0, guess mode
 var FONT = 4.8, CHAR_W = FONT * 0.6, PILL_H = 6;
@@ -1034,7 +1062,7 @@ function guessing(k) { return guess && !given(k) && !revealed[k]; }
 function shown(k, i, full) { return (i === n && guessing(k)) ? '?' : fmt(k, i, full); }
 
 // value labels
-var pills = Array.prototype.slice.call(document.querySelectorAll('.fsv .v'));
+var pills = Array.prototype.slice.call(svg.querySelectorAll('.fsv .v'));
 function layout(g, text) {
   var t = g.lastChild, r = g.firstChild;
   t.textContent = text;
@@ -1117,7 +1145,7 @@ function showTip(k, e) {
 }
 function hideTip() { tipK = -1; tip.setAttribute('visibility', 'hidden'); }
 function highlight(k, on) {
-  var l = document.querySelectorAll('.fsw line[data-s="' + k + '"], .fsv .v[data-s="' + k + '"]');
+  var l = svg.querySelectorAll('.fsw line[data-s="' + k + '"], .fsv .v[data-s="' + k + '"]');
   for (var i = 0; i < l.length; i++) l[i].classList.toggle('hl', on);
 }
 var hl = -1;
@@ -1151,8 +1179,12 @@ function update() {
   guessB.classList.toggle('on', guess);
   renderTable();
   if (tipK >= 0 && tipEvt) showTip(tipK, tipEvt);
-  try { history.replaceState(null, '', '#' + (CTX.length > 1 ? 'c=' + U + '&' : '') + 'n=' + (O + n)); }
-  catch (e) { /* ignore */ }
+  if (standalone) {
+    try { history.replaceState(null, '', '#' + (CTX.length > 1 ? 'c=' + U + '&' : '') + 'n=' + (O + n)); }
+    catch (e) { /* ignore */ }
+  } else if (opts.onState) {
+    opts.onState({ use: U, n: O + n });
+  }
 }
 function go(k) {
   k = Math.max(0, Math.min(N - 1, Math.floor(k) || 0));
@@ -1170,7 +1202,15 @@ function togglePlay() {
   }, 400);
   update();
 }
-document.addEventListener('keydown', function (e) {
+// keys : on the page for a standalone diagram, on the diagram (focused by a click) in a page
+if (!standalone) {
+  svg.setAttribute('tabindex', '0');
+  svg.style.outline = 'none';
+  svg.addEventListener('mousedown', function () {
+    try { svg.focus({ preventScroll: true }); } catch (e) { svg.focus(); }
+  });
+}
+(standalone ? document : svg).addEventListener('keydown', function (e) {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.key === 'ArrowRight') { e.preventDefault(); go(n + 1); }
   else if (e.key === 'ArrowLeft') { e.preventDefault(); go(n - 1); }
@@ -1183,16 +1223,22 @@ document.addEventListener('keydown', function (e) {
   else if (e.key === ']') { e.preventDefault(); switchUse(U + 1); }
 });
 
-// links to the other diagrams keep the current sample
-var links = document.querySelectorAll('a');
+// links to the other diagrams keep the current sample ; the link names the use of the target
+// diagram (#c=). In a page, the page loads the target : options.onNavigate({ file, use, n })
+var links = svg.querySelectorAll('a');
 for (var i = 0; i < links.length; i++) {
   links[i].addEventListener('click', function (e) {
-    var h = this.getAttributeNS('http://www.w3.org/1999/xlink', 'href') || this.getAttribute('href');
+    var h = this.getAttributeNS(XL, 'href') || this.getAttribute('href');
     if (!h) return;
-    e.preventDefault();
-    // the link names the use of the target diagram (#c=), the sample is kept
-    var parts = h.split('#'), cm = /c=(\d+)/.exec(parts[1] || '');
-    location.href = parts[0] + '#' + (cm ? 'c=' + cm[1] + '&' : '') + 'n=' + (O + n);
+    var parts = h.split('#'), cm = /c=(\d+)/.exec(parts[1] || ''), use = cm ? parseInt(cm[1], 10) : 0;
+    if (standalone) {
+      e.preventDefault();
+      location.href = parts[0] + '#' + (cm ? 'c=' + use + '&' : '') + 'n=' + (O + n);
+    } else if (opts.onNavigate) {
+      e.preventDefault();
+      e.stopPropagation();
+      opts.onNavigate({ file: parts[0], use: use, n: O + n });
+    }
   });
 }
 
@@ -1250,7 +1296,7 @@ function toggleCol(k) {
 function paint() {
   var map = {};
   if (showTable) cols.forEach(function (c) { map[c.k] = c.color; });
-  var ls = document.querySelectorAll('.fsw line[data-s]');
+  var ls = svg.querySelectorAll('.fsw line[data-s]');
   for (var i = 0; i < ls.length; i++) {
     var c = map[ls[i].getAttribute('data-s')];
     ls[i].style.stroke = c || 'black';
@@ -1379,7 +1425,7 @@ svg.addEventListener('click', function (e) {
 // switching between the uses of this diagram
 var backLinks = [], useText = null;
 (function () {
-  var as = document.querySelectorAll('a');
+  var as = svg.querySelectorAll('a');
   for (var i = 0; i < as.length; i++) {
     if (CTX[0].back && as[i].getAttributeNS(XL, 'href') === CTX[0].back) backLinks.push(as[i]);
   }
@@ -1405,7 +1451,7 @@ function showUse() {
 }
 // the links to sub-diagrams (numbered by &b=) go to the uses the shown use leads to
 function pointLinks() {
-  var as = document.querySelectorAll('a'), L = CTX[U].links || [];
+  var as = svg.querySelectorAll('a'), L = CTX[U].links || [];
   for (var i = 0; i < as.length; i++) {
     var mb = /[#&]b=(\d+)/.exec(as[i].getAttributeNS(XL, 'href') || '');
     if (mb && L[+mb[1]]) as[i].setAttributeNS(XL, 'xlink:href', L[+mb[1]] + '&b=' + mb[1]);
@@ -1432,11 +1478,26 @@ var seen = {};
   });
 });
 
-var m = /n=(\d+)/.exec(location.hash);
-n = m ? Math.max(0, Math.min(N - 1, parseInt(m[1], 10) - O)) : 0;
+var m = standalone ? /n=(\d+)/.exec(location.hash) : null;
+n = Math.max(0, Math.min(N - 1, (m ? parseInt(m[1], 10) : (opts.n != null ? +opts.n : O)) - O));
 showUse();
 pointLinks();
 paint();
 update();
+// to drive the player from the page : go to a sample, switch use, read the state
+var api = {
+  go: function (k) { go(k - O); },
+  use: function (u) { switchUse(u); },
+  state: function () { return { use: U, n: O + n }; }
+};
+svg.__faustSvgStep = api;
+return api;
+}
+FaustSvgStep.version = 1;
+if (!(window.FaustSvgStep && window.FaustSvgStep.version >= FaustSvgStep.version)) window.FaustSvgStep = FaustSvgStep;
+var root = document.documentElement;
+if (root && root.namespaceURI === NS && root.querySelector('script.faust-svg-step-data')) {
+  window.FaustSvgStep(root, { standalone: true });
+}
 })();
 )JS";

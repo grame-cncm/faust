@@ -32,6 +32,9 @@
  * compiler's SignalRenderer, with the test signal given by -ssi on
  * the inputs of process, and embedded in the SVG with a small player script.
  *
+ * The player runs alone when the SVG is opened as a document ; a page that inserts the SVG
+ * starts it with FaustSvgStep(svg, options), see the player in drawstep.cpp.
+ *
  * Inspired by faust-stepper (Pierre Cochard, https://github.com/pchdev/ujm-dsp),
  * a standalone web page that steps a Faust subset sample by sample; no code is
  * taken from it.
