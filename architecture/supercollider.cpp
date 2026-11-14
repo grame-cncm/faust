@@ -535,10 +535,17 @@ void Faust_Ctor(Faust* unit)  // module constructor
 
     bool channelsValid = (numInputs == unit->mNumInputs) && (numOutputs == unit->mNumOutputs);
     
-    // Build mControlInputs and mControlOutputs so that getInputControl/getOutputControl have O[1] cost
-    unit->mControlInputs = (Control**)RTAlloc(unit->mWorld, unit->mNumControlInput*sizeof(Control*));
-    unit->mControlOutputs = (Control**)RTAlloc(unit->mWorld, unit->mNumControlOutput*sizeof(Control*));
-    if (!unit->mControlInputs || !unit->mControlOutputs) {
+    // Build mControlInputs and mControlOutputs so that getInputControl/getOutputControl have O[1] cost.
+    // Skip empty tables: supernova's RTAlloc returns nullptr for zero bytes, which is not a failure
+    // (a DSP without bargraph or without slider); RTFree(nullptr) is safe on both servers.
+    if (unit->mNumControlInput > 0) {
+        unit->mControlInputs = (Control**)RTAlloc(unit->mWorld, unit->mNumControlInput*sizeof(Control*));
+    }
+    if (unit->mNumControlOutput > 0) {
+        unit->mControlOutputs = (Control**)RTAlloc(unit->mWorld, unit->mNumControlOutput*sizeof(Control*));
+    }
+    if ((unit->mNumControlInput > 0 && !unit->mControlInputs) ||
+        (unit->mNumControlOutput > 0 && !unit->mControlOutputs)) {
         Print("Faust[%s]: RT memory allocation failed, try increasing the real-time memory size in the server options\n", g_unitName);
         goto fail;
     }
