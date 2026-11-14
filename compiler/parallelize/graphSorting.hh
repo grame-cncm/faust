@@ -26,7 +26,6 @@
 
 #include "loop.hh"
 
-typedef std::set<Loop*>    lset;
 typedef std::vector<Loop*> lvec;
 typedef std::vector<lset>  lgraph;
 

@@ -84,7 +84,8 @@ Loop::Loop(Tree recsymbol, Loop* encl, const string& size)
       fOrder(-1),
       fIndex(-1),
       fUseCount(0),
-      fPrinted(0)
+      fPrinted(0),
+      fRank(gGlobal->gLoopCounter++)
 {
 }
 
@@ -101,7 +102,8 @@ Loop::Loop(Loop* encl, const string& size)
       fOrder(-1),
       fIndex(-1),
       fUseCount(0),
-      fPrinted(0)
+      fPrinted(0),
+      fRank(gGlobal->gLoopCounter++)
 {
 }
 
@@ -195,7 +197,7 @@ void Loop::println(int n, ostream& fout)
         tab(n, fout);
         fout << "// Extra loops: ";
         for (Loop* l : fExtraLoops) {
-            fout << l << " ";
+            fout << "L" << l->fRank << " ";
         }
     }
 
@@ -204,7 +206,7 @@ void Loop::println(int n, ostream& fout)
     bool emptyflag = true;
     for (Loop* l : fBackwardLoopDependencies) {
         emptyflag = false;
-        fout << l << " ";
+        fout << "L" << l->fRank << " ";
     }  ///< Loops that must be computed before this one
     if (emptyflag) {
         fout << "WARNING empty";
@@ -214,12 +216,12 @@ void Loop::println(int n, ostream& fout)
         tab(n, fout);
         fout << "// Forward loops: ";
         for (Loop* l : fForwardLoopDependencies) {
-            fout << l << " ";
+            fout << "L" << l->fRank << " ";
         }
     }
 
     tab(n, fout);
-    fout << "// " << ((fIsRecursive) ? "Recursive" : "Vectorizable") << " loop: " << this;
+    fout << "// " << ((fIsRecursive) ? "Recursive" : "Vectorizable") << " loop: L" << fRank;
 
     if (fPreCode.size() + fExecCode.size() + fPostCode.size() > 0) {
         if (fPreCode.size() > 0) {
@@ -243,7 +245,7 @@ void Loop::println(int n, ostream& fout)
         }
         tab(n, fout);
     } else {
-        fout << "// empty loop " << this;
+        fout << "// empty loop L" << fRank;
     }
 }
 
@@ -267,7 +269,7 @@ void Loop::printParLoopln(int n, ostream& fout)
 
     if (fPreCode.size() + fExecCode.size() + fPostCode.size() > 0) {
         tab(n, fout);
-        fout << "// LOOP " << this;
+        fout << "// LOOP L" << fRank;
         if (fPreCode.size() > 0) {
             tab(n, fout);
             fout << "#pragma omp single";

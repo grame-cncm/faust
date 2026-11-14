@@ -44,14 +44,26 @@
  * Loops are lines of code that correspond to a recursive expression or a vector expression.
  */
 
+struct Loop;
+
+// The loops of one level, and the dependencies of a loop, are emitted in the
+// order of this set. Ordering the pointers themselves would follow the
+// allocator, whose addresses vary from one run to the next (address space
+// layout randomisation, per-CPU arenas) : so would the emitted code. The rank
+// is the creation order, which follows the traversal.
+struct LoopOrder {
+    bool operator()(const Loop* a, const Loop* b) const;
+};
+typedef std::set<Loop*, LoopOrder> lset;
+
 struct Loop {
     const bool        fIsRecursive;    ///< recursive loops can't be SIMDed
     Tree              fRecSymbolSet;   ///< recursive loops define a set of recursive symbol
     Loop* const       fEnclosingLoop;  ///< Loop from which this one originated
     const std::string fSize;           ///< number of iterations of the loop
     // fields concerned by absorbsion
-    std::set<Loop*> fBackwardLoopDependencies;  ///< Loops that must be computed before this one
-    std::set<Loop*> fForwardLoopDependencies;   ///< Loops that will be computed after this one
+    lset fBackwardLoopDependencies;  ///< Loops that must be computed before this one
+    lset fForwardLoopDependencies;   ///< Loops that will be computed after this one
     std::list<Statement> fPreCode;              ///< code to execute at the begin of the loop
     std::list<Statement> fExecCode;             ///< code to execute in the loop
     std::list<Statement> fPostCode;             ///< code to execute at the end of the loop
@@ -63,6 +75,8 @@ struct Loop {
     std::list<Loop*> fExtraLoops;  ///< extra loops that where in sequences
 
     int fPrinted;  ///< true when loop has been printed (to track multi-print errors)
+    const int fRank;  ///< creation order in the compilation : the key of LoopOrder, and the
+                      ///< name of the loop in the comments of the emitted code
 
    public:
     Loop(Tree recsymbol, Loop* encl, const std::string& size);  ///< create a recursive loop
@@ -84,5 +98,10 @@ struct Loop {
     // new method
     void concat(Loop* l);
 };
+
+inline bool LoopOrder::operator()(const Loop* a, const Loop* b) const
+{
+    return a->fRank < b->fRank;
+}
 
 #endif
