@@ -138,7 +138,7 @@ static schema* generateUserInterfaceSchema(Tree t);
 static string  userInterfaceDescription(Tree box);
 static string  slotName(Tree a);
 static schema* generateSoundfileSchema(Tree t);
-static char*   legalFileName(Tree t, int n, char* dst, Tree serialOf = nullptr);
+static char*   legalFileName(Tree t, int n, char* dst);
 
 static schema* addSchemaInputs(int ins, schema* x);
 static schema* addSchemaOutputs(int outs, schema* x);
@@ -357,21 +357,23 @@ static void writeSchemaFile(Tree bd, bool root)
     // its definition, which is not process with -pn. No link names the
     // root's file : a node is not one of its own descendants.
     stringstream s1;
-    s1 << (root ? kSchemaRootName : legalFileName(bd, 1024, temp, gStepDrawing ? key : nullptr))
-       << "." << gGlobal->gDevSuffix;
+    s1 << (root ? kSchemaRootName : legalFileName(bd, 1024, temp)) << "." << gGlobal->gDevSuffix;
     string res1              = s1.str();
     gGlobal->gSchemaFileName = res1;
 
     // generate the label of the schema
     string link = gGlobal->gBackLink[key];
     if (gStepDrawing) {
+        // the back links of the diagrams drawn from this one name this use
+        int use                  = stepContextIndex(bd, key);
+        gGlobal->gSchemaFileName = res1 + "#c=" + std::to_string(use);
         schema* io = addSchemaOutputs(outs, addSchemaInputs(ins, generateInsideSchema(bd, &ctx)));
         stepRecord(io, ctx, stepOutputs(bd, ctx), kStepIO, "");
         ts = makeTopSchema(io, kStepMargin, tree2str(id), link);
         ts->place(0, 0, kLeftRight);
         collector* c = new collector();
         ts->collectTraits(*c);
-        stepDeferFile(res1, ts, c);  // written by stepWriteFiles, once all values are computed
+        stepDeferFile(res1, use, link, ts, c);  // written by stepWriteFiles
         return;
     }
     ts = makeTopSchema(addSchemaOutputs(outs, addSchemaInputs(ins, generateInsideSchema(bd))), 20,
@@ -404,7 +406,7 @@ static void writeSchemaFile(Tree bd, bool root)
  * <dst> a table of at least <n> chars. Returns the <dst> pointer
  * for convenience.
  */
-static char* legalFileName(Tree t, int n, char* dst, Tree serialOf)
+static char* legalFileName(Tree t, int n, char* dst)
 {
     Tree id;
     int  i = 0;
@@ -428,8 +430,7 @@ static char* legalFileName(Tree t, int n, char* dst, Tree serialOf)
     // named process gets one too : it is not the root here (the entry point
     // of -pn can use process, a component can redefine it), and would
     // otherwise overwrite the root's file.
-    // in step mode, a diagram is drawn once per context : <serialOf> is its key
-    snprintf(&dst[i], n - i, "-%zu", (size_t)(serialOf ? serialOf : t)->serial());
+    snprintf(&dst[i], n - i, "-%zu", (size_t)t->serial());
     return dst;
 }
 
@@ -514,9 +515,11 @@ static schema* generateDiagramSchema(Tree t, const StepContext* ctx)
         getBoxType(t, &ins, &outs);
         stringstream l;
         if (ctx) {
-            // step mode : the folded diagram is drawn once per context
+            // step mode : the folded diagram is computed once per context (its use) and the
+            // uses of a box share its file ; the link names the use
             Tree key = stepKey(t, *ctx);
-            l << legalFileName(t, 1024, temp, key) << "." << gGlobal->gDevSuffix;
+            l << legalFileName(t, 1024, temp) << "." << gGlobal->gDevSuffix
+              << "#c=" << stepContextIndex(t, key);
             scheduleDrawing(key);
             return stepped(makeBlockSchema(ins, outs, tree2str(id), linkcolor, l.str()), t, ctx,
                            kStepBlock, tree2str(id));

@@ -244,7 +244,7 @@ Block diagram options:
 
   **-sc**        **--scaled-svg**                 automatic scalable SVG.
 
-  **-sst** \<n>   **--svg-step** \<n>               print block-diagram to svg files you can step through, sample by sample, in a web browser: each wire shows its value for samples 0 to n-1, computed at 44100 Hz with the controls at their default values unless -ssc changes them (implies -svg).
+  **-sst** \<n>   **--svg-step** \<n>               print block-diagram to svg files you can step through, sample by sample, in a web browser: each wire shows its value for samples 0 to n-1, computed at 44100 Hz with the controls at their default values unless -ssc changes them; a folded diagram used at several places holds the values of each use (implies -svg).
 
   **-ssi** \<expr> **--svg-step-input** \<expr>      Faust expression (0 inputs, 1 or as many outputs as process has inputs) giving the test signal fed to process with -sst, evaluated with the definitions of the program (default "1-1'", an impulse).
 
