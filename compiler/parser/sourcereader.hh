@@ -60,6 +60,9 @@ class SourceReader
         }
         Tree getList(const char* fname);
         Tree expandList(Tree ldef);
+        // Parses the definitions in <code> (not a file : no cache, no file list), <name>
+        // being used in error messages. Used by -ssi.
+        Tree parseDefinitionsString(const std::string& code, const char* name);
         std::vector<std::string> listSrcFiles();
         std::vector<std::string> listLibraryFiles();
 

@@ -24,12 +24,19 @@
 #if !defined SVGDEV_H
 #define SVGDEV_H
 
+#include <string>
+
 #include "device.h"
 
 class SVGDev : public device {
    public:
     SVGDev(const char*, double, double);
+    // Used by -sst : <top> extra units above the diagram (negative y) for the
+    // stepping controls, and <minWidth> the smallest width of the drawing.
+    SVGDev(const char*, double, double, double top, double minWidth);
     ~SVGDev();
+    // Writes raw SVG text (used by -sst for its annotations and script)
+    void raw(const std::string& text);
     void rect(double x, double y, double l, double h, const char* color, const char* link);
     void triangle(double x, double y, double l, double h, const char* color, const char* link,
                   bool leftright);
