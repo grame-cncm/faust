@@ -87,6 +87,10 @@ void stepRecordDelays(schema* rec, const siglist& delayed, Tree recs);
 void stepDeferFile(const std::string& path, int use, const std::string& back, schema* top,
                    collector* traits);
 
+// Records the target of the next folded block of the file being generated (file#c=use),
+// returns its number in the file
+int stepAddLink(const std::string& target);
+
 // The index of a use (context) of a folded box among the uses of that box, <key> naming the
 // box and its context : the uses of a box share its file
 int stepContextIndex(Tree box, Tree key);
