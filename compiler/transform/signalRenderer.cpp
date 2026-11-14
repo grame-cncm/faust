@@ -23,6 +23,8 @@
 #include "compatibility.hh"  // For basename, pathToContent
 #include "xtended.hh"
 
+#include <cmath>
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -124,7 +126,7 @@ void SignalRenderer<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** 
         int  chan        = 0;
         Tree output_list = fOutputSig;
 
-        fVisited.clear();  // Clear visited for each top-level signal evaluation per sample
+        startSample();  // Clear visited and memoized values for each sample
 
         while (!isNil(output_list)) {
             // Render each output in 'chan'
@@ -179,6 +181,23 @@ void SignalRenderer<REAL>::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** 
 template <class REAL>
 void SignalRenderer<REAL>::visit(Tree sig)
 {
+    // Per-sample memoization (see fSampleCache)
+    auto it = fSampleCache.find(sig);
+    if (it != fSampleCache.end()) {
+        pushRes(it->second);
+        return;
+    }
+    size_t depth = fValueStack.size();
+    int    stale = fStaleReads;
+    visitNode(sig);
+    if (fStaleReads == stale && fValueStack.size() == depth + 1) {
+        fSampleCache.emplace(sig, fValueStack.top());
+    }
+}
+
+template <class REAL>
+void SignalRenderer<REAL>::visitNode(Tree sig)
+{
     int     i_val;
     int64_t i64_val;
     double  r_val;
@@ -206,15 +225,23 @@ void SignalRenderer<REAL>::visit(Tree sig)
         Node res = xt->compute(args);
         //  HACK: for 'min/max' res may actually be of type kInt
         int ty = getCertifiedSigType(sig)->nature();
-        pushRes((ty == kInt) ? Node(int(res.getDouble())) : res);
+        if (ty == kInt) {
+            // an int result wraps around to 32 bits, as in the compiled code (pow(int, 2) is
+            // computed with int multiplications), instead of saturating
+            double d = res.getDouble();
+            pushRes((std::fabs(d) < 9.2e18) ? Node(int(int32_t(uint32_t(int64_t(d)))))
+                                            : Node(int(d)));
+        } else {
+            pushRes(realValue(res.getDouble()));
+        }
     } else if (isSigInt(sig, &i_val)) {
         pushRes(i_val);
     } else if (isSigInt64(sig, &i64_val)) {
         pushRes(i64_val);
     } else if (isSigReal(sig, &r_val)) {
-        pushRes(r_val);
+        pushRes(realValue(r_val));
     } else if (isSigInput(sig, &i_val)) {
-        pushRes(fInputs[i_val][fSample]);
+        pushRes(realValue(fInputs[i_val][fSample]));
     } else if (isSigOutput(sig, &i_val, x_tree)) {
         self(x_tree);  // Evaluate the expression connected to the output
     } else if (isSigDelay1(sig, x_tree)) {
@@ -263,10 +290,20 @@ void SignalRenderer<REAL>::visit(Tree sig)
 
         // Integer binop when both arguments are integer
         if (x_type->nature() == kInt && y_type->nature() == kInt) {
-            pushRes(gBinOpTable[opt_op]->compute(v1.getInt(), v2.getInt()));
+            int a = v1.getInt(), b = v2.getInt();
+            if (opt_op == kAdd || opt_op == kSub || opt_op == kMul) {
+                // int32 arithmetic wraps around, as in the compiled code (Node arithmetic
+                // would turn an overflow into a double)
+                uint32_t ua = uint32_t(a), ub = uint32_t(b);
+                uint32_t r = (opt_op == kAdd) ? ua + ub : (opt_op == kSub) ? ua - ub : ua * ub;
+                pushRes(Node(int(int32_t(r))));
+            } else {
+                pushRes(gBinOpTable[opt_op]->compute(a, b));
+            }
         } else {
             // Otherwise REAL binop
-            pushRes(gBinOpTable[opt_op]->compute(v1.getDouble(), v2.getDouble()));
+            Node res = gBinOpTable[opt_op]->compute(v1.getDouble(), v2.getDouble());
+            pushRes(isInt(res) ? res : realValue(res.getDouble()));
         }
     } else if (isSigFConst(sig, type_tree, name_tree, file_tree)) {
         // Special case for SR constant
@@ -312,9 +349,15 @@ void SignalRenderer<REAL>::visit(Tree sig)
         if (fVisited.find(sig) == fVisited.end()) {
             faustassert(isRec(x_tree, rec_vars, rec_exprs));
             fVisited[sig]++;
+            fInProgress.insert(sig);
+            int ownStale = fStaleBy[sig];
             // Render the actual projection
             self(nth(rec_exprs, proj_idx));
-            Node res = popRes();
+            fInProgress.erase(sig);
+            // its own stale reads are resolved now that it is computed
+            fStaleReads -= fStaleBy[sig] - ownStale;
+            fStaleBy[sig] = ownStale;
+            Node res      = popRes();
             /*
             if (global::isDebug("SIG_RENDERER")) {
                 std::cout << "Proj : " << res << "\n";
@@ -322,8 +365,14 @@ void SignalRenderer<REAL>::visit(Tree sig)
             */
             Node zero = Node(0);
             pushRes(writeReadDelay(sig, res, zero));
+            fSampleCache.emplace(sig, topRes());
 
         } else {
+            if (fInProgress.count(sig)) {
+                // read while being computed : the previous content of its delay line
+                fStaleBy[sig]++;
+                fStaleReads++;
+            }
             /*
             if (global::isDebug("SIG_RENDERER")) {
                 std::cout << "SignalRenderer : next visit of the recursive signal\n";
@@ -347,15 +396,15 @@ void SignalRenderer<REAL>::visit(Tree sig)
         Node cur = popRes();
         pushRes(static_cast<REAL>(cur.getInt()));
     } else if (isSigButton(sig, label_tree)) {
-        pushRes(fInputControls[sig].getValue());
+        pushRes(realValue(fInputControls[sig].getValue()));
     } else if (isSigCheckbox(sig, label_tree)) {
-        pushRes(fInputControls[sig].getValue());
+        pushRes(realValue(fInputControls[sig].getValue()));
     } else if (isSigVSlider(sig, label_tree, c_tree, x_tree, y_tree, z_tree)) {
-        pushRes(fInputControls[sig].getValue());
+        pushRes(realValue(fInputControls[sig].getValue()));
     } else if (isSigHSlider(sig, label_tree, c_tree, x_tree, y_tree, z_tree)) {
-        pushRes(fInputControls[sig].getValue());
+        pushRes(realValue(fInputControls[sig].getValue()));
     } else if (isSigNumEntry(sig, label_tree, c_tree, x_tree, y_tree, z_tree)) {
-        pushRes(fInputControls[sig].getValue());
+        pushRes(realValue(fInputControls[sig].getValue()));
     } else if (isSigVBargraph(sig, label_tree, x_tree, y_tree, z_tree)) {
         self(z_tree);
         Node val = topRes();
@@ -407,8 +456,22 @@ void SignalRenderer<REAL>::visit(Tree sig)
         } else {
             pushRes(Node(0));
         }
-    } else if (isSigControl(sig, x_tree, y_tree)) {  // x_tree is name, y_tree is signal
+    } else if (isSigControl(sig, x_tree, y_tree)) {  // x_tree is the signal, y_tree the condition
+        // The signal is computed only when the condition is not zero ; otherwise it keeps
+        // its previous value, as in the compiled code, which skips its computation
         self(y_tree);
+        Node cond = popRes();
+        auto it   = fControlHold.find(sig);
+        if (cond.getInt() != 0) {
+            self(x_tree);
+            if (it != fControlHold.end()) {
+                it->second = topRes();
+            } else {
+                fControlHold.emplace(sig, topRes());
+            }
+        } else {
+            pushRes((it != fControlHold.end()) ? it->second : Node(0));
+        }
     } else {
         // Default case and recursion
         SignalVisitor::visit(sig);

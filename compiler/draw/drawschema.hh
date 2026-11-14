@@ -38,6 +38,8 @@ inline constexpr const char* kSchemaRootName = "process";
  *svg files stored in the directory "<projname>-svg/" or
  *"<projname>-ps/" depending of <dev>.
  */
-void drawSchema(Tree bd, const char* projname, const char* dev);
+// <stepInput> : for -sst, the evaluated box of the test signal fed to the inputs of
+// <bd> (svg only); nullptr draws the plain diagram.
+void drawSchema(Tree bd, const char* projname, const char* dev, Tree stepInput = nullptr);
 
 #endif

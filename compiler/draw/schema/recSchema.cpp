@@ -226,3 +226,15 @@ void recSchema::collectFeedfront(collector& c, const point& src, const point& ds
     c.addTrait(trait(point(ox, src.y), point(ox, dst.y)));
     c.addTrait(trait(point(ox, dst.y), point(dst.x, dst.y)));
 }
+
+void recSchema::feedbackLine(unsigned int i, point& from, point& to) const
+{
+    // same geometry as collectFeedback
+    const point src = fSchema1->outputPoint(i);
+    const point dst = fSchema2->inputPoint(i);
+    double      dx  = i * dWire;
+    double      ox  = src.x + ((orientation() == kLeftRight) ? dx : -dx);
+    double      ct  = (orientation() == kLeftRight) ? dWire / 2 : -dWire / 2;
+    from            = point(ox, src.y - ct);
+    to              = point(ox, dst.y);
+}

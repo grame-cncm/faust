@@ -309,6 +309,23 @@ Tree SourceReader::parseString(const char* fname)
     return parseLocal(fname);
 }
 
+Tree SourceReader::parseDefinitionsString(const std::string& code, const char* name)
+{
+    FAUSTerr      = 0;
+    FAUSTlineno   = 1;
+    FAUSTfilename = name;
+    gGlobal->gFunMDSet.clear();
+    FAUST_scan_string(code.c_str());
+    int r = FAUSTparse();
+    FAUSTlex_destroy();
+    if (r || FAUSTerr > 0) {
+        stringstream error;
+        error << "ERROR : cannot parse " << name << " '" << code << "'" << endl;
+        throw faustexception(error.str());
+    }
+    return gGlobal->gResult;
+}
+
 Tree SourceReader::parseLocal(const char* fname)
 {
     int r = FAUSTparse();

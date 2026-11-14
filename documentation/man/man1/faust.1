@@ -354,6 +354,27 @@ arguments) during block\-diagram generation.
 boxes.
 .PP
 \f[B]\-sc\f[R] \f[B]\-\-scaled\-svg\f[R] automatic scalable SVG.
+.PP
+\f[B]\-sst\f[R] <n> \f[B]\-\-svg\-step\f[R] <n> print block\-diagram to
+svg files you can step through, sample by sample, in a web browser: each
+wire shows its value for samples 0 to n\-1, computed at 44100 Hz with
+the controls at their default values unless \-ssc changes them; a folded
+diagram used at several places holds the values of each use (implies
+\-svg).
+.PP
+\f[B]\-ssi\f[R] <expr> \f[B]\-\-svg\-step\-input\f[R] <expr> Faust
+expression (0 inputs, 1 or as many outputs as process has inputs) giving
+the test signal fed to process with \-sst, evaluated with the
+definitions of the program (default \[lq]1\-1\[cq]\[rq], an impulse).
+.PP
+\f[B]\-ssc\f[R] <c> \f[B]\-\-svg\-step\-control\f[R] <c> with \-sst,
+set a control (button, checkbox, slider, nentry, by its label) to a
+value from a sample on: <c> is label=value or label=value\[at]n (default
+n = 0), repeatable.
+.PP
+\f[B]\-sso\f[R] <s> \f[B]\-\-svg\-step\-offset\f[R] <s> with \-sst,
+show samples s to s+n\-1 instead of 0 to n\-1 (default 0); the first s
+samples are computed too, so a large offset can reach the \-t timeout.
 .SS Math doc options:
 \f[B]\-mdoc\f[R] \f[B]\-\-mathdoc\f[R] print math documentation of the
 Faust program in LaTeX format in a \-mdoc folder.
