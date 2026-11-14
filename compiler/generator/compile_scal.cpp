@@ -5997,9 +5997,44 @@ void ScalarCompiler::computeDisplayFrontier()
     }
 }
 
+// Counts the uses of each tail node, descending as displayExpr does : a
+// tail is a DAG, and a node reached twice must be computed once.
+void ScalarCompiler::countDisplayUses(Tree t)
+{
+    if (fDisplayCaptures.count(t) || getCertifiedSigType(t)->variability() < kSamp) {
+        return;
+    }
+    if (fDisplayUses[t]++ > 0) {
+        return;  // its own uses were counted at the first visit
+    }
+    int  op;
+    Tree x, y, sel;
+    if (isSigBinOp(t, &op, x, y)) {
+        countDisplayUses(x);
+        countDisplayUses(y);
+    } else if (isSigIntCast(t, x) || isSigFloatCast(t, x)) {
+        countDisplayUses(x);
+    } else if (isSigSelect2(t, sel, x, y)) {
+        countDisplayUses(sel);
+        countDisplayUses(y);
+        countDisplayUses(x);
+    } else if (tvec V; isSigSum(t, V)) {
+        for (Tree b : V) {
+            if (!isZero(b)) {
+                countDisplayUses(b);
+            }
+        }
+    } else if (getUserData(t) != nullptr) {
+        for (int k = 0; k < t->arity(); k++) {
+            countDisplayUses(t->branch(k));
+        }
+    }
+}
+
 // The block-rate tail : builds the expression string of a display signal
 // from capture variables, slow values (normal machinery) and the
-// stateless operators the frontier walked through.
+// stateless operators the frontier walked through. A node with several
+// uses is stored once in a temporary, before the store that reads it.
 std::string ScalarCompiler::displayExpr(Tree t)
 {
     if (auto it = fDisplayCaptures.find(t); it != fDisplayCaptures.end()) {
@@ -6008,6 +6043,22 @@ std::string ScalarCompiler::displayExpr(Tree t)
     if (getCertifiedSigType(t)->variability() < kSamp) {
         return CS(t);  // const or slow : loop-independent by construction
     }
+    if (auto it = fDisplayTemps.find(t); it != fDisplayTemps.end()) {
+        return it->second;
+    }
+    std::string code = displayExprAux(t);
+    if (fDisplayUses[t] < 2) {
+        return code;
+    }
+    std::string ctype = (getCertifiedSigType(t)->nature() == kInt) ? "int" : ifloat();
+    std::string name  = subst("fDpyTmp$0", T(int(fDisplayTemps.size())));
+    fClass->addZone4(subst("$0 $1 = $2;", ctype, name, code));
+    fDisplayTemps[t] = name;
+    return name;
+}
+
+std::string ScalarCompiler::displayExprAux(Tree t)
+{
     int  op;
     Tree x, y, sel;
     if (isSigBinOp(t, &op, x, y)) {
@@ -6095,6 +6146,14 @@ void ScalarCompiler::emitDisplayWidgets()
 {
     if (fDisplayList == nullptr || !isList(fDisplayList)) {
         return;
+    }
+    fDisplayUses.clear();
+    fDisplayTemps.clear();
+    for (Tree l = fDisplayList; isList(l); l = tl(l)) {
+        Tree path, mn, mx, x;
+        if (isSigVBargraph(hd(l), path, mn, mx, x) || isSigHBargraph(hd(l), path, mn, mx, x)) {
+            countDisplayUses(x);
+        }
     }
     for (Tree l = fDisplayList; isList(l); l = tl(l)) {
         Tree d = hd(l);
