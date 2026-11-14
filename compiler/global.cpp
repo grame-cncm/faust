@@ -426,6 +426,10 @@ void global::reset()
     gDrawRouteFrame   = false;
     gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
     gScaledSVG        = false;
+    gSVGStepSamples   = 0;
+    gSVGStepInput     = "1-1'";  // an impulse
+    gSVGStepControls.clear();
+    gSVGStepOffset = 0;
     gStripDocSwitch   = false;  // Strip <mdoc> content from doc listings.
     gFoldThreshold    = 25;
     gFoldComplexity   = 2;
@@ -1412,6 +1416,35 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-svg", "--svg")) {
             gDrawSVGSwitch = true;
             i += 1;
+
+        } else if (isCmd(argv[i], "-sst", "--svg-step") && (i + 1 < argc)) {
+            gSVGStepSamples = std::atoi(argv[i + 1]);
+            if (gSVGStepSamples <= 0) {
+                stringstream error;
+                error << "ERROR : -sst (--svg-step) expects a positive number of samples, got '"
+                      << argv[i + 1] << "'" << endl;
+                throw faustexception(error.str());
+            }
+            gDrawSVGSwitch = true;
+            i += 2;
+
+        } else if (isCmd(argv[i], "-ssi", "--svg-step-input") && (i + 1 < argc)) {
+            gSVGStepInput = argv[i + 1];
+            i += 2;
+
+        } else if (isCmd(argv[i], "-ssc", "--svg-step-control") && (i + 1 < argc)) {
+            gSVGStepControls.push_back(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-sso", "--svg-step-offset") && (i + 1 < argc)) {
+            gSVGStepOffset = std::atoi(argv[i + 1]);
+            if (gSVGStepOffset < 0) {
+                stringstream error;
+                error << "ERROR : -sso (--svg-step-offset) expects a sample number >= 0, got '"
+                      << argv[i + 1] << "'" << endl;
+                throw faustexception(error.str());
+            }
+            i += 2;
 
         } else if (isCmd(argv[i], "-vhdl-trace", "--vhdl-trace")) {
             gVHDLTrace = true;
@@ -2857,6 +2890,28 @@ string global::printHelp()
     sstr << tab << "-blur      --shadow-blur                add a shadow blur to SVG boxes."
          << endl;
     sstr << tab << "-sc        --scaled-svg                 automatic scalable SVG." << endl;
+    sstr << tab
+         << "-sst <n>   --svg-step <n>               print block-diagram to svg files you can "
+            "step through, sample by sample, in a web browser: each wire shows its value for "
+            "samples 0 to n-1, computed at 44100 Hz with the controls at their default values "
+            "unless -ssc changes them (implies -svg)."
+         << endl;
+    sstr << tab
+         << "-ssi <expr> --svg-step-input <expr>      Faust expression (0 inputs, 1 or "
+            "as many outputs as process has inputs) giving the test signal fed to process "
+            "with -sst, evaluated with the definitions of the program (default \"1-1'\", "
+            "an impulse)."
+         << endl;
+    sstr << tab
+         << "-ssc <c>   --svg-step-control <c>       with -sst, set a control (button, checkbox, "
+            "slider, nentry, by its label) to a value from a sample on: <c> is label=value or "
+            "label=value@n (default n = 0), repeatable."
+         << endl;
+    sstr << tab
+         << "-sso <s>   --svg-step-offset <s>        with -sst, show samples s to s+n-1 "
+            "instead of 0 to n-1 (default 0); the first s samples are computed too, so a "
+            "large offset can reach the -t timeout."
+         << endl;
 
     sstr << endl << "Math doc options:" << line;
     sstr << tab

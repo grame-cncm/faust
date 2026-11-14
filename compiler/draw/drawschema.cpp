@@ -49,6 +49,7 @@
 #include "description.hh"
 #include "devLib.h"
 #include "drawschema.hh"
+#include "drawstep.hh"
 #include "exception.hh"
 #include "files.hh"
 #include "global.hh"
@@ -57,6 +58,7 @@
 #include "occurrences.hh"
 #include "ppbox.hh"
 #include "prim2.hh"
+#include "propagate.hh"
 #include "property.hh"
 #include "routeSchema.h"
 #include "schema.h"
@@ -124,17 +126,19 @@ using namespace std;
 
 // prototypes of internal functions
 static void    writeSchemaFile(Tree bd, bool root);
-static schema* generateDiagramSchema(Tree bd);
-static schema* generateInsideSchema(Tree t);
+static schema* generateDiagramSchema(Tree bd, const StepContext* ctx = nullptr);
+static schema* generateInsideSchema(Tree t, const StepContext* ctx = nullptr);
 static void    scheduleDrawing(Tree t);
 static bool    pendingDrawing(Tree& t);
-static schema* generateAbstractionSchema(schema* x, Tree t);
+static schema* generateAbstractionSchema(Tree slot, Tree t, const StepContext* ctx);
 static schema* generateOutputSlotSchema(Tree a);
 static schema* generateInputSlotSchema(Tree a);
 static schema* generateBargraphSchema(Tree t);
 static schema* generateUserInterfaceSchema(Tree t);
+static string  userInterfaceDescription(Tree box);
+static string  slotName(Tree a);
 static schema* generateSoundfileSchema(Tree t);
-static char*   legalFileName(Tree t, int n, char* dst);
+static char*   legalFileName(Tree t, int n, char* dst, Tree serialOf = nullptr);
 
 static schema* addSchemaInputs(int ins, schema* x);
 static schema* addSchemaOutputs(int outs, schema* x);
@@ -151,12 +155,58 @@ struct ScopedOccurrences {
     ~ScopedOccurrences() { gGlobal->gOccurrences = fSaved; }
 };
 
+//------------------- -sst : steppable diagrams ------------------
+//
+// In step mode, each box is drawn with the signals on its inputs (a StepContext,
+// see drawstep.hh), and a folded diagram is drawn once per context : what is
+// scheduled is a key made of the box and its context, not the box alone.
+
+static bool gStepDrawing = false;  // true while drawSchema draws in step mode
+
+struct ScopedStepDrawing {
+    explicit ScopedStepDrawing(bool on) { gStepDrawing = on; }
+    ~ScopedStepDrawing() { gStepDrawing = false; }
+};
+
+static Tree stepKey(Tree t, const StepContext& ctx)
+{
+    return cons(t, cons(ctx.fSlotEnv, cons(ctx.fPath, cons(ctx.fRecs, listConvert(ctx.fIns)))));
+}
+
+static Tree stepKeyBox(Tree key)
+{
+    return hd(key);
+}
+
+static StepContext stepKeyContext(Tree key)
+{
+    StepContext ctx;
+    Tree        l = tl(key);
+    ctx.fSlotEnv  = hd(l);
+    l             = tl(l);
+    ctx.fPath     = hd(l);
+    l             = tl(l);
+    ctx.fRecs     = hd(l);
+    ctx.fIns      = treeConvert(tl(l));
+    return ctx;
+}
+
+// Records schema s of box t with its signals (in step mode), returns s
+static schema* stepped(schema* s, Tree t, const StepContext* ctx, StepKind kind,
+                       const string& name = "")
+{
+    if (ctx) {
+        stepRecord(s, *ctx, stepOutputs(t, *ctx), kind, name);
+    }
+    return s;
+}
+
 /**
  *The entry point to generate from a block diagram as a set of
  *svg files stored in the directory "<projname>-svg/" or
  *"<projname>-ps/" depending of <dev>.
  */
-void drawSchema(Tree bd, const char* projname, const char* dev)
+void drawSchema(Tree bd, const char* projname, const char* dev, Tree stepInput)
 {
     gGlobal->gDevSuffix   = dev;  // .svg or .ps used to choose output device
     gGlobal->gFoldingFlag = boxComplexity(bd) > gGlobal->gFoldThreshold;
@@ -181,13 +231,27 @@ void drawSchema(Tree bd, const char* projname, const char* dev)
     Occur             occur(bd);
     ScopedOccurrences scoped(&occur);
 
+    // -sst : the root is drawn with the test signal on its inputs
+    ScopedStepDrawing step(stepInput != nullptr && strcmp(dev, "svg") == 0);
+    Tree              root = bd;
+    if (gStepDrawing) {
+        int ins, outs;
+        getBoxType(bd, &ins, &outs);
+        stepCheckControls(bd);
+        StepContext ctx{gGlobal->nil, gGlobal->nil, gGlobal->nil, stepInputSignals(stepInput, ins)};
+        root = stepKey(bd, ctx);
+    }
+
     mkchDir(projname);  // create a directory to store files
 
-    scheduleDrawing(bd);  // schedule the initial drawing
+    scheduleDrawing(root);  // schedule the initial drawing
 
     Tree t;
     while (pendingDrawing(t)) {
-        writeSchemaFile(t, t == bd);  // generate all the pending drawing
+        writeSchemaFile(t, t == root);  // generate all the pending drawing
+    }
+    if (gStepDrawing) {
+        stepWriteFiles();  // -sst : the values of all the files in one batch, then the files
     }
 
     choldDir();  // return to current directory
@@ -270,6 +334,15 @@ static void writeSchemaFile(Tree bd, bool root)
 
     char temp[1024];
 
+    // in step mode, what was scheduled is a key : the box and its context
+    Tree        key = bd;
+    StepContext ctx;
+    if (gStepDrawing) {
+        ctx = stepKeyContext(key);
+        bd  = stepKeyBox(key);
+        stepBeginFile();
+    }
+
     getBoxType(bd, &ins, &outs);
 
     bool hasname = getDefNameProperty(bd, id);
@@ -284,12 +357,23 @@ static void writeSchemaFile(Tree bd, bool root)
     // its definition, which is not process with -pn. No link names the
     // root's file : a node is not one of its own descendants.
     stringstream s1;
-    s1 << (root ? kSchemaRootName : legalFileName(bd, 1024, temp)) << "." << gGlobal->gDevSuffix;
+    s1 << (root ? kSchemaRootName : legalFileName(bd, 1024, temp, gStepDrawing ? key : nullptr))
+       << "." << gGlobal->gDevSuffix;
     string res1              = s1.str();
     gGlobal->gSchemaFileName = res1;
 
     // generate the label of the schema
-    string link = gGlobal->gBackLink[bd];
+    string link = gGlobal->gBackLink[key];
+    if (gStepDrawing) {
+        schema* io = addSchemaOutputs(outs, addSchemaInputs(ins, generateInsideSchema(bd, &ctx)));
+        stepRecord(io, ctx, stepOutputs(bd, ctx), kStepIO, "");
+        ts = makeTopSchema(io, kStepMargin, tree2str(id), link);
+        ts->place(0, 0, kLeftRight);
+        collector* c = new collector();
+        ts->collectTraits(*c);
+        stepDeferFile(res1, ts, c);  // written by stepWriteFiles, once all values are computed
+        return;
+    }
     ts = makeTopSchema(addSchemaOutputs(outs, addSchemaInputs(ins, generateInsideSchema(bd))), 20,
                        tree2str(id), link);
     // draw to the device defined by gDevSuffix
@@ -320,7 +404,7 @@ static void writeSchemaFile(Tree bd, bool root)
  * <dst> a table of at least <n> chars. Returns the <dst> pointer
  * for convenience.
  */
-static char* legalFileName(Tree t, int n, char* dst)
+static char* legalFileName(Tree t, int n, char* dst, Tree serialOf)
 {
     Tree id;
     int  i = 0;
@@ -344,7 +428,8 @@ static char* legalFileName(Tree t, int n, char* dst)
     // named process gets one too : it is not the root here (the entry point
     // of -pn can use process, a component can redefine it), and would
     // otherwise overwrite the root's file.
-    snprintf(&dst[i], n - i, "-%zu", (size_t)t->serial());
+    // in step mode, a diagram is drawn once per context : <serialOf> is its key
+    snprintf(&dst[i], n - i, "-%zu", (size_t)(serialOf ? serialOf : t)->serial());
     return dst;
 }
 
@@ -398,7 +483,7 @@ static bool isPureRouting(Tree t)
  * instead of going down block-diagrams with a name,
  * schedule them for an individual file.
  */
-static schema* generateDiagramSchema(Tree t)
+static schema* generateDiagramSchema(Tree t, const StepContext* ctx)
 {
     Tree id;
     int  ins, outs;
@@ -428,6 +513,14 @@ static schema* generateDiagramSchema(Tree t)
         char temp[1024];
         getBoxType(t, &ins, &outs);
         stringstream l;
+        if (ctx) {
+            // step mode : the folded diagram is drawn once per context
+            Tree key = stepKey(t, *ctx);
+            l << legalFileName(t, 1024, temp, key) << "." << gGlobal->gDevSuffix;
+            scheduleDrawing(key);
+            return stepped(makeBlockSchema(ins, outs, tree2str(id), linkcolor, l.str()), t, ctx,
+                           kStepBlock, tree2str(id));
+        }
         l << legalFileName(t, 1024, temp) << "." << gGlobal->gDevSuffix;
         scheduleDrawing(t);
         return makeBlockSchema(ins, outs, tree2str(id), linkcolor, l.str());
@@ -435,11 +528,12 @@ static schema* generateDiagramSchema(Tree t)
     } else if (named && !isPureRouting(t)) {
         // named case : not a slot, with a name
         // draw a line around the object with its name
-        return makeDecorateSchema(generateInsideSchema(t), 10, tree2str(id));
+        return stepped(makeDecorateSchema(generateInsideSchema(t, ctx), 10, tree2str(id)), t, ctx,
+                       kStepWiring);
 
     } else {
         // normal case
-        return generateInsideSchema(t);
+        return generateInsideSchema(t, ctx);
     }
 }
 
@@ -447,7 +541,7 @@ static schema* generateDiagramSchema(Tree t)
  * Generate the inside schema of a block diagram
  * according to its type.
  */
-static schema* generateInsideSchema(Tree t)
+static schema* generateInsideSchema(Tree t, const StepContext* ctx)
 {
     Tree   a, b, c, ff, l, type, name, file;
     int    i;
@@ -461,136 +555,198 @@ static schema* generateInsideSchema(Tree t)
 
     xtended* xt = (xtended*)getUserData(t);
 
+    // ctx (step mode only) : the signals on the inputs of t ; each schema is then
+    // recorded with them (stepped), and the context of each child is computed as
+    // propagate() does
+
     if (xt) {
-        return makeBlockSchema(xt->arity(), 1, xt->name(), normalcolor, "");
+        return stepped(makeBlockSchema(xt->arity(), 1, xt->name(), normalcolor, ""), t, ctx,
+                       kStepBlock, xt->name());
     }
 
     else if (isInverter(t)) {
-        return makeInverterSchema(invcolor);
+        return stepped(makeInverterSchema(invcolor), t, ctx, kStepBlock, "*(-1)");
     }
 
     else if (isBoxInt(t, &i)) {
         stringstream s;
         s << i;
-        return makeBlockSchema(0, 1, s.str(), numcolor, "");
+        return stepped(makeBlockSchema(0, 1, s.str(), numcolor, ""), t, ctx, kStepLiteral, s.str());
     } else if (isBoxReal(t, &r)) {
         stringstream s;
         s << boxpp(t);
-        return makeBlockSchema(0, 1, s.str(), numcolor, "");
+        return stepped(makeBlockSchema(0, 1, s.str(), numcolor, ""), t, ctx, kStepLiteral, s.str());
     } else if (isBoxWaveform(t)) {
-        return makeBlockSchema(0, 2, "waveform{...}", normalcolor, "");
+        return stepped(makeBlockSchema(0, 2, "waveform{...}", normalcolor, ""), t, ctx, kStepBlock,
+                       "waveform{...}");
     } else if (isBoxWire(t)) {
-        return makeCableSchema();
+        return stepped(makeCableSchema(), t, ctx, kStepWiring);
     } else if (isBoxCut(t)) {
-        return makeCutSchema();
+        return stepped(makeCutSchema(), t, ctx, kStepWiring);
     }
 
     else if (isBoxPrim0(t, &p0)) {
-        return makeBlockSchema(0, 1, prim0name(p0), normalcolor, "");
+        return stepped(makeBlockSchema(0, 1, prim0name(p0), normalcolor, ""), t, ctx, kStepBlock,
+                       prim0name(p0));
     } else if (isBoxPrim1(t, &p1)) {
-        return makeBlockSchema(1, 1, prim1name(p1), normalcolor, "");
+        return stepped(makeBlockSchema(1, 1, prim1name(p1), normalcolor, ""), t, ctx, kStepBlock,
+                       prim1name(p1));
     } else if (isBoxPrim2(t, &p2)) {
-        return makeBlockSchema(2, 1, prim2name(p2), normalcolor, "");
+        return stepped(makeBlockSchema(2, 1, prim2name(p2), normalcolor, ""), t, ctx, kStepBlock,
+                       prim2name(p2));
     } else if (isBoxPrim3(t, &p3)) {
-        return makeBlockSchema(3, 1, prim3name(p3), normalcolor, "");
+        return stepped(makeBlockSchema(3, 1, prim3name(p3), normalcolor, ""), t, ctx, kStepBlock,
+                       prim3name(p3));
     } else if (isBoxPrim4(t, &p4)) {
-        return makeBlockSchema(4, 1, prim4name(p4), normalcolor, "");
+        return stepped(makeBlockSchema(4, 1, prim4name(p4), normalcolor, ""), t, ctx, kStepBlock,
+                       prim4name(p4));
     } else if (isBoxPrim5(t, &p5)) {
-        return makeBlockSchema(5, 1, prim5name(p5), normalcolor, "");
+        return stepped(makeBlockSchema(5, 1, prim5name(p5), normalcolor, ""), t, ctx, kStepBlock,
+                       prim5name(p5));
     }
 
     else if (isBoxFFun(t, ff)) {
         int         arity = ffarity(ff);
         std::string fname = ffname(ff);
-        return makeBlockSchema(arity, 1, fname, normalcolor, "");
+        return stepped(makeBlockSchema(arity, 1, fname, normalcolor, ""), t, ctx, kStepBlock,
+                       fname);
     } else if (isBoxFConst(t, type, name, file)) {
-        return makeBlockSchema(0, 1, tree2str(name), normalcolor, "");
+        return stepped(makeBlockSchema(0, 1, tree2str(name), normalcolor, ""), t, ctx, kStepBlock,
+                       tree2str(name));
     } else if (isBoxFVar(t, type, name, file)) {
-        return makeBlockSchema(0, 1, tree2str(name), normalcolor, "");
+        return stepped(makeBlockSchema(0, 1, tree2str(name), normalcolor, ""), t, ctx, kStepBlock,
+                       tree2str(name));
     }
 
-    else if (isBoxButton(t)) {
-        return generateUserInterfaceSchema(t);
-    } else if (isBoxCheckbox(t)) {
-        return generateUserInterfaceSchema(t);
-    } else if (isBoxVSlider(t)) {
-        return generateUserInterfaceSchema(t);
-    } else if (isBoxHSlider(t)) {
-        return generateUserInterfaceSchema(t);
-    } else if (isBoxNumEntry(t)) {
-        return generateUserInterfaceSchema(t);
-    } else if (isBoxVBargraph(t)) {
-        return generateBargraphSchema(t);
-    } else if (isBoxHBargraph(t)) {
-        return generateBargraphSchema(t);
+    else if (isBoxButton(t) || isBoxCheckbox(t) || isBoxVSlider(t) || isBoxHSlider(t) ||
+             isBoxNumEntry(t)) {
+        return stepped(generateUserInterfaceSchema(t), t, ctx, kStepControl,
+                       userInterfaceDescription(t));
+    } else if (isBoxVBargraph(t) || isBoxHBargraph(t)) {
+        return stepped(generateBargraphSchema(t), t, ctx, kStepControl,
+                       userInterfaceDescription(t));
     } else if (isBoxSoundfile(t)) {
-        return generateSoundfileSchema(t);
+        return stepped(generateSoundfileSchema(t), t, ctx, kStepBlock, userInterfaceDescription(t));
     }
 
     else if (isBoxMetadata(t, a, b)) {
-        return generateDiagramSchema(a);
+        return generateDiagramSchema(a, ctx);
     }
 
     // don't draw group rectangle when labels are empty (ie "")
-    else if (isBoxVGroup(t, l, a)) {
+    else if (isBoxVGroup(t, l, a) || isBoxHGroup(t, l, a) || isBoxTGroup(t, l, a)) {
+        int          kind = isBoxVGroup(t, l, a) ? 0 : (isBoxHGroup(t, l, a) ? 1 : 2);
         stringstream s;
-        s << "vgroup(" << extractName(l) << ")";
-        schema* s1 = generateDiagramSchema(a);
-        return makeDecorateSchema(s1, 10, s.str());
-    } else if (isBoxHGroup(t, l, a)) {
-        stringstream s;
-        s << "hgroup(" << extractName(l) << ")";
-        schema* s1 = generateDiagramSchema(a);
-        return makeDecorateSchema(s1, 10, s.str());
-    } else if (isBoxTGroup(t, l, a)) {
-        stringstream s;
-        s << "tgroup(" << extractName(l) << ")";
-        schema* s1 = generateDiagramSchema(a);
-        return makeDecorateSchema(s1, 10, s.str());
+        s << ((kind == 0)   ? "vgroup("
+              : (kind == 1) ? "hgroup("
+                            : "tgroup(")
+          << extractName(l) << ")";
+        StepContext ca;
+        if (ctx) {
+            // as in propagate : the group is added to the path of the widgets
+            ca       = *ctx;
+            ca.fPath = cons(cons(tree(kind), l), ctx->fPath);
+        }
+        schema* s1 = generateDiagramSchema(a, ctx ? &ca : nullptr);
+        return stepped(makeDecorateSchema(s1, 10, s.str()), t, ctx, kStepWiring);
     }
 
-    else if (isBoxSeq(t, a, b)) {
-        schema* sa = generateDiagramSchema(a);
-        schema* sb = generateDiagramSchema(b);
-        return makeSeqSchema(sa, sb);
-    } else if (isBoxPar(t, a, b)) {
-        schema* sa = generateDiagramSchema(a);
-        schema* sb = generateDiagramSchema(b);
-        return makeParSchema(sa, sb);
-    } else if (isBoxSplit(t, a, b)) {
-        schema* sa = generateDiagramSchema(a);
-        schema* sb = generateDiagramSchema(b);
-        return makeSplitSchema(sa, sb);
-    } else if (isBoxMerge(t, a, b)) {
-        schema* sa = generateDiagramSchema(a);
-        schema* sb = generateDiagramSchema(b);
-        return makeMergeSchema(sa, sb);
+    else if (isBoxSeq(t, a, b) || isBoxPar(t, a, b) || isBoxSplit(t, a, b) || isBoxMerge(t, a, b)) {
+        StepContext ca, cb;
+        if (ctx) {
+            ca = cb = *ctx;
+            int in1, out1, in2, out2;
+            getBoxType(a, &in1, &out1);
+            getBoxType(b, &in2, &out2);
+            if (isBoxPar(t, a, b)) {
+                ca.fIns = siglist(ctx->fIns.begin(), ctx->fIns.begin() + in1);
+                cb.fIns = siglist(ctx->fIns.begin() + in1, ctx->fIns.begin() + in1 + in2);
+            } else {
+                siglist l1 = stepOutputs(a, ca);
+                int     n1 = int(l1.size());
+                if (isBoxSeq(t, a, b)) {
+                    cb.fIns = l1;
+                } else if (isBoxSplit(t, a, b)) {
+                    // as split() in propagate.cpp
+                    cb.fIns = siglist(in2);
+                    for (int k = 0; k < in2; k++) {
+                        cb.fIns[k] = l1[k % n1];
+                    }
+                } else {
+                    // as mix() in propagate.cpp
+                    cb.fIns = siglist(in2);
+                    for (int k = 0; k < in2; k++) {
+                        Tree x = (k < n1) ? l1[k] : sigInt(0);
+                        for (int j = k + in2; j < n1; j += in2) {
+                            x = sigAdd(x, l1[j]);
+                        }
+                        cb.fIns[k] = x;
+                    }
+                }
+            }
+        }
+        schema* sa = generateDiagramSchema(a, ctx ? &ca : nullptr);
+        schema* sb = generateDiagramSchema(b, ctx ? &cb : nullptr);
+        schema* s  = isBoxSeq(t, a, b)     ? makeSeqSchema(sa, sb)
+                     : isBoxPar(t, a, b)   ? makeParSchema(sa, sb)
+                     : isBoxSplit(t, a, b) ? makeSplitSchema(sa, sb)
+                                           : makeMergeSchema(sa, sb);
+        return stepped(s, t, ctx, kStepWiring);
     } else if (isBoxRec(t, a, b)) {
-        schema* sa = generateDiagramSchema(a);
-        schema* sb = generateDiagramSchema(b);
-        return makeRecSchema(sa, sb);
+        StepContext ca, cb;
+        if (ctx) {
+            // as in propagate : B receives the delayed outputs of A, and A receives the
+            // outputs of B then the inputs ; both inside the recursive group g
+            int in1, out1, in2, out2;
+            getBoxType(a, &in1, &out1);
+            getBoxType(b, &in2, &out2);
+            Tree    slotenv2 = lift(ctx->fSlotEnv);
+            siglist l0(in2);
+            for (int k = 0; k < in2; k++) {
+                l0[k] = sigDelay1(sigProj(k, ref(1)));
+            }
+            siglist l1 = propagate(slotenv2, ctx->fPath, b, l0);
+            siglist la = l1;
+            for (Tree x : ctx->fIns) {
+                la.push_back(lift(x));
+            }
+            siglist l2   = propagate(slotenv2, ctx->fPath, a, la);
+            Tree    g    = rec(listConvert(l2));
+            Tree    recs = cons(g, ctx->fRecs);
+            ca           = StepContext{slotenv2, ctx->fPath, recs, la};
+            cb           = StepContext{slotenv2, ctx->fPath, recs, l0};
+        }
+        schema* sa = generateDiagramSchema(a, ctx ? &ca : nullptr);
+        schema* sb = generateDiagramSchema(b, ctx ? &cb : nullptr);
+        schema* s  = makeRecSchema(sa, sb);
+        if (ctx) {
+            stepRecordDelays(s, cb.fIns, cb.fRecs);
+        }
+        return stepped(s, t, ctx, kStepWiring);
     }
 
     else if (isBoxSlot(t, &i)) {
-        return generateOutputSlotSchema(t);
+        return stepped(generateOutputSlotSchema(t), t, ctx, kStepBlock, slotName(t));
     } else if (isBoxSymbolic(t, a, b)) {
         Tree id;
         if (getDefNameProperty(t, id)) {
-            return generateAbstractionSchema(generateInputSlotSchema(a), b);
+            return stepped(generateAbstractionSchema(a, b, ctx), t, ctx, kStepWiring);
         } else {
-            return makeDecorateSchema(generateAbstractionSchema(generateInputSlotSchema(a), b), 10,
-                                      "Abstraction");
+            return stepped(
+                makeDecorateSchema(generateAbstractionSchema(a, b, ctx), 10, "Abstraction"), t, ctx,
+                kStepWiring);
         }
 
     } else if (isBoxEnvironment(t)) {
-        return makeBlockSchema(0, 0, "environment{...}", normalcolor, "");
+        return stepped(makeBlockSchema(0, 0, "environment{...}", normalcolor, ""), t, ctx,
+                       kStepBlock, "environment{...}");
 
     } else if (isBoxRoute(t, a, b, c)) {
         int         ins, outs;
         vector<int> route;
         // cerr << "TRACE: drawing a box route " << boxpp(t) << endl;
         if (isBoxInt(a, &ins) && isBoxInt(b, &outs) && isIntTree(c, route)) {
-            return makeRouteSchema(ins, outs, route);
+            return stepped(makeRouteSchema(ins, outs, route), t, ctx, kStepWiring);
         } else {
             stringstream error;
             error << "ERROR : file " << __FILE__ << ':' << __LINE__
@@ -680,6 +836,15 @@ static schema* generateSoundfileSchema(Tree t)
 /**
  * Generate a 1->0 block schema for an input slot.
  */
+static string slotName(Tree a)
+{
+    int i;
+    faustassert(isBoxSlot(a, &i));
+    Tree id;
+    faustassert(getDefNameProperty(a, id));
+    return subst("[$0] $1", T(i), tree2str(id));
+}
+
 static schema* generateInputSlotSchema(Tree a)
 {
     int i;
@@ -707,15 +872,38 @@ static schema* generateOutputSlotSchema(Tree a)
  * Generate an abstraction schema by placing in sequence
  * the input slots and the body.
  */
-static schema* generateAbstractionSchema(schema* x, Tree t)
+static schema* generateAbstractionSchema(Tree slot, Tree t, const StepContext* ctx)
 {
     Tree a, b;
 
+    // step mode : as in propagate, each slot is bound to the next input signal, and the
+    // body receives the remaining ones
+    StepContext body;
+    size_t      k        = 0;
+    auto        bindSlot = [&](schema* s, Tree sl) {
+        if (ctx) {
+            faustassert(k < ctx->fIns.size());
+            StepContext cs = body;
+            cs.fIns        = siglist(1, ctx->fIns[k]);
+            stepRecord(s, cs, siglist(), kStepWiring, "");
+            body.fSlotEnv = pushEnv(sl, ctx->fIns[k], body.fSlotEnv);
+            k++;
+        }
+        return s;
+    };
+    if (ctx) {
+        body = *ctx;
+    }
+
+    schema* x = bindSlot(generateInputSlotSchema(slot), slot);
     while (isBoxSymbolic(t, a, b)) {
-        x = makeParSchema(x, generateInputSlotSchema(a));
+        x = makeParSchema(x, bindSlot(generateInputSlotSchema(a), a));
         t = b;
     }
-    return makeSeqSchema(x, generateDiagramSchema(t));
+    if (ctx) {
+        body.fIns = siglist(ctx->fIns.begin() + k, ctx->fIns.end());
+    }
+    return makeSeqSchema(x, generateDiagramSchema(t, ctx ? &body : nullptr));
 }
 
 static schema* addSchemaInputs(int ins, schema* x)

@@ -285,6 +285,29 @@ static void createHelperFile(const string& outpath)
 *****************************************************************/
 
 
+/**
+ * -ssi : evaluate the Faust expression of the test signal with the definitions
+ * of the program, as if it were defined next to process.
+ */
+static Tree evaluateSVGStepInput(Tree expandedDefList)
+{
+    static const char* kName  = "_faust_svg_step_input";
+    string             code   = string(kName) + " = " + gGlobal->gSVGStepInput + ";\n";
+    Tree               defs   = gGlobal->gReader.parseDefinitionsString(code, "--svg-step-input");
+    Tree               eqlist = expandedDefList;
+    for (Tree l = defs; !isNil(l); l = tl(l)) {
+        eqlist = cons(hd(l), eqlist);
+    }
+    Tree box = evaldocexpr(boxIdent(kName), eqlist);
+    if (gGlobal->gErrorCount > 0) {
+        stringstream error;
+        error << "ERROR : cannot evaluate the test signal of -ssi (--svg-step-input) '"
+              << gGlobal->gSVGStepInput << "'" << endl;
+        throw faustexception(error.str());
+    }
+    return box;
+}
+
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs)
 {
     startTiming("evaluation");
@@ -312,7 +335,10 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
     }
 
     if (gGlobal->gDrawSVGSwitch) {
-        drawSchema(process, subst("$0-svg", gGlobal->makeDrawPathNoExt()).c_str(), "svg");
+        Tree stepInput =
+            (gGlobal->gSVGStepSamples > 0) ? evaluateSVGStepInput(expandedDefList) : nullptr;
+        drawSchema(process, subst("$0-svg", gGlobal->makeDrawPathNoExt()).c_str(), "svg",
+                   stepInput);
     }
 
     if (gGlobal->gDetailsSwitch) {

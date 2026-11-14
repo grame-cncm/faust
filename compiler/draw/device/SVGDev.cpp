@@ -122,6 +122,48 @@ SVGDev::SVGDev(const char* ficName, double largeur, double hauteur)
     }
 }
 
+SVGDev::SVGDev(const char* ficName, double largeur, double hauteur, double top, double minWidth)
+{
+    double gScale = 0.5;
+    if ((fic_repr = fopen(ficName, "w+")) == nullptr) {
+        stringstream error;
+        error << "ERROR : impossible to create or open " << ficName << endl;
+        throw faustexception(error.str());
+    }
+    double w = (largeur > minWidth) ? largeur : minWidth;
+    double h = hauteur + top;
+
+    fprintf(fic_repr, "<?xml version=\"1.0\"?>\n");
+    if (gGlobal->gScaledSVG) {
+        fprintf(fic_repr,
+                "<svg xmlns=\"http://www.w3.org/2000/svg\" "
+                "xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 %f %f %f\" "
+                "width=\"100%%\" height=\"100%%\" version=\"1.1\">\n",
+                -top, w, h);
+    } else {
+        fprintf(fic_repr,
+                "<svg xmlns=\"http://www.w3.org/2000/svg\" "
+                "xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 %f %f %f\" "
+                "width=\"%fmm\" height=\"%fmm\" version=\"1.1\">\n",
+                -top, w, h, w * gScale, h * gScale);
+    }
+    if (gGlobal->gShadowBlur) {
+        fprintf(
+            fic_repr,
+            "<defs>\n"
+            "   <filter id=\"filter\" filterRes=\"18\" x=\"0\" y=\"0\">\n"
+            "     <feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"1.55\" result=\"blur\"/>\n"
+            "     <feOffset in=\"blur\" dx=\"3\" dy=\"3\"/>\n"
+            "   </filter>\n"
+            "</defs>\n");
+    }
+}
+
+void SVGDev::raw(const std::string& text)
+{
+    fputs(text.c_str(), fic_repr);
+}
+
 SVGDev::~SVGDev()
 {
     fprintf(fic_repr, "</svg>\n");

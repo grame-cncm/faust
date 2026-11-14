@@ -43,6 +43,11 @@ class recSchema : public schema {
     virtual point outputPoint(unsigned int i) const;
     virtual void  collectTraits(collector& c);
 
+    // Used by -sst : the vertical part of the i-th feedback wire, from the top of
+    // its delay sign (where the delayed signal starts) to the level of fSchema2's input.
+    void feedbackLine(unsigned int i, point& from, point& to) const;
+    unsigned int feedbacks() const { return fSchema2->inputs(); }
+
    private:
     recSchema(schema* s1, schema* s2, double width);
     void drawDelaySign(device& dev, double x, double y, double size);
