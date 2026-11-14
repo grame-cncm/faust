@@ -46,6 +46,8 @@ class LV2QtGUI : public QObject {
 
   void updateQTGUI(QObject* object, float value);
   void updatePassiveControl(QObject* object, float value);
+  float positionToParameter(int lv2Param, float position);
+  float parameterToPosition(int lv2Param, float value);
 
  protected:
   ERect rectangle;
