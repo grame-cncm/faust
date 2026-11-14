@@ -642,11 +642,11 @@ class NNXBaseInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["powf"]   = "jnp.power";
         // Do NOT change to jnp.remainder: that is floored modulo (sign of the
         // divisor, same as jnp.mod / Python %). C's remainder() rounds the
-        // quotient to nearest (ties to even), so the code container emits a
-        // custom remainder(x, y) = x - round(x/y)*y that matches the reference.
+        // quotient to nearest (ties to even), so the code container emits an
+        // exact custom remainder(x, y) that matches the reference.
         gPolyMathLibTable["remainderf"] = "remainder";
         gPolyMathLibTable["rintf"]      = "jnp.rint";
-        gPolyMathLibTable["roundf"]     = "jnp.round";
+        gPolyMathLibTable["roundf"]     = "faust_round";
         gPolyMathLibTable["sinf"]       = "jnp.sin";
         gPolyMathLibTable["sqrtf"]      = "jnp.sqrt";
         gPolyMathLibTable["tanf"]       = "jnp.tan";
@@ -687,7 +687,7 @@ class NNXBaseInstVisitor : public TextInstVisitor {
         // Do NOT change to jnp.remainder: see the remainderf note above.
         gPolyMathLibTable["remainder"] = "remainder";
         gPolyMathLibTable["rint"]      = "jnp.rint";
-        gPolyMathLibTable["round"]     = "jnp.round";
+        gPolyMathLibTable["round"]     = "faust_round";
         gPolyMathLibTable["sin"]       = "jnp.sin";
         gPolyMathLibTable["sqrt"]      = "jnp.sqrt";
         gPolyMathLibTable["tan"]       = "jnp.tan";

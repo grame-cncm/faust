@@ -83,7 +83,7 @@ class CSharpInstVisitor : public TextInstVisitor {
         gMathLibTable["max_f"]  = "(float)Math.Max";
         gMathLibTable["min_f"]  = "(float)Math.Min";
         gMathLibTable["powf"]   = "(float)Math.Pow";
-        gMathLibTable["roundf"] = "(float)Math.Round";
+        gMathLibTable["roundf"] = "RoundF";
         gMathLibTable["sinf"]   = "(float)Math.Sin";
         gMathLibTable["sinhf"]  = "(float)Math.Sinh";
         gMathLibTable["sqrtf"]  = "(float)Math.Sqrt";
@@ -123,7 +123,7 @@ class CSharpInstVisitor : public TextInstVisitor {
         gMathLibTable["max_"]  = "Math.Max";
         gMathLibTable["min_"]  = "Math.Min";
         gMathLibTable["pow"]   = "Math.Pow";
-        gMathLibTable["round"] = "Math.Round";
+        gMathLibTable["round"] = "Round";
         gMathLibTable["sin"]   = "Math.Sin";
         gMathLibTable["sinh"]  = "Math.Sinh";
         gMathLibTable["sqrt"]  = "Math.Sqrt";

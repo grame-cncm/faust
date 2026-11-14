@@ -150,15 +150,46 @@ void LinenCodeContainer::produceClass()
 
     // C's remainder() has no jax.numpy equivalent: jnp.remainder is floored
     // modulo (sign of the divisor), whereas C rounds the quotient to nearest
-    // (ties to even). Emit a custom implementation rather than jnp.remainder.
+    // (ties to even). Emit a custom implementation rather than jnp.remainder,
+    // built on jnp.fmod, which is exact, so that the result is exact too.
     tab(n, *fOut);
     *fOut << "def remainder(x, y):";
     tab(n + 1, *fOut);
     *fOut << "\"\"\"C++ std::remainder (round-to-nearest quotient); NOT jnp.remainder.\"\"\"";
     tab(n + 1, *fOut);
-    *fOut << "quo = jnp.round(x/y)";
+    *fOut << "p = jnp.abs(y)";
     tab(n + 1, *fOut);
-    *fOut << "return x - quo * y";
+    *fOut << "r = jnp.abs(x)";
+    tab(n + 1, *fOut);
+    *fOut << "fi = jnp.finfo(jnp.result_type(x, y))";
+    tab(n + 1, *fOut);
+    *fOut << "r = jnp.where((p > fi.max / 2) & (p != jnp.inf), r, jnp.fmod(r, p + p))";
+    tab(n + 1, *fOut);
+    *fOut << "small = p < 2 * fi.tiny";
+    tab(n + 1, *fOut);
+    *fOut << "h = 0.5 * p";
+    tab(n + 1, *fOut);
+    *fOut << "c = jnp.where(small, r + r > p, r > h)";
+    tab(n + 1, *fOut);
+    *fOut << "r = jnp.where(c, r - p, r)";
+    tab(n + 1, *fOut);
+    *fOut << "c = c & jnp.where(small, r + r >= p, r >= h)";
+    tab(n + 1, *fOut);
+    *fOut << "r = jnp.where(c, r - p, r)";
+    tab(n + 1, *fOut);
+    *fOut << "return jnp.where(jnp.signbit(x), -r, r)";
+    tab(n, *fOut);
+    tab(n, *fOut);
+
+    // jnp.round sends halfway values to even, C's round() sends them away from zero.
+    tab(n, *fOut);
+    *fOut << "def faust_round(x):";
+    tab(n + 1, *fOut);
+    *fOut << "\"\"\"C++ std::round (halfway cases away from zero); NOT jnp.round.\"\"\"";
+    tab(n + 1, *fOut);
+    *fOut << "t = jnp.trunc(x)";
+    tab(n + 1, *fOut);
+    *fOut << "return jnp.where(jnp.abs(x - t) >= 0.5, t + jnp.sign(x), t)";
     tab(n, *fOut);
     tab(n, *fOut);
 

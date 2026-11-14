@@ -197,6 +197,16 @@ public class dsp
         return val1 % val2;
     }
 
+    public static double Round(double d)
+    {
+        return Math.Round(d, MidpointRounding.AwayFromZero);
+    }
+
+    public static float RoundF(float d)
+    {
+        return (float)Math.Round(d, MidpointRounding.AwayFromZero);
+    }
+
     public static bool IsInfinity(double d)
     {
         return double.IsNegativeInfinity(d) || double.IsPositiveInfinity(d);
