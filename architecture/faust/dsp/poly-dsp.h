@@ -914,8 +914,11 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
          * @param group - if true, voices are not individually accessible, a global "Voices" tab will automatically dispatch
          *                a given control on all voices, assuming GUI::updateAllGuis() is called.
          *                If false, all voices can be individually controlled.
-         * @param stoplevel - custom stop level (10^(dB/20)), defaults to -90dB if unspecified.
-         *                    accepts levels lower than -40dB.
+         * @param stoplevel - level under which a released voice is freed, as a linear amplitude (10^(dB/20)).
+         *                    It is compared to the RMS level of the voice, measured on each computed block
+         *                    over all its output channels. Defaults to VOICE_STOP_LEVEL (-90 dB).
+         *                    Accepted range is ]0, 0.01], that is up to -40 dB included: any other value
+         *                    is rejected with a message, and the default is used.
          */
         mydsp_poly(::dsp* dsp,
                    int nvoices,
@@ -1290,8 +1293,10 @@ struct dsp_poly_factory : public dsp_factory {
      *                a given control on all voices, assuming GUI::updateAllGuis() is called.
      *                If false, all voices can be individually controlled.
      * @param is_double - if true, internally allocated DSPs will be adapted to receive 'double' samples.
+     * @param stoplevel - level under which a released voice is freed, as a linear amplitude (10^(dB/20)),
+     *                    see the mydsp_poly constructor. Defaults to VOICE_STOP_LEVEL (-90 dB).
      */
-    dsp_poly* createPolyDSPInstance(int nvoices, bool control, bool group, bool is_double = false)
+    dsp_poly* createPolyDSPInstance(int nvoices, bool control, bool group, bool is_double = false, FAUSTFLOAT stoplevel = VOICE_STOP_LEVEL)
     {
         if (nvoices == -1) {
             // Get 'nvoices' from the metadata declaration
@@ -1301,7 +1306,7 @@ struct dsp_poly_factory : public dsp_factory {
             MidiMeta::analyse(dsp, midi, midi_sync, nvoices);
             delete dsp;
         }
-        dsp_poly* dsp_poly = new mydsp_poly(adaptDSP(fProcessFactory->createDSPInstance(), is_double), nvoices, control, group);
+        dsp_poly* dsp_poly = new mydsp_poly(adaptDSP(fProcessFactory->createDSPInstance(), is_double), nvoices, control, group, stoplevel);
         if (fEffectFactory) {
             // the 'dsp_poly' object has to be controlled with MIDI, so kept separated from new dsp_sequencer(...) object
             return new dsp_poly_effect(dsp_poly, new dsp_sequencer(dsp_poly, adaptDSP(fEffectFactory->createDSPInstance(), is_double)));
