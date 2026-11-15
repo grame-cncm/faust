@@ -310,6 +310,22 @@ diagram as root, no `process.svg`, a changed file).
 python3 tests/compile-tests/svg-root-name.py --faust build/bin/faust
 ```
 
+### Tables read by the generator of another table
+
+`tables-read-by-generators.py` compiles eight programs whose tables read one
+another: a table whose generator reads a table, a chain of three tables, a
+table read both by the program and by a generator, a table read by two
+generators, a rwtable whose generator reads a table, a rdtable whose generator
+reads a rwtable, and one generator for a rwtable and a rdtable. Each runs ten
+samples in cpp, ocpp and c, single and double, scalar and `-vec`, and must give
+the expected values, with one static array per constant table. `-it` and `-mem`
+must refuse the two forms they cannot place. The specification is
+LES-TABLES-DU-PROGRAMME in faust-migration.
+
+```sh
+python3 tests/compile-tests/tables-read-by-generators.py --faust build/bin/faust
+```
+
 ### Labels named after a math primitive
 
 `primitive-labels.py` is the regression test of issue #323: a string named

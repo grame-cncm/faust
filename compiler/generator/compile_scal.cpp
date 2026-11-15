@@ -6919,8 +6919,10 @@ string ScalarCompiler::generateStaticSigGen(Tree sig, Tree content)
     string klassname = getFreshID("SIG");
     string signame   = getFreshID("sig");
 
-    fClass->addSubKlass(signal2klass(fClass, klassname, content));
-    fClass->addStaticInitCode(subst("$0 $1;", klassname, signame));
+    // The generator of a constant table is a class of the program, filled by its classInit
+    Klass* top = fClass->getTopParentKlass();
+    top->addSubKlass(signal2klass(top, klassname, content));
+    top->addStaticInitCode(subst("$0 $1;", klassname, signame));
     fStaticInitProperty.set(content, pair<string, string>(klassname, signame));
 
     return signame;
@@ -6980,6 +6982,13 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 
     faustassert(isSigGen(content, g));
 
+    // A constant table belongs to the program : a static member of the top class, filled once by
+    // its classInit, whatever the generators that read it (LES-TABLES-DU-PROGRAMME)
+    Klass* top = fClass->getTopParentKlass();
+    if (top->getConstantTable(sig, vname)) {
+        return vname;
+    }
+
     if (!getCompiledExpression(content, cexp)) {
         cexp = setCompiledExpression(content, generateStaticSigGen(content, g));
     } else {
@@ -6989,30 +6998,31 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
             // not declared here, we add a declaration
             bool b = fInstanceInitProperty.get(g, kvnames);
             faustassert(b);
-            fClass->addStaticInitCode(subst("$0 $1;", kvnames.first, kvnames.second));
+            top->addStaticInitCode(subst("$0 $1;", kvnames.first, kvnames.second));
         }
     }
 
     // Define table name and type
     getTypedNames(getCertifiedSigType(content), "tbl", ctype, vname);
+    top->setConstantTable(sig, vname);
 
     // Table declaration
     if (gGlobal->gMemoryManager >= 0) {
-        fClass->addDeclCode(subst("static $0* \t$1;", ctype, vname));
-        fClass->addStaticFields(subst("$0* \t$1::$2 = 0;", ctype, fClass->getClassName(), vname));
-        fClass->addStaticInitCode(subst(
+        top->addDeclCode(subst("static $0* \t$1;", ctype, vname));
+        top->addStaticFields(subst("$0* \t$1::$2 = 0;", ctype, top->getClassName(), vname));
+        top->addStaticInitCode(subst(
             "$0 = static_cast<$1*>(fManager->allocate(sizeof($1) * $2));", vname, ctype, T(size)));
-        fClass->addStaticDestroyCode(subst("fManager->destroy($0);", vname));
+        top->addStaticDestroyCode(subst("fManager->destroy($0);", vname));
     } else {
-        fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
-        fClass->addStaticFields(
-            subst("$0 \t$1::$2[$3];", ctype, fClass->getClassName(), vname, T(size)));
+        top->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
+        top->addStaticFields(
+            subst("$0 \t$1::$2[$3];", ctype, top->getClassName(), vname, T(size)));
     }
 
     // Initialization of the content generator
-    fClass->addStaticInitCode(subst("$0.init(sample_rate);", cexp));
+    top->addStaticInitCode(subst("$0.init(sample_rate);", cexp));
     // Filling the table
-    fClass->addStaticInitCode(subst("$0.fill($1,$2);", cexp, T(size), vname));
+    top->addStaticInitCode(subst("$0.fill($1,$2);", cexp, T(size), vname));
 
     // Returning the table name
     return vname;

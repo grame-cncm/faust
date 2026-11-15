@@ -52,6 +52,9 @@ class InstructionsCompiler : public virtual Garbageable {
     property<std::pair<std::string, std::string>> fInstanceInitProperty;
     property<std::string>                         fTableProperty;
 
+    // generator content -> the container of its class, where its tables are declared
+    std::map<Tree, CodeContainer*, treeorder> fGeneratorContainers;
+
     std::map<Tree, Tree, treeorder>
         fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
 
@@ -137,17 +140,19 @@ class InstructionsCompiler : public virtual Garbageable {
     {
         return fContainer->pushDestroyMethod(inst);
     }
+    // The static part belongs to the program : a generator's compiler writes it in the top
+    // container, whose classInit fills every constant table (LES-TABLES-DU-PROGRAMME)
     StatementInst* pushStaticInitMethod(StatementInst* inst)
     {
-        return fContainer->pushStaticInitMethod(inst);
+        return fContainer->getTopParentContainer()->pushStaticInitMethod(inst);
     }
     StatementInst* pushPostStaticInitMethod(StatementInst* inst)
     {
-        return fContainer->pushPostStaticInitMethod(inst);
+        return fContainer->getTopParentContainer()->pushPostStaticInitMethod(inst);
     }
     StatementInst* pushStaticDestroyMethod(StatementInst* inst)
     {
-        return fContainer->pushStaticDestroyMethod(inst);
+        return fContainer->getTopParentContainer()->pushStaticDestroyMethod(inst);
     }
     StatementInst* pushComputeBlockMethod(StatementInst* inst)
     {
