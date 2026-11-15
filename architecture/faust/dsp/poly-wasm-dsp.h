@@ -66,9 +66,10 @@ struct wasm_dsp_poly_factory : public dsp_poly_factory {
         deleteWasmDSPFactory(static_cast<wasm_dsp_factory*>(fEffectFactory));
     }
     
-    dsp_poly* createPolyDSPInstance(int nvoices, bool control, bool group)
+    // 'stoplevel' is the level under which a released voice is freed, see the mydsp_poly constructor
+    dsp_poly* createPolyDSPInstance(int nvoices, bool control, bool group, FAUSTFLOAT stoplevel = VOICE_STOP_LEVEL)
     {
-        return dsp_poly_factory::createPolyDSPInstance(nvoices, control, group);
+        return dsp_poly_factory::createPolyDSPInstance(nvoices, control, group, false, stoplevel);
     }
     
     void deletePolyDSPInstance(dsp_poly* dsp)
