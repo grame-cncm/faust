@@ -35,6 +35,7 @@
 ***********************************************************************/
 
 #include <list>
+#include <map>
 #include <set>
 #include <string>
 
@@ -70,6 +71,8 @@ class Klass {
     std::list<std::string> fStaticInitCode;     ///< static init code for class constant tables
     std::list<std::string> fStaticDestroyCode;  ///< static destroy code for class constant tables
     std::list<std::string> fStaticFields;       ///< static fields after class
+    std::map<Tree, std::string> fConstantTables;  ///< rdtable -> table name, kept by the top
+                                                  ///< Klass (LES-TABLES-DU-PROGRAMME)
     std::list<std::string> fInitCode;
     std::list<std::string> fInitUICode;
     std::list<std::string> fClearCode;
@@ -177,6 +180,16 @@ class Klass {
     void addStaticDestroyCode(const std::string& str) { fStaticDestroyCode.push_back(str); }
 
     void addStaticFields(const std::string& str) { fStaticFields.push_back(str); }
+
+    // The constant tables of the program, whatever the generator that reads them
+    bool getConstantTable(Tree tbl, std::string& vname)
+    {
+        auto it = fConstantTables.find(tbl);
+        if (it == fConstantTables.end()) return false;
+        vname = it->second;
+        return true;
+    }
+    void setConstantTable(Tree tbl, const std::string& vname) { fConstantTables[tbl] = vname; }
 
     void addUICode(const std::string& str) { fUICode.push_back(str); }
 

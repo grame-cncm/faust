@@ -485,6 +485,7 @@ CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree s
     ::Type t = getCertifiedSigType(sig);
 
     CodeContainer* container = fContainer->createScalarContainer(name, t->nature());
+    container->setParentContainers(fContainer);
 
     if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia" ||
         gGlobal->gOutputLang == "asc") {
@@ -1932,6 +1933,15 @@ ValueInst* InstructionsCompiler::generateAttach(Tree sig, Tree x, Tree y)
 
 ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
 {
+    if (gGlobal->gMemoryManager >= 0 && fContainer->getTopParentContainer() != fContainer) {
+        // The memory manager is a static field of the main class, defined after the generators
+        stringstream error;
+        error << "ERROR : a read-write table inside the generator of another table is not "
+                 "supported with -mem (--memory-manager)"
+              << endl;
+        throw faustexception(error.str());
+    }
+
     string cname   = gGlobal->getFreshID(fContainer->getClassName() + "SIG");
     string signame = gGlobal->getFreshID("sig");
 
@@ -1943,7 +1953,9 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
     if (content_type->nature() != kInt) {
         subcontainer->setTableElemType(genFloatType(content_type));
     }
-    fContainer->addSubContainer(subcontainer);
+    // The class of a generator belongs to the program, after the classes it uses
+    fContainer->getTopParentContainer()->addSubContainer(subcontainer);
+    fGeneratorContainers[content] = subcontainer;
 
     // We must allocate an object of type "cname"
     Values args;
@@ -1985,7 +1997,9 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
     if (content_type->nature() != kInt) {
         subcontainer->setTableElemType(genFloatType(content_type));
     }
-    fContainer->addSubContainer(subcontainer);
+    // The class of a generator belongs to the program, after the classes it uses
+    fContainer->getTopParentContainer()->addSubContainer(subcontainer);
+    fGeneratorContainers[content] = subcontainer;
 
     // We must allocate an object of type "cname"
     Values args;
@@ -2105,6 +2119,22 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
 
     faustassert(isSigGen(content, g));
 
+    // A constant table belongs to the program : declared and filled once, whatever the
+    // generators that read it (LES-TABLES-DU-PROGRAMME)
+    CodeContainer* top = fContainer->getTopParentContainer();
+    if (top->getConstantTable(sig, vname)) {
+        return (gGlobal->gInlineTable) ? IB::genLoadStructVar(vname)
+                                       : IB::genLoadStaticStructVar(vname);
+    }
+    if (gGlobal->gInlineTable && top != fContainer) {
+        // The generator would read the table in its own struct
+        stringstream error;
+        error << "ERROR : a table read by the generator of another table is not supported with "
+                 "-it (--inline-table)"
+              << endl;
+        throw faustexception(error.str());
+    }
+
     if (!getCompiledExpression(content, signame)) {
         signame = setCompiledExpression(content, generateStaticSigGen(content, g));
     } else {
@@ -2118,8 +2148,9 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
             if (gGlobal->gMemoryManager >= 0) {
                 args.push_back(IB::genLoadStaticStructVar("fManager"));
             }
+            // The object fills a static table : it lives in the static init
             ValueInst* obj = IB::genFunCallInst("new" + kvnames.first, args);
-            pushInitMethod(IB::genDecStackVar(
+            pushStaticInitMethod(IB::genDecStackVar(
                 kvnames.second,
                 IB::genNamedTyped(kvnames.first, IB::genBasicTyped(Typed::kObj_ptr)), obj));
 
@@ -2132,7 +2163,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
                 if (gGlobal->gMemoryManager >= 0) {
                     args3.push_back(IB::genLoadStaticStructVar("fManager"));
                 }
-                pushPostInitMethod(IB::genVoidFunCallInst("delete" + kvnames.first, args3));
+                pushPostStaticInitMethod(IB::genVoidFunCallInst("delete" + kvnames.first, args3));
             }
         }
     }
@@ -2143,6 +2174,14 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     string tablename;
     getTableNameProperty(content, tablename);
     vname += tablename;
+    top->setConstantTable(sig, vname);
+
+    // A static table is declared with the class of its generator, before every class that reads it
+    auto gen_container = fGeneratorContainers.find(g);
+    faustassert(gen_container != fGeneratorContainers.end());
+    auto pushTableDeclare = [&](StatementInst* inst) {
+        return gen_container->second->pushGlobalDeclare(inst);
+    };
 
     // Table declaration
     if (gGlobal->gInlineTable) {
@@ -2150,7 +2189,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
         pushDeclare(IB::genDecStructVar(vname, IB::genArrayTyped(ctype, size)));
     } else if (gGlobal->gMemoryManager == 0) {
         // The table is defined as a pointer to be allocated by the memory manager
-        pushGlobalDeclare(
+        pushTableDeclare(
             IB::genDecStaticStructVar(vname, IB::genArrayTyped(ctype, 0), IB::genInt32NumInst(0)));
 
         // The table has to be allocated and destroyed using the memory manager
@@ -2168,7 +2207,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
 
     } else {
         // The table is statically allocated
-        pushGlobalDeclare(IB::genDecStaticStructVar(vname, IB::genArrayTyped(ctype, size)));
+        pushTableDeclare(IB::genDecStaticStructVar(vname, IB::genArrayTyped(ctype, size)));
     }
 
     // Keep table size in bytes

@@ -235,6 +235,11 @@ class CStringTypeManager : public StringTypeManager {
         } else if (basic_typed) {
             return fTypeDirectTable[basic_typed->fType] + " " + name;
         } else if (named_typed) {
+            // A pointer to a named object (a generator) is that name and the pointer, in any class
+            BasicTyped* named_basic = dynamic_cast<BasicTyped*>(named_typed->fType);
+            if (named_basic && named_basic->fType == Typed::kObj_ptr) {
+                return named_typed->fName + fPtrRef + " " + name;
+            }
             return named_typed->fName + generateType(named_typed->fType) + " " + name;
         } else if (array_typed) {
             return (array_typed->fSize == 0)

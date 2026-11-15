@@ -22,6 +22,7 @@
 #ifndef _CODE_CONTAINER_H
 #define _CODE_CONTAINER_H
 
+#include <map>
 #include <string>
 
 #include "Text.hh"
@@ -67,6 +68,8 @@ class CodeContainer : public virtual Garbageable {
     std::list<CodeContainer*> fSubContainers;
     CodeContainer* fParentContainer;  ///< Container in which this Container is embedded, null if
                                       ///< toplevel Container
+    std::map<Tree, std::string> fConstantTables;  ///< rdtable -> table name, kept by the top
+                                                  ///< container (LES-TABLES-DU-PROGRAMME)
 
     int fNumInputs;
     int fNumOutputs;
@@ -280,6 +283,16 @@ class CodeContainer : public virtual Garbageable {
     void setOutputs(int outputs) { fNumOutputs = outputs; }
 
     void addSubContainer(CodeContainer* container) { fSubContainers.push_back(container); }
+
+    // The constant tables of the program, whatever the generator that reads them
+    bool getConstantTable(Tree tbl, std::string& vname)
+    {
+        auto it = fConstantTables.find(tbl);
+        if (it == fConstantTables.end()) return false;
+        vname = it->second;
+        return true;
+    }
+    void setConstantTable(Tree tbl, const std::string& vname) { fConstantTables[tbl] = vname; }
 
     void addIncludeFile(const std::string& str) { fIncludeFileSet.insert(str); }
     void addLibrary(const std::string& str) { fLibrarySet.insert(str); }

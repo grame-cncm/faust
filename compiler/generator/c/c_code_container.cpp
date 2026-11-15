@@ -280,6 +280,18 @@ void CCodeContainer::produceClass()
     *fOut << "#endif" << endl;
     tab(n, *fOut);
 
+    // Before the generators : a generator that reads a table bounds its index
+    *fOut << "#ifdef __APPLE__ " << endl;
+    *fOut << "#define exp10f __exp10f" << endl;
+    *fOut << "#define exp10 __exp10" << endl;
+    *fOut << "#endif" << endl;
+
+    *fOut << "#ifndef FAUSTMAXI" << endl;
+    *fOut << "#define FAUSTMAXI" << endl;
+    *fOut << "static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }" << endl;
+    *fOut << "static inline int faustmini(int a, int b) { return (a < b) ? a : b; }" << endl;
+    *fOut << "#endif" << endl;
+
     if (gGlobal->gInlineTable) {
         // Sub containers are merged in the main class
         mergeSubContainers();
@@ -296,18 +308,6 @@ void CCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "#ifndef FAUSTCLASS " << endl;
     *fOut << "#define FAUSTCLASS " << fKlassName << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-
-    *fOut << "#ifdef __APPLE__ " << endl;
-    *fOut << "#define exp10f __exp10f" << endl;
-    *fOut << "#define exp10 __exp10" << endl;
-    *fOut << "#endif" << endl;
-
-    *fOut << "#ifndef FAUSTMAXI" << endl;
-    *fOut << "#define FAUSTMAXI" << endl;
-    *fOut << "static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }" << endl;
-    *fOut << "static inline int faustmini(int a, int b) { return (a < b) ? a : b; }" << endl;
     *fOut << "#endif" << endl;
 
     tab(n, *fOut);

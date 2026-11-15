@@ -625,8 +625,11 @@ void CodeContainer::createMemoryLayout()
         // Compute DSP struct arrays size
         StructInstVisitor struct_visitor;
 
-        // Add the global static tables
+        // Add the global static tables, declared with the classes of their generators
         fGlobalDeclarationInstructions->accept(&struct_visitor);
+        for (const auto& it : fSubContainers) {
+            it->fGlobalDeclarationInstructions->accept(&struct_visitor);
+        }
 
         // Compute R/W access for each subcontainer
         ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
