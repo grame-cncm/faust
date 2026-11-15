@@ -1196,6 +1196,12 @@ class dsp_poly_effect : public dsp_poly {
             fPolyDSP->allNotesOff(hard);
         }
     
+        // The voices are in fPolyDSP: without this, the dsp_poly default would always return 0
+        int getNumActiveVoices()
+        {
+            return fPolyDSP->getNumActiveVoices();
+        }
+    
         // MIDI API
         MapUI* keyOn(int channel, int pitch, int velocity)
         {
