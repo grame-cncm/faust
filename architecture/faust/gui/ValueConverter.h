@@ -273,34 +273,143 @@ class FAUST_API LinearValueConverter2 : public UpdatableValueConverter {
 
 //--------------------------------------------------------------------------------------
 // Logarithmic conversion between ui and Faust values
+// - over positive values, the ui value is linear in log(y) for the Faust value y,
+// - when one bound is 0 and the other one positive (a gain from 0 to 1, a frequency from
+//   0 to 20000), log(0) is not defined: the ui value is linear in log(y + floor), with a
+//   floor 60 dB under the other bound, as for an audio fader, and the bound 0 is reached,
+// - otherwise (a bound < 0, or both bounds 0) the scale has no meaning and the conversion
+//   is linear: a range in dB, for instance, is already logarithmic.
 //--------------------------------------------------------------------------------------
 class FAUST_API LogValueConverter : public LinearValueConverter {
 
+    private:
+
+        enum Mode { kLogMode, kFloorMode, kLinMode };
+
+        Mode fMode;
+        double fMin, fMax;      // the Faust range
+        double fFloor;          // added to the values in kFloorMode
+        double fLogMin, fLogMax;// log(fMin + fFloor), log(fMax + fFloor) in kFloorMode
+
+        static Mode mode(double fmin, double fmax)
+        {
+            if (fmin > 0 && fmax > 0) {
+                return kLogMode;
+            } else if ((fmin == 0 && fmax > 0) || (fmin > 0 && fmax == 0)) {
+                return kFloorMode;
+            } else {
+                return kLinMode;
+            }
+        }
+
+        // The base class maps the ui range to log(y) in kLogMode, to t in [0,1] in kFloorMode,
+        // and to y in kLinMode
+        static double low(double fmin, double fmax)
+        {
+            switch (mode(fmin, fmax)) {
+                case kLogMode: return std::log(fmin);
+                case kFloorMode: return 0.;
+                default: return fmin;
+            }
+        }
+
+        static double high(double fmin, double fmax)
+        {
+            switch (mode(fmin, fmax)) {
+                case kLogMode: return std::log(fmax);
+                case kFloorMode: return 1.;
+                default: return fmax;
+            }
+        }
+
     public:
-    
-        // We use DBL_EPSILON which is bigger than DBL_MIN (safer)
+
         LogValueConverter(double umin, double umax, double fmin, double fmax) :
-            LinearValueConverter(umin, umax, std::log(std::max<double>(DBL_EPSILON, fmin)), std::log(std::max<double>(DBL_EPSILON, fmax)))
+            LinearValueConverter(umin, umax, low(fmin, fmax), high(fmin, fmax)),
+            fMode(mode(fmin, fmax)), fMin(fmin), fMax(fmax),
+            fFloor((fMode == kFloorMode) ? 1e-3 * std::max<double>(fmin, fmax) : 0.),
+            fLogMin((fMode == kFloorMode) ? std::log(fmin + fFloor) : 0.),
+            fLogMax((fMode == kFloorMode) ? std::log(fmax + fFloor) : 0.)
         {}
 
-        virtual double ui2faust(double x) { return std::exp(LinearValueConverter::ui2faust(x)); }
-        virtual double faust2ui(double x) { return LinearValueConverter::faust2ui(std::log(std::max<double>(DBL_EPSILON, x))); }
+        virtual double ui2faust(double x)
+        {
+            double y = LinearValueConverter::ui2faust(x);
+            switch (fMode) {
+                case kLogMode:
+                    return std::exp(y);
+                case kFloorMode:
+                    // y is t in [0,1]: the bounds are returned exactly
+                    if (y <= 0.) return fMin;
+                    if (y >= 1.) return fMax;
+                    return std::max<double>(0., std::exp(fLogMin + y * (fLogMax - fLogMin)) - fFloor);
+                default:
+                    return y;
+            }
+        }
+
+        virtual double faust2ui(double x)
+        {
+            switch (fMode) {
+                case kLogMode:
+                    // A value <= 0 goes to the bottom of the ui range (DBL_EPSILON is bigger than DBL_MIN, safer)
+                    return LinearValueConverter::faust2ui(std::log(std::max<double>(DBL_EPSILON, x)));
+                case kFloorMode:
+                    x = std::max<double>(0., std::min<double>(std::max<double>(fMin, fMax), x));
+                    return LinearValueConverter::faust2ui((std::log(x + fFloor) - fLogMin) / (fLogMax - fLogMin));
+                default:
+                    return LinearValueConverter::faust2ui(x);
+            }
+        }
 
 };
 
 //--------------------------------------------------------------------------------------
 // Exponential conversion between ui and Faust values
+// The ui value u is linear in exp(y) for the Faust value y:
+//      exp(y) = (1-t)*exp(fmin) + t*exp(fmax)      with t = (u-umin)/(umax-umin) in [0,1]
+// exp(fmin) and exp(fmax) are never computed, as they overflow for a value above 709 and
+// underflow for a value below -745: both directions are computed relative to the largest
+// of the two exponentials, which is 1.
 //--------------------------------------------------------------------------------------
 class FAUST_API ExpValueConverter : public LinearValueConverter {
 
+    private:
+
+        double fMin;
+        double fMax;
+
     public:
 
+        // The base class maps the ui range to t in [0,1] and back
         ExpValueConverter(double umin, double umax, double fmin, double fmax) :
-            LinearValueConverter(umin, umax, std::min<double>(DBL_MAX, std::exp(fmin)), std::min<double>(DBL_MAX, std::exp(fmax)))
+            LinearValueConverter(umin, umax, 0., 1.), fMin(fmin), fMax(fmax)
         {}
 
-        virtual double ui2faust(double x) { return std::log(LinearValueConverter::ui2faust(x)); }
-        virtual double faust2ui(double x) { return LinearValueConverter::faust2ui(std::min<double>(DBL_MAX, std::exp(x))); }
+        // y = log((1-t)*exp(fmin) + t*exp(fmax)), as the log of a sum of two exponentials
+        virtual double ui2faust(double x)
+        {
+            double t = LinearValueConverter::ui2faust(x);
+            if (t <= 0. || fMin == fMax) return fMin;
+            if (t >= 1.) return fMax;
+            double a = std::log1p(-t) + fMin;
+            double b = std::log(t) + fMax;
+            double m = std::max<double>(a, b);
+            return m + std::log1p(std::exp(-std::fabs(a - b)));
+        }
+
+        // t = (exp(y)-exp(fmin))/(exp(fmax)-exp(fmin)), each exponential divided by the largest one
+        virtual double faust2ui(double y)
+        {
+            double hi = std::max<double>(fMin, fMax);
+            double den = std::expm1(fMax - hi) - std::expm1(fMin - hi);
+            if (den == 0.) {
+                // Degenerate range: middle of the ui range, as LinearValueConverter
+                return LinearValueConverter::faust2ui(0.5);
+            }
+            y = std::max<double>(std::min<double>(fMin, fMax), std::min<double>(hi, y));
+            return LinearValueConverter::faust2ui((std::expm1(y - hi) - std::expm1(fMin - hi)) / den);
+        }
 
 };
 
