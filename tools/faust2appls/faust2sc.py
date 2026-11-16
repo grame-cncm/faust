@@ -199,14 +199,16 @@ def compile(out_dir, cpp_file, class_name, compile_supernova, headerpath, macos_
 
         # Compile scsynth
         print("Compiling scsynth object using command:\n%s" % scsynth_compile_command)
-        os.system(scsynth_compile_command.replace("\n", ""))
+        if os.system(scsynth_compile_command.replace("\n", "")):
+            sys.exit("C++ compilation failed for scsynth")
 
         if compile_supernova:
             supernova_obj = path.join(out_dir, class_name + "_supernova." + env["EXT"])
             supernova_compile_command = "%s %s -DSUPERNOVA -Dmydsp=\"%s\" -o %s %s" % (os.environ["CXX"], flags, class_name + "_supernova", supernova_obj, cpp_file)
 
             print("Compiling supernova object using command:\n%s" % supernova_compile_command)
-            os.system(supernova_compile_command.replace("\n", ""))
+            if os.system(supernova_compile_command.replace("\n", "")):
+                sys.exit("C++ compilation failed for supernova")
     else:
         sys.exit("Could not find cpp_file")
 

@@ -1,6 +1,7 @@
 import contextlib
 import importlib.util
 import io
+import os
 from pathlib import Path
 import subprocess
 import unittest
@@ -51,6 +52,23 @@ class ConvertFilesTests(unittest.TestCase):
         with patch.object(faust2sc.subprocess, "run", side_effect=failure):
             with self.assertRaisesRegex(SystemExit, "faust failed to compile json file"):
                 self.convert("oscillator.dsp")
+
+
+class CompileFailureTests(unittest.TestCase):
+    def test_compiler_failure_stops_export(self):
+        for statuses, server, calls in (([256, 0], "scsynth", 1), ([0, 256], "supernova", 2)):
+            with self.subTest(server=server):
+                with (
+                    patch.object(faust2sc, "buildflags", return_value="-shared"),
+                    patch.object(faust2sc, "faustoptflags", return_value={"EXT": "so"}),
+                    patch.object(faust2sc.path, "exists", return_value=True),
+                    patch.dict(os.environ, {"CXX": "c++"}),
+                    patch.object(faust2sc.os, "system", side_effect=statuses) as system,
+                    contextlib.redirect_stdout(io.StringIO()),
+                    self.assertRaisesRegex(SystemExit, "compilation failed for " + server),
+                ):
+                    faust2sc.compile("output", "sound.cpp", "Sound", True, "", "")
+                self.assertEqual(system.call_count, calls)
 
 
 class GetScClassTests(unittest.TestCase):
