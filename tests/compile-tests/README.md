@@ -103,6 +103,18 @@ in the sample loop, with the cpp, c and ocpp backends:
 python3 tests/compile-tests/hoist-negation.py --faust build/bin/faust
 ```
 
+### Placement of constants
+
+`const-placement.py` checks that a constant (`fConstN`, `iConstN`) read only
+by other constants is a local variable of `instanceConstants`, not a field of
+the DSP structure, and that a constant read by the sample loop stays a field.
+For the cpp and c backends, in scalar and vector modes, it also checks that no
+local constant is mentioned outside the function declaring it:
+
+```sh
+python3 tests/compile-tests/const-placement.py --faust build/bin/faust
+```
+
 ### Java backend execution
 
 `java-math.py` generates Java, compiles it with `javac`, and executes it with
