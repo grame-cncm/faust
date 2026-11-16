@@ -535,6 +535,8 @@ class FAUST_API CurveZoneControl : public ZoneControl {
             for (const auto& it : fValueConverters) { it->setActive(on_off); }
         }
 
+        bool getActive() { return fValueConverters[fCurve]->getActive(); }
+
         int getCurve() { return fCurve; }
 };
 

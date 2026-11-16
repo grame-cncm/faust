@@ -193,11 +193,12 @@ class APIUI : public PathBuilder, public Meta, public UI
             fCurrentMetadata.clear();
         }
 
-        int getZoneIndex(std::vector<ZoneControl*>* table, int p, int val)
+        int getZoneIndex(std::vector<ZoneControl*>* table, int p, int val, bool active_only = false)
         {
             FAUSTFLOAT* zone = fItems[uint(p)].fZone;
             for (size_t i = 0; i < table[val].size(); i++) {
-                if (zone == table[val][i]->getZone()) return int(i);
+                if (zone == table[val][i]->getZone()
+                    && (!active_only || table[val][i]->getActive())) return int(i);
             }
             return -1;
         }
@@ -231,9 +232,9 @@ class APIUI : public PathBuilder, public Meta, public UI
 
         void getConverter(std::vector<ZoneControl*>* table, int p, int& val, int& curve, double& amin, double& amid, double& amax)
         {
-            int id1 = getZoneIndex(table, p, 0);
-            int id2 = getZoneIndex(table, p, 1);
-            int id3 = getZoneIndex(table, p, 2);
+            int id1 = getZoneIndex(table, p, 0, true);
+            int id2 = getZoneIndex(table, p, 1, true);
+            int id3 = getZoneIndex(table, p, 2, true);
 
             if (id1 != -1) {
                 val = 0;
@@ -594,13 +595,13 @@ class APIUI : public PathBuilder, public Meta, public UI
         Type getParamType(int p)
         {
             if (p >= 0) {
-                if (getZoneIndex(fAcc, p, 0) != -1
-                    || getZoneIndex(fAcc, p, 1) != -1
-                    || getZoneIndex(fAcc, p, 2) != -1) {
+                if (getZoneIndex(fAcc, p, 0, true) != -1
+                    || getZoneIndex(fAcc, p, 1, true) != -1
+                    || getZoneIndex(fAcc, p, 2, true) != -1) {
                     return kAcc;
-                } else if (getZoneIndex(fGyr, p, 0) != -1
-                           || getZoneIndex(fGyr, p, 1) != -1
-                           || getZoneIndex(fGyr, p, 2) != -1) {
+                } else if (getZoneIndex(fGyr, p, 0, true) != -1
+                           || getZoneIndex(fGyr, p, 1, true) != -1
+                           || getZoneIndex(fGyr, p, 2, true) != -1) {
                     return kGyr;
                 }
             }
