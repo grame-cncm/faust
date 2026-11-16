@@ -55,6 +55,7 @@ class SignalTypePrinter final : public SignalVisitor {
  - for correct SigBinOp args typing
  - for proper SigIntCast and SigFloatCast use
  - for correct range in sliders (min < max and default in [min...max] range)
+ - for a [scale:...] metadata of sliders that the user interfaces can follow (warnings)
  - for correct SigWaveform values typing
  - for use on control/enable (not available in -vec mode)
  - for proper simplication of SigLowest/SigHighest
@@ -66,6 +67,7 @@ class SignalChecker final : public SignalVisitor {
     void visit(Tree sig) override;
 
     void isRange(Tree sig, Tree init_aux, Tree min_aux, Tree max_aux);
+    void checkScale(Tree sig, Tree path, Tree min_aux, Tree max_aux);
 
    public:
     SignalChecker(Tree L)

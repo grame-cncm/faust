@@ -20,12 +20,14 @@
  ************************************************************************/
 
 #include <stdlib.h>
+#include <cmath>
 #include <cstdlib>
 #include <map>
 #include <set>
 #include <sstream>
 #include <vector>
 
+#include "description.hh"
 #include "floats.hh"
 #include "global.hh"
 #include "ppsig.hh"
@@ -85,6 +87,58 @@ void SignalChecker::isRange(Tree sig, Tree init_aux, Tree min_aux, Tree max_aux)
         error << "ERROR : init = " << init << " outside of [" << min << " " << max << "] range in '"
               << ppsig(sig) << "'\n";
         throw faustexception(error.str());
+    }
+}
+
+// Warns about a [scale:...] metadata that a slider or a nentry cannot follow over its range.
+// To be called after isRange, so that min <= max.
+void SignalChecker::checkScale(Tree sig, Tree path, Tree min_aux, Tree max_aux)
+{
+    std::string                                  label;
+    std::map<std::string, std::set<std::string>> metadata;
+    // The label of the widget is the head of its path
+    Tree widget = isList(path) ? hd(path) : path;
+    extractMetadata(tree2str(widget), label, metadata);
+    auto it = metadata.find("scale");
+    if (it == metadata.end()) {
+        return;
+    }
+    double min = tree2double(min_aux);
+    double max = tree2double(max_aux);
+    for (const std::string& scale : it->second) {
+        std::stringstream warning;
+        if (scale == "log") {
+            if (min > 0) {
+                continue;
+            } else if (min == 0 && max > 0) {
+                // ValueConverter.h maps the bound 0 with a floor 60 dB under max
+                warning << "WARNING : [scale:log] with min = 0 in '" << ppsig(sig, MAX_ERROR_SIZE)
+                        << "': log(0) is not defined, the C++ architectures use a floor 60 dB "
+                           "under max\n";
+            } else {
+                warning << "WARNING : [scale:log] needs positive values, but the range is [" << min
+                        << ", " << max << "] in '" << ppsig(sig, MAX_ERROR_SIZE)
+                        << "': the scale has no meaning here, the C++ architectures use a "
+                           "linear scale (a range in dB, for instance, is already "
+                           "logarithmic)\n";
+            }
+        } else if (scale == "exp") {
+            // exp(value) is linear in the position of the slider: the lower half of the range
+            // takes 1/(1+exp((max-min)/2)) of the travel, less than 0.1% above a width of 13.8
+            if (max - min <= 2 * std::log(999.)) {
+                continue;
+            }
+            warning << "WARNING : [scale:exp] over a range of width " << (max - min) << " in '"
+                    << ppsig(sig, MAX_ERROR_SIZE)
+                    << "': the lower half of the range takes less than 0.1% of the travel of "
+                       "the slider\n";
+        } else if (scale != "lin") {
+            warning << "WARNING : unknown [scale:" << scale << "] in '"
+                    << ppsig(sig, MAX_ERROR_SIZE) << "': lin, log or exp expected\n";
+        } else {
+            continue;
+        }
+        gWarningMessages.push_back(warning.str());
     }
 }
 
@@ -226,6 +280,7 @@ void SignalChecker::visit(Tree sig)
                isSigHSlider(sig, label, init, min, max, step) ||
                isSigNumEntry(sig, label, init, min, max, step)) {
         isRange(sig, init, min, max);
+        checkScale(sig, label, min, max);
 
         // Bargraph
     } else if (isSigHBargraph(sig, label, min, max, t0)) {
