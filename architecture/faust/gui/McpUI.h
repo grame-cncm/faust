@@ -99,7 +99,8 @@ inline std::string removeControlChars(const std::string& input)
     bool        prevSpace = false;
     
     for (size_t i = 0; i < input.size(); ++i) {
-        char c = input[i];
+        // UTF-8 bytes above 127 must not be treated as negative control bytes.
+        unsigned char c = static_cast<unsigned char>(input[i]);
         
         // Handle string characters
         if (c == '"' && (i == 0 || input[i - 1] != '\\')) {
@@ -390,7 +391,7 @@ class McpWidget : public McpTool {
         result.reserve(input.length());
 
         for (char c : input) {
-            if (std::isalnum(c) || c == '_') {
+            if (std::isalnum(static_cast<unsigned char>(c)) || c == '_') {
                 // Keep alphanumeric characters and existing underscores
                 result += c;
             } else if (c == ' ' || c == '-' || c == '.' || c == '/') {
