@@ -1,7 +1,9 @@
 import contextlib
 import importlib.util
 import io
+import os
 from pathlib import Path
+import shlex
 import subprocess
 import unittest
 from unittest.mock import patch
@@ -51,6 +53,37 @@ class ConvertFilesTests(unittest.TestCase):
         with patch.object(faust2sc.subprocess, "run", side_effect=failure):
             with self.assertRaisesRegex(SystemExit, "faust failed to compile json file"):
                 self.convert("oscillator.dsp")
+
+
+class CompileTests(unittest.TestCase):
+    def test_include_paths_with_spaces_and_shell_characters(self):
+        headers = ["SC headers/plugin_interface", "SC headers/common", "SC headers/server"]
+        includedir = "/opt/Faust's headers \n"
+        with patch.object(faust2sc.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, includedir.encode())):
+            with patch.object(faust2sc, "find_headers", return_value=headers):
+                with patch.object(faust2sc.os, "getcwd", return_value="/tmp/My sounds"):
+                    flags = faust2sc.includeflags("SC headers")
+        self.assertEqual(shlex.split(flags), ["-I" + p for p in headers + [includedir.rstrip("\r\n"), "/tmp/My sounds"]])
+
+    def test_compile_paths_are_preserved_for_both_servers(self):
+        cpp_file = "My sounds/oscillator's sound.cpp"
+        out_dir = "My plugins/it's here"
+        env = {"EXT": "so"}
+        with patch.object(faust2sc, "buildflags", return_value="-O3 -shared -fPIC"):
+            with patch.object(faust2sc, "faustoptflags", return_value=env):
+                with patch.object(faust2sc.path, "exists", return_value=True):
+                    with patch.dict(os.environ, {"CXX": "ccache c++"}):
+                        with patch.object(faust2sc.os, "system") as system:
+                            with contextlib.redirect_stdout(io.StringIO()):
+                                faust2sc.compile(out_dir, cpp_file, "FaustSound", True, "", "")
+        self.assertEqual(system.call_count, 2)
+        for call, name in zip(system.call_args_list, ("FaustSound", "FaustSound_supernova")):
+            args = shlex.split(call.args[0])
+            self.assertEqual(args[:2], ["ccache", "c++"])
+            self.assertEqual(args[-1], cpp_file)
+            self.assertEqual(args[args.index("-o") + 1], str(Path(out_dir) / (name + ".so")))
+            self.assertIn("-Dmydsp=" + name, args)
+        self.assertIn("-DSUPERNOVA", shlex.split(system.call_args_list[1].args[0]))
 
 
 class GetScClassTests(unittest.TestCase):
