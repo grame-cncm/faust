@@ -9,6 +9,7 @@ from collections import ChainMap
 import subprocess
 import platform
 import shutil
+import shlex
 
 ###########################################
 # Utils
@@ -170,9 +171,9 @@ def includeflags(header_path):
     # libdir = libresult.stdout.decode('utf-8')
 
     incresult = subprocess.run(["faust", "-includedir"], stdout=subprocess.PIPE)
-    includedir = incresult.stdout.decode('utf-8')
+    includedir = incresult.stdout.decode('utf-8').rstrip("\r\n")
     plugin, common, server = find_headers(header_path)
-    return "-I%s -I%s -I%s -I%s -I%s" % (plugin, common, server, includedir, os.getcwd())
+    return " ".join(shlex.quote("-I" + folder) for folder in (plugin, common, server, includedir, os.getcwd()))
 
 # Generate a string of build flags for the compiler command. This includes the include flags.
 def buildflags(headerpath, macos_arch):
@@ -195,7 +196,9 @@ def compile(out_dir, cpp_file, class_name, compile_supernova, headerpath, macos_
 
     if path.exists(cpp_file):
         scsynth_obj = path.join(out_dir, class_name + "." + env["EXT"])
-        scsynth_compile_command = "%s %s -Dmydsp=\"%s\" -o %s %s" % (os.environ["CXX"], flags, class_name, scsynth_obj, cpp_file)
+        scsynth_compile_command = "%s %s -Dmydsp=\"%s\" -o %s %s" % (
+            os.environ["CXX"], flags, class_name, shlex.quote(scsynth_obj), shlex.quote(cpp_file)
+        )
 
         # Compile scsynth
         print("Compiling scsynth object using command:\n%s" % scsynth_compile_command)
@@ -203,7 +206,9 @@ def compile(out_dir, cpp_file, class_name, compile_supernova, headerpath, macos_
 
         if compile_supernova:
             supernova_obj = path.join(out_dir, class_name + "_supernova." + env["EXT"])
-            supernova_compile_command = "%s %s -DSUPERNOVA -Dmydsp=\"%s\" -o %s %s" % (os.environ["CXX"], flags, class_name + "_supernova", supernova_obj, cpp_file)
+            supernova_compile_command = "%s %s -DSUPERNOVA -Dmydsp=\"%s\" -o %s %s" % (
+                os.environ["CXX"], flags, class_name + "_supernova", shlex.quote(supernova_obj), shlex.quote(cpp_file)
+            )
 
             print("Compiling supernova object using command:\n%s" % supernova_compile_command)
             os.system(supernova_compile_command.replace("\n", ""))
