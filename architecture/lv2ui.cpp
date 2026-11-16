@@ -1771,6 +1771,12 @@ void LV2QtGUI::updateQTGUI(QObject* object, float value)
   // set new value with setProperty("value",..), as setValue() is not
   // defined for QObject
   object->setProperty(valueChar, newValue);
+  // A slider or a knob now shows the value of the host. Its position, read
+  // after QTGUI has moved it to the step of its control (a direct
+  // connection), is the one on which the host and the widget agree: updateUI
+  // does not send it back.
+  if (qobject_cast<QAbstractSlider*>(object))
+    object->setProperty("lv2Position", object->property("value"));
 #if FAUSTQT_DEBUG>1
   qDebug() << "QTGUI: new Qt value: "
 	   << object->property(valueChar).toDouble();
@@ -1874,10 +1880,23 @@ void LV2QtGUI::updateUI()
 #endif
 
   float newFloat = plugui->normalize(minimum, maximum, value);
-  // sliders and knobs may have a nonlinear scale
-  if (qobject_cast<QAbstractSlider*>(QObject::sender()))
-    newFloat = positionToParameter(lv2Param, newFloat);
-  plugui->setParameter(lv2Param, newFloat);
+  QAbstractSlider* slider = qobject_cast<QAbstractSlider*>(QObject::sender());
+  if (slider) {
+    // A slider or a knob has 10001 positions, fewer than the values of its
+    // control at one end of a log or exp scale, or with a fine step. A
+    // position set by updateQTGUI from a host value is not sent back, as it
+    // would replace that value with the one of the position. This slot is
+    // queued and reads the current position, so it compares it with the last
+    // position on which the host and the widget agree, not with a flag.
+    QVariant agreed = slider->property("lv2Position");
+    if (!agreed.isValid() || agreed.toInt() != slider->value()) {
+      // sliders and knobs may have a nonlinear scale
+      newFloat = positionToParameter(lv2Param, newFloat);
+      plugui->setParameter(lv2Param, newFloat);
+      slider->setProperty("lv2Position", slider->value());
+    }
+  } else
+    plugui->setParameter(lv2Param, newFloat);
 #if FAUSTQT_DEBUG>1
   qDebug() << "LV2: new LV2 value: " << plugui->getParameter(lv2Param);
 #endif
