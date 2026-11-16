@@ -1738,6 +1738,7 @@ public:
     float getMinimum(VstInt32 index);
     float getMaximum(VstInt32 index);
     float getStep(VstInt32 index);
+    const char* getScale(VstInt32 index);
     int isPassiveControl(VstInt32 index);
     int getMaxVoices();
     int getNumTunings();
@@ -2396,6 +2397,24 @@ float VSTWrapper::getStep(VstInt32 index)
         return 0.0f;
 }
 
+// The [scale:...] metadata of a control, or NULL if it has none.
+const char* VSTWrapper::getScale(VstInt32 index)
+{
+    index = map_param(index);
+    int k = plugin->ui[0]->nports;
+    if (index >= 0 && index < k) {
+        int j = plugin->ctrls[index];
+        assert(index == plugin->ui[0]->elems[j].port);
+        map< int, list<strpair> >::iterator it = plugin->ui[0]->metadata.find(j);
+        if (it != plugin->ui[0]->metadata.end())
+            for (list<strpair>::iterator jt = it->second.begin();
+                 jt != it->second.end(); ++jt)
+                if (!strcmp(jt->first, "scale"))
+                    return jt->second;
+    }
+    return NULL;
+}
+
 int VSTWrapper::isPassiveControl(VstInt32 index)
 {
     index = map_param(index);
@@ -2720,11 +2739,10 @@ public:
     
     virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
     {
-        // XXXFIXME: Faust's Qt GUI implementation handles [scale:log] and similar
-        // meta data affecting the scaling of slider data, but this isn't
-        // supported in the current faust-vst implementation, so we just ignore
-        // this meta data for now.
-        if (strcmp(key, "scale")) ui->declare(zone, key, val);
+        // [scale:log] and [scale:exp] are passed on too: QTGUI maps the position
+        // of a slider or a knob to its value with them, and VSTQtGUI does the
+        // same with the VST parameter (see VSTQtGUI::positionToParameter).
+        ui->declare(zone, key, val);
     }
     
 };
@@ -3228,6 +3246,47 @@ float VSTQtGUI::valueToVST(double value, double minimum,
     }
 }
 
+// The VST parameters are linear in [0,1], but a slider or a knob follows the
+// [scale:log] or [scale:exp] metadata of its control, as in QTGUI. These
+// convert the position of such a widget, in [0,1], to its parameter and back.
+
+static MetaDataUI::Scale controlScale(VSTWrapper* effect, int vstParam)
+{
+    const char* scale = effect->getScale(vstParam);
+    if (scale && !strcmp(scale, "log"))
+        return MetaDataUI::kLog;
+    else if (scale && !strcmp(scale, "exp"))
+        return MetaDataUI::kExp;
+    else
+        return MetaDataUI::kLin;
+}
+
+float VSTQtGUI::positionToParameter(int vstParam, float position)
+{
+    MetaDataUI::Scale scale = controlScale(effect, vstParam);
+    if (scale == MetaDataUI::kLin) return position;
+    float minimum = effect->getMinimum(vstParam);
+    float maximum = effect->getMaximum(vstParam);
+    if (minimum == maximum) return 0.0f;
+    uiConverter converter(scale, 0, 1, minimum, maximum);
+    // std::min/std::max, not clamp(): with double arguments, clamp(0.0, 1.0, x)
+    // would be std::clamp(v, lo, hi), whose arguments come in another order
+    double value = (converter.fConverter->ui2faust(position)-minimum)/
+                   (maximum-minimum);
+    return std::max(0.0, std::min(1.0, value));
+}
+
+float VSTQtGUI::parameterToPosition(int vstParam, float value)
+{
+    MetaDataUI::Scale scale = controlScale(effect, vstParam);
+    if (scale == MetaDataUI::kLin) return value;
+    float minimum = effect->getMinimum(vstParam);
+    float maximum = effect->getMaximum(vstParam);
+    uiConverter converter(scale, 0, 1, minimum, maximum);
+    double position = converter.fConverter->faust2ui(minimum+value*(maximum-minimum));
+    return std::max(0.0, std::min(1.0, position));
+}
+
 /**
  * @brief VSTQtGUI::updateQTGUI
  * - method to update a GUI element
@@ -3275,6 +3334,10 @@ void VSTQtGUI::updateQTGUI(QObject* object, float value, bool init)
         return;
     }
     
+    // sliders and knobs may have a nonlinear scale
+    if (qobject_cast<QAbstractSlider*>(object))
+        value = parameterToPosition(object->property("vstParam").toInt(), value);
+
     if (QString(object->metaObject()->className())=="uiMenu")
         valueChar = "currentIndex";
     else
@@ -3298,6 +3361,12 @@ void VSTQtGUI::updateQTGUI(QObject* object, float value, bool init)
     // set new value with setProperty("value",..), as setValue() is not
     // defined for QObject
     object->setProperty(valueChar, newValue);
+    // A slider or a knob now shows the value of the host. Its position, read
+    // after QTGUI has moved it to the step of its control (a direct
+    // connection), is the one on which the host and the widget agree:
+    // updateVST does not send it back.
+    if (qobject_cast<QAbstractSlider*>(object))
+        object->setProperty("vstPosition", object->property("value"));
 #if FAUSTQT_DEBUG>1
     qDebug() << "QTGUI: new Qt value: "
 	   << object->property(valueChar).toDouble();
@@ -3428,8 +3497,26 @@ void VSTQtGUI::updateVST()
 #endif
     
     float newFloat = valueToVST(value, minimum, maximum);
-    effect->setParameter(vstParam, newFloat);
-    control_values[vstParam] = newFloat;
+    QAbstractSlider* slider = qobject_cast<QAbstractSlider*>(QObject::sender());
+    if (slider) {
+        // A slider or a knob has 10001 positions, fewer than the values of its
+        // control at one end of a log or exp scale, or with a fine step. A
+        // position set by updateQTGUI from a host value is not sent back, as it
+        // would replace that value with the one of the position. This slot is
+        // queued and reads the current position, so it compares it with the
+        // last position on which the host and the widget agree, not with a flag.
+        QVariant agreed = slider->property("vstPosition");
+        if (!agreed.isValid() || agreed.toInt() != slider->value()) {
+            // sliders and knobs may have a nonlinear scale
+            newFloat = positionToParameter(vstParam, newFloat);
+            effect->setParameter(vstParam, newFloat);
+            control_values[vstParam] = newFloat;
+            slider->setProperty("vstPosition", slider->value());
+        }
+    } else {
+        effect->setParameter(vstParam, newFloat);
+        control_values[vstParam] = newFloat;
+    }
 #if FAUSTQT_DEBUG>1
     qDebug() << "VST: new VST value: " << effect->getParameter(vstParam);
 #endif

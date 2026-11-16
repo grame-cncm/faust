@@ -75,6 +75,8 @@ public:
   float valueToVST(double value, double minimum, double maximum);
   void updateQTGUI(QObject* object, float value, bool init = true);
   void updatePassiveControl(QObject* object, float value);
+  float positionToParameter(int vstParam, float position);
+  float parameterToPosition(int vstParam, float value);
 
 protected:
   ERect rectangle;
