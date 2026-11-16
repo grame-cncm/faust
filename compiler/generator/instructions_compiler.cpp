@@ -1177,23 +1177,17 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
         case kKonst:
             getTypedNames(t, "Const", ctype, vname);
 
-            /* TODO: deactivated for now since getOccurrence fails in some cases
-            // The variable is used in compute (kBlock or kSamp), so define is as a field in the DSP
-            struct if (o->getOccurrence(kBlock) || o->getOccurrence(kSamp)) {
+            // The variable is used in compute (kBlock or kSamp), so define it as a field in the DSP
+            // struct
+            if (o->hasComputeOccurrences()) {
                 pushDeclare(IB::genDecStructVar(vname, ctype));
                 pushInitMethod(IB::genStoreStructVar(vname, exp));
                 return IB::genLoadStructVar(vname);
             } else {
-                // Otherwise it can stay as a local variable
+                // Otherwise it can stay as a local variable of the init method
                 pushInitMethod(IB::genDecStackVar(vname, ctype, exp));
                 return IB::genLoadStackVar(vname);
             }
-            */
-
-            // Always put variables in DSP struct for now
-            pushDeclare(IB::genDecStructVar(vname, ctype));
-            pushInitMethod(IB::genStoreStructVar(vname, exp));
-            return IB::genLoadStructVar(vname);
 
         case kBlock: {
             getTypedNames(t, "Slow", ctype, vname);
