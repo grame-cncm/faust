@@ -79,7 +79,7 @@ class CompileTests(unittest.TestCase):
             with patch.object(faust2sc, "faustoptflags", return_value=env):
                 with patch.object(faust2sc.path, "exists", return_value=True):
                     with patch.dict(os.environ, {"CXX": "ccache c++"}):
-                        with patch.object(faust2sc.os, "system") as system:
+                        with patch.object(faust2sc.os, "system", return_value=0) as system:
                             with contextlib.redirect_stdout(io.StringIO()):
                                 faust2sc.compile(out_dir, cpp_file, "FaustSound", True, "", "")
         self.assertEqual(system.call_count, 2)
@@ -90,6 +90,23 @@ class CompileTests(unittest.TestCase):
             self.assertEqual(args[args.index("-o") + 1], str(Path(out_dir) / (name + ".so")))
             self.assertIn("-Dmydsp=" + name, args)
         self.assertIn("-DSUPERNOVA", shlex.split(system.call_args_list[1].args[0]))
+
+
+class CompileFailureTests(unittest.TestCase):
+    def test_compiler_failure_stops_export(self):
+        for statuses, server, calls in (([256, 0], "scsynth", 1), ([0, 256], "supernova", 2)):
+            with self.subTest(server=server):
+                with (
+                    patch.object(faust2sc, "buildflags", return_value="-shared"),
+                    patch.object(faust2sc, "faustoptflags", return_value={"EXT": "so"}),
+                    patch.object(faust2sc.path, "exists", return_value=True),
+                    patch.dict(os.environ, {"CXX": "c++"}),
+                    patch.object(faust2sc.os, "system", side_effect=statuses) as system,
+                    contextlib.redirect_stdout(io.StringIO()),
+                    self.assertRaisesRegex(SystemExit, "compilation failed for " + server),
+                ):
+                    faust2sc.compile("output", "sound.cpp", "Sound", True, "", "")
+                self.assertEqual(system.call_count, calls)
 
 
 class GetScClassTests(unittest.TestCase):
