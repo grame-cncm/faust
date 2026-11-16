@@ -56,6 +56,12 @@ class ConvertFilesTests(unittest.TestCase):
 
 
 class CompileTests(unittest.TestCase):
+    def test_cxx_standard_can_be_overridden_by_cxxflags(self):
+        with patch.dict(os.environ, {"CXXFLAGS": "-std=c++20"}):
+            flags = faust2sc.faustoptflags()["MYGCCFLAGS"].split()
+        # The compiler follows the last -std of its command line.
+        self.assertEqual([f for f in flags if f.startswith("-std=")], ["-std=c++17", "-std=c++20"])
+
     def test_include_paths_with_spaces_and_shell_characters(self):
         headers = ["SC headers/plugin_interface", "SC headers/common", "SC headers/server"]
         includedir = "/opt/Faust's headers \n"

@@ -75,6 +75,10 @@ def make_dir(dir_path):
 # - FAUSTTOOLSFLAGS
 
 # This is a slightly hackey way of including all of the environment variables found in the `faustoptflags` script, mostly because I could not find a python native way to set and access those variables otherwise
+#
+# The C++ standard is the one SuperCollider itself is built with (C++17): its
+# plugin headers no longer compile as C++11. CXXFLAGS is appended after these
+# flags, so a -std given there takes precedence.
 def faustoptflags():
     systemType = platform.system()
     machine = platform.machine()
@@ -83,7 +87,7 @@ def faustoptflags():
     # Compilation flags for gcc and icc
     if machine == 'arm6vl':
         # Raspberry Pi
-        envDict["MYGCCFLAGS"] = "-std=c++11 -O3 -march=armv6zk -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -ffast-math -ftree-vectorize"
+        envDict["MYGCCFLAGS"] = "-std=c++17 -O3 -march=armv6zk -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -ffast-math -ftree-vectorize"
 
     # MacOS
     elif systemType == 'Darwin':
@@ -94,16 +98,16 @@ def faustoptflags():
 
         if machine == 'arm64':
             # Silicon MX
-            envDict["MYGCCFLAGS"] = "-std=c++11 -O3 -ffast-math"
+            envDict["MYGCCFLAGS"] = "-std=c++17 -O3 -ffast-math"
         else:
-            envDict["MYGCCFLAGS"] = "-std=c++11 -O3 -ffast-math -march=native"
+            envDict["MYGCCFLAGS"] = "-std=c++17 -O3 -ffast-math -march=native"
 
-        envDict["MYGCCFLAGSGENERIC"]="-std=c++11 -O3 -ffast-math"
+        envDict["MYGCCFLAGSGENERIC"]="-std=c++17 -O3 -ffast-math"
     else:
-        envDict["MYGCCFLAGS"] = "-std=c++11 -O3 -ffast-math -march=native"
-        envDict["MYGCCFLAGSGENERIC"] = "-std=c++11 -O3 -ffast-math"
+        envDict["MYGCCFLAGS"] = "-std=c++17 -O3 -ffast-math -march=native"
+        envDict["MYGCCFLAGSGENERIC"] = "-std=c++17 -O3 -ffast-math"
 
-    envDict["MYICCFLAGS"]="-std=c++11 -O3 -xHost -ftz -fno-alias -fp-model fast=2"
+    envDict["MYICCFLAGS"]="-std=c++17 -O3 -xHost -ftz -fno-alias -fp-model fast=2"
 
     if systemType != 'Darwin':
         envDict["EXT"]="so"
