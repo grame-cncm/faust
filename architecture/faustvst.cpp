@@ -33,6 +33,7 @@
 #include <list>
 #include <map>
 #include <set>
+#include <vector>
 
 // Generic Faust dsp and UI classes
 #include <faust/dsp/dsp.h>
@@ -353,6 +354,20 @@ extern "C" {
 #define FAUST_MIDICC 1
 #endif
 
+/* This enables MIDI sync based on the midi:start, midi:stop and midi:clock
+ attributes in the Faust source, with the meaning they have in Faust's MidiUI:
+ a MIDI start or continue message sets the midi:start controls to 1, a stop
+ message sets the midi:stop controls to 0, and each clock message (24 per
+ quarter note) toggles the midi:clock controls between 0 and 1. As most VST
+ hosts do not send these messages to plugins, the host transport drives them
+ too: starting playback acts as a start, stopping it as a stop, and while it
+ plays, each clock takes effect on the sample during which it falls, as given
+ by the song position and the tempo (unless the host sends clock messages
+ itself). */
+#ifndef FAUST_MIDISYNC
+#define FAUST_MIDISYNC 1
+#endif
+
 /* This enables or disables the plugin's custom Qt GUI (see the Qt-specific
  part at the end of this module). This is disabled by default, but enabled
  with gui=1 in the Makefile or the -gui option of the faust2vst script. */
@@ -563,6 +578,14 @@ struct VSTPlugin {
     float **outbuf;             // audio buffers for mixing down the voices
     float **inbuf;              // dummy input buffer used for retriggering notes
     std::map<uint8_t,int> ctrlmap; // MIDI controller map (control meta data)
+#if FAUST_MIDISYNC
+    // Controls set by MIDI sync (midi:start, midi:stop and midi:clock control
+    // meta data), as indices into ui->elems.
+    std::vector<int> startctrls, stopctrls, clockctrls;
+    bool clockstate;            // current value of the midi:clock controls
+    bool midiclock;             // the host sends MIDI clock messages
+#endif
+    float **inptrs, **outptrs;  // audio buffers offset to a part of the block
     // Current RPN MSB and LSB numbers, as set with controllers 101 and 100.
     uint8_t rpn_msb[16], rpn_lsb[16];
     // Current data entry MSB and LSB numbers, as set with controllers 6 and 38.
@@ -752,6 +775,9 @@ struct VSTPlugin {
         inbuf = outbuf = NULL;
         ports = portvals = NULL;
         units = NULL;
+#if FAUST_MIDISYNC
+        clockstate = midiclock = false;
+#endif
         memset(midivals, 0, sizeof(midivals));
         // Initialize the Faust DSPs.
         for (int i = 0; i < ndsps; i++) {
@@ -780,6 +806,9 @@ struct VSTPlugin {
             midivals[ch] = (float*)calloc(k, sizeof(float));
             assert(k == 0 || midivals[ch]);
         }
+        inptrs = (float**)calloc(n, sizeof(float*));
+        outptrs = (float**)calloc(m, sizeof(float*));
+        assert((n == 0 || inptrs) && (m == 0 || outptrs));
         // Scan the Faust UI for active and passive controls which become the
         // input and output control ports of the plugin, respectively.
         for (int i = 0, j = 0; i < ui[0]->nelems; i++) {
@@ -839,6 +868,14 @@ struct VSTPlugin {
 #endif
                                 if (strcmp(key, "unit") == 0) {
                                     unit = val;
+#if FAUST_MIDISYNC
+                                } else if (strcmp(key, "midi") == 0 && strcmp(val, "start") == 0) {
+                                    startctrls.push_back(i);
+                                } else if (strcmp(key, "midi") == 0 && strcmp(val, "stop") == 0) {
+                                    stopctrls.push_back(i);
+                                } else if (strcmp(key, "midi") == 0 && strcmp(val, "clock") == 0) {
+                                    clockctrls.push_back(i);
+#endif
 #if FAUST_MIDICC
                                 } else if (strcmp(key, "midi") == 0) {
                                     unsigned num;
@@ -911,6 +948,8 @@ struct VSTPlugin {
         free(units);
         for (int ch = 0; ch < 16; ch++)
             free(midivals[ch]);
+        free(inptrs);
+        free(outptrs);
         if (inbuf) {
             for (int i = 0; i < n; i++)
                 free(inbuf[i]);
@@ -1214,7 +1253,35 @@ struct VSTPlugin {
     // Audio and MIDI process functions. The plugin should run these in the
     // appropriate real-time callbacks.
     
-    void process_audio(int blocksz, float **inputs, float **outputs)
+    // Compute the frames offset..offset+len-1 of the block. The voices of an
+    // instrument are added to the outputs, which must have been cleared.
+    void compute_frames(int offset, int len, float **inputs, float **outputs)
+    {
+        int n = dsp[0]->getNumInputs(), m = dsp[0]->getNumOutputs();
+        for (int i = 0; i < n; i++)
+            inptrs[i] = inputs[i]+offset;
+        if (outbuf) {
+            // Polyphonic instrument: Mix the voices down to one signal.
+            for (int l = 0; l < nvoices; l++) {
+                // Let Faust do all the hard work.
+                dsp[l]->compute(len, inptrs, outbuf);
+                for (int i = 0; i < m; i++)
+                    for (int j = 0; j < len; j++)
+                        outputs[i][offset+j] += outbuf[i][j];
+            }
+        } else {
+            // Simple effect: We can write directly to the output buffer.
+            for (int i = 0; i < m; i++)
+                outptrs[i] = outputs[i]+offset;
+            dsp[0]->compute(len, inptrs, outptrs);
+        }
+    }
+
+    // clocks holds the frames, in increasing order, at which the midi:clock
+    // controls toggle during the block (see FAUST_MIDISYNC): the block is
+    // computed in parts, so that each clock takes effect on its own frame.
+    void process_audio(int blocksz, float **inputs, float **outputs,
+                       int nclocks = 0, const int *clocks = NULL)
     {
         int n = dsp[0]->getNumInputs(), m = dsp[0]->getNumOutputs();
         AVOIDDENORMALS;
@@ -1301,21 +1368,25 @@ struct VSTPlugin {
             n_samples = blocksz;
         }
         if (outbuf) {
-            // Polyphonic instrument: Mix the voices down to one signal.
+            // Polyphonic instrument: the voices are added to the outputs.
             for (int i = 0; i < m; i++)
                 for (unsigned j = 0; j < blocksz; j++)
                     outputs[i][j] = 0.0f;
-            for (int l = 0; l < nvoices; l++) {
-                // Let Faust do all the hard work.
-                dsp[l]->compute(blocksz, inputs, outbuf);
-                for (int i = 0; i < m; i++)
-                    for (unsigned j = 0; j < blocksz; j++)
-                        outputs[i][j] += outbuf[i][j];
-            }
-        } else {
-            // Simple effect: We can write directly to the output buffer.
-            dsp[0]->compute(blocksz, inputs, outputs);
         }
+        int pos = 0;
+#if FAUST_MIDISYNC
+        for (int c = 0; c < nclocks; c++) {
+            int at = clocks[c];
+            if (at > blocksz) at = blocksz;
+            if (at > pos) {
+                compute_frames(pos, at-pos, inputs, outputs);
+                pos = at;
+            }
+            midi_clock();
+        }
+#endif
+        if (pos < blocksz)
+            compute_frames(pos, blocksz-pos, inputs, outputs);
         // Finally grab the passive controls and write them back to the
         // corresponding control ports. NOTE: Depending on the plugin
         // architecture, this might require a host call to get the control GUI
@@ -1341,6 +1412,44 @@ struct VSTPlugin {
                 *ui[i]->elems[gate].zone;
     }
     
+#if FAUST_MIDISYNC
+    // MIDI sync (see FAUST_MIDISYNC above). These messages have no channel: a
+    // control is set on all the channels, and in all the voices.
+
+    bool has_midi_sync()
+    {
+        return !startctrls.empty() || !stopctrls.empty() || !clockctrls.empty();
+    }
+
+    void set_sync_ctrl(int j, float val)
+    {
+        int k = ui[0]->elems[j].port;
+        for (int ch = 0; ch < 16; ch++)
+            midivals[ch][k] = val;
+        for (int i = 0; i < ndsps; i++)
+            *ui[i]->elems[j].zone = val;
+    }
+
+    void midi_start()
+    {
+        for (size_t c = 0; c < startctrls.size(); c++)
+            set_sync_ctrl(startctrls[c], 1.0f);
+    }
+
+    void midi_stop()
+    {
+        for (size_t c = 0; c < stopctrls.size(); c++)
+            set_sync_ctrl(stopctrls[c], 0.0f);
+    }
+
+    void midi_clock()
+    {
+        clockstate = !clockstate;
+        for (size_t c = 0; c < clockctrls.size(); c++)
+            set_sync_ctrl(clockctrls[c], clockstate ? 1.0f : 0.0f);
+    }
+#endif
+
     // This processes just a single MIDI message, so to process an entire series
     // of MIDI events you'll have to loop over the event data in the plugin's
     // MIDI callback. XXXTODO: Sample-accurate processing of MIDI events.
@@ -1527,6 +1636,28 @@ struct VSTPlugin {
                 }
                 break;
             }
+            case 0xf0:
+#if FAUST_MIDISYNC
+                // system real-time messages: MIDI sync
+                switch (data[0]) {
+                    case 0xf8:
+                        // clock
+                        midiclock = true;
+                        midi_clock();
+                        break;
+                    case 0xfa: case 0xfb:
+                        // start, continue
+                        midi_start();
+                        break;
+                    case 0xfc:
+                        // stop
+                        midi_stop();
+                        break;
+                    default:
+                        break;
+                }
+#endif
+                break;
             default:
                 break;
         }
@@ -1759,6 +1890,13 @@ private:
     float *progdata;
     // The latency declared in the dsp meta data, which the host compensates
     LatencyMeta latency;
+#if FAUST_MIDISYNC
+    // The host transport drives the MIDI sync controls (see FAUST_MIDISYNC).
+    bool playing;                   // the transport was playing at the last block
+    static const int maxclocks = 1024;
+    int clocks[maxclocks];          // frames of the MIDI clocks of the block
+    int transport_sync(int n_samples);
+#endif
 };
 
 // Create a "unique" VST plugin ID using Murmur2 hashes. This can't possibly
@@ -1845,6 +1983,9 @@ VSTWrapper::VSTWrapper(audioMasterCallback audioMaster)
     // Get the initial sample rate from the VST host.
     const int rate = getSampleRate();
     plugin = new VSTPlugin(num_voices, rate);
+#if FAUST_MIDISYNC
+    playing = false;
+#endif
     plugin->dsp[0]->metadata(&latency);
     setInitialDelay(latency.getFrames(getSampleRate()));
 #if FAUST_UI
@@ -2274,15 +2415,65 @@ VstInt32 VSTWrapper::canDo(char *text)
     // This may convince some VST hosts to send us sysex events (seems to be
     // supported by some Bitwig versions at least).
     if (strcmp(text, "receiveVstSysexEvent") == 0) return 1;
+#if FAUST_MIDISYNC
+    // The host transport drives the MIDI sync controls.
+    if (strcmp(text, "receiveVstTimeInfo") == 0) return 1;
+#endif
     return -1;
 }
 
 // audio and MIDI process functions
 
+#if FAUST_MIDISYNC
+// Follow the host transport for the MIDI sync controls: a change between
+// stopped and playing acts as a MIDI start or stop. While the transport plays,
+// the MIDI clocks (24 per quarter note) of the block are located from the song
+// position and the tempo, unless the host sends clock messages itself. A clock
+// takes effect on the frame during which it falls. Returns the number of
+// clocks stored in the clocks array.
+int VSTWrapper::transport_sync(int n_samples)
+{
+    VstTimeInfo *ti = getTimeInfo(kVstPpqPosValid | kVstTempoValid);
+    bool now_playing = ti && (ti->flags & kVstTransportPlaying);
+    if (now_playing != playing) {
+        playing = now_playing;
+        if (playing)
+            plugin->midi_start();
+        else
+            plugin->midi_stop();
+    }
+    if (!playing || plugin->clockctrls.empty() || plugin->midiclock ||
+        !(ti->flags & kVstPpqPosValid) || !(ti->flags & kVstTempoValid) ||
+        ti->tempo <= 0.0 || ti->sampleRate <= 0.0)
+        return 0;
+    // Positions in clocks: the block has the clocks from its start (included)
+    // to its end (excluded). The tolerances keep a clock that falls between
+    // two blocks in exactly one of them, and one that falls between two frames
+    // on the second, despite the rounding of the song position.
+    const double eps = 1e-6;
+    double start = ti->ppqPos*24.0;
+    double rate = ti->tempo/60.0*24.0/ti->sampleRate; // clocks per frame
+    double end = start + n_samples*rate;
+    int nclocks = 0;
+    for (double k = ceil(start-eps); k < end-eps && nclocks < maxclocks; k += 1.0) {
+        int at = int(floor((k-start)/rate + eps));
+        clocks[nclocks++] = (at < 0) ? 0 : (at >= n_samples) ? n_samples-1 : at;
+    }
+    return nclocks;
+}
+#endif
+
 void VSTWrapper::processReplacing(float **inputs, float **outputs,
                                   VstInt32 n_samples)
 {
+#if FAUST_MIDISYNC
+    // VST hosts generally do not send MIDI sync messages: the transport stands
+    // in for them, for a plugin that has MIDI sync controls.
+    int nclocks = plugin->has_midi_sync() ? transport_sync(n_samples) : 0;
+    plugin->process_audio(n_samples, inputs, outputs, nclocks, clocks);
+#else
     plugin->process_audio(n_samples, inputs, outputs);
+#endif
     // Some hosts may require this to force a GUI update of the controls.
     // XXXFIXME: Alas, some hosts don't seem to handle this at all (e.g.,
     // Tracktion).

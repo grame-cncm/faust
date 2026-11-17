@@ -53,6 +53,7 @@ sdkpaths="/usr/src/VST* /usr/src/vst* /usr/include/VST* /usr/include/vst* /opt/l
 # defaults (these can be changed with the options listed below)
 FAUST_META=1
 FAUST_MIDICC=1
+FAUST_MIDISYNC=1
 FAUST_MTS=1
 FAUST_UI=0
 VOICE_CTRLS=1
@@ -85,6 +86,7 @@ for ((i=1;i<$#+1;i++)); do
         option -keep "retain the build directory."
         option -nometa "ignore metadata (author information etc.) from the Faust source"
         option -nomidicc "plugin doesn't process MIDI control data."
+        option -nomidisync "plugin doesn't follow MIDI start, stop and clock, nor the host transport, for midi:start, midi:stop and midi:clock controls."
         option -notuning "disable the tuning control (instruments only)."
         option -novoicectrls "no extra polyphony/tuning controls on GUI (instruments only)"
         option "-nvoices N" "number of synth voices (instruments only; arg must be an integer)"
@@ -124,6 +126,8 @@ EOF
         FAUST_META=0
     elif [ $p = "-nomidicc" ]; then
         FAUST_MIDICC=0
+    elif [ $p = "-nomidisync" ]; then
+        FAUST_MIDISYNC=0
     elif [ $p = "-notuning" ]; then
         FAUST_MTS=0
     elif [ $p = "-novoicectrls" ]; then
@@ -202,7 +206,7 @@ fi
 
 # now set in faustoptflags
 #CXX=g++
-CPPFLAGS="-DFAUST_META=$FAUST_META -DFAUST_MIDICC=$FAUST_MIDICC -DFAUST_MTS=$FAUST_MTS -DFAUST_UI=$FAUST_UI -DVOICE_CTRLS=$VOICE_CTRLS -I$SDK -I$SDKSRC -D__cdecl="
+CPPFLAGS="-DFAUST_META=$FAUST_META -DFAUST_MIDICC=$FAUST_MIDICC -DFAUST_MIDISYNC=$FAUST_MIDISYNC -DFAUST_MTS=$FAUST_MTS -DFAUST_UI=$FAUST_UI -DVOICE_CTRLS=$VOICE_CTRLS -I$SDK -I$SDKSRC -D__cdecl="
 if [ $NVOICES -ge 0 ]; then
     CPPFLAGS="$CPPFLAGS -DNVOICES=$NVOICES"
 fi
