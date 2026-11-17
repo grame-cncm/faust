@@ -552,6 +552,7 @@ void global::reset()
 
     gBoxCounter    = 0;
     gSignalCounter = 0;
+    gLoopCounter   = 0;
 
 #ifdef FIR_BUILD
     gStats.reset();  // Reset compiler statistics

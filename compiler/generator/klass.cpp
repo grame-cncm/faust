@@ -349,7 +349,7 @@ void Klass::printLoopDeepFirst(int n, ostream& fout, Loop* l, set<Loop*>& visite
     // the print the loop itself
     tab(n, fout);
     tab(n, fout);
-    fout << "// LOOP " << l << ", ORDER " << l->fOrder << endl;
+    fout << "// LOOP L" << l->fRank << ", ORDER " << l->fOrder << endl;
     l->println(n + 1, fout);
 }
 
@@ -623,14 +623,14 @@ void Klass::printGraphDotFormat(ostream& fout)
     for (int l = (int)G.size() - 1; l >= 0; l--) {
         // for each task in the level
         for (lset::const_iterator t = G[l].begin(); t != G[l].end(); t++) {
-            // print task label "Lxxx : 0xffffff"
-            fout << '\t' << 'L' << (*t) << "[label=<<font face=\"verdana,bold\">L" << lnum++
-                 << "</font> : " << (*t) << ">];" << endl;
+            // print task label "Lrank : Lrank"
+            fout << '\t' << 'L' << (*t)->fRank << "[label=<<font face=\"verdana,bold\">L" << lnum++
+                 << "</font> : L" << (*t)->fRank << ">];" << endl;
             // for each source of the task
             for (lset::const_iterator src = (*t)->fBackwardLoopDependencies.begin();
                  src != (*t)->fBackwardLoopDependencies.end(); src++) {
                 // print the connection Lxxx -> Lyyy;
-                fout << '\t' << 'L' << (*src) << "->" << 'L' << (*t) << ';' << endl;
+                fout << '\t' << 'L' << (*src)->fRank << "->" << 'L' << (*t)->fRank << ';' << endl;
             }
         }
     }

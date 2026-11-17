@@ -282,13 +282,13 @@ void CodeContainer::printGraphDotFormat(ostream& fout)
     for (int l = int(G.size() - 1); l >= 0; l--) {
         // for each task in the level
         for (const auto& t : G[l]) {
-            // print task label "Lxxx : 0xffffff"
-            fout << '\t' << 'L' << t << "[label=<<font face=\"verdana,bold\">L" << lnum++
-                 << "</font> : " << t << ">];" << endl;
+            // print task label "Lrank : Lrank"
+            fout << '\t' << 'L' << t->getRank() << "[label=<<font face=\"verdana,bold\">L" << lnum++
+                 << "</font> : L" << t->getRank() << ">];" << endl;
             // for each source of the task
             for (const auto& src : t->fBackwardLoopDependencies) {
                 // print the connection Lxxx -> Lyyy;
-                fout << '\t' << 'L' << src << "->" << 'L' << t << ';' << endl;
+                fout << '\t' << 'L' << src->getRank() << "->" << 'L' << t->getRank() << ';' << endl;
             }
         }
     }
