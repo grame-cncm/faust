@@ -288,8 +288,9 @@ class StepSignalPrefix : public SignalIdentity {
     }
 };
 
-// Signals the renderer cannot compute from the program alone : foreign functions, variables and
-// constants (except the sample rate), soundfiles. Tested without exceptions, unlike
+// Signals the renderer cannot compute from the program alone : foreign functions (except those of
+// the C math library, isRenderedFFun), variables and constants (except the sample rate),
+// soundfiles. Tested without exceptions, unlike
 // signal_dsp_factory::SignalChecker : libfaust-wasm is built without exception catching, so a
 // thrown exception ends the compilation even when it would be caught.
 struct StepRenderable : public SignalVisitor {
@@ -301,7 +302,8 @@ struct StepRenderable : public SignalVisitor {
         if (!fOK) {
             return;
         }
-        if (isSigFFun(sig, ff, largs) || isSigFVar(sig, type, name, file) ||
+        if ((isSigFFun(sig, ff, largs) && !isRenderedFFun(ff)) ||
+            isSigFVar(sig, type, name, file) ||
             (isSigFConst(sig, type, name, file) &&
              std::string(tree2str(name)) != "fSamplingFreq") ||
             isSigSoundfile(sig, x) || isSigSoundfileLength(sig, x, y) ||

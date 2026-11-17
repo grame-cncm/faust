@@ -51,6 +51,22 @@
 #include "exception.hh"
 
 /**
+ * @brief The foreign functions the renderer computes : the functions of the C math library that
+ * the Faust libraries declare (maths.lib : tanh, erf, hypot, ldexp...), each called by the C name
+ * the compiled code calls for the current precision (tanhf with -single, tanh with -double,
+ * tanhl with -quad). Other foreign functions, variables and constants cannot be rendered.
+ */
+bool isRenderedFFun(Tree ff);
+
+/**
+ * @brief Computes a foreign function accepted by isRenderedFFun.
+ * @param ff the foreign function
+ * @param args its arguments, already converted to the declared argument types
+ * @return its result, to be converted to the declared result type
+ */
+double computeRenderedFFun(Tree ff, const std::vector<double>& args);
+
+/**
  * @brief Class to interpret and render signals sample-by-sample.
  *
  * The `SignalRenderer` class is responsible for traversing the output signal trees,
@@ -813,8 +829,8 @@ struct signal_dsp_aux : public signal_dsp {
  *
  * The `signal_dsp_factory` encapsulates the output signal tree and any associated
  * compile options needed to create DSP instances. It performs validation of the
- * signal graph to ensure that no unsupported features (e.g., foreign functions or variables)
- * are used in interpreted mode.
+ * signal graph to ensure that no unsupported features (e.g., foreign functions outside the C
+ * math library, or variables) are used in interpreted mode.
  *
  * Responsibilities:
  * - Validates that the signal tree can be interpreted safely.
@@ -834,14 +850,14 @@ struct signal_dsp_factory : public dsp_factory {
      * @brief Internal class to check for unsupported features in interpreted mode.
      *
      * Traverses the signal tree and throws exceptions if unsupported constructs
-     * (e.g., foreign functions or variables) are detected.
+     * (e.g., foreign functions other than those of isRenderedFFun, or variables) are detected.
      */
     struct SignalChecker : public SignalVisitor {
         void visit(Tree sig) override
         {
             Tree ff, largs, name, type, file;
 
-            if (isSigFFun(sig, ff, largs)) {
+            if (isSigFFun(sig, ff, largs) && !isRenderedFFun(ff)) {
                 std::stringstream error;
                 error << "ERROR : accessing foreign function  '" << ffname(ff) << "'"
                       << " is not allowed in this compilation mode" << std::endl;

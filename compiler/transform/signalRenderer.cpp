@@ -26,6 +26,7 @@
 #include <cmath>
 #include <cstdint>
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
 #include "global.hh"
@@ -195,6 +196,96 @@ void SignalRenderer<REAL>::visit(Tree sig)
     }
 }
 
+// The foreign functions of the C math library declared by the Faust libraries, by C name. Each
+// precision has its name (ffunction(float tanhf|tanh|tanhl (float), ...)), and each name is
+// computed with that C function, in its precision, as the compiled code computes it.
+namespace {
+
+using FFunArgs = std::vector<double>;
+using FFunImpl = double (*)(const FFunArgs&);
+
+// clang-format off
+// float F(float), in the three precisions (also int F(float) : the result is converted to the
+// declared type by the caller)
+#define FFUN_REAL1(F)                                                                   \
+    {#F "f", [](const FFunArgs& a) { return double(F##f(float(a[0]))); }},              \
+    {#F,     [](const FFunArgs& a) { return double(F(a[0])); }},                        \
+    {#F "l", [](const FFunArgs& a) { return double(F##l((long double)(a[0]))); }}
+
+// float F(float, float)
+#define FFUN_REAL2(F)                                                                   \
+    {#F "f", [](const FFunArgs& a) { return double(F##f(float(a[0]), float(a[1]))); }}, \
+    {#F,     [](const FFunArgs& a) { return double(F(a[0], a[1])); }},                  \
+    {#F "l", [](const FFunArgs& a) {                                                    \
+        return double(F##l((long double)(a[0]), (long double)(a[1]))); }}
+
+// float F(float, int)
+#define FFUN_REAL_INT(F)                                                                \
+    {#F "f", [](const FFunArgs& a) { return double(F##f(float(a[0]), int(a[1]))); }},   \
+    {#F,     [](const FFunArgs& a) { return double(F(a[0], int(a[1]))); }},             \
+    {#F "l", [](const FFunArgs& a) { return double(F##l((long double)(a[0]), int(a[1]))); }}
+
+const std::map<std::string, FFunImpl>& mathFFuns()
+{
+    static const std::map<std::string, FFunImpl> table = {
+        FFUN_REAL1(acosh), FFUN_REAL1(asinh), FFUN_REAL1(atanh), FFUN_REAL1(cbrt),
+        FFUN_REAL1(cosh),  FFUN_REAL1(erfc),  FFUN_REAL1(erf),   FFUN_REAL1(lgamma),
+        FFUN_REAL1(logb),  FFUN_REAL1(sinh),  FFUN_REAL1(tanh),  FFUN_REAL1(tgamma),
+        FFUN_REAL1(ilogb),
+        FFUN_REAL2(copysign), FFUN_REAL2(hypot),
+        FFUN_REAL_INT(ldexp), FFUN_REAL_INT(scalbn),
+        // isnan and isinf are macros in C : the three names test the value in its precision
+        {"isnanf", [](const FFunArgs& a) { return double(std::isnan(float(a[0]))); }},
+        {"isnan",  [](const FFunArgs& a) { return double(std::isnan(a[0])); }},
+        {"isnanl", [](const FFunArgs& a) { return double(std::isnan((long double)(a[0]))); }},
+        {"isinff", [](const FFunArgs& a) { return double(std::isinf(float(a[0]))); }},
+        {"isinf",  [](const FFunArgs& a) { return double(std::isinf(a[0])); }},
+        {"isinfl", [](const FFunArgs& a) { return double(std::isinf((long double)(a[0]))); }},
+#ifndef _WIN32
+        // the Bessel functions of POSIX, declared with one name, computed in double
+        {"j0", [](const FFunArgs& a) { return j0(a[0]); }},
+        {"j1", [](const FFunArgs& a) { return j1(a[0]); }},
+        {"jn", [](const FFunArgs& a) { return jn(int(a[0]), a[1]); }},
+        {"y0", [](const FFunArgs& a) { return y0(a[0]); }},
+        {"y1", [](const FFunArgs& a) { return y1(a[0]); }},
+        {"yn", [](const FFunArgs& a) { return yn(int(a[0]), a[1]); }},
+#endif
+    };
+    return table;
+}
+
+#undef FFUN_REAL1
+#undef FFUN_REAL2
+#undef FFUN_REAL_INT
+// clang-format on
+
+// The value of a Node as a double, whatever its kind
+double nodeValue(const Node& n)
+{
+    switch (n.type()) {
+        case kIntNode:
+            return double(n.getInt());
+        case kInt64Node:
+            return double(n.getInt64());
+        default:
+            return n.getDouble();
+    }
+}
+
+}  // namespace
+
+bool isRenderedFFun(Tree ff)
+{
+    return mathFFuns().count(ffname(ff)) > 0;
+}
+
+double computeRenderedFFun(Tree ff, const std::vector<double>& args)
+{
+    auto it = mathFFuns().find(ffname(ff));
+    faustassert(it != mathFFuns().end());
+    return it->second(args);
+}
+
 template <class REAL>
 void SignalRenderer<REAL>::visitNode(Tree sig)
 {
@@ -204,7 +295,7 @@ void SignalRenderer<REAL>::visitNode(Tree sig)
     Tree    size_tree, gen_tree, wi_tree, ws_tree, tbl_tree, ri_tree;
     Tree    c_tree, x_tree, y_tree, z_tree;
     Tree    label_tree, type_tree, name_tree, file_tree, sf_tree, sel;
-    Tree    rec_vars, rec_exprs;
+    Tree    rec_vars, rec_exprs, ff_tree, ff_args;
     int     opt_op;
     int     proj_idx;  // For isProj
 
@@ -305,6 +396,21 @@ void SignalRenderer<REAL>::visitNode(Tree sig)
             Node res = gBinOpTable[opt_op]->compute(v1.getDouble(), v2.getDouble());
             pushRes(isInt(res) ? res : realValue(res.getDouble()));
         }
+    } else if (isSigFFun(sig, ff_tree, ff_args)) {
+        // a function of the C math library (isRenderedFFun, checked by the factory) : the
+        // arguments are converted to the declared types, as in the compiled call. The signature
+        // keeps the argument types in reverse order (see sigPromotion).
+        vector<double> args;
+        int            last = ffarity(ff_tree) - 1;
+        int            i    = 0;
+        for (Tree l = ff_args; !isNil(l); l = tl(l), i++) {
+            self(hd(l));
+            double v    = nodeValue(popRes());
+            int    type = ffargtype(ff_tree, last - i);
+            args.push_back((type == kInt) ? double(int(v)) : (type == kReal) ? double(REAL(v)) : v);
+        }
+        double res = computeRenderedFFun(ff_tree, args);
+        pushRes((ffrestype(ff_tree) == kInt) ? Node(int(res)) : realValue(res));
     } else if (isSigFConst(sig, type_tree, name_tree, file_tree)) {
         // Special case for SR constant
         if (string(tree2str(name_tree)) == "fSamplingFreq") {
