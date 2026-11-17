@@ -851,7 +851,7 @@ struct LV2Plugin {
       // Initialize a 1-sample dummy input buffer used for retriggering notes.
       inbuf = (float**)calloc(n, sizeof(float*));
       assert(n == 0 || inbuf);
-      for (int i = 0; i < m; i++) {
+      for (int i = 0; i < n; i++) {
 	inbuf[i] = (float*)malloc(sizeof(float));
 	assert(inbuf[i]);
 	*inbuf[i] = 0.0f;
