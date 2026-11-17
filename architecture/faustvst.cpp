@@ -1636,8 +1636,8 @@ struct VSTPlugin {
             fprintf(stderr,
                     "octave-tuning-default (chan 1-16): equal temperament\n");
 #endif
-#endif
         }
+#endif
     }
     
 };
