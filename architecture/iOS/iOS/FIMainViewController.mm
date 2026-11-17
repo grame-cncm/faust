@@ -1263,6 +1263,8 @@ static inline const char* transmit_value(int num)
         uiinterface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
         uiinterface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
     } else if (_selectedWidget->getAssignationType() <= 3) {
+        // A widget follows a single sensor: drop a gyroscope mapping left by a previous assignation or by [gyr:...] metadata
+        uiinterface->setGyrConverter(index, -1, 0, 0, 0, 0);
         uiinterface->setAccConverter(index,
                                    _selectedWidget->getAssignationType() - 1,
                                    _selectedWidget->getAssignationCurve(),
@@ -1270,6 +1272,8 @@ static inline const char* transmit_value(int num)
                                    _selectedWidget->getCurveMid(),
                                    _selectedWidget->getCurveMax());
     } else {
+        // A widget follows a single sensor: drop an accelerometer mapping left by a previous assignation or by [acc:...] metadata
+        uiinterface->setAccConverter(index, -1, 0, 0, 0, 0);
         uiinterface->setGyrConverter(index,
                                    _selectedWidget->getAssignationType() - 4,
                                    _selectedWidget->getAssignationCurve(),
@@ -1472,6 +1476,8 @@ static inline const char* transmit_value(int num)
                 uiinterface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
                 uiinterface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
             } else if ((*i)->getAssignationType() <= 3) {
+                // A widget follows a single sensor: drop a gyroscope mapping set by [gyr:...] metadata
+                uiinterface->setGyrConverter(index, -1, 0, 0, 0, 0);
                 uiinterface->setAccConverter(index,
                                              (*i)->getAssignationType() - 1,
                                              (*i)->getAssignationCurve(),
@@ -1479,6 +1485,8 @@ static inline const char* transmit_value(int num)
                                              (*i)->getCurveMid(),
                                              (*i)->getCurveMax());
             } else {
+                // A widget follows a single sensor: drop an accelerometer mapping set by [acc:...] metadata
+                uiinterface->setAccConverter(index, -1, 0, 0, 0, 0);
                 uiinterface->setGyrConverter(index,
                                              (*i)->getAssignationType() - 4,
                                              (*i)->getAssignationCurve(),

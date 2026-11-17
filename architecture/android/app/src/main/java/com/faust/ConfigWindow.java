@@ -144,6 +144,8 @@ public class ConfigWindow{
             FaustActivity.dspFaust.setAccConverter(index, -1, 0, 0, 0, 0); // -1 means no mapping
             FaustActivity.dspFaust.setGyrConverter(index, -1, 0, 0, 0, 0); // -1 means no mapping
         } else if (parametersInfo.accgyrType[index] <= 3) {
+            // A parameter follows a single sensor: drop a gyroscope mapping left by a previous assignation or by [gyr:...] metadata
+            FaustActivity.dspFaust.setGyrConverter(index, -1, 0, 0, 0, 0);
             FaustActivity.dspFaust.setAccConverter(index,
                                       parametersInfo.accgyrType[index] - 1,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
                                       parametersInfo.accgyrCurve[index],
@@ -152,6 +154,8 @@ public class ConfigWindow{
                                       parametersInfo.accgyrMax[index]);
         
         } else {
+            // A parameter follows a single sensor: drop an accelerometer mapping left by a previous assignation or by [acc:...] metadata
+            FaustActivity.dspFaust.setAccConverter(index, -1, 0, 0, 0, 0);
             FaustActivity.dspFaust.setGyrConverter(index,
                                       parametersInfo.accgyrType[index] - 4,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
                                       parametersInfo.accgyrCurve[index],
