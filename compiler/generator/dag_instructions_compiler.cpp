@@ -512,7 +512,7 @@ ValueInst* DAGInstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, Tree
             }
         } else {
             // return subst("$0[i-$1]", vname, CS(delay));
-            FIRIndex index = getCurrentLoopIndex() - CS(delay);
+            FIRIndex index = getCurrentLoopIndex() - safeDelayIndex(delay, mxd);
             return generateCacheCode(sig, IB::genLoadArrayStackVar(vname, index));
         }
     } else {
