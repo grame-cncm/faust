@@ -33,6 +33,7 @@
 #include <list>
 #include <map>
 #include <set>
+#include <vector>
 
 // generic Faust dsp and UI classes
 #include <faust/dsp/dsp.h>
@@ -296,6 +297,7 @@ void LV2UI::run() {}
 #include <lv2/lv2plug.in/ns/lv2core/lv2.h>
 #include <lv2/lv2plug.in/ns/ext/dynmanifest/dynmanifest.h>
 #include <lv2/lv2plug.in/ns/ext/atom/util.h>
+#include <lv2/lv2plug.in/ns/ext/time/time.h>
 #include <lv2/lv2plug.in/ns/ext/urid/urid.h>
 
 // Set this to the proper shared library extension for your system
@@ -350,6 +352,21 @@ void LV2UI::run() {}
    least shouldn't, send us the MIDI controllers in the first place.) */
 #ifndef FAUST_MIDICC
 #define FAUST_MIDICC 1
+#endif
+
+/* This enables MIDI sync based on the midi:start, midi:stop and midi:clock
+   attributes in the Faust source, with the meaning they have in Faust's
+   MidiUI: a MIDI start or continue message sets the midi:start controls to 1,
+   a stop message sets the midi:stop controls to 0, and each clock message (24
+   per quarter note) toggles the midi:clock controls between 0 and 1. The host
+   transport (time:Position) drives them too: starting playback acts as a
+   start, stopping it as a stop, and while it plays, the clocks are located
+   from the song position and the tempo (unless the host sends clock messages
+   itself). Each of these events takes effect on the frame at which it falls:
+   the block is computed in parts. A plugin with such controls gets a MIDI
+   input port, which also receives the transport. */
+#ifndef FAUST_MIDISYNC
+#define FAUST_MIDISYNC 1
 #endif
 
 /* This enables or disables the plugin's custom Qt GUI (cf. lv2ui.cpp). Note
@@ -562,12 +579,38 @@ struct LV2Plugin {
   unsigned n_samples;	// current block size
   float **outbuf;	// audio buffers for mixing down the voices
   float **inbuf;	// dummy input buffer
+  float **inptrs, **outptrs;	// audio buffers offset to a part of the block
   LV2_Atom_Sequence* event_port; // midi input
   float *poly, *tuning;	// polyphony and tuning ports
   std::map<uint8_t,int> ctrlmap; // MIDI controller map
+#if FAUST_MIDISYNC
+  // Controls set by MIDI sync (midi:start, midi:stop and midi:clock control
+  // meta data), as indices into ui->elems.
+  std::vector<int> startctrls, stopctrls, clockctrls;
+  bool clockstate;	// current value of the midi:clock controls
+  bool midiclock;	// the host sends MIDI clock messages
+  // MIDI sync events of the current block, in increasing order of frames.
+  enum { SYNC_START, SYNC_STOP, SYNC_CLOCK };
+  struct SyncEvent { uint32_t frame; int type; };
+  static const int maxsync = 1024;
+  SyncEvent syncev[maxsync];
+  int nsync;
+  // Host transport, as last reported by time:Position and extrapolated since.
+  bool playing;		// the transport is rolling forward
+  double speed;		// transport speed (1 when playing at normal speed)
+  double bpm;		// tempo, in beats per minute
+  double beat;		// song position at the current frame, in beats
+  double beatunit;	// note value of a beat (4: quarter note)
+  double nextclock;	// position of the next MIDI clock, in clocks
+#endif
   // Needed host features.
   LV2_URID_Map* map;	// the urid extension
   LV2_URID midi_event;	// midi event uri
+#if FAUST_MIDISYNC
+  LV2_URID atom_Object, atom_Blank, atom_Float, atom_Double, atom_Int,
+    atom_Long, time_Position, time_speed, time_beatsPerMinute, time_beat,
+    time_barBeat, time_beatUnit;
+#endif
   // Current RPN MSB and LSB numbers, as set with controllers 101 and 100.
   uint8_t rpn_msb[16], rpn_lsb[16];
   // Current data entry MSB and LSB numbers, as set with controllers 6 and 38.
@@ -715,6 +758,16 @@ struct LV2Plugin {
     map = NULL;
     midi_event = -1;
     event_port = NULL;
+#if FAUST_MIDISYNC
+    clockstate = midiclock = playing = false;
+    nsync = 0;
+    speed = beat = nextclock = 0.0;
+    bpm = 120.0;
+    beatunit = 4.0;
+    atom_Object = atom_Blank = atom_Float = atom_Double = atom_Int =
+      atom_Long = time_Position = time_speed = time_beatsPerMinute =
+      time_beat = time_barBeat = time_beatUnit = 0;
+#endif
     poly = tuning = NULL;
     freq = gain = gate = -1;
     if (vd) {
@@ -735,7 +788,7 @@ struct LV2Plugin {
     }
     n_samples = 0;
     ctrls = inctrls = outctrls = NULL;
-    ports = inputs = outputs = inbuf = outbuf = NULL;
+    ports = inputs = outputs = inbuf = outbuf = inptrs = outptrs = NULL;
     portvals = NULL;
     memset(midivals, 0, sizeof(midivals));
     // Initialize the Faust DSPs.
@@ -788,11 +841,11 @@ struct LV2Plugin {
 	  gate = i;
 	else {
 	noinstr:
-#if FAUST_MIDICC
+#if FAUST_MIDICC || FAUST_MIDISYNC
 	  std::map< int, list<strpair> >::iterator it =
 	    ui[0]->metadata.find(i);
 	  if (it != ui[0]->metadata.end()) {
-	    // Scan for controller mappings.
+	    // Scan for controller mappings and MIDI sync controls.
 	    for (std::list<strpair>::iterator jt = it->second.begin();
 		 jt != it->second.end(); jt++) {
 	      const char *key = jt->first, *val = jt->second;
@@ -801,6 +854,19 @@ struct LV2Plugin {
 		      ui[0]->elems[i].label, key, val);
 #endif
 	      if (strcmp(key, "midi") == 0) {
+#if FAUST_MIDISYNC
+		if (strcmp(val, "start") == 0) {
+		  startctrls.push_back(i);
+		  continue;
+		} else if (strcmp(val, "stop") == 0) {
+		  stopctrls.push_back(i);
+		  continue;
+		} else if (strcmp(val, "clock") == 0) {
+		  clockctrls.push_back(i);
+		  continue;
+		}
+#endif
+#if FAUST_MIDICC
 		unsigned num;
 		if (sscanf(val, "ctrl %u", &num) < 1) continue;
 #if 0 // enable this to get feedback about controller assignments
@@ -808,6 +874,7 @@ struct LV2Plugin {
 			ui[0]->elems[i].label);
 #endif
 		ctrlmap.insert(std::pair<uint8_t,int>(num, p));
+#endif
 	      }
 	    }
 	  }
@@ -836,6 +903,9 @@ struct LV2Plugin {
     assert(n == 0 || inputs);
     outputs = (float**)calloc(m, sizeof(float*));
     assert(m == 0 || outputs);
+    inptrs = (float**)calloc(n, sizeof(float*));
+    outptrs = (float**)calloc(m, sizeof(float*));
+    assert((n == 0 || inptrs) && (m == 0 || outptrs));
     if (maxvoices > 0) {
       // Initialize the mixdown buffer.
       outbuf = (float**)calloc(m, sizeof(float*));
@@ -870,6 +940,7 @@ struct LV2Plugin {
     free(ctrls); free(inctrls); free(outctrls);
     free(ports); free(portvals);
     free(inputs); free(outputs);
+    free(inptrs); free(outptrs);
     for (int ch = 0; ch < 16; ch++)
       free(midivals[ch]);
     if (inbuf) {
@@ -1173,6 +1244,30 @@ struct LV2Plugin {
   // Audio and MIDI process functions. The plugin should run these in the
   // appropriate real-time callbacks.
 
+  // Compute the frames offset..offset+len-1 of the block. The voices of an
+  // instrument are added to the outputs, which must have been cleared.
+  void compute_frames(int offset, int len, float **inputs, float **outputs)
+  {
+    int n = dsp[0]->getNumInputs(), m = dsp[0]->getNumOutputs();
+    for (int i = 0; i < n; i++)
+      inptrs[i] = inputs[i]+offset;
+    if (outbuf) {
+      // Polyphonic instrument: Mix the voices down to one signal.
+      for (int l = 0; l < nvoices; l++) {
+	// Let Faust do all the hard work.
+	dsp[l]->compute(len, inptrs, outbuf);
+	for (int i = 0; i < m; i++)
+	  for (int j = 0; j < len; j++)
+	    outputs[i][offset+j] += outbuf[i][j];
+      }
+    } else {
+      // Simple effect: We can write directly to the output buffer.
+      for (int i = 0; i < m; i++)
+	outptrs[i] = outputs[i]+offset;
+      dsp[0]->compute(len, inptrs, outptrs);
+    }
+  }
+
   void process_audio(int blocksz, float **inputs, float **outputs)
   {
     int n = dsp[0]->getNumInputs(), m = dsp[0]->getNumOutputs();
@@ -1265,21 +1360,32 @@ struct LV2Plugin {
       n_samples = blocksz;
     }
     if (outbuf) {
-      // Polyphonic instrument: Mix the voices down to one signal.
+      // Polyphonic instrument: the voices are added to the outputs.
       for (int i = 0; i < m; i++)
 	for (unsigned j = 0; j < blocksz; j++)
 	  outputs[i][j] = 0.0f;
-      for (int l = 0; l < nvoices; l++) {
-	// Let Faust do all the hard work.
-	dsp[l]->compute(blocksz, inputs, outbuf);
-	for (int i = 0; i < m; i++)
-	  for (unsigned j = 0; j < blocksz; j++)
-	    outputs[i][j] += outbuf[i][j];
-      }
-    } else {
-      // Simple effect: We can write directly to the output buffer.
-      dsp[0]->compute(blocksz, inputs, outputs);
     }
+    int pos = 0;
+#if FAUST_MIDISYNC
+    // Compute the block in parts, so that each MIDI sync event takes effect
+    // on its own frame: at 120 BPM there are 48 clocks per second, and two
+    // toggles applied together at the start of a block would cancel out.
+    for (int e = 0; e < nsync; e++) {
+      int at = syncev[e].frame;
+      if (at > blocksz) at = blocksz;
+      if (at > pos) {
+	compute_frames(pos, at-pos, inputs, outputs);
+	pos = at;
+      }
+      switch (syncev[e].type) {
+      case SYNC_START: midi_start(); break;
+      case SYNC_STOP: midi_stop(); break;
+      case SYNC_CLOCK: midi_clock(); break;
+      }
+    }
+#endif
+    if (pos < blocksz)
+      compute_frames(pos, blocksz-pos, inputs, outputs);
     // Finally grab the passive controls and write them back to the
     // corresponding control ports. NOTE: Depending on the plugin
     // architecture, this might require a host call to get the control GUI
@@ -1303,6 +1409,169 @@ struct LV2Plugin {
 	vd->lastgate[i] =
 	  *ui[i]->elems[gate].zone;
   }
+
+#if FAUST_MIDISYNC
+  // MIDI sync (see FAUST_MIDISYNC above). These messages have no channel: a
+  // control is set on all the channels, and in all the voices.
+
+  bool has_midi_sync() const
+  {
+    return !startctrls.empty() || !stopctrls.empty() || !clockctrls.empty();
+  }
+
+  void set_sync_ctrl(int j, float val)
+  {
+    int k = ui[0]->elems[j].port;
+    for (int ch = 0; ch < 16; ch++)
+      midivals[ch][k] = val;
+    for (int i = 0; i < ndsps; i++)
+      *ui[i]->elems[j].zone = val;
+  }
+
+  void midi_start()
+  {
+    for (size_t c = 0; c < startctrls.size(); c++)
+      set_sync_ctrl(startctrls[c], 1.0f);
+  }
+
+  void midi_stop()
+  {
+    for (size_t c = 0; c < stopctrls.size(); c++)
+      set_sync_ctrl(stopctrls[c], 0.0f);
+  }
+
+  void midi_clock()
+  {
+    clockstate = !clockstate;
+    for (size_t c = 0; c < clockctrls.size(); c++)
+      set_sync_ctrl(clockctrls[c], clockstate ? 1.0f : 0.0f);
+  }
+
+  // Queue a MIDI sync event for the frame of the current block at which it
+  // falls. Events must be queued in increasing order of frames.
+  void add_sync(uint32_t frame, int type)
+  {
+    if (nsync < maxsync) {
+      syncev[nsync].frame = frame;
+      syncev[nsync].type = type;
+      nsync++;
+    }
+  }
+
+  // A system real-time message received at the given frame.
+  void sync_message(uint8_t status, uint32_t frame)
+  {
+    switch (status) {
+    case 0xf8: // clock
+      midiclock = true;
+      add_sync(frame, SYNC_CLOCK);
+      break;
+    case 0xfa: case 0xfb: // start, continue
+      add_sync(frame, SYNC_START);
+      break;
+    case 0xfc: // stop
+      add_sync(frame, SYNC_STOP);
+      break;
+    default:
+      break;
+    }
+  }
+
+  bool atom_number(const LV2_Atom *atom, double &val) const
+  {
+    if (atom->type == atom_Float)
+      val = ((const LV2_Atom_Float*)atom)->body;
+    else if (atom->type == atom_Double)
+      val = ((const LV2_Atom_Double*)atom)->body;
+    else if (atom->type == atom_Int)
+      val = ((const LV2_Atom_Int*)atom)->body;
+    else if (atom->type == atom_Long)
+      val = ((const LV2_Atom_Long*)atom)->body;
+    else
+      return false;
+    return true;
+  }
+
+  // A time:Position object received at the given frame: a change between
+  // stopped and playing acts as a MIDI start or stop. The position and the
+  // tempo then serve to locate the clocks until the next update.
+  void transport_position(const LV2_Atom_Object *obj, uint32_t frame)
+  {
+    if (obj->body.otype != time_Position) return;
+    const LV2_Atom *a_speed = NULL, *a_bpm = NULL, *a_beat = NULL,
+      *a_barbeat = NULL, *a_beatunit = NULL;
+    lv2_atom_object_get(obj, time_speed, &a_speed,
+			time_beatsPerMinute, &a_bpm, time_beat, &a_beat,
+			time_barBeat, &a_barbeat, time_beatUnit, &a_beatunit,
+			0);
+    double val;
+    if (a_bpm && atom_number(a_bpm, val) && val > 0.0) bpm = val;
+    if (a_beatunit && atom_number(a_beatunit, val) && val > 0.0)
+      beatunit = val;
+    bool was_playing = playing;
+    if (a_speed && atom_number(a_speed, val)) {
+      speed = val;
+      playing = speed > 0.0;
+      if (playing != was_playing)
+	add_sync(frame, playing ? SYNC_START : SYNC_STOP);
+    }
+    // Only the phase of the position matters for the clocks, so the position
+    // in the bar does as well as the position in the song.
+    bool have_beat = false;
+    double new_beat = beat;
+    if (a_beat && atom_number(a_beat, val))
+      have_beat = true, new_beat = val;
+    else if (a_barbeat && atom_number(a_barbeat, val))
+      have_beat = true, new_beat = val;
+    double clocks_per_beat = 96.0/beatunit;
+    if (playing && !was_playing) {
+      // Playback starts: a clock at the start position is sent at once.
+      nextclock = ceil(new_beat*clocks_per_beat - 1e-3);
+    } else if (playing && have_beat) {
+      // The host position differs from the extrapolated one by a whole number
+      // of clocks (the position in the bar wraps, a loop) and a small
+      // difference: the clocks go on without a gap or a repetition. When the
+      // small difference is only rounding (a float position, a float tempo),
+      // the extrapolated position is kept, so that a clock does not move by
+      // one frame. Otherwise the position jumps, and the clocks start again
+      // from there.
+      double d = (new_beat-beat)*clocks_per_beat, shift = floor(d+0.5);
+      if (fabs(d-shift) < 0.25) {
+	nextclock += shift;
+	if (fabs(d-shift) < 0.01)
+	  new_beat = beat + shift/clocks_per_beat;
+      } else
+	nextclock = ceil(new_beat*clocks_per_beat - 1e-3);
+    }
+    beat = new_beat;
+  }
+
+  // Advance the transport over the frames from..to-1 of the current block,
+  // queueing the MIDI clocks (24 per quarter note) that fall in them, unless
+  // the host sends clock messages itself.
+  void transport_clocks(uint32_t from, uint32_t to)
+  {
+    if (!playing || to <= from || rate <= 0) return;
+    double beats_per_frame = bpm/60.0*speed/rate;
+    if (!midiclock && !clockctrls.empty()) {
+      // A clock takes effect on the frame during which it falls. The
+      // tolerance puts a clock that falls between two frames on the second
+      // one, despite the rounding of the song position.
+      const double eps = 1e-3;
+      double clocks_per_beat = 96.0/beatunit;
+      double start = beat*clocks_per_beat;
+      double step = beats_per_frame*clocks_per_beat; // clocks per frame
+      double len = to-from;
+      while (nsync < maxsync) {
+	double at = floor((nextclock-start)/step + eps);
+	if (at >= len) break;
+	add_sync(from + ((at < 0.0) ? 0 : (uint32_t)at), SYNC_CLOCK);
+	nextclock += 1.0;
+      }
+    }
+    beat += (to-from)*beats_per_frame;
+  }
+#endif
 
   // This processes just a single MIDI message, so to process an entire series
   // of MIDI events you'll have to loop over the event data in the plugin's
@@ -1626,6 +1895,22 @@ instantiate(const LV2_Descriptor*     descriptor,
       plugin->map = (LV2_URID_Map*)features[i]->data;
       plugin->midi_event =
 	plugin->map->map(plugin->map->handle, MIDI_EVENT_URI);
+#if FAUST_MIDISYNC
+      LV2_URID_Map* map = plugin->map;
+      plugin->atom_Object = map->map(map->handle, LV2_ATOM__Object);
+      plugin->atom_Blank = map->map(map->handle, LV2_ATOM__Blank);
+      plugin->atom_Float = map->map(map->handle, LV2_ATOM__Float);
+      plugin->atom_Double = map->map(map->handle, LV2_ATOM__Double);
+      plugin->atom_Int = map->map(map->handle, LV2_ATOM__Int);
+      plugin->atom_Long = map->map(map->handle, LV2_ATOM__Long);
+      plugin->time_Position = map->map(map->handle, LV2_TIME__Position);
+      plugin->time_speed = map->map(map->handle, LV2_TIME__speed);
+      plugin->time_beatsPerMinute =
+	map->map(map->handle, LV2_TIME__beatsPerMinute);
+      plugin->time_beat = map->map(map->handle, LV2_TIME__beat);
+      plugin->time_barBeat = map->map(map->handle, LV2_TIME__barBeat);
+      plugin->time_beatUnit = map->map(map->handle, LV2_TIME__beatUnit);
+#endif
     }
   }
 	
@@ -1678,11 +1963,42 @@ static void
 run(LV2_Handle instance, uint32_t n_samples)
 {
   LV2Plugin* plugin = (LV2Plugin*)instance;
+#if FAUST_MIDISYNC
+  // MIDI sync events (start, stop and clock messages, transport changes and
+  // the clocks located from the transport) are queued with their frames, and
+  // take effect on these frames in process_audio.
+  bool sync = plugin->has_midi_sync() && plugin->map;
+  uint32_t last = 0;
+  plugin->nsync = 0;
+#endif
   // Process incoming MIDI events.
   if (plugin->event_port) {
     LV2_ATOM_SEQUENCE_FOREACH(plugin->event_port, ev) {
+#if FAUST_MIDISYNC
+      uint32_t frame = 0;
+      if (sync) {
+	frame = (ev->time.frames < 0) ? 0 :
+	  (ev->time.frames > n_samples) ? n_samples : (uint32_t)ev->time.frames;
+	if (frame > last) {
+	  plugin->transport_clocks(last, frame);
+	  last = frame;
+	}
+	if (ev->body.type == plugin->atom_Object ||
+	    ev->body.type == plugin->atom_Blank) {
+	  plugin->transport_position((const LV2_Atom_Object*)&ev->body, frame);
+	  continue;
+	}
+      }
+#endif
       if (ev->body.type == plugin->midi_event) {
 	uint8_t *data = (uint8_t*)(ev+1);
+#if FAUST_MIDISYNC
+	if (sync && data[0] >= 0xf8) {
+	  // system real-time message
+	  plugin->sync_message(data[0], frame);
+	  continue;
+	}
+#endif
 #if 0
 	// FIXME: Consider doing sample-accurate note onsets here. LV2 keeps
 	// track of the exact onset in the frames and subframes fields
@@ -1700,6 +2016,10 @@ run(LV2_Handle instance, uint32_t n_samples)
       }
     }
   }
+#if FAUST_MIDISYNC
+  if (sync && n_samples > last)
+    plugin->transport_clocks(last, n_samples);
+#endif
   // Process audio.
   plugin->process_audio(n_samples, plugin->inputs, plugin->outputs);
 }
@@ -1870,6 +2190,14 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
   int k = plugin->ui[0]->nports;
   int n = plugin->dsp[0]->getNumInputs(), m = plugin->dsp[0]->getNumOutputs();
   bool is_instr = plugin->maxvoices > 0, have_midi = is_instr;
+#if FAUST_MIDISYNC
+  // MIDI sync controls need the MIDI port, which then also receives the host
+  // transport.
+  bool have_sync = plugin->has_midi_sync();
+  if (have_sync) have_midi = true;
+#else
+  bool have_sync = false;
+#endif
   // Scan the global metadata for plugin name, description, license etc.
   const char *plugin_name = NULL, *plugin_author = NULL, *plugin_descr = NULL,
     *plugin_version = NULL, *plugin_license = NULL;
@@ -2066,11 +2394,13 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
 	a lv2:InputPort ;\n\
 	a atom:AtomPort ;\n\
 	atom:bufferType atom:Sequence ;\n\
-	atom:supports <http://lv2plug.in/ns/ext/midi#MidiEvent> ;\n\
+	atom:supports <http://lv2plug.in/ns/ext/midi#MidiEvent> ;\n%s\
 	lv2:index %d ;\n\
 	lv2:symbol \"midiin\" ;\n\
 	lv2:name \"midiin\"\n\
-    ]", idx==0?"    lv2:port":" ,", idx);
+    ]", idx==0?"    lv2:port":" ,",
+	    have_sync?"\tatom:supports <http://lv2plug.in/ns/ext/time#Position> ;\n":"",
+	    idx);
     idx++;
   }
   if (is_instr) {
