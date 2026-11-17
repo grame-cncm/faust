@@ -92,6 +92,55 @@ inline std::string extractStringValue(const std::string& json, const std::string
     return "";
 }
 
+/**
+ * @brief Escape a string for insertion between the quotes of a JSON string
+ *
+ * Labels and group names come from the DSP and may contain quotes, backslashes
+ * or control characters. Bytes above 127 (UTF-8) are copied unchanged.
+ */
+inline std::string jsonEscape(const std::string& input)
+{
+    static const char* hex = "0123456789abcdef";
+    std::string        output;
+    output.reserve(input.size());
+    for (char ch : input) {
+        unsigned char c = static_cast<unsigned char>(ch);
+        switch (c) {
+            case '"':  output += "\\\""; break;
+            case '\\': output += "\\\\"; break;
+            case '\b': output += "\\b"; break;
+            case '\f': output += "\\f"; break;
+            case '\n': output += "\\n"; break;
+            case '\r': output += "\\r"; break;
+            case '\t': output += "\\t"; break;
+            default:
+                if (c < 32) {
+                    output += "\\u00";
+                    output += hex[c >> 4];
+                    output += hex[c & 15];
+                } else {
+                    output += ch;
+                }
+        }
+    }
+    return output;
+}
+
+/**
+ * @brief Tell whether the quote at position i is escaped
+ *
+ * A quote is escaped when an odd number of backslashes precedes it: in "a\\" the
+ * last quote closes the string.
+ */
+inline bool isEscapedQuote(const std::string& input, size_t i)
+{
+    size_t backslashes = 0;
+    while (backslashes < i && input[i - backslashes - 1] == '\\') {
+        backslashes++;
+    }
+    return backslashes % 2 == 1;
+}
+
 inline std::string removeControlChars(const std::string& input)
 {
     std::string output;
@@ -102,7 +151,7 @@ inline std::string removeControlChars(const std::string& input)
         char c = input[i];
         
         // Handle string characters
-        if (c == '"' && (i == 0 || input[i - 1] != '\\')) {
+        if (c == '"' && !isEscapedQuote(input, i)) {
             inString = !inString;
             output += c;
             prevSpace = false;
@@ -210,7 +259,7 @@ private:
         //         << message << R"("})"
         //         << "}" << std::endl;
     std::cout << R"({"jsonrpc": "2.0", "id": ")" << id << R"(", "error": {"code": )" << code << R"(, "message": ")"
-    << message << R"("})"
+    << jsonEscape(message) << R"("})"
     << "}" << std::endl;
     }
     
@@ -248,8 +297,8 @@ private:
                 "tools": {}
                 },
                 "serverInfo": {
-                "name": ")" + fServerName + R"(",
-                "version": ")" + fServerVersion + R"("
+                "name": ")" + jsonEscape(fServerName) + R"(",
+                "version": ")" + jsonEscape(fServerVersion) + R"("
             }
         })";
     sendResponse(id, result);
@@ -280,8 +329,17 @@ public:
     }
     
     /**
+     * @brief Tell whether a tool is registered under this name
+     * @param name Tool name
+     */
+    bool hasTool(const std::string& name) const
+    {
+    return fRegisteredTools.find(name) != fRegisteredTools.end();
+    }
+
+    /**
      * @brief Registers a new tool with the MCP server
-     * @param tool Unique pointer to the tool to register
+     * @param tool Unique pointer to the tool to register, replacing a tool of the same name
      */
     void registerTool(std::unique_ptr<McpTool> tool)
     {
@@ -378,6 +436,7 @@ class McpWidget : public McpTool {
     float                    fMinValue;      ///< Minimum parameter value
     float                    fMaxValue;      ///< Maximum parameter value
     float*                   fAddress;       ///< Pointer to the actual parameter in DSP
+    std::string              fToolName;      ///< MCP tool name, unique among the registered tools
 
     /**
      * @brief Sanitize a name for MCP tool usage
@@ -455,13 +514,31 @@ class McpWidget : public McpTool {
         if (fAddress != nullptr) {
             *fAddress = fDefaultValue;
         }
+        fToolName = makeName();
     }
 
     /**
+     * @brief Maximum length of a tool name (Cursor has a 60 character limit)
+     */
+    static constexpr size_t maxNameLength() { return 50; }
+
+    /**
      * @brief Get the MCP tool name
+     * @return Tool name built by makeName(), or the one given to setName()
+     */
+    std::string name() const override { return fToolName; }
+
+    /**
+     * @brief Replace the tool name, to make it unique among the registered tools
+     * @param name New name, already sanitized and at most maxNameLength() characters
+     */
+    void setName(const std::string& name) { fToolName = name; }
+
+    /**
+     * @brief Build the MCP tool name from the label and the groups
      * @return Tool name in format "Name_Group1_Group2"
      */
-    std::string name() const override
+    std::string makeName() const
     {
         std::string toolName = fName;
 
@@ -473,9 +550,9 @@ class McpWidget : public McpTool {
         // Sanitize the complete name
         toolName = sanitizeName(toolName);
 
-        // Ensure the name doesn't exceed reasonable length (Cursor has 60 char limit)
-        if (toolName.length() > 50) {
-            toolName = toolName.substr(0, 50);
+        // Ensure the name doesn't exceed reasonable length
+        if (toolName.length() > maxNameLength()) {
+            toolName = toolName.substr(0, maxNameLength());
         }
 
         return toolName;
@@ -487,8 +564,8 @@ class McpWidget : public McpTool {
      */
     std::string describe() const override
     {
-        std::string humanPath = getHumanReadablePath();
-        std::string toolName  = name();
+        std::string humanPath = jsonEscape(getHumanReadablePath());
+        std::string toolName  = jsonEscape(name());
 
         return R"({
     "name": ")" +
@@ -543,7 +620,7 @@ class McpWidget : public McpTool {
             *fAddress = value;
 
             // Return confirmation message
-            std::string humanPath = getHumanReadablePath();
+            std::string humanPath = jsonEscape(getHumanReadablePath());
             return "\"" + humanPath + " set to " + std::to_string(value) + "\"";
 
         } catch (const std::exception& e) {
@@ -578,6 +655,26 @@ class McpUI : public UI {
         std::vector<std::string> reversed = fCurrentPath;
         std::reverse(reversed.begin(), reversed.end());
         return reversed;
+    }
+
+    /**
+     * @brief Register a widget under a name no other tool uses
+     *
+     * Tool names keep only ASCII letters and digits and are cut at
+     * McpWidget::maxNameLength() characters, so distinct controls (non-ASCII
+     * labels, long labels) can get the same name. Later ones are numbered
+     * _2, _3... in the order of buildUserInterface(), which is stable.
+     */
+    void registerWidget(std::unique_ptr<McpWidget> widget)
+    {
+        const std::string base = widget->name();
+        std::string       name = base;
+        for (int n = 2; fServer.hasTool(name); n++) {
+            const std::string suffix = "_" + std::to_string(n);
+            name = base.substr(0, McpWidget::maxNameLength() - suffix.size()) + suffix;
+        }
+        widget->setName(name);
+        fServer.registerTool(std::move(widget));
     }
 
    public:
@@ -636,7 +733,7 @@ class McpUI : public UI {
                                                   0.0f,  // min value
                                                   1.0f,  // max value
                                                   zone);
-        fServer.registerTool(std::move(widget));
+        registerWidget(std::move(widget));
     }
 
     void addCheckButton(const char* label, FAUSTFLOAT* zone) override
@@ -647,7 +744,7 @@ class McpUI : public UI {
                                                   0.0f,  // min value
                                                   1.0f,  // max value
                                                   zone);
-        fServer.registerTool(std::move(widget));
+        registerWidget(std::move(widget));
     }
 
     void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
@@ -657,7 +754,7 @@ class McpUI : public UI {
             std::make_unique<McpWidget>(label,  // Direct const char* to string conversion
                                         getReversedPath(), static_cast<float>(init),
                                         static_cast<float>(min), static_cast<float>(max), zone);
-        fServer.registerTool(std::move(widget));
+        registerWidget(std::move(widget));
     }
 
     void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
@@ -667,7 +764,7 @@ class McpUI : public UI {
             std::make_unique<McpWidget>(label,  // Direct const char* to string conversion
                                         getReversedPath(), static_cast<float>(init),
                                         static_cast<float>(min), static_cast<float>(max), zone);
-        fServer.registerTool(std::move(widget));
+        registerWidget(std::move(widget));
     }
 
     void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
@@ -677,7 +774,7 @@ class McpUI : public UI {
             std::make_unique<McpWidget>(label,  // Direct const char* to string conversion
                                         getReversedPath(), static_cast<float>(init),
                                         static_cast<float>(min), static_cast<float>(max), zone);
-        fServer.registerTool(std::move(widget));
+        registerWidget(std::move(widget));
     }
 
     // -- passive widgets (ignored)
