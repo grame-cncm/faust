@@ -288,16 +288,28 @@ class StepSignalPrefix : public SignalIdentity {
     }
 };
 
-// Signals the renderer cannot compute from the program alone
-struct StepChecker : public SignalVisitor {
+// Signals the renderer cannot compute from the program alone : foreign functions, variables and
+// constants (except the sample rate), soundfiles. Tested without exceptions, unlike
+// signal_dsp_factory::SignalChecker : libfaust-wasm is built without exception catching, so a
+// thrown exception ends the compilation even when it would be caught.
+struct StepRenderable : public SignalVisitor {
+    bool fOK = true;
+
     void visit(Tree sig) override
     {
-        Tree x, y;
-        if (isSigSoundfile(sig, x) || isSigSoundfileLength(sig, x, y) ||
-            isSigSoundfileRate(sig, x, y)) {
-            throw faustexception("soundfile");
+        Tree ff, largs, type, name, file, x, y;
+        if (!fOK) {
+            return;
         }
-        SignalVisitor::visit(sig);
+        if (isSigFFun(sig, ff, largs) || isSigFVar(sig, type, name, file) ||
+            (isSigFConst(sig, type, name, file) &&
+             std::string(tree2str(name)) != "fSamplingFreq") ||
+            isSigSoundfile(sig, x) || isSigSoundfileLength(sig, x, y) ||
+            isSigSoundfileRate(sig, x, y)) {
+            fOK = false;
+        } else {
+            SignalVisitor::visit(sig);
+        }
     }
 };
 
@@ -345,8 +357,9 @@ static void renderList(const tvec& sigs, int count, std::vector<std::vector<FAUS
     }
 }
 
-// Compute the values of closed signals, throws faustexception on failure
-static void renderBatch(const std::vector<Tree>& sigs)
+// Compute the values of closed signals ; false when their normal form does not keep one signal
+// per signal, the values are then not computed
+static bool renderBatch(const std::vector<Tree>& sigs)
 {
     int              count = gGlobal->gSVGStepSamples;
     Tree             norm  = simplifyToNormalForm(listConvert(sigs));
@@ -355,22 +368,18 @@ static void renderBatch(const std::vector<Tree>& sigs)
     typeAnnotation(norm, gGlobal->gLocalCausalityCheck);
     tvec ns = treeConvert(norm);
     if (ns.size() != sigs.size()) {
-        throw faustexception("ERROR : -sst, unexpected normal form\n");
+        return false;
     }
 
     // keep the signals the renderer can compute
     tvec             good;
     std::vector<int> where(ns.size(), -1);
     for (size_t i = 0; i < ns.size(); i++) {
-        try {
-            Tree one = cons(ns[i], gGlobal->nil);  // visitRoot walks a list
-            signal_dsp_factory::SignalChecker c1;
-            c1.visitRoot(one);
-            StepChecker c2;
-            c2.visitRoot(one);
+        StepRenderable check;
+        check.visitRoot(cons(ns[i], gGlobal->nil));  // visitRoot walks a list
+        if (check.fOK) {
             where[i] = int(good.size());
             good.push_back(ns[i]);
-        } catch (faustexception&) {
         }
     }
 
@@ -391,6 +400,7 @@ static void renderBatch(const std::vector<Tree>& sigs)
         }
         gStepValues[sigs[i]] = v;
     }
+    return true;
 }
 
 static void computeValues(const std::vector<Tree>& sigs)
@@ -404,14 +414,10 @@ static void computeValues(const std::vector<Tree>& sigs)
     if (todo.empty()) {
         return;
     }
-    try {
-        renderBatch(todo);
-    } catch (faustexception&) {
+    if (!renderBatch(todo)) {
         // one signal spoils the batch : compute them one by one
         for (Tree s : todo) {
-            try {
-                renderBatch(std::vector<Tree>(1, s));
-            } catch (faustexception&) {
+            if (!renderBatch(std::vector<Tree>(1, s))) {
                 gStepValues[s] = StepValues();
             }
         }
