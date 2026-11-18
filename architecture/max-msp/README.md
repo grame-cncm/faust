@@ -453,14 +453,20 @@ compiled with `-nosrc` cannot be converted:
 - `<name>-exp.dsp`, the program expanded by Faust, self-contained, which is
   placed in the box by default; `--source original` places `<name>.dsp`
   instead, whose libraries are then found through `-L`/`--library-path`;
-- `<name>.cpp`, whose header gives the compilation options and whose DSP class
-  gives the number of audio inputs and outputs.
+- `<name>.json`, the description written by `faust -json`, which gives the
+  compilation options and the number of audio inputs and outputs;
+- `<name>.cpp`, for older bundles that have no JSON description: the options
+  are then read in the header of the generated code, and the inputs and
+  outputs in its DSP class.
+
+The manifest records, for each external, which of the two files described it
+(`described_by`).
 
 For each box whose class is one of these externals, the converter:
 
 1. sets its text to `faustgen~ <name>`, or `mc.faustgen~ <name>` when the
    external was compiled with `faust2max6 -mc`. That option is not a Faust
-   option and does not appear in the `.cpp` header: it is read from the
+   option and appears in neither the JSON nor the `.cpp`: it is read from the
    external's binary, where only a multichannel build creates a
    `multichannelsignal` outlet. The outlet types saved in the box only confirm
    it (a contradiction is reported, and the binary decides); they decide only

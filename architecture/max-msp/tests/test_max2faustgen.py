@@ -10,6 +10,7 @@ import importlib.util
 import io
 import json
 import os
+import shutil
 import stat
 import sys
 import tempfile
@@ -33,13 +34,16 @@ OPTIONS_LINE = ("-a /x/max-msp/max-msp64.cpp -lang cpp -i -fpga-mem-th 4 -ct 1 "
 
 def make_bundle(directory: Path, name: str = "osc", options: str = OPTIONS_LINE,
                 inputs: int = 2, outputs: int = 1, sources: bool = True,
-                binary: str = "plain", resources: bool = True) -> Path:
+                binary: str = "plain", resources: bool = True,
+                description=None, cpp: bool = True) -> Path:
     """Write a bundle shaped like a faust2max6 output, sources at its top.
 
     ``binary`` is "plain" or "mc" for a binary holding the strings of an
     external compiled without or with -mc, or "none" for no binary.
     ``resources`` puts the sources in Contents/Resources, as faust2max6 does;
     older versions put them at the top of the bundle.
+    ``description`` is the content of the <name>.json written by faust -json,
+    absent by default as in older bundles; ``cpp`` writes the generated code.
     """
 
     bundle = directory / f"{name}~.mxo"
@@ -55,6 +59,10 @@ def make_bundle(directory: Path, name: str = "osc", options: str = OPTIONS_LINE,
     if sources:
         (folder / f"{name}.dsp").write_text(ORIGINAL, encoding="utf-8")
         (folder / f"{name}-exp.dsp").write_text(EXPANDED, encoding="utf-8")
+        if description is not None:
+            text = description if isinstance(description, str) else json.dumps(description)
+            (folder / f"{name}.json").write_text(text, encoding="utf-8")
+    if sources and cpp:
         # Wrapper classes forward the counts; only the DSP class has constants.
         (folder / f"{name}.cpp").write_text(
             "/* ------------------------------------------------------------\n"
@@ -335,6 +343,60 @@ class Max2FaustgenTest(unittest.TestCase):
         self.assertEqual(status, 0, stderr)
         self.assertEqual(boxes_by_id(self.converted(out)["patcher"])["x-1"]["sourcecode"],
                          EXPANDED)
+
+    def json_description(self, **changes):
+        description = {"name": "osc", "filename": "osc.dsp", "version": "2.94.0",
+                       "compile_options": "-a /x/max-msp64.cpp -lang cpp -i -ct 1 -cn osc "
+                                          "-es 0 -single -ftz 0",
+                       "inputs": 3, "outputs": 2, "meta": [], "ui": []}
+        description.update(changes)
+        return description
+
+    def test_the_json_description_is_preferred_to_the_cpp(self):
+        # The .cpp says 2 inputs, 1 output and other options: the JSON wins.
+        _, out, status, _, stderr = self.convert(
+            bundle_kw={"description": self.json_description()})
+        self.assertEqual(status, 0, stderr)
+        result = boxes_by_id(self.converted(out)["patcher"])["x-1"]
+        self.assertEqual((result["numinlets"], result["numoutlets"]), (3, 4))
+        options = [result[k] for k in sorted(result) if k.startswith("compile_option")]
+        self.assertEqual(options, ["-ct", "1", "-es", "0", "-single", "-ftz", "0"])
+        manifest = json.loads((out / max2faustgen.MANIFEST).read_text())
+        self.assertEqual(manifest["externals"][0]["described_by"], "osc.json")
+
+    def test_a_json_description_without_cpp(self):
+        _, out, status, _, stderr = self.convert(
+            bundle_kw={"description": self.json_description(), "cpp": False})
+        self.assertEqual(status, 0, stderr)
+        result = boxes_by_id(self.converted(out)["patcher"])["x-1"]
+        self.assertEqual(result["sourcecode"], EXPANDED)
+        self.assertEqual(result["numinlets"], 3)
+
+    def test_an_older_bundle_is_described_by_its_cpp(self):
+        _, out, status, _, _ = self.convert()
+        self.assertEqual(status, 0)
+        manifest = json.loads((out / max2faustgen.MANIFEST).read_text())
+        self.assertEqual(manifest["externals"][0]["described_by"], "osc.cpp")
+
+    def test_an_unreadable_json_description_is_rejected(self):
+        for description, message in (("{not json", "illisible"),
+                                     (self.json_description(inputs=None), "illisible"),
+                                     (self.json_description(compile_options=["-double"]),
+                                      "chaîne"),
+                                     (self.json_description(compile_options="-double -zz"),
+                                      "-zz")):
+            with self.subTest(description=description):
+                bundles = self.project / "externals"
+                shutil.rmtree(bundles)
+                bundles.mkdir()
+                _, _, status, _, stderr = self.convert(bundle_kw={"description": description})
+                self.assertEqual(status, 2)
+                self.assertIn(message, stderr)
+
+    def test_without_json_or_cpp_the_bundle_is_rejected(self):
+        _, _, status, _, stderr = self.convert(bundle_kw={"cpp": False})
+        self.assertEqual(status, 2)
+        self.assertIn("-nosrc", stderr)
 
     def test_bundle_without_sources_is_rejected(self):
         _, _, status, _, stderr = self.convert(bundle_kw={"sources": False})
