@@ -437,3 +437,95 @@ GUI/audio test is deliberately excluded from `make test` because it opens Max
 and briefly activates the audio engine. `MAX_APPLICATION` can select a Max
 executable installed somewhere other than
 `/Applications/Max.app/Contents/MacOS/Max`.
+
+# max2faustgen
+
+`max2faustgen.py` does the reverse of `faustgen2max.py`: it replaces, in Max
+patches, the boxes of externals compiled by `faust2max6` with `faustgen~` boxes
+that carry the same Faust program. The patches then need the faustgen package
+instead of the compiled `.mxo` bundles, and their Faust code can be read and
+edited in Max again.
+
+It reads what `faust2max6` stores in each `<name>~.mxo` bundle, in
+`Contents/Resources` (at the top of the bundle for older versions); bundles
+compiled with `-nosrc` cannot be converted:
+
+- `<name>-exp.dsp`, the program expanded by Faust, self-contained, which is
+  placed in the box by default; `--source original` places `<name>.dsp`
+  instead, whose libraries are then found through `-L`/`--library-path`;
+- `<name>.cpp`, whose header gives the compilation options and whose DSP class
+  gives the number of audio inputs and outputs.
+
+For each box whose class is one of these externals, the converter:
+
+1. sets its text to `faustgen~ <name>`, or `mc.faustgen~ <name>` when the
+   external was compiled with `faust2max6 -mc`. That option is not a Faust
+   option and does not appear in the `.cpp` header: it is read from the
+   external's binary, where only a multichannel build creates a
+   `multichannelsignal` outlet. The outlet types saved in the box only confirm
+   it (a contradiction is reported, and the binary decides); they decide only
+   when the bundle has no binary. The argument names the faustgen factory, so
+   all the boxes of one external share one compiled program
+   (`--no-factory-name` leaves it out);
+2. stores the program in `sourcecode`/`sourcecode_size`;
+3. stores the options that change the generated code (`-double`, `-es`,
+   `-mcd`, `-mdd`, `-mdy`, `-ct`, `-ftz`, `-vec`...) as faustgen compile
+   options. The options that only concern the C++ external (`-a`, `-lang`,
+   `-cn`, `-i`...) are dropped, and an unknown option stops the conversion.
+   `--compile-option` adds an option to every box;
+4. records the class it replaces in the box's `annotation` attribute, so that a
+   JavaScript that found the external by its class can still find it with
+   `box.getboxattr("annotation")`. `faustgen~` resets the scripting name of its
+   box when it is created, but keeps the annotation (`--no-annotation` leaves
+   it out);
+5. keeps the box id, geometry, other attributes and every patch cord: the
+   inlets and outlets of `faustgen~` come in the same order as those of a
+   `faust2max6` external (audio, then the control outlet, then MIDI).
+
+A box with arguments (such as `@freq 700` creation attributes) has no
+`faustgen~` equivalent and stops the conversion. A scripting name, a patch
+cord from an outlet that is not an audio outlet, or a cord into another inlet
+than the first of a multichannel external, is reported as a warning.
+
+The patches are read and written with py2max. Two of its saving behaviours are
+switched off, because they would change boxes the conversion does not touch:
+filling in `numinlets`/`numoutlets` on boxes saved without them, and rewriting
+the `outlettype` of subpatcher boxes (`multichannelsignal` becomes `""`).
+Unconverted boxes are therefore written back as they were read; only the
+indentation of the JSON differs from the one Max writes.
+
+## Usage
+
+```bash
+python3 architecture/max-msp/max2faustgen.py my-project/ -o my-project-faustgen/
+```
+
+Inputs are `.maxpat` files or directories, searched recursively (`.git` and
+`node_modules` are skipped). The externals are searched recursively in the
+inputs and the folders of the input patches, or in the directories given with
+`-E`/`--externals`. One destination is required:
+
+- `-o`/`--output-dir DIR` writes the converted patches under `DIR`, at their
+  paths relative to their input, with a `max2faustgen.json` manifest (the
+  externals, their options, inputs and outputs, source hashes, the converted
+  boxes and the warnings). Only patches that contain a converted box are
+  written. Existing outputs are replaced only with `--force`;
+- `--in-place` rewrites the input patches, which is meant for a copy of a
+  project;
+- `--analyze` prints the same report as JSON and writes nothing.
+
+`--check FAUST` first compiles every program that a patch uses with the given
+Faust compiler and the options it will have in `faustgen~`, and stops before
+writing anything if one fails.
+
+The exit status is 0 when boxes were converted, 1 when no box uses an
+external, and 2 on error.
+
+## Tests
+
+```bash
+make -C architecture/max-msp/tests max2faustgen
+```
+
+The tests use synthetic bundles and patches; they need neither Max nor a Faust
+compiler.

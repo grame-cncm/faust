@@ -1,7 +1,7 @@
 PYTHON ?= python3
 .DEFAULT_GOAL := test
 
-.PHONY: help test check faustgen2max faust2gen faust2max6 faust2rnbo saveui \
+.PHONY: help test check faustgen2max max2faustgen faust2gen faust2max6 faust2rnbo saveui \
 	max-runtime-harness faust2max6-integration max-runtime-integration
 
 help:
@@ -9,6 +9,7 @@ help:
 	@echo "  make test                   Run all portable tests (default)"
 	@echo "  make check                  Alias for make test"
 	@echo "  make faustgen2max           Run faustgen2max tests"
+	@echo "  make max2faustgen           Run max2faustgen tests"
 	@echo "  make faust2gen              Run faust2gen tests"
 	@echo "  make faust2max6             Run faust2max6 argument tests"
 	@echo "  make faust2rnbo             Run faust2rnbo generation tests"
@@ -17,13 +18,17 @@ help:
 	@echo "  make faust2max6-integration Compile and verify native Max externals"
 	@echo "  make max-runtime-integration Launch Max and test dynamic polyphony audio"
 
-test: faustgen2max faust2gen faust2max6 faust2rnbo saveui max-runtime-harness max-runtime-integration
+test: faustgen2max max2faustgen faust2gen faust2max6 faust2rnbo saveui max-runtime-harness max-runtime-integration
 
 check: test
 
 faustgen2max:
 	@echo "===== faustgen2max patch conversion ====="
 	$(PYTHON) test_faustgen2max.py -v
+
+max2faustgen:
+	@echo "===== max2faustgen patch conversion ====="
+	$(PYTHON) test_max2faustgen.py -v
 
 faust2gen:
 	@echo "===== faust2gen patch generation ====="
