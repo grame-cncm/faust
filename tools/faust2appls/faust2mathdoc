@@ -111,7 +111,10 @@ fi
 # 1. Compile `faust --mathdoc` to generate the TeX file and SVG block-diagrams.
 # 2. Move to the "${FILEPATH%.dsp}-mdoc" directory created by faust.
 # 3. Convert SVG files into PDF files recursively (with svg2pdf).
-# 4. Compile pdflatex twice (including the top-level block-diagram).
+# 4. Compile xelatex twice (including the top-level block-diagram).
+#    The LaTeX of the <mdoc> blocks is compiled as is, so xelatex may only read
+#    its working directory (openin_any=p): it compiles, under the name of the
+#    TeX file, a copy whose diagrams are copied next to it.
 # 5. Copy some important files where needed.
 for FILEPATH in $@ ; do
     if [ -f $FILEPATH ] ; then
@@ -125,7 +128,11 @@ for FILEPATH in $@ ; do
         faust $MDLANGOPT -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH  || exit
         cd ${FILEPATH%.dsp}-mdoc/ &&
         cd svg && convert_svgprocesses2pdf svg-* && cd .. &&
-        cd tex && xelatex ${FILENAME%.dsp}.tex && xelatex ${FILENAME%.dsp}.tex && cd .. &&
+        cd tex && cp -r ../svg svg &&
+        sed "s|\.\./svg/|svg/|g" ${FILENAME%.dsp}.tex > ${FILENAME%.dsp}-local.tex &&
+        openin_any=p xelatex -jobname=${FILENAME%.dsp} ${FILENAME%.dsp}-local.tex &&
+        openin_any=p xelatex -jobname=${FILENAME%.dsp} ${FILENAME%.dsp}-local.tex &&
+        rm -rf svg ${FILENAME%.dsp}-local.tex && cd .. &&
         mkdir -p pdf && cp tex/${FILENAME%.dsp}.pdf pdf &&
         mkdir -p cpp && mv ../${FILENAME%.dsp}.cpp cpp &&
         cd ..
