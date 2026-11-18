@@ -207,11 +207,21 @@ class Faust2Max6IntegrationTests(unittest.TestCase):
         subprocess.run(
             ["codesign", "--verify", "--deep", "--strict", str(bundle)], check=True
         )
-        for name in (dsp.name, f"{dsp.stem}-exp.dsp", f"{dsp.stem}.cpp"):
+        for name in (dsp.name, f"{dsp.stem}-exp.dsp", f"{dsp.stem}.cpp", f"{dsp.stem}.json"):
             self.assertEqual((resources / name).is_file(), include_sources, name)
-        if not include_sources:
+        if include_sources:
+            description = json.loads((resources / f"{dsp.stem}.json").read_text(encoding="utf-8"))
+            self.assertEqual(description["filename"], dsp.name)
+            self.assertIn("inputs", description)
+            self.assertIn("outputs", description)
+            self.assertIn("ui", description)
+        else:
             self.assertFalse(
-                [path for path in bundle.rglob("*") if path.suffix in {".dsp", ".cpp"}]
+                [
+                    path
+                    for path in bundle.rglob("*")
+                    if path.suffix in {".dsp", ".cpp", ".json"}
+                ]
             )
         with (bundle / "Contents" / "Info.plist").open("rb") as stream:
             info = plistlib.load(stream)

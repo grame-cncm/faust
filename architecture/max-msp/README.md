@@ -72,7 +72,7 @@ Here are the available options:
   - `-arch arm64` : to generate an ARM64-only external on macOS (`x86_64` and `universal` are also accepted)
   - `-universal` : to generate a 64 bits x86/ARM universal external on macOS 
   - `-nopatch` : to deactivate patch generation
-  - `-nosrc` : to omit the original DSP, expanded DSP and generated C++ sources from the external's `Contents/Resources` directory
+  - `-nosrc` : to omit the original DSP, expanded DSP, generated C++ sources and JSON description from the external's `Contents/Resources` directory
   - `-nopost` : to disable informational Faust messages in the Max console when the external loads or an object is created; error diagnostics remain enabled
   - `-soundfile`: when compiling DSP using 'soundfile' primitive, to add the needed resources (soundfiles) in the produced .mxo file, and have the required libsndfile library statically linked
   - `-soundfile-dynamic` : when compiling DSP using 'soundfile' primitive, to add the needed resources (soundfiles) in the produced .mxo file, and use the installed libsndfile library (so possibly using dynamic link)
@@ -88,7 +88,7 @@ If you plan to use **faust2max6** on your own machine, you will have to:
 
 ## Misc
 
-- by default, the original DSP file, its self-contained expansion and the generated self-contained C++ file are kept in the compiled `.mxo` external, in `Contents/Resources`, to be accessed using the *Show Package Contents* option. `-nosrc` omits these sources while preserving runtime resources, including soundfiles added with `-soundfile` or `-soundfile-dynamic`. The external can still be code signed.
+- by default, the original DSP file (`file.dsp`), its self-contained expansion (`file-exp.dsp`), the generated self-contained C++ file (`file.cpp`) and the JSON description produced by `faust -json` (`file.json`: name, number of inputs and outputs, compilation options, metadata and user interface) are kept in the compiled `.mxo` external, in `Contents/Resources`, to be accessed using the *Show Package Contents* option. `-nosrc` omits these files while preserving runtime resources, including soundfiles added with `-soundfile` or `-soundfile-dynamic`. The external can still be code signed.
 
 To build an external without packaged sources or informational messages in the Max console:
 
