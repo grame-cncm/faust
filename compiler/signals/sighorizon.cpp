@@ -673,7 +673,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
     // the past ; nor through integer arithmetic, which may wrap. A NaN fails every
     // comparison : the false side is refined only for a value that cannot be NaN.
     // Both branches are computed by the program whichever is chosen : the validity
-    // alert stays the one of the unrefined branches.
+    // alert stays the one of the unrefined branches, a NaN guard excepted (nanGuard).
     using Overrides = std::unordered_map<Tree, AffItv>;
 
     /// the next program value after k in the direction dir (integers step by one)
@@ -1086,27 +1086,78 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         return true;
     }
 
+    /// t compares a value v with a constant k : v op k, the constant on the right
+    static bool comparisonOf(Tree t, int& op, Tree& v, double& k)
+    {
+        Tree l, r;
+        for (Tree x; isSigIntCast(t, x) || isSigFloatCast(t, x);) t = x;
+        if (!isSigBinOp(t, &op, l, r) || op < kGT || op > kNE) return false;
+        if (constNum(r, k)) {
+            v = l;
+            return true;
+        }
+        if (constNum(l, k)) {
+            v  = r;
+            op = mirror(op);
+            return true;
+        }
+        return false;
+    }
+
+    /// t is (v >= k) | (v < k), in any order and writing : true for every number, false
+    /// for NaN only (the defined integer conversion, sigPromotion)
+    static bool orderedTest(Tree t, Tree& v, double& k)
+    {
+        Tree a, b, va, vb;
+        int  op, oa, ob;
+        double ka, kb;
+        for (Tree x; isSigIntCast(t, x) || isSigFloatCast(t, x);) t = x;
+        if (!isSigBinOp(t, &op, a, b) || op != kOR) return false;
+        if (!comparisonOf(a, oa, va, ka) || !comparisonOf(b, ob, vb, kb)) return false;
+        if (va != vb || ka != kb) return false;
+        const bool complementary = (oa == kGE && ob == kLT) || (oa == kLT && ob == kGE) ||
+                                   (oa == kGT && ob == kLE) || (oa == kLE && ob == kGT);
+        if (!complementary) return false;
+        v = va;
+        k = ka;
+        return true;
+    }
+
+    // A NaN guard : select2(c, s0, v), c a test of v that a NaN fails (an ordering, an
+    // equality, or the ordered test above). The selection is v when v is a number, s0
+    // otherwise. The computation of the branch v is the one of v, whose only invalid
+    // execution, for a real, is a NaN : the promotion defines every other operation of the
+    // emitted code (saturated conversions, defined remainders, masked shifts, held
+    // indices), and the interval of a real holds each of its numbers. The selection is
+    // then valid when s0 is. An integer value is never NaN : its alert is kept.
+    bool nanGuard(Tree v, int op, Tree s1, const interval& iv) const
+    {
+        return s1 == v && op != kNE && !integerValue(v, iv);
+    }
+
     /// select2 typed under its condition, or nothing
     bool guardedSelect(Tree sig, const std::vector<AffItv>& c, FixPointEvaluator<AffItv>& ev,
                        AffItv& result) const
     {
-        Tree sel, s0, s1, l, r;
+        Tree sel, s0, s1;
         int  op;
         if (!isSigSelect2(sig, sel, s0, s1)) return false;
-        // the int or the float of a comparison is the comparison, a value 0 or 1 (the
-        // backends that convert a boolean condition explicitly, Cmajor)
-        for (Tree x; isSigIntCast(sel, x) || isSigFloatCast(sel, x);) sel = x;
-        if (!isSigBinOp(sel, &op, l, r) || op < kGT || op > kNE) return false;
         double k;
         Tree   v;
-        if (constNum(r, k)) {
-            v = l;
-        } else if (constNum(l, k)) {
-            v  = r;
-            op = mirror(op);
-        } else {
-            return false;
+        // the ordered test refines no bound : v when it is a number, s0 when it is NaN
+        if (orderedTest(sel, v, k)) {
+            const AffItv   av = ev.eval(v);
+            const interval iv = itv::toItv(av, fT);
+            if (iv.isEmpty() || !nanGuard(v, kGE, s1, iv)) return false;
+            AffItv number       = av;
+            number.mayBeInvalid = false;
+            result              = av.mayBeInvalid ? itv::ajoin(c[1], number, fT) : number;
+            result.mayBeInvalid = c[1].mayBeInvalid;
+            return true;
         }
+        // the int or the float of a comparison is the comparison, a value 0 or 1 (the
+        // backends that convert a boolean condition explicitly, Cmajor)
+        if (!comparisonOf(sel, op, v, k)) return false;
         const interval iv = itv::toItv(ev.eval(v), fT);
         if (iv.isEmpty()) return false;
         auto known = fSelectReads.find(v);
@@ -1135,8 +1186,12 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
             refined = true;
         }
         if (!refined) return false;
-        const bool invalid = c[0].mayBeInvalid || c[1].mayBeInvalid || c[2].mayBeInvalid;
-        result             = itv::ajoin(branch[0], branch[1], fT).withInvalid(invalid);
+        bool invalid = c[0].mayBeInvalid || c[1].mayBeInvalid || c[2].mayBeInvalid;
+        if (nanGuard(v, op, s1, iv)) {
+            branch[1].mayBeInvalid = false;
+            invalid                = c[1].mayBeInvalid;
+        }
+        result = itv::ajoin(branch[0], branch[1], fT).withInvalid(invalid);
         return true;
     }
 

@@ -728,7 +728,7 @@ property per program.
 
 | directory | content | expected |
 | :--- | :--- | :--- |
-| `accepted/` | delays the analysis must bound, a coefficient beyond `FLT_MAX` that must not stop the compilation, and programs whose code is defined although they are not certified free of NaN : a conversion of a value that may be NaN, an integer remainder by a divisor that may be 0 or -1, an integer power of variable exponent, a foreign function, a table index beyond the table, the square root of an input | accepted under every option set |
+| `accepted/` | delays the analysis must bound, a coefficient beyond `FLT_MAX` that must not stop the compilation, and programs whose code is defined although they are not certified free of NaN : a conversion of a value that may be NaN, an integer remainder by a divisor that may be 0 or -1, an integer power of variable exponent, a foreign function, a table index beyond the table, the square root of an input ; delays computed from a value that may be NaN, which the conversion to an integer gives the value 0 (a foreign function masked or held within bounds, the sine of an input) | accepted under every option set |
 | `refused/` | delays that are unbounded, beyond the integer range, or possibly negative ; signals without any valid value, even kept away from the outputs | refused under every option set |
 | `nocert/` | programs refused only for what the analysis could not prove | refused by default, accepted under `-nocert` |
 | `mcs/` | programs certified for a duration between 10 and 60 seconds | accepted by default, refused under `-mcs 60`, accepted under `-mcs 60 -nocert` |
@@ -1019,14 +1019,6 @@ does not protect it.
   `select2(|x| > eps, 0, x)` under `-ftz 1` and in
   `select2(bitcast(x) & mask, 0, x)` under `-ftz 2` (`sigPromotion.cpp`),
   and the interval analysis no longer bounds the delay the recursion feeds.
-
-- **`int()` of a value the analysis does not bound, then masked** : the
-  delay `x@(int(d) & (n-1))` of the old `music.lib`, with `d` the result of
-  a foreign function (`hypotf`), is refused on `int(hypotf(2, 4))`
-  (`tests/pass-tests/felix1.dsp`, `tests/codegen-tests/felix1.dsp`), as is
-  a table index in `tests/codegen-tests/bug-wall.dsp` ; `master-dev`
-  accepts them. The conversion saturates, so its value lies in the Int32
-  range, and the mask bounds the delay : a false refusal, open.
 
 - The status of each of the other suites under `tests/` — gate,
   informative, or abandoned. This has to be written down once.
