@@ -1011,15 +1011,6 @@ does not protect it.
   index (`LA-FORME-DE-CALCUL`, the transformations) ; the two index
   differences `master-dev` makes too do not change its output.
 
-- **The flush-to-zero modes refuse two programs** that `master-dev`
-  accepts : `phaser_flanger` under `-ftz 1` and `-ftz 2`, `comb_bug_exp`
-  under `-ftz 2` (`can't compute the min and max values`, in a delay
-  expression) ; both are accepted under `-ftz 0`, the default. A defect of
-  the branch, open. The modes wrap every real recursive definition, in
-  `select2(|x| > eps, 0, x)` under `-ftz 1` and in
-  `select2(bitcast(x) & mask, 0, x)` under `-ftz 2` (`sigPromotion.cpp`),
-  and the interval analysis no longer bounds the delay the recursion feeds.
-
 - The status of each of the other suites under `tests/` — gate,
   informative, or abandoned. This has to be written down once.
 - What "a reasonable time" means for criterion 1: a per-program
