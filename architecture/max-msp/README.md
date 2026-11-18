@@ -1,3 +1,19 @@
+# Faust tools for Max/MSP
+
+| Tool | Input | Output |
+| :--- | :--- | :--- |
+| [faust2max6](#faust2max6) | a Faust DSP program | a compiled Max external (`<name>~.mxo`, macOS) and a patch with its control GUI |
+| [faust2gen](#faust2gen) | a Faust DSP program | a patch with a `faustgen~`/`mc.faustgen~` object that compiles it when loaded |
+| [faust2rnbo](#faust2rnbo) | a Faust DSP program | a RNBO patch containing the code generated for codebox |
+| [faustgen2max](#faustgen2max) | Max patches using `faustgen~`/`mc.faustgen~` | the same patches using externals compiled by faust2max6 |
+| [max2faustgen](#max2faustgen) | Max patches using externals compiled by faust2max6 | the same patches using `faustgen~`/`mc.faustgen~` |
+
+faust2max6, faust2gen and faust2rnbo are shell scripts in `tools/faust2appls`
+(faust2rnbo generates its patch with `rnbo.py`, in this directory).
+faustgen2max and max2faustgen are Python scripts in this directory and convert
+in opposite directions. `rnbo.py`, faustgen2max and max2faustgen read and
+write Max patches with py2max, whose source checkout is in `py2max/`.
+
 # faust2max6
 
 The **faust2max6** tool transforms a Faust DSP program into a compiled Max/MSP external, and a ready-to-use patch to load and use it, containing the control GUI. Polyphonic and MIDI controllable instruments can be created. It compiles 64 bits externals for Max6 and newer versions.
