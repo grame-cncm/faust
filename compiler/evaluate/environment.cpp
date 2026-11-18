@@ -134,7 +134,9 @@ Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv)
         stringstream s;
         s << boxpp(id);
         if (!isBoxCase(rhs)) {
-            setDefNameProperty(cl, s.str());
+            // the closure of another definition with the same right-hand side (in the same
+            // environment) is the same tree, whose name becomes ambiguous
+            setDefNameProperty(cl, s.str(), defNameStamp(), false);
         }
         addLayerDef(id, cl, lenv2);
         ldefs = tl(ldefs);
@@ -213,7 +215,9 @@ Tree copyEnvReplaceDefs(Tree anEnv, Tree ldefs, Tree visited, Tree curEnv)
         stringstream s;
         s << boxpp(id);
         if (!isBoxCase(rhs)) {
-            setDefNameProperty(cl, s.str());
+            // the closure of another definition with the same right-hand side (in the same
+            // environment) is the same tree, whose name becomes ambiguous
+            setDefNameProperty(cl, s.str(), defNameStamp(), false);
         }
         setProperty(copyEnv, id, cl);
         ldefs = tl(ldefs);
