@@ -593,6 +593,7 @@ void global::reset()
     gMathApprox           = false;
     gShareSums            = true;
     gExactWeights         = true;
+    gReciprocals          = true;
     gMinCertifiedSeconds  = 10;
     gNoCert               = false;
     gSumLanes             = true;
@@ -988,6 +989,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gExactWeights) {
         dst << "-xw ";
+    }
+    if (gReciprocals) {
+        dst << "-rcp ";
     }
     if (gMinCertifiedSeconds != 10) {
         dst << "-mcs " << gMinCertifiedSeconds << " ";
@@ -1825,6 +1829,14 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-noxw", "--no-exact-weights")) {
             gExactWeights = false;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-rcp", "--reciprocals")) {
+            gReciprocals = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-norcp", "--no-reciprocals")) {
+            gReciprocals = false;
             i += 1;
 
         } else if (isCmd(argv[i], "-sl", "--sum-lanes")) {
@@ -2915,6 +2927,10 @@ string global::printHelp()
     sstr << tab
          << "-noxw       --no-exact-weights          keep the products (1 + w) * y of the "
             "normal form (by default, a small w is written w * y + y, read exactly)."
+         << endl;
+    sstr << tab
+         << "-norcp      --no-reciprocals            keep the divisions (by default, outside the cone of the "
+            "decisions, x / d is written x * (1 / d) when d is slower than the division or divides several signals)."
          << endl;
     sstr << tab
          << "-mcs <n>    --min-certified-seconds <n> refuse a program certified for less than n "

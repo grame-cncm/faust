@@ -27,6 +27,7 @@
 #include "exactWeights.hh"
 #include "factorSums.hh"
 #include "families.hh"
+#include "reciprocals.hh"
 #include "shareSums.hh"
 #include "sigtyperules.hh"
 #include "timing.hh"
@@ -176,6 +177,13 @@ void ComputeForm::lower(LaneOrder order, bool families)
         fProgram = exactWeights(fProgram, &memo);
         composeImage(fImage, memo);
         endTiming("exactWeights");
+    }
+    if (gGlobal->gReciprocals) {
+        // x / d written x * (1 / d), d slower than the division or shared (-norcp)
+        startTiming("reciprocals");
+        fProgram = reciprocals(fProgram, &memo);
+        composeImage(fImage, memo);
+        endTiming("reciprocals");
     }
     if (gGlobal->gSumLanes) {
         // the long sums in partial sums, interleaved or contiguous (-nosl)
