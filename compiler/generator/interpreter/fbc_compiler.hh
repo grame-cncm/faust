@@ -30,6 +30,8 @@
 #include "fbc_llvm_compiler.hh"
 #elif INTERP_TEMPLATE_BUILD
 #include "fbc_template_compiler.hh"
+#elif INTERP_FPB_BUILD
+#include "fbc_fpb_compiler.hh"
 #endif
 
 // FBC compiler
@@ -75,6 +77,21 @@ class FBCCompiler : public FBCInterpreter<REAL, 0> {
 #elif INTERP_TEMPLATE_BUILD
             // Run with template compiler
             (*fCompiledBlocks)[block] = new FBCTemplateCompiler<REAL>(block, this->fSoundTable);
+#elif INTERP_FPB_BUILD
+            // Run with interp/FPB compiler. Unlike the LLVM and MIR compilers, which translate any FBC block to
+            // machine code (and stop on faustassert for an instruction they lack), FPB only compiles the usual
+            // shape: one scalar-mode sample loop, turned into a straight-line list of steps with no jumps. It
+            // does not compile vector mode (several loops), 'if' blocks, soundfiles, a select branch with a
+            // store, inputs/outputs not indexed by the loop variable, or very long block shifts (see
+            // fbc_fpb_compiler.hh). For those, isCompiled() is false: the block is not put in fCompiledBlocks, so
+            // executeBlock() keeps interpreting it (an FBCExecuteFun has no access to the interpreter, so it
+            // cannot fall back by itself). FAUST_INTERP_FPB_TRACE=1 prints what happened.
+            FBCFPBCompiler<REAL>* fpb = new FBCFPBCompiler<REAL>(block, this->fSoundTable);
+            if (fpb->isCompiled()) {
+                (*fCompiledBlocks)[block] = fpb;
+            } else {
+                delete fpb;
+            }
 #endif
 #else
 #ifdef _WIN32

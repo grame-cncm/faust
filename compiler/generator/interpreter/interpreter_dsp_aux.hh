@@ -123,6 +123,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         fCompileOptions = replace_first(compile_options, "interp", "interp-mir");
 #elif INTERP_LLVM_BUILD
         fCompileOptions = replace_first(compile_options, "interp", "interp-llvm");
+#elif INTERP_FPB_BUILD
+        fCompileOptions = replace_first(compile_options, "interp", "interp-fpb");
 #else
         fCompileOptions = compile_options;
 #endif

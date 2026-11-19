@@ -1,0 +1,153 @@
+{
+  "env": {
+    "cpu": "Apple M5",
+    "os": "Darwin 25.6.0 arm64",
+    "cxx": "Apple clang version 21.0.0 (clang-2100.4.1.1)  -O3",
+    "faust": "FAUST Version 2.94.1",
+    "sr": "48000",
+    "bs": "128",
+    "seconds": "1"
+  },
+  "results": [
+    {
+      "name": "compressor",
+      "trace": "interp-fpb: DSP block compiled to 33 steps (41 before fusion, 7 fused pairs), 5 real and 1 int temporaries, 0 saved values, tail dispatch",
+      "diff": 0.0,
+      "compiled": true,
+      "interp_ns": 98.53,
+      "fpb_ns": 34.71
+    },
+    {
+      "name": "crybaby",
+      "trace": "interp-fpb: DSP block compiled to 37 steps (53 before fusion, 10 fused pairs), 6 real and 1 int temporaries, 0 saved values, tail dispatch",
+      "diff": 0.0,
+      "compiled": true,
+      "interp_ns": 42.577,
+      "fpb_ns": 18.735
+    },
+    {
+      "name": "echo",
+      "trace": "interp-fpb: DSP block compiled to 6 steps (7 before fusion, 1 fused pairs), 2 real and 0 int temporaries, 0 saved values, tail dispatch",
+      "diff": 0.0,
+      "compiled": true,
+      "interp_ns": 11.163,
+      "fpb_ns": 4.983
+    },
+    {
+      "name": "flanger",
+      "trace": "interp-fpb: DSP block compiled to 65 steps (72 before fusion, 5 fused pairs), 6 real and 5 int temporaries, 0 saved values, tail dispatch",
+      "diff": 0.0,
+      "compiled": true,
+      "interp_ns": 79.728,
+      "fpb_ns": 49.54
+    },
+    {
+      "name": "freeverb",
+      "trace": "interp-fpb: DSP block compiled to 113 steps (177 before fusion, 45 fused pairs), 7 real and 0 int temporaries, 0 saved values, tail dispatch",
+      "diff": 0.0,
+      "compiled": true,
+      "interp_ns": 253.371,
+      "fpb_ns": 72.812
+    },
+    {
+      "name": "moog_vcf",
+      "trace": "interp-fpb: DSP block compiled to 162 steps (201 before fusion, 31 fused pairs), 22 real and 0 int temporaries, 0 saved values, tail dispatch",
+      "diff": 0.0,
+      "compiled": true,
+      "interp_ns": 278.951,
+      "fpb_ns": 131.042
+    },
+    {
+      "name": "osc",
+      "trace": "interp-fpb: DSP block compiled to 28 steps (31 before fusion, 2 fused pairs), 4 real and 4 int temporaries, 0 saved values, tail dispatch",
+      "diff": 0.0,
+      "compiled": true,
+      "interp_ns": 23.504,
+      "fpb_ns": 12.515
+    },
+    {
+      "name": "parametric_eq",
+      "trace": "interp-fpb: DSP block compiled to 81 steps (98 before fusion, 10 fused pairs), 8 real and 0 int temporaries, 0 saved values, tail dispatch",
+      "diff": 0.0,
+      "compiled": true,
+      "interp_ns": 223.422,
+      "fpb_ns": 98.696
+    },
+    {
+      "name": "phaser2",
+      "trace": "interp-fpb: DSP block compiled to 270 steps (321 before fusion, 42 fused pairs), 12 real and 4 int temporaries, 0 saved values, tail dispatch",
+      "diff": 0.0,
+      "compiled": true,
+      "interp_ns": 600.874,
+      "fpb_ns": 288.188
+    },
+    {
+      "name": "virtual_analog_oscillator",
+      "trace": "interp-fpb: DSP block compiled to 951 steps (1085 before fusion, 118 fused pairs), 369 real and 5 int temporaries, 0 saved values, tail dispatch",
+      "diff": 0.0,
+      "compiled": true,
+      "interp_ns": 1219.593,
+      "fpb_ns": 789.169
+    },
+    {
+      "name": "vocoder",
+      "trace": "interp-fpb: DSP block compiled to 583 steps (1003 before fusion, 337 fused pairs), 39 real and 4 int temporaries, 0 saved values, tail dispatch",
+      "diff": 0.0,
+      "compiled": true,
+      "interp_ns": 1875.301,
+      "fpb_ns": 350.178
+    },
+    {
+      "name": "zita_rev1",
+      "trace": "interp-fpb: DSP block compiled to 297 steps (430 before fusion, 107 fused pairs), 12 real and 0 int temporaries, 0 saved values, tail dispatch",
+      "diff": 0.0,
+      "compiled": true,
+      "interp_ns": 672.448,
+      "fpb_ns": 185.959
+    }
+  ],
+  "double": [
+    {
+      "name": "osc",
+      "diff": 0.0
+    },
+    {
+      "name": "freeverb",
+      "diff": 0.0
+    },
+    {
+      "name": "zita_rev1",
+      "diff": 0.0
+    },
+    {
+      "name": "vocoder",
+      "diff": 0.0
+    }
+  ],
+  "multi": [
+    {
+      "name": "osc",
+      "diff": 0.0
+    },
+    {
+      "name": "zita_rev1",
+      "diff": 0.0
+    },
+    {
+      "name": "vocoder",
+      "diff": 0.0
+    }
+  ],
+  "fallback": [
+    {
+      "name": "osc",
+      "diff": 0.0,
+      "trace": "interp-fpb: DSP block not compiled (FBC instruction kLoop), the interpreter runs it"
+    },
+    {
+      "name": "freeverb",
+      "diff": 0.0,
+      "trace": "interp-fpb: DSP block not compiled (FBC instruction kLoop), the interpreter runs it"
+    }
+  ]
+}
