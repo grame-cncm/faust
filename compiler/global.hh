@@ -406,6 +406,7 @@ struct global {
     bool gShareSums;   // the dense sums factored and their common sub-sums shared (default, -noshs)
     bool gExactWeights;  // -xw option, (1 + w) * y written w * y + y, w read exactly
     bool gReciprocals;   // the divisions by a slow or shared divisor by its reciprocal (default, -norcp)
+    bool gGuardedTemps;  // the temporaries read in one branch of a slow select2 computed under it (default, -nogt)
     double gMinCertifiedSeconds;  // -mcs option, the shortest certified duration accepted (10 s)
     bool gSumLanes;      // the long sums in interleaved partial sums (default, -nosl)
     bool gLateTaps;      // the late term of a real filter added last (default, -nolt)

@@ -182,6 +182,14 @@ Tree InstructionsCompiler::prepare(Tree LS)
     fDefinitions.countReads(fSharingKey);
     endTiming("occurrences analysis");
 
+    fSelectGuards.clear();
+    if (gGlobal->gGuardedTemps && !gGlobal->gStrictSelect &&
+        (gGlobal->gOutputLang == "cpp" || gGlobal->gOutputLang == "c")) {
+        startTiming("selectGuards");
+        fSelectGuards = selectGuards(L2);
+        endTiming("selectGuards");
+    }
+
     endTiming("prepare");
 
     if (gGlobal->gDrawSignals) {
@@ -298,6 +306,50 @@ ValueInst* InstructionsCompiler::or2code(Tree cs)
         ValueInst* v2 = or2code(cs);
         return IB::genOr(v1, v2);
     }
+}
+
+// a value that calls a costly function of the libm or divides : its cost is worth a test. The
+// helpers of the code (powers, min and max, wrapping operations) and the roundings are a few
+// instructions, which the C++ compiler computes anyway beside a select.
+namespace {
+struct CostlyValue : public DispatchVisitor {
+    bool fCostly = false;
+
+    using DispatchVisitor::visit;
+
+    void visit(FunCallInst* inst) override
+    {
+        fCostly = fCostly || isCostlyMathFunction(inst->fName);
+        DispatchVisitor::visit(inst);
+    }
+    void visit(BinopInst* inst) override
+    {
+        fCostly = fCostly || inst->fOpcode == kDiv || inst->fOpcode == kRem;
+        DispatchVisitor::visit(inst);
+    }
+};
+}  // namespace
+
+// The value of a temporary read only in one branch of a select2 whose selector is computed
+// once per block : computed under that selector, 0 in the other branch, where it is never read
+// (selectGuards.hh), when it calls a costly function of the libm or divides. The selector is
+// compiled before its branches ; a selector that is not a variable or a constant leaves the
+// temporary as it is.
+ValueInst* InstructionsCompiler::guardedValue(Tree sig, BasicTyped* ctype, ValueInst* exp)
+{
+    auto       g = fSelectGuards.find(sig);
+    ValueInst* sel;
+    if (g == fSelectGuards.end() || !getCompiledExpression(g->second.selector, sel) ||
+        !sel->isSimpleValue()) {
+        return exp;
+    }
+    CostlyValue cost;
+    exp->accept(&cost);
+    if (!cost.fCostly) {
+        return exp;
+    }
+    ValueInst* zero = IB::genTypedZero(ctype);
+    return g->second.second ? IB::genSelect2Inst(sel, exp, zero) : IB::genSelect2Inst(sel, zero, exp);
 }
 
 // Temporary implementation for test purposes
@@ -1578,7 +1630,7 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
             } else {
                 if (dynamic_cast<NullValueInst*>(getConditionCode(sig))) {
                     // "Temp" variables are declared as locals in 'frame' or 'compute'
-                    pushComputeDSPMethod(IB::genDecStackVar(vname, ctype, exp));
+                    pushComputeDSPMethod(IB::genDecStackVar(vname, ctype, guardedValue(sig, ctype, exp)));
                     return IB::genLoadStackVar(vname);
                 } else {
                     getTypedNames(t, "TempPerm", ctype, vname_perm);

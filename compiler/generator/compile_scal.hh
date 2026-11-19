@@ -37,6 +37,7 @@
 #include "dcond.hh"
 #include "occurrences.hh"
 #include "property.hh"
+#include "selectGuards.hh"
 #include "sigtyperules.hh"
 
 ////////////////////////////////////////////////////////////////////////
@@ -59,6 +60,9 @@ class ScalarCompiler : public Compiler {
 
     std::map<Tree, Tree, treeorder>
         fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
+
+    // the temporaries read in one branch of a select2 with a slow selector (selectGuards.hh)
+    std::unordered_map<Tree, SelectGuard> fSelectGuards;
 
     static std::map<std::string, int>  fIDCounters;
     Tree                               fSharingKey;
@@ -231,6 +235,7 @@ class ScalarCompiler : public Compiler {
     void        conditionAnnotation(Tree t, Tree nc);
     void        conditionStatistics(Tree l);
     std::string getConditionCode(Tree t);
+    std::string guardedValue(Tree sig, const std::string& exp);
 
     // code generation
     std::string         generateXtended(Tree sig);

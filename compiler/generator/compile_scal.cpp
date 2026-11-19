@@ -24,6 +24,8 @@
     22/01/05 : corrected bug on bool signals cached in float variables
 *****************************************************************************/
 
+#include <algorithm>
+#include <cctype>
 #include <regex>
 #include <math.h>
 #include <stdio.h>
@@ -1086,6 +1088,14 @@ Tree ScalarCompiler::prepare(Tree LS)
     fDefinitions.build(Lx);  // the subterms of compound definitions the program holds
     fDefinitions.countReads(fSharingKey);
     endTiming("occurrences analysis");
+
+    // -lazyselect guards the branches themselves
+    fSelectGuards.clear();
+    if (gGlobal->gGuardedTemps && !gGlobal->gLazySelect && !gGlobal->gStrictSelect) {
+        startTiming("selectGuards");
+        fSelectGuards = selectGuards(Lx);
+        endTiming("selectGuards");
+    }
     fFamRoot = Lx;  // -fam : the families are planned on every root the emitter compiles
 
 
@@ -6080,6 +6090,41 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
     }
 }
 
+// a value that calls a costly function of the libm or divides : its cost is worth a test. The
+// helpers of the code (powers, min and max, wrapping operations), the casts and the roundings
+// are a few instructions, which the C++ compiler computes anyway beside a select.
+static bool isCostlyValue(const string& exp)
+{
+    static const std::regex call("([A-Za-z_][A-Za-z0-9_:]*)\\(");
+    if (exp.find(" / ") != string::npos || exp.find(" % ") != string::npos) {
+        return true;
+    }
+    for (auto it = std::sregex_iterator(exp.begin(), exp.end(), call); it != std::sregex_iterator();
+         ++it) {
+        if (isCostlyMathFunction((*it)[1])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// The value of a temporary read only in one branch of a select2 whose selector is computed
+// once per block : computed under that selector, 0 in the other branch, where it is never read
+// (selectGuards.hh), when it calls a costly function of the libm or divides. The selector is
+// compiled before its branches ; a selector that is not a variable leaves the temporary as it
+// is.
+string ScalarCompiler::guardedValue(Tree sig, const string& exp)
+{
+    auto   g = fSelectGuards.find(sig);
+    string sel;
+    if (g == fSelectGuards.end() || !getCompiledExpression(g->second.selector, sel) || sel.empty() ||
+        !std::all_of(sel.begin(), sel.end(), [](unsigned char c) { return std::isalnum(c) || c == '_'; }) ||
+        std::isdigit((unsigned char)sel[0]) || !isCostlyValue(exp)) {
+        return exp;
+    }
+    return g->second.second ? subst("(($0) ? $1 : 0)", sel, exp) : subst("(($0) ? 0 : $1)", sel, exp);
+}
+
 // Definition of variables: Const (computed at init time), Slow (computed at control rate) and
 // "Temp" (computed at sample rate)
 string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
@@ -6116,8 +6161,8 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
         case kSamp:
             getTypedNames(t, "Temp", ctype, vname);
             if (getConditionCode(sig) == "") {
-                fClass->addExecCode(Statement(
-                    "", subst("$0 \t$1 = $2; // step: $3", ctype, vname, exp, T(gGlobal->gSTEP))));
+                fClass->addExecCode(Statement("", subst("$0 \t$1 = $2; // step: $3", ctype, vname,
+                                                        guardedValue(sig, exp), T(gGlobal->gSTEP))));
             } else if (fMainCompilePhase && !fHasEnableControl) {
                 // dominated placement : without enable/control in the
                 // program, a condition can only come from select2 branch

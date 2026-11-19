@@ -594,6 +594,7 @@ void global::reset()
     gShareSums            = true;
     gExactWeights         = true;
     gReciprocals          = true;
+    gGuardedTemps         = true;
     gMinCertifiedSeconds  = 10;
     gNoCert               = false;
     gSumLanes             = true;
@@ -992,6 +993,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gReciprocals) {
         dst << "-rcp ";
+    }
+    if (gGuardedTemps) {
+        dst << "-gt ";
     }
     if (gMinCertifiedSeconds != 10) {
         dst << "-mcs " << gMinCertifiedSeconds << " ";
@@ -1837,6 +1841,14 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-norcp", "--no-reciprocals")) {
             gReciprocals = false;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-gt", "--guarded-temps")) {
+            gGuardedTemps = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-nogt", "--no-guarded-temps")) {
+            gGuardedTemps = false;
             i += 1;
 
         } else if (isCmd(argv[i], "-sl", "--sum-lanes")) {
@@ -2931,6 +2943,10 @@ string global::printHelp()
     sstr << tab
          << "-norcp      --no-reciprocals            keep the divisions (by default, outside the cone of the "
             "decisions, x / d is written x * (1 / d) when d is slower than the division or divides several signals)."
+         << endl;
+    sstr << tab
+         << "-nogt       --no-guarded-temps          compute every temporary at each sample (by default in cpp, "
+            "c and ocpp, a temporary read only in one branch of a select2 with a slow selector is computed under it)."
          << endl;
     sstr << tab
          << "-mcs <n>    --min-certified-seconds <n> refuse a program certified for less than n "

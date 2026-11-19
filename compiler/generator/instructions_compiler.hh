@@ -26,6 +26,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -39,6 +40,7 @@
 #include "instructions.hh"
 #include "occurrences.hh"
 #include "property.hh"
+#include "selectGuards.hh"
 
 #define _DNF_ 1
 
@@ -60,6 +62,9 @@ class InstructionsCompiler : public virtual Garbageable {
 
     Tree       fSharingKey;
     OccMarkup* fOccMarkup;
+
+    // the temporaries read in one branch of a select2 with a slow selector (selectGuards.hh)
+    std::unordered_map<Tree, SelectGuard> fSelectGuards;
 
     // Decoupled line writes (see generateDelayAccess) : projections of the
     // recursive groups being generated whose store is not emitted yet, and
@@ -214,6 +219,7 @@ class InstructionsCompiler : public virtual Garbageable {
     ValueInst* and2code(Tree oc);
 
     ValueInst* getConditionCode(Tree sig);
+    ValueInst* guardedValue(Tree sig, BasicTyped* ctype, ValueInst* exp);
 
     // Casting for inputs/ousputs
     virtual ValueInst* genCastedInput(ValueInst* value);
