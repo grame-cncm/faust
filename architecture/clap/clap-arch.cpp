@@ -33,6 +33,7 @@
 
 // cpp logging
 #include <iostream>
+#include <vector>
 
 // CLAP helpers and API headers
 #include <clap/events.h>
@@ -215,17 +216,24 @@ static const char* gain_features[] = {CLAP_PLUGIN_FEATURE_INSTRUMENT, nullptr};
 static const char* gain_features[] = {CLAP_PLUGIN_FEATURE_AUDIO_EFFECT, nullptr};
 #endif
 
-// plugin descriptor structure describing metadata to the host
-constexpr static clap_plugin_descriptor_t gain_desc = {.clap_version = CLAP_VERSION_INIT,
-                                                       .id           = FAUST_PLUGIN_ID,
-                                                       .name         = FAUST_PLUGIN_NAME,
-                                                       .vendor       = FAUST_PLUGIN_VENDOR,
-                                                       .url          = "https://faust.grame.fr",
-                                                       .manual_url   = "",
-                                                       .support_url  = "",
-                                                       .version      = FAUST_PLUGIN_VERSION,
-                                                       .description  = FAUST_PLUGIN_DESCRIPTION,
-                                                       .features     = gain_features};
+// plugin descriptor structure describing metadata to the host.
+//
+// Initialised by position, in the field order of clap_plugin_descriptor_t,
+// which the CLAP 1.x ABI freezes. Designated initializers would read better,
+// but they are C++20: the plugin is built as C++17, where GCC and Clang accept
+// them as an extension and MSVC rejects them.
+constexpr static clap_plugin_descriptor_t gain_desc = {
+    CLAP_VERSION_INIT,         // clap_version
+    FAUST_PLUGIN_ID,           // id
+    FAUST_PLUGIN_NAME,         // name
+    FAUST_PLUGIN_VENDOR,       // vendor
+    "https://faust.grame.fr",  // url
+    "",                        // manual_url
+    "",                        // support_url
+    FAUST_PLUGIN_VERSION,      // version
+    FAUST_PLUGIN_DESCRIPTION,  // description
+    gain_features              // features
+};
 
 // the main plugin class implementing CLAP plugin behaviour
 class APlugin final : public Base {
@@ -248,6 +256,12 @@ class APlugin final : public Base {
     // The latency declared in the DSP metadata, and what it is at the current sample rate
     LatencyMeta fLatency;
     uint32_t    fLatencyFrames = 0;
+    // The channel arrays handed to compute(). Sized once in init(), so that
+    // process() does not allocate; a variable-length array on the stack would
+    // not either, but it is not C++ and MSVC rejects it. Each holds at least
+    // one element, since a synthesiser legitimately has no input.
+    std::vector<FAUSTFLOAT*> fInputs;
+    std::vector<FAUSTFLOAT*> fOutputs;
 
     // constructor initialises base class with descriptor and host pointers
     APlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host) : Base(desc, host) {}
@@ -296,6 +310,8 @@ class APlugin final : public Base {
         // Read the arity now: the host asks audioPortsInfo() before activate().
         fNumInputs  = fDSP->getNumInputs();
         fNumOutputs = fDSP->getNumOutputs();
+        fInputs.assign(size_t(fNumInputs > 0 ? fNumInputs : 1), nullptr);
+        fOutputs.assign(size_t(fNumOutputs > 0 ? fNumOutputs : 1), nullptr);
         fDSP->metadata(&fLatency);
         return true;
     }
@@ -470,19 +486,15 @@ class APlugin final : public Base {
             return CLAP_PROCESS_ERROR;
         }
 
-        // Sized for at least one element: a zero-length array is undefined, and
-        // fNumInputs is legitimately 0 for a synthesiser.
-        FAUSTFLOAT* inputs[fNumInputs > 0 ? fNumInputs : 1];
-        FAUSTFLOAT* outputs[fNumOutputs > 0 ? fNumOutputs : 1];
         for (int i = 0; i < fNumInputs; ++i) {
-            inputs[i] = inBuffer->data32[i];
+            fInputs[i] = inBuffer->data32[i];
         }
         for (int i = 0; i < fNumOutputs; ++i) {
-            outputs[i] = outBuffer.data32[i];
+            fOutputs[i] = outBuffer.data32[i];
         }
 
         // compute audio block
-        fDSP->compute(process->frames_count, inputs, outputs);
+        fDSP->compute(process->frames_count, fInputs.data(), fOutputs.data());
 
         return CLAP_PROCESS_CONTINUE;
     }
@@ -764,10 +776,13 @@ static const clap_plugin_t* plugin_create(const clap_plugin_factory_t*, const cl
     return nullptr;
 }
 
-// single plugin factory structure describing factory callbacks
-constexpr static clap_plugin_factory_t gain_factory = {.get_plugin_count      = plugin_count,
-                                                       .get_plugin_descriptor = plugin_desc,
-                                                       .create_plugin         = plugin_create};
+// single plugin factory structure describing factory callbacks, initialised
+// by position for the same reason as gain_desc
+constexpr static clap_plugin_factory_t gain_factory = {
+    plugin_count,   // get_plugin_count
+    plugin_desc,    // get_plugin_descriptor
+    plugin_create   // create_plugin
+};
 
 // entry point initialisation and deinitialisation
 static bool entry_init(const char*)
@@ -790,7 +805,10 @@ CLAP_EXPORT const void* clap_get_factory(const char* factory_id)
     return nullptr;
 }
 
-// define the CLAP plugin entry point structure
-CLAP_EXPORT const clap_plugin_entry_t clap_entry = {CLAP_VERSION_INIT, entry_init, entry_deinit,
-                                                    clap_get_factory};
+// define the CLAP plugin entry point structure. 'extern' repeats what
+// clap/entry.h already declares: a const at namespace scope is otherwise
+// internal, and MinGW's GCC checks dllexport before it merges the two
+// declarations, so it refuses to export the symbol without it.
+CLAP_EXPORT extern const clap_plugin_entry_t clap_entry = {CLAP_VERSION_INIT, entry_init,
+                                                           entry_deinit, clap_get_factory};
 }

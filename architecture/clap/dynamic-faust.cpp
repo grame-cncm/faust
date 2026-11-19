@@ -80,16 +80,22 @@ static const int kMaxParamSlots     = 512;
 
 static const char* features[] = {CLAP_PLUGIN_FEATURE_AUDIO_EFFECT, nullptr};
 
-constexpr static clap_plugin_descriptor_t desc = {.clap_version = CLAP_VERSION_INIT,
-                                                  .id           = PLUGIN_ID,
-                                                  .name         = PLUGIN_NAME,
-                                                  .vendor       = PLUGIN_VENDOR,
-                                                  .url          = PLUGIN_URL,
-                                                  .manual_url   = "",
-                                                  .support_url  = "",
-                                                  .version      = PLUGIN_VERSION,
-                                                  .description  = PLUGIN_DESCRIPTION,
-                                                  .features     = features};
+// Initialised by position, in the field order of clap_plugin_descriptor_t,
+// which the CLAP 1.x ABI freezes. Designated initializers are C++20: in the
+// C++17 this is built as, GCC and Clang accept them as an extension and MSVC
+// rejects them.
+constexpr static clap_plugin_descriptor_t desc = {
+    CLAP_VERSION_INIT,   // clap_version
+    PLUGIN_ID,           // id
+    PLUGIN_NAME,         // name
+    PLUGIN_VENDOR,       // vendor
+    PLUGIN_URL,          // url
+    "",                  // manual_url
+    "",                  // support_url
+    PLUGIN_VERSION,      // version
+    PLUGIN_DESCRIPTION,  // description
+    features             // features
+};
 
 static void logLine(const std::string& message)
 {
@@ -847,9 +853,12 @@ static const clap_plugin_t* plugin_create(const clap_plugin_factory_t*, const cl
     return nullptr;
 }
 
-constexpr static clap_plugin_factory_t factory = {.get_plugin_count      = plugin_count,
-                                                  .get_plugin_descriptor = plugin_desc,
-                                                  .create_plugin         = plugin_create};
+// By position, for the same reason as desc
+constexpr static clap_plugin_factory_t factory = {
+    plugin_count,   // get_plugin_count
+    plugin_desc,    // get_plugin_descriptor
+    plugin_create   // create_plugin
+};
 
 static bool entry_init(const char*)
 {
@@ -869,6 +878,9 @@ CLAP_EXPORT const void* clap_get_factory(const char* factory_id)
     return nullptr;
 }
 
-CLAP_EXPORT const clap_plugin_entry_t clap_entry = {CLAP_VERSION_INIT, entry_init, entry_deinit,
-                                                    clap_get_factory};
+// 'extern' repeats what clap/entry.h already declares: a const at namespace
+// scope is otherwise internal, and MinGW's GCC checks dllexport before it
+// merges the two declarations, so it refuses to export the symbol without it.
+CLAP_EXPORT extern const clap_plugin_entry_t clap_entry = {CLAP_VERSION_INIT, entry_init,
+                                                           entry_deinit, clap_get_factory};
 }
