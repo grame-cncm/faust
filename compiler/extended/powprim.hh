@@ -294,6 +294,15 @@ class PowPrim : public xtendedCodegen {
                 cargs.push_back(promote2real((*it1)->nature(), (*it2)));
             }
 
+            if (isTwoBase(args.front()) && hasExp2()) {
+                // pow(2, x) ==> exp2(x) : the same real power, within the 2 ulps of the libm
+                // (g++ keeps pow when it may not change the rounding ; dx7 : 35 % faster)
+                std::vector<Typed::VarType> etypes = {itfloat()};
+                Values                      eargs  = {cargs.back()};
+                return cast2int(result->nature(),
+                                container->pushFunction(subst("exp2$0", isuffix()), itfloat(),
+                                                        etypes, eargs));
+            }
             return cast2int(result->nature(), container->pushFunction(subst("pow$0", isuffix()),
                                                                       itfloat(), atypes, cargs));
         }
@@ -362,9 +371,46 @@ class PowPrim : public xtendedCodegen {
             // the integer power of the analysis, defined for every exponent (klass.cpp)
             klass->rememberNeedIntPowerDef();
             return subst("faust_ipow($0, $1)", args[0], args[1]);
+        } else if (isTwoLiteral(args[0]) && hasExp2()) {
+            // pow(2, x) ==> exp2(x), as the cpp generator writes it
+            return subst("exp2$1($0)", args[1], isuffix());
         } else {
             return subst("pow$2($0,$1)", args[0], args[1], isuffix());
         }
+    }
+
+    // exp2 in the C and C++ libm, for the real types of the program (not fixed point)
+    static bool hasExp2()
+    {
+        return (gGlobal->gOutputLang == "cpp" || gGlobal->gOutputLang == "c" ||
+                gGlobal->gOutputLang == "ocpp") &&
+               (gGlobal->gFloatSize >= 1) && (gGlobal->gFloatSize <= 3);
+    }
+
+    // the constant 2, integer or real
+    static bool isTwoBase(ValueInst* val)
+    {
+        if (Int32NumInst* i = dynamic_cast<Int32NumInst*>(val)) {
+            return i->fNum == 2;
+        } else if (FloatNumInst* f = dynamic_cast<FloatNumInst*>(val)) {
+            return f->fNum == 2.f;
+        } else if (DoubleNumInst* d = dynamic_cast<DoubleNumInst*>(val)) {
+            return d->fNum == 2.;
+        }
+        return false;
+    }
+
+    // a literal of value 2 : 2, 2., 2.0, 2.0f, 2.0L
+    static bool isTwoLiteral(const std::string& s)
+    {
+        std::string t = s;
+        if (!t.empty() && (t.back() == 'f' || t.back() == 'L')) {
+            t.pop_back();
+        }
+        if (t.empty() || t.find_first_not_of("0123456789.") != std::string::npos) {
+            return false;
+        }
+        return std::strtod(t.c_str(), nullptr) == 2.0;
     }
 
     virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,

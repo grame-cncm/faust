@@ -66,6 +66,7 @@ class CPPInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["cosf"]       = true;
         gFunctionSymbolTable["expf"]       = true;
         gFunctionSymbolTable["exp10f"]     = true;
+        gFunctionSymbolTable["exp2f"]      = true;
         gFunctionSymbolTable["floorf"]     = true;
         gFunctionSymbolTable["fmodf"]      = true;
         gFunctionSymbolTable["logf"]       = true;
@@ -88,6 +89,7 @@ class CPPInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["cos"]       = true;
         gFunctionSymbolTable["exp"]       = true;
         gFunctionSymbolTable["exp10"]     = true;
+        gFunctionSymbolTable["exp2"]      = true;
         gFunctionSymbolTable["floor"]     = true;
         gFunctionSymbolTable["fmod"]      = true;
         gFunctionSymbolTable["log"]       = true;
@@ -110,6 +112,7 @@ class CPPInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["cosl"]       = true;
         gFunctionSymbolTable["expl"]       = true;
         gFunctionSymbolTable["exp10l"]     = true;
+        gFunctionSymbolTable["exp2l"]      = true;
         gFunctionSymbolTable["floorl"]     = true;
         gFunctionSymbolTable["fmodl"]      = true;
         gFunctionSymbolTable["logl"]       = true;
