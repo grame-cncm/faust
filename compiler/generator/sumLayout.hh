@@ -451,6 +451,23 @@ V emitFIR(Tree sig, const tvec& fir, Ops& ops)
     return first ? ops.zero() : acc;
 }
 
+/// the sum of two signed terms, (subtracted, value) : a - b for a positive and a negative
+/// one, the sign carried for two negative ones, -(a + b) written (true, a + b)
+template <class V, class Ops>
+std::pair<bool, V> signedSum(Ops& ops, const std::pair<bool, V>& a, const std::pair<bool, V>& b)
+{
+    if (!a.first && !b.first) {
+        return {false, ops.add(a.second, b.second)};
+    }
+    if (!a.first) {
+        return {false, ops.sub(a.second, b.second)};
+    }
+    if (!b.first) {
+        return {false, ops.sub(b.second, a.second)};
+    }
+    return {true, ops.add(a.second, b.second)};
+}
+
 template <class V, class Ops>
 V emitIIR(Tree sig, const tvec& iir, Ops& ops)
 {
@@ -470,33 +487,58 @@ V emitIIR(Tree sig, const tvec& iir, Ops& ops)
                            ops.fusable(iir[0]);
         std::vector<std::pair<bool, V>> early;
         std::pair<bool, V>              last;
+        bool                            flip;
+        V                               fb{};
         if (fused) {
-            for (size_t i = fir.size() - 1; i >= 2; i--) {
-                if (!(ops.fixed(fir[i]) && isZero(fir[i]))) {
-                    V access = ops.firTap(int(i) - 1);
-                    early.push_back(product(fir[i], access));
+            // the taps of the same delay paired, x@k with y@k, the pairs added from delay 1 :
+            // a C++ compiler no longer pairs y@1 and y@2, adjacent in memory, into a vector
+            // whose lanes it must then add on the recurrence (multibandfilter, clang, 1.15
+            // -> 0.78 against master-dev under -ffast-math)
+            const size_t                    n = std::max(fir.size() - 1, iir.size());
+            std::vector<std::pair<bool, V>> pairs;
+            for (size_t k = 1; k < n; k++) {
+                std::vector<std::pair<bool, V>> terms;
+                if (k + 1 < fir.size() && !(ops.fixed(fir[k + 1]) && isZero(fir[k + 1]))) {
+                    V access = ops.firTap(int(k));
+                    terms.push_back(product(fir[k + 1], access));
+                }
+                if (k < iir.size() && !(ops.fixed(iir[k]) && isZero(iir[k]))) {
+                    V access = ops.self(int(k));
+                    terms.push_back(product(iir[k], access));
+                }
+                if (terms.size() == 2) {
+                    pairs.push_back(signedSum(ops, terms[0], terms[1]));
+                } else if (terms.size() == 1) {
+                    pairs.push_back(terms[0]);
                 }
             }
-        } else {
-            last = {false, ops.input()};
-        }
-        for (size_t i = iir.size() - 1; i >= 1; i--) {
-            if (!(ops.fixed(iir[i]) && isZero(iir[i]))) {
-                V access = ops.self(int(i));
-                early.push_back(product(iir[i], access));
-            }
-        }
-        if (fused) {
             V access = ops.firTap(0);
             last     = product(fir[1], access);
-        }
-        if (early.empty()) {
-            return last.first ? ops.neg(last.second) : last.second;
-        }
-        const bool flip = early[0].first;
-        V          fb   = early[0].second;
-        for (size_t k = 1; k < early.size(); k++) {
-            fb = (early[k].first != flip) ? ops.sub(fb, early[k].second) : ops.add(fb, early[k].second);
+            if (pairs.empty()) {
+                return last.first ? ops.neg(last.second) : last.second;
+            }
+            std::pair<bool, V> acc = pairs[0];
+            for (size_t k = 1; k < pairs.size(); k++) {
+                acc = signedSum(ops, acc, pairs[k]);
+            }
+            flip = acc.first;
+            fb   = acc.second;
+        } else {
+            last = {false, ops.input()};
+            for (size_t i = iir.size() - 1; i >= 1; i--) {
+                if (!(ops.fixed(iir[i]) && isZero(iir[i]))) {
+                    V access = ops.self(int(i));
+                    early.push_back(product(iir[i], access));
+                }
+            }
+            if (early.empty()) {
+                return last.second;
+            }
+            flip = early[0].first;
+            fb   = early[0].second;
+            for (size_t k = 1; k < early.size(); k++) {
+                fb = (early[k].first != flip) ? ops.sub(fb, early[k].second) : ops.add(fb, early[k].second);
+            }
         }
         if (!flip && !last.first) {
             return ops.add(last.second, fb);  // the late term on the left
