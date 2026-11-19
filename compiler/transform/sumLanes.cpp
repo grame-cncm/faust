@@ -150,15 +150,23 @@ Part balancedSum(std::vector<Part> parts)
     return parts[0];
 }
 
-/// the sum of a lane, its terms added as a balanced tree, ((t0 + t4) + (t8 + t12)) : the
-/// lanes of a sum have the same shape, one vector per level for the C++ compiler, and a
-/// depth in log2 of their terms (a chain of 25 terms in StiffString, 100 terms in 4 lanes :
-/// g++ 1.14 -> 0.99 against master-dev under -ffast-math)
+const size_t kChunk = 4;  ///< the terms of a lane added in a chain
+
+/// the sum of a lane : chains of 4 consecutive terms, which a C++ compiler contracts into
+/// fused multiply-adds, added as a balanced tree, the depth of a long lane in log2 of its
+/// terms (StiffString, 100 terms in 4 lanes of 25 : g++ 1.65 -> 0.98 against master-dev
+/// under -ffast-math). The lanes of a sum have the same shape, one vector per level for
+/// the C++ compiler ; a lane of 4 terms or fewer stays one chain (a tree of 4 products costs
+/// one operation more : karplus32 on an M1, 1.02 -> 1.07)
 Part laneTree(const tvec& lane)
 {
+    if (lane.size() <= kChunk) {
+        return lanePart(lane);
+    }
     std::vector<Part> parts;
-    for (Tree t : lane) {
-        parts.push_back(lanePart({t}));
+    for (size_t k = 0; k < lane.size(); k += kChunk) {
+        tvec chunk(lane.begin() + k, lane.begin() + std::min(lane.size(), k + kChunk));
+        parts.push_back(lanePart(chunk));
     }
     return balancedSum(parts);
 }
@@ -194,16 +202,20 @@ Tree laneSum(const tvec& rt, size_t s, LaneOrder order)
     return sigSum(outer);
 }
 
-/// the depth in additions of n sample-rate terms in 4 partial sums : each lane a balanced
-/// tree of ceil(n / 4) terms, then two levels
+/// the depth in additions of n sample-rate terms in 4 partial sums : each lane of
+/// ceil(n / 4) terms in chains of 4 added as a balanced tree, then two levels
 int laneDepth(size_t n)
 {
-    int    d = 0;
     size_t m = (n + kLanes - 1) / kLanes;
-    while ((size_t(1) << d) < m) {
+    if (m <= kChunk) {
+        return int(m) - 1 + 2;
+    }
+    size_t chunks = (m + kChunk - 1) / kChunk;
+    int    d      = 0;
+    while ((size_t(1) << d) < chunks) {
         d++;
     }
-    return d + 2;
+    return int(kChunk) - 1 + d + 2;
 }
 
 /// the number of reads of every signal, one per branch that holds it ; nodes receives the

@@ -24,7 +24,7 @@
  * nor overlap them. sumLanes rewrites a real Sum with at least 8 terms computed at the
  * sample rate : its slower terms first, as the normal form orders them, then the
  * sample-rate terms t0, ..., tm in 4 partial sums added as a balanced tree, each partial
- * sum itself a balanced tree of its terms.
+ * sum in chains of 4 terms themselves added as a balanced tree.
  *
  * A sum first takes in its nested sums (step 3f.1 of the computation form) : a term that
  * is a real sum at the sample rate, or its negation, that no other signal reads, is
