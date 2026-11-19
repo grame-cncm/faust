@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include <limits.h>
+#include <algorithm>
 #include <cfenv>
 #include <cstdint>
 
@@ -964,8 +965,13 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
             << ((gGroupTaskSwitch) ? "-g " : "") << ((gDeepFirstSwitch) ? "-dfs " : "");
     }
 
-    // Add 'compile_options' metadata
+    // Add 'compile_options' metadata. A metadata string is copied as is into the
+    // string literals of the generated code, which is why the lexer refuses a
+    // backslash in a source string. The -a path is the part of this line that
+    // can bring one, as the separator of a Windows path, where "\s" or "\o"
+    // would then be read as escape sequences. Windows accepts '/' as well.
     string res = dst.str();
+    std::replace(res.begin(), res.end(), '\\', '/');
     gMetaDataSet[tree("compile_options")].insert(tree("\"" + res.substr(0, res.size() - 1) + "\""));
 }
 
