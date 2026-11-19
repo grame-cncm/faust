@@ -39,9 +39,12 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/SimpleParser.h"
 
+// No 'snprintf' to '_snprintf' macro here: this file does not call it, and
+// since Visual Studio 2015 'snprintf' is standard. The macro leaked into every
+// file including this one (through proxy-dsp.h and poly-dsp.h), where it
+// turned 'std::snprintf' into a non-existent 'std::_snprintf'.
 #ifdef _WIN32
 #include <windows.h>
-#define snprintf _snprintf
 #define STRDUP _strdup
 #else
 #define STRDUP strdup
