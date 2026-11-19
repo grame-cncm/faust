@@ -7,7 +7,8 @@ min(-0, +0) = -0, in both orders ; the operation is commutative. The C and C++ g
 (cpp, ocpp, C) write each max and min in the cheapest form that has this value, from what the
 interval of the program proves : faustmaxk (the first operand not NaN, no tie of zeros : fmax
 under clang, the comparison otherwise), faustmax (a tie of zeros, the literal +0 first ; -0 for
-faustmin), faustmaxn (any operands), with the libm suffix of the real type (f, none, l).
+faustmin), faustmaxn (any operands), with the libm suffix of the real type (f, none, l). On
+arm64, every form is fmax and fmin (fmaxnm and fminnm, this value for any operands).
 
 1. The code : the helper written for eleven max and min, in ocpp, cpp and C, single, double
    and quad (C : single and double).

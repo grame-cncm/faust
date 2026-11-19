@@ -57,7 +57,8 @@ void xtendedCodegen::printMinMaxHelpers(std::ostream& out, bool byRef)
            "   that has this value, from what the interval of the program proves :\n"
            "   faustmax, the comparison, where a tie of zeros gives its first operand ; faustmaxk, the\n"
            "   first operand not NaN and no tie of zeros, in the form each compiler compiles best ;\n"
-           "   faustmaxn, any operands. */\n";
+           "   faustmaxn, any operands. On arm64, fmax and fmin are fmaxnm and fminnm, this value\n"
+           "   for any operands in one instruction : every form is written with them. */\n";
     const char* types[]    = {"float", "double", "long double"};
     const char* suffixes[] = {"f", "", "l"};
     for (int i = 0; i < 3; i++) {
@@ -65,7 +66,14 @@ void xtendedCodegen::printMinMaxHelpers(std::ostream& out, bool byRef)
         const string sig = "(" + t + " a, " + t + " b)";
         const string ref = "static inline const " + t + "& ";
         const string rsig = "(const " + t + "& a, const " + t + "& b)";
-        out << "#if defined(__clang__)\n";
+        // arm64 : the comparison is fcmp and fcsel, where fmax is one fmaxnm (virtualAnalog in
+        // cpp, single, clang : 12 % faster)
+        out << "#if defined(__aarch64__)\n";
+        for (const char* k : {"", "k", "n"}) {
+            out << "static inline " << t << " faustmax" << k << x << sig << " { return fmax" << x << "(a, b); }\n";
+            out << "static inline " << t << " faustmin" << k << x << sig << " { return fmin" << x << "(a, b); }\n";
+        }
+        out << "#elif defined(__clang__)\n";
         if (byRef) {
             // cpp : a reference, as std::max (clang : dx7 in cpp 321 ns per sample against 350)
             for (const char* k : {"", "k"}) {
@@ -87,10 +95,12 @@ void xtendedCodegen::printMinMaxHelpers(std::ostream& out, bool byRef)
             out << "static inline " << t << " faustmin" << k << x << sig << " { return (b < a) ? b : a; }\n";
         }
         out << "#endif\n";
+        out << "#if !defined(__aarch64__)\n";
         out << "static inline " << t << " faustmaxn" << x << sig
             << " { return (a < b || a != a) ? b : (b < a) ? a : ((a == b && signbit(a)) ? b : a); }\n";
         out << "static inline " << t << " faustminn" << x << sig
             << " { return (b < a || a != a) ? b : (a < b) ? a : ((a == b && !signbit(a)) ? b : a); }\n";
+        out << "#endif\n";
     }
     out << "#endif\n";
 }
