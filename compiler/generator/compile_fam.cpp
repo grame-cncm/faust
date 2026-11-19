@@ -68,6 +68,11 @@ struct ScalarCompiler::FamCtx {
     bool                                             failed = false;
     std::string                                      reason;
     std::string                                      idx = "c";  // the member's index in the tables and arrays
+    // the members written four at a time : the values are vectors of four lanes, of the type
+    // vty, each array read once into a local of the body
+    bool                                             vec = false;
+    std::string                                      vty;
+    std::map<std::string, std::string>               loaded;
     // the automaton : its state arrays, and per audio slot the offset of the projection read
     std::string                                      states;
     std::vector<int>                                 neighbour;
@@ -76,6 +81,21 @@ struct ScalarCompiler::FamCtx {
     std::string                                      cellValue;
 
     std::string local() { return subst("fFam$0L$1", T(id), T(locals++)); }
+    // the type of a local of the body
+    std::string lty() const { return vec ? vty : ty; }
+    // the member's cell of an array : its element, or the four lanes from it loaded into a local
+    std::string at(const std::string& a, const std::string& i)
+    {
+        if (!vec) {
+            return subst("$0[$1]", a, i);
+        }
+        if (auto it = loaded.find(a); it != loaded.end()) {
+            return it->second;
+        }
+        const std::string l = local();
+        body.push_back(subst("$0 $1; __builtin_memcpy(&$1, &$2[$3], sizeof($1));", vty, l, a, i));
+        return loaded[a] = l;
+    }
     std::string stateKey(Tree node, int j)
     {
         auto it = sid.find(node);
@@ -362,7 +382,7 @@ std::string ScalarCompiler::famHist(FamCtx& g, Tree x, int k)
         famExpr(g, x);  // the state is updated this iteration
         const std::string key = g.stateKey(x, 0);
         g.need[key]           = std::max(g.need[key], k);
-        return subst("$0_$1[c]", key, T(k));
+        return g.at(subst("$0_$1", key, T(k)), "c");
     }
     int  i;
     Tree grp, W, defs;
@@ -376,7 +396,7 @@ std::string ScalarCompiler::famHist(FamCtx& g, Tree x, int k)
         }
         const std::string key = g.stateKey(grp, i);
         g.need[key]           = std::max(g.need[key], k);
-        return subst("$0_$1[c]", key, T(k));
+        return g.at(subst("$0_$1", key, T(k)), "c");
     }
     g.fail("history of a node that is not a state");
     return "0";
@@ -390,11 +410,16 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
     if (auto it = g.val.find(t); it != g.val.end()) {
         return it->second;
     }
+    if (g.vec && getCertifiedSigType(t)->nature() != kReal) {
+        // the lanes hold reals : an integer, read or computed, keeps the scalar loop
+        g.fail("an integer in the vector members");
+        return "0";
+    }
     // a node read twice in the template gets a local
     auto keep = [&](const std::string& e) {
         if (g.uses[t] > 1) {
             const std::string l = g.local();
-            g.body.push_back(subst("$0 $1 = $2;", g.ty, l, e));
+            g.body.push_back(subst("$0 $1 = $2;", g.lty(), l, e));
             return g.val[t] = l;
         }
         return g.val[t] = e;
@@ -408,7 +433,7 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
             return g.val[t] = subst("(cell + $0)", T(g.plan->cellOffset[it->second]));
         }
         g.usedSlots.insert(it->second);
-        return g.val[t] = subst("fFam$0T$1[$2]", T(g.id), T(it->second), g.idx);
+        return g.val[t] = g.at(subst("fFam$0T$1", T(g.id), T(it->second)), g.idx);
     }
     if (g.plan->commons.count(t)) {
         return g.val[t] = CS(t);  // what the family reads from outside is the tree's node
@@ -425,7 +450,7 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
             return g.val[t] = CS(t);
         }
         g.usedASlots.insert(it->second);
-        return g.val[t] = subst("fFam$0In$1[$2]", T(g.id), T(it->second), g.idx);
+        return g.val[t] = g.at(subst("fFam$0In$1", T(g.id), T(it->second)), g.idx);
     }
     // the layout of the filters (sumLayout.hh, emitFIR and emitIIR), the late term last as in
     // the scalar code : the states in their arrays, a coefficient that differs between the
@@ -451,7 +476,7 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
         {
             const std::string key = fG.stateKey(fNode, 0);
             fG.need[key]          = std::max(fG.need[key], d);
-            return subst("$0_$1[c]", key, T(d));
+            return fG.at(subst("$0_$1", key, T(d)), "c");
         }
         std::string tap(int d)
         {
@@ -492,7 +517,7 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
             return "0";
         }
         const std::string l = g.local();
-        g.body.push_back(subst("$0 $1 = $2;", g.ty, l, e));
+        g.body.push_back(subst("$0 $1 = $2;", g.lty(), l, e));
         g.stateValue[g.stateKey(t, 0)] = l;
         return g.val[t] = l;
     }
@@ -528,7 +553,7 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
             for (Tree l = defs; isList(l); l = tl(l), j++) {
                 const std::string e  = famExpr(g, hd(l));
                 const std::string lv = g.local();
-                g.body.push_back(subst("$0 $1 = $2;", g.ty, lv, e));
+                g.body.push_back(subst("$0 $1 = $2;", g.lty(), lv, e));
                 g.projVal[grp][j]                = lv;
                 g.stateValue[g.stateKey(grp, j)] = lv;
             }
@@ -580,6 +605,9 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
             }
         }
         if (st.empty()) {
+            if (g.vec) {
+                g.fail("a constant member value in the vector members");
+            }
             return keep("0");
         }
         size_t first = 0;
@@ -624,6 +652,11 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
         return keep(acc);
     }
     Tree sel, s0, s1;
+    if (g.vec && (sigXtendedData(t) != nullptr || isSigFloatCast(t, x) || isSigSelect2(t, sel, s0, s1))) {
+        // a call, a conversion or a choice applies to a number : the scalar loop
+        g.fail("a call, a conversion or a choice in the vector members");
+        return "0";
+    }
     if (isSigSelect2(t, sel, s0, s1)) {
         const std::string csel = famExpr(g, sel);
         const std::string c1   = famExpr(g, s1);
@@ -843,6 +876,31 @@ void ScalarCompiler::emitFamily(Family& f)
     for (const std::string& l : g.body) {
         bodyCode += " " + l;
     }
+    // the members four at a time, in vectors of four lanes (the vector extension of gcc and
+    // clang) : the same template, every array read into a vector and the states written back
+    // from them. A member that is not arithmetic on reals keeps the scalar loop
+    FamCtx      v;
+    std::string vterm, vbody, vshifts;
+    if (gGlobal->gFloatSize == 1 || gGlobal->gFloatSize == 2) {
+        famSetup(v, f);
+        v.vec    = true;
+        v.vty    = (gGlobal->gFloatSize == 1) ? "faust_v4f" : "faust_v4d";
+        vterm    = famExpr(v, plan.tmpl);
+        v.failed = v.failed || v.need != g.need;
+    } else {
+        v.failed = true;
+    }
+    if (!v.failed) {
+        for (const std::string& l : v.body) {
+            vbody += " " + l;
+        }
+        for (const auto& kv : v.need) {
+            for (int k = kv.second; k >= 2; k--) {
+                vshifts += subst(" __builtin_memcpy(&$0_$1[c], &$0_$2[c], sizeof($3));", kv.first, T(k), T(k - 1), v.vty);
+            }
+            vshifts += subst(" __builtin_memcpy(&$0_1[c], &$1, sizeof($1));", kv.first, v.stateValue[kv.first]);
+        }
+    }
     // one loop per host over its members. A member of many operations : its term stored, then
     // summed in lanes by a loop of its own (famLaneSum). A member of few operations : the lanes
     // accumulated in the loop, member c0 + j into lane j, where storing and reloading the term
@@ -869,6 +927,69 @@ void ScalarCompiler::emitFamily(Family& f)
             for (const std::string& s : famLaneSum(g.ty, acc, n, W)) {
                 fClass->addExecCode(Statement("", s));
             }
+        } else if (!v.failed && n >= 8) {
+            // G groups of four lanes, so that a lane adds few members in sequence : member
+            // c0 + 4g + j into lane j of group g, the groups of a lane added in a balanced tree,
+            // the members beyond the last whole step into lane 0, in order. The code for
+            // compilers without the vector extension adds in the same order, lane 4g + j
+            const int G    = std::max(1, std::min(4, n / 16));
+            const int main = lo + (n / (4 * G)) * (4 * G);
+            auto      lanes = [&](const std::string& a, bool vector) {
+                std::vector<std::string> out;
+                for (int j = 0; j < 4; j++) {
+                    std::vector<std::string> S;
+                    for (int k = 0; k < G; k++) {
+                        S.push_back(vector ? subst("$0[$1][$2]", a, T(k), T(j)) : subst("$0[$1]", a, T(4 * k + j)));
+                    }
+                    while (S.size() > 1) {
+                        std::vector<std::string> R;
+                        for (size_t k = 0; k + 1 < S.size(); k += 2) {
+                            R.push_back(subst("($0 + $1)", S[k], S[k + 1]));
+                        }
+                        if (S.size() % 2) {
+                            R.push_back(S.back());
+                        }
+                        S = R;
+                    }
+                    out.push_back(subst("$0L[$1] = $2;", acc, T(j), S[0]));
+                }
+                return out;
+            };
+            std::string steps;
+            for (int k = 0; k < G; k++) {
+                steps += subst(" { int c = c0 + $0;$1 $2A[$3] += $4;$5 }", T(4 * k), vbody, acc, T(k), vterm, vshifts);
+            }
+            fClass->addExecCode(Statement("", subst("$0 \t$1L[4];", g.ty, acc)));
+            fClass->addExecCode(Statement("", "#if defined(__GNUC__) || defined(__clang__)"));
+            fClass->addExecCode(Statement("", "{"));
+            fClass->addExecCode(Statement(
+                "", subst("typedef $0 $1 __attribute__((vector_size($2)));", g.ty, v.vty, T(4 * gGlobal->gFloatSize * 4))));
+            fClass->addExecCode(Statement("", subst("$0 $1A[$2] = {};", v.vty, acc, T(G))));
+            fClass->addExecCode(Statement("", "#if defined(__clang__)"));
+            fClass->addExecCode(Statement("", "#pragma clang loop unroll(full)"));
+            fClass->addExecCode(Statement("", "#else"));
+            fClass->addExecCode(Statement("", "#pragma GCC unroll 8"));
+            fClass->addExecCode(Statement("", "#endif"));
+            fClass->addExecCode(
+                Statement("", subst("for (int c0 = $0; c0 < $1; c0 += $2) {$3 }", T(lo), T(main), T(4 * G), steps)));
+            for (const std::string& s : lanes(acc + "A", true)) {
+                fClass->addExecCode(Statement("", s));
+            }
+            fClass->addExecCode(Statement("", "}"));
+            fClass->addExecCode(Statement("", "#else"));
+            fClass->addExecCode(Statement("", subst("$0 \t$1A[$2] = {};", g.ty, acc, T(4 * G))));
+            fClass->addExecCode(Statement(
+                "", subst("for (int c0 = $0; c0 < $1; c0 += $2) { for (int j = 0; j < $2; j++) { int c = c0 + j;$3 $4A[j] += $5;$6 } }",
+                          T(lo), T(main), T(4 * G), bodyCode, acc, term, shifts.str())));
+            for (const std::string& s : lanes(acc + "A", false)) {
+                fClass->addExecCode(Statement("", s));
+            }
+            fClass->addExecCode(Statement("", "#endif"));
+            if (main < hi) {
+                fClass->addExecCode(Statement("", subst("for (int c = $0; c < $1; c++) {$2 $3L[0] += $4;$5 }", T(main),
+                                                        T(hi), bodyCode, acc, term, shifts.str())));
+            }
+            fClass->addExecCode(Statement("", subst("$0 \t$1 = $2;", g.ty, acc, famLaneTree(acc + "L", 4))));
         } else {
             const int main   = lo + (n / W) * W;
             auto      member = [&](const std::string& lane) {
@@ -892,7 +1013,8 @@ void ScalarCompiler::emitFamily(Family& f)
         std::cerr << "fam emitted : family " << g.id << ", " << P << " members, " << plan.hosts.size() << " host(s), "
                   << g.need.size() << " states, " << g.usedSlots.size() << " tables, " << g.usedASlots.size()
                   << " input arrays, " << g.body.size() << " statements per member, " << ops << " operations, "
-                  << (split ? "split" : "one loop") << std::endl;
+                  << (split ? "split" : "one loop") << (v.failed ? ", no vector template : " + v.reason : ", vector template")
+                  << std::endl;
     }
 }
 
