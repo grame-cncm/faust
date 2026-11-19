@@ -379,7 +379,26 @@ BUNDLE_PLIST_TEMPLATE = """\
 """
 
 
+# Fields of CMAKE_TEMPLATE that hold file system paths.
+CMAKE_PATH_FIELDS = (
+    "generated_cpp", "plugin_impl", "gui_glue", "faust_include",
+    "faust_arch", "clap_include", "clap_helpers_include",
+)
+
+
+def cmake_path(path):
+    """Spell `path` for a quoted CMake argument.
+
+    In CMake a backslash starts an escape sequence, so a Windows path such as
+    `C:\\Users\\me` is rejected ("Invalid escape sequence \\U"). CMake accepts
+    forward slashes on every platform, so convert to them.
+    """
+    return path.replace("\\", "/")
+
+
 def write_cmakelists(out_dir, **fields):
+    for key in CMAKE_PATH_FIELDS:
+        fields[key] = cmake_path(fields[key])
     with open(os.path.join(out_dir, "Info.plist.in"), "w") as handle:
         handle.write(BUNDLE_PLIST_TEMPLATE)
     path = os.path.join(out_dir, "CMakeLists.txt")
@@ -411,8 +430,8 @@ def user_clap_dir():
     The locations come from the CLAP specification (`clap/entry.h`), which
     lists a system-wide and a per-user directory per platform. This tool
     installs without elevation, so it always picks the per-user one — on
-    Windows that is `%LOCALAPPDATA%\Programs\Common\CLAP`, not
-    `%COMMONPROGRAMFILES%\CLAP`, which needs administrator rights.
+    Windows that is `%LOCALAPPDATA%\\Programs\\Common\\CLAP`, not
+    `%COMMONPROGRAMFILES%\\CLAP`, which needs administrator rights.
 
     `CLAP_PATH` wins when set: the specification requires hosts to search it,
     so a user who has pointed their hosts elsewhere expects builds to land
