@@ -150,9 +150,22 @@ Part balancedSum(std::vector<Part> parts)
     return parts[0];
 }
 
+/// the sum of a lane, its terms added as a balanced tree, ((t0 + t4) + (t8 + t12)) : the
+/// lanes of a sum have the same shape, one vector per level for the C++ compiler, and a
+/// depth in log2 of their terms (a chain of 25 terms in StiffString, 100 terms in 4 lanes :
+/// g++ 1.14 -> 0.99 against master-dev under -ffast-math)
+Part laneTree(const tvec& lane)
+{
+    std::vector<Part> parts;
+    for (Tree t : lane) {
+        parts.push_back(lanePart({t}));
+    }
+    return balancedSum(parts);
+}
+
 /// the sample-rate terms rt[s..] in 4 partial sums added as a balanced tree, after the
 /// slower terms rt[0..s) : interleaved, Sum(t0, t4, ...), Sum(t1, t5, ...), ..., or
-/// contiguous, Sum(t0, ..., t(k-1)), Sum(tk, ...), ...
+/// contiguous, Sum(t0, ..., t(k-1)), Sum(tk, ...), ..., each a balanced tree
 Tree laneSum(const tvec& rt, size_t s, LaneOrder order)
 {
     std::vector<Part> parts;
@@ -169,7 +182,7 @@ Tree laneSum(const tvec& rt, size_t s, LaneOrder order)
                 lane.push_back(rt[k]);
             }
         }
-        parts.push_back(lanePart(lane));
+        parts.push_back(laneTree(lane));
     }
     Part fast = balancedSum(parts);
     Tree f    = (fast.sign > 0) ? fast.sum : sigNeg(fast.sum);
@@ -181,11 +194,16 @@ Tree laneSum(const tvec& rt, size_t s, LaneOrder order)
     return sigSum(outer);
 }
 
-/// the depth in additions of n sample-rate terms in 4 partial sums : each lane a chain,
-/// then two levels
+/// the depth in additions of n sample-rate terms in 4 partial sums : each lane a balanced
+/// tree of ceil(n / 4) terms, then two levels
 int laneDepth(size_t n)
 {
-    return int((n + kLanes - 1) / kLanes) - 1 + 2;
+    int    d = 0;
+    size_t m = (n + kLanes - 1) / kLanes;
+    while ((size_t(1) << d) < m) {
+        d++;
+    }
+    return d + 2;
 }
 
 /// the number of reads of every signal, one per branch that holds it ; nodes receives the
