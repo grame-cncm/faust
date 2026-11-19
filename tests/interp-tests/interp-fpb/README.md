@@ -51,6 +51,27 @@ times them. [results.md](results.md) has the latest results; on an Apple M5 (cla
 interp-fpb is **×2.45 faster** than the interpreter on geometric mean over 12 DSPs (×1.55 to ×5.36), with
 identical outputs everywhere.
 
+## Impulse tests
+
+The `interp1` suite of `tests/impulse-tests` (the interpreter with a compiled DSP block) runs with interp-fpb when
+`impulseinterp1` is linked with an interp-fpb `libfaust.a`:
+
+```bash
+cd tests/impulse-tests
+rm -f impulseinterp1
+make interp1 MACHINE_LIB=<interp-fpb/libfaust.a>
+```
+
+Results on 2026-11-19 (99 DSPs × 8 option sets: default, `-dlt 0`, `-dlt 256`, `-vec -lv 1`, `-vec -lv 1 -vs 16`,
+`-vec -lv 1 -g`, `-inpl`, `-ftz 1`), against the same suite with the plain interpreter:
+
+- every test has the same result as with the interpreter, and the 789 `.ir` files are byte for byte identical;
+- FPB compiles the DSP block of 97 DSPs out of 99 in scalar mode; `osc_enable` (its DSP block is not a plain
+  sample loop) and `sound` (soundfiles) stay interpreted, as do all DSPs in vector mode;
+- the failures are the interpreter's own, with or without FPB: `pow_float_int`, `pow_int_float` and
+  `subcontainer1` in every option set, plus `prefix` in vector mode; and `faust` itself crashes on `sound` in
+  vector mode.
+
 ## Limits
 
 - The steps hold absolute pointers, so they are bound to the heaps of each instance when it first runs (one
