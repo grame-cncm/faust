@@ -36,7 +36,7 @@ echoHelp()
     require Jack
     echo "Compiles Faust programs to CLI and JACK"
     option
-    options -httpd -osc -midi -soundfile
+    options -httpd -osc -remote -midi -soundfile
     option "-nvoices <num>"
     option "-effect <effect.dsp>"
     option "-effect auto"
@@ -66,6 +66,8 @@ do
         echoHelp
     elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
+    elif [ $p = "-remote" ]; then
+        REMOTEDEFS="-DREMOTECTRL"
     elif [ $p = "-httpd" ]; then
         HTTPDEFS="-DHTTPCTRL -lHTTPDFaust"
         HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
@@ -131,7 +133,7 @@ EndOfCode
 
     # compile c++ to binary
     (
-        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $SOUNDFILELIBS $OSCDEFS $HTTPDEFS $HTTPLIBS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $ARCHLIB -ldl -pthread -o "${f%.dsp}"
+        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $SOUNDFILELIBS $OSCDEFS $REMOTEDEFS $HTTPDEFS $HTTPLIBS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $ARCHLIB -ldl -pthread -o "${f%.dsp}"
         if [[ $(uname) == Darwin ]]; then
             codesign --sign - --deep --force "${f%.dsp}"
         fi

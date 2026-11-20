@@ -74,7 +74,9 @@
 #include "faust/gui/SimpleParser.h"
 #include "faust/gui/MetaDataUI.h"
 
-#if defined(HTTPCTRL) && defined(QRCODECTRL)
+// RemoteUI prints its pairing link as a QR code: under faust -i, a header is
+// inlined once, where it first appears, so this condition must cover it too
+#if (defined(HTTPCTRL) && defined(QRCODECTRL)) || defined(REMOTECTRL)
 #include "faust/gui/qrcodegen.h"
 #endif
 

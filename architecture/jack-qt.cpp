@@ -48,6 +48,10 @@
 #include "faust/gui/OSCUI.h"
 #endif
 
+#ifdef REMOTECTRL
+#include "faust/gui/RemoteUI.h"
+#endif
+
 #ifdef HTTPCTRL
 #include "faust/gui/httpdUI.h"
 #endif
@@ -225,6 +229,16 @@ int main(int argc, char* argv[])
     midiinterface->setChannel(MidiMeta::getChannel(DSP, argv));
     cout << "MIDI is on" << endl;
 #endif
+
+#ifdef REMOTECTRL
+    // Phones, through faust-remote-server: -remote ws://127.0.0.1:<host-port>
+    RemoteUI remoteinterface(name, DSP, argc, argv);
+    DSP->buildUserInterface(&remoteinterface);
+#ifdef MIDICTRL
+    remoteinterface.setMidiHandler(&audio);
+#endif
+    cout << "Remote control is on" << endl;
+#endif
     
     cout << "ins " << audio.getNumInputs() << endl;
     cout << "outs " << audio.getNumOutputs() << endl;
@@ -238,6 +252,12 @@ int main(int argc, char* argv[])
     
 #ifdef OSCCTRL
     oscinterface.run();
+#endif
+
+#ifdef REMOTECTRL
+    if (!remoteinterface.run()) {
+        cout << "Remote control: start with -remote ws://127.0.0.1:<faust-remote-server -host-port>" << endl;
+    }
 #endif
     
 #ifdef MIDICTRL
@@ -259,6 +279,10 @@ int main(int argc, char* argv[])
     myApp.setStyleSheet(interface->styleSheet());
     myApp.exec();
     interface->stop();
+    
+#ifdef REMOTECTRL
+    remoteinterface.stop();
+#endif
     
 #ifdef MIDICTRL
     midiinterface->stop();

@@ -35,6 +35,7 @@ option() {
                 "-dyn") doc="create libfaust + LLVM backend dynamic version";;
                 "-httpd") doc="activates HTTP control";;
                 "-osc") doc="activates OSC control";;
+                "-remote") doc="activates remote control by phones (faustwasm's remote control, through faust-remote-server -host-port)";;
                 "-midi") doc="activates MIDI control";;
                 "-qrcode") doc="activates QR code generation";;
                 "-poly") doc="produces a polyphonic DSP, ready to be used with MIDI events";;

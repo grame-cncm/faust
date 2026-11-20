@@ -52,7 +52,7 @@ echoHelp()
     require QT
     echo "Compiles Faust programs to CoreAudio and QT"
     option
-    options -httpd -osc -midi -qrcode -soundfile
+    options -httpd -osc -remote -midi -qrcode -soundfile
     option "-opt native' to activate the best compilation options for the native CPU"
     option "-opt generic' to activate the best compilation options for a generic CPU"
     option "-nvoices <num>"
@@ -133,6 +133,8 @@ do
     elif [ $p = "-osc" ]; then
         OSCDEFS="DEFINES += OSCCTRL"
         OSCLIBS="-lOSCFaust"
+    elif [ $p = "-remote" ]; then
+        REMOTEDEFS="DEFINES += REMOTECTRL"
     elif [ "$p" = "-httpd" ]; then
         HTTPDEFS="DEFINES += HTTPCTRL"
         HTTPLIBS="-lHTTPDFaust"
@@ -257,7 +259,7 @@ EndOfCode
     # compile c++ to binary
     (
         cd "$TMP"
-        qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "$ARCHOPT" "INCLUDEPATH+=$FAUSTINC" $ADDEDINCLUDES "INCLUDEPATH+=$SOUNDFILEINC" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS $HTTPLIBS1" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$MATHDEFS" "$SAMPLERATEDEFS" "$PRESETDEFS"
+        qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "$ARCHOPT" "INCLUDEPATH+=$FAUSTINC" $ADDEDINCLUDES "INCLUDEPATH+=$SOUNDFILEINC" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS $HTTPLIBS1" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$REMOTEDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$MATHDEFS" "$SAMPLERATEDEFS" "$PRESETDEFS"
         qmake $SPEC
         make
     ) > /dev/null || exit

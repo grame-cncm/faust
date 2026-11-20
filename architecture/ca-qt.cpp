@@ -51,16 +51,22 @@
 #include "faust/gui/McpUI.h"
 #endif
 #include "faust/misc.h"
+// Outside the IOS block: faust -i inlines a header once, where it first
+// appears, and RemoteUI needs APIUI too
+#include "faust/gui/APIUI.h"
 
 #ifdef IOS
 #include "faust/audio/coreaudio-ios-dsp.h"
-#include "faust/gui/APIUI.h"
 #else
 #include "faust/audio/coreaudio-dsp.h"
 #endif
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
+#endif
+
+#ifdef REMOTECTRL
+#include "faust/gui/RemoteUI.h"
 #endif
 
 #ifdef HTTPCTRL
@@ -410,6 +416,16 @@ int main(int argc, char* argv[])
     DSP->buildUserInterface(&oscinterface);
     cout << "OSC is on" << endl;
 #endif
+
+#ifdef REMOTECTRL
+    // Phones, through faust-remote-server: -remote ws://127.0.0.1:<host-port>
+    RemoteUI remoteinterface(name, DSP, argc, argv);
+    DSP->buildUserInterface(&remoteinterface);
+#ifdef MIDICTRL
+    remoteinterface.setMidiHandler(&midi_handler);
+#endif
+    cout << "Remote control is on" << endl;
+#endif
 #ifdef MCP
     if (!mcp) {
         // If MCP we don't want a non protocol message to be sent
@@ -430,6 +446,12 @@ int main(int argc, char* argv[])
 
 #ifdef OSCCTRL
     oscinterface.run();
+#endif
+
+#ifdef REMOTECTRL
+    if (!remoteinterface.run()) {
+        cout << "Remote control: start with -remote ws://127.0.0.1:<faust-remote-server -host-port>" << endl;
+    }
 #endif
 
 #ifdef MIDICTRL
@@ -455,6 +477,10 @@ int main(int argc, char* argv[])
     midiinterface.stop();
 #endif
     interface->stop();
+
+#ifdef REMOTECTRL
+    remoteinterface.stop();
+#endif
 
     audio.stop();
     finterface.saveState(rcfilename);
