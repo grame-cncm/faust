@@ -2413,12 +2413,6 @@ class LoopSplitEmitter {
             r.o    = r.slow ? leafOperand(subst(pattern, a.o.code)) : fE->bodyOp(pattern, {a.o}, fInt);
             return r;
         }
-        RatedOperand store(int variability, const RatedOperand& a)
-        {
-            RatedOperand r = a;
-            r.o            = fE->slowStore(variability, a.o, fInt);
-            return r;
-        }
         RatedOperand zero()
         {
             RatedOperand r;
@@ -5769,60 +5763,6 @@ string ScalarCompiler::compoundOperand(Tree x)
 }
 
 /**
- * lead * t, written as the normal form writes a product : the factors slower than the
- * product (lead included) multiplied first and stored at their own rate, then the
- * others ; the whole stored when slower than its consumer.
- */
-string ScalarCompiler::compoundProduct(const string& lead, int vlead, Tree t, int consumer)
-{
-    std::vector<Tree>         factors;
-    std::function<void(Tree)> flatten = [&](Tree u) {
-        Tree x, y;
-        tvec fs;
-        if (isSigMul(u, x, y)) {
-            flatten(x);
-            flatten(y);
-        } else if (isSigProd(u, fs)) {
-            for (Tree f : fs) flatten(f);
-        } else {
-            factors.push_back(u);
-        }
-    };
-    flatten(t);
-    const int   vprod = std::max(vlead, getCertifiedSigType(t)->variability());
-    static const std::regex simple("^-?([A-Za-z_][A-Za-z0-9_]*(\\[.*\\])?|[0-9][0-9.eE+-]*f?)$");
-    std::string             slow, fast;
-    int                     vslow = kKonst;
-    bool                    computed = false;  // the slow part is an operation, not a name
-    auto                    join     = [](const string& acc, const string& f) {
-        return acc.empty() ? f : subst("($0 * $1)", acc, f);
-    };
-    if (vlead < vprod) {
-        slow     = lead;
-        vslow    = vlead;
-        computed = !std::regex_match(lead, simple);
-    } else {
-        fast = lead;
-    }
-    for (Tree f : factors) {
-        const int   vf = getCertifiedSigType(f)->variability();
-        std::string sf = CS(f);
-        if (vf < vprod) {
-            computed = computed || !slow.empty();
-            slow     = join(slow, sf);
-            vslow    = std::max(vslow, vf);
-        } else {
-            fast = join(fast, sf);
-        }
-    }
-    if (computed && !fast.empty() && vslow < kSamp) {
-        slow = compoundSlowStore(vslow, slow);
-    }
-    std::string r = fast.empty() ? slow : join(slow, fast);
-    return (vprod < consumer && vprod < kSamp) ? compoundSlowStore(vprod, r) : r;
-}
-
-/**
  * A part of a definition slower than its consumer, stored at its own rate : a constant
  * in the instance, a slow value at the block (what a slow node in a faster context is).
  */
@@ -7877,8 +7817,7 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
 }
 
 /**
- * Prod(f0, ..., fn) : the chain of the node (emitProd), a slow prefix stored at its rate ;
- * an int product wraps.
+ * Prod(f0, ..., fn) : the chain of the node (emitProd) ; an int product wraps.
  */
 string ScalarCompiler::generateProd(Tree sig, const tvec& factors)
 {
@@ -7887,13 +7826,12 @@ string ScalarCompiler::generateProd(Tree sig, const tvec& factors)
         bool            fInt;
         string          term(Tree t) { return fC->CS(t); }
         string mul(const string& a, const string& b, bool w) { return w ? subst("faust_wrap_mul($0, $1)", a, b) : subst("($0 * $1)", a, b); }
-        string store(int variability, const string& a) { return fC->compoundSlowStore(variability, a, fInt); }
     } ops{this, getCertifiedSigType(sig)->nature() == kInt};
     return generateCacheCode(sig, emitProd<string>(sig, factors, ops));
 }
 
 /**
- * Sum(t0, ..., tn) : the chain of the node (emitSum), a slow prefix stored at its rate.
+ * Sum(t0, ..., tn) : the chain of the node (emitSum).
  */
 string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
 {
@@ -7909,7 +7847,6 @@ string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
         string add(const string& a, const string& b, bool w) { return w ? subst("faust_wrap_add($0, $1)", a, b) : subst("($0 + $1)", a, b); }
         string sub(const string& a, const string& b, bool w) { return w ? subst("faust_wrap_sub($0, $1)", a, b) : subst("($0 - $1)", a, b); }
         string neg(const string& a, bool w) { return w ? subst("faust_wrap_sub(0, $0)", a) : subst("(-$0)", a); }
-        string store(int variability, const string& a) { return fC->compoundSlowStore(variability, a, fInt); }
         string zero() { return "0"; }
     } ops{this, getCertifiedSigType(sig)->nature() == kInt};
     return generateCacheCode(sig, emitSum<string>(sig, subs, ops));

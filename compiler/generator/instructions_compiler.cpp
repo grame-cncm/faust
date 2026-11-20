@@ -1133,7 +1133,7 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tr
 }
 
 /**
- * Prod(f0, ..., fn) : the chain of the node (emitProd), a slow prefix stored at its rate.
+ * Prod(f0, ..., fn) : the chain of the node (emitProd).
  */
 ValueInst* InstructionsCompiler::generateProd(Tree sig, const tvec& factors)
 {
@@ -1142,13 +1142,12 @@ ValueInst* InstructionsCompiler::generateProd(Tree sig, const tvec& factors)
         bool                  fInt;
         ValueInst*            term(Tree t) { return fC->CS(t); }
         ValueInst*            mul(ValueInst* a, ValueInst* b, bool w) { return IB::genBinopInst(kMul, a, b, w || !fInt); }
-        ValueInst*            store(int variability, ValueInst* a) { return fC->compoundSlowStore(variability, a, fInt); }
     } ops{this, getCertifiedSigType(sig)->nature() == kInt};
     return generateCacheCode(sig, emitProd<ValueInst*>(sig, factors, ops));
 }
 
 /**
- * Sum(t0, ..., tn) : the chain of the node (emitSum), a slow prefix stored at its rate.
+ * Sum(t0, ..., tn) : the chain of the node (emitSum).
  */
 ValueInst* InstructionsCompiler::generateSum(Tree sig, const tvec& subs)
 {
@@ -1160,7 +1159,6 @@ ValueInst* InstructionsCompiler::generateSum(Tree sig, const tvec& subs)
         ValueInst*            add(ValueInst* a, ValueInst* b, bool w) { return IB::genBinopInst(kAdd, a, b, w || !fInt); }
         ValueInst*            sub(ValueInst* a, ValueInst* b, bool w) { return IB::genBinopInst(kSub, a, b, w || !fInt); }
         ValueInst*            neg(ValueInst* a, bool w) { return IB::genNeg(a, w || !fInt); }
-        ValueInst*            store(int variability, ValueInst* a) { return fC->compoundSlowStore(variability, a, fInt); }
         ValueInst*            zero()
         {
             return fInt ? static_cast<ValueInst*>(IB::genInt32NumInst(0))
@@ -1206,60 +1204,6 @@ ValueInst* InstructionsCompiler::compoundOperand(Tree x)
     }
     // the variable becomes the operand's compiled expression : a second read finds it
     return setCompiledExpression(x, generateVariableStore(x, vx));
-}
-
-/**
- * lead * t, written as the normal form writes a product : the factors slower than the
- * product (lead included) multiplied first and stored at their own rate, then the
- * others ; the whole stored when slower than its consumer.
- */
-ValueInst* InstructionsCompiler::compoundProduct(ValueInst* lead, int vlead, Tree t, int consumer)
-{
-    std::vector<Tree>         factors;
-    std::function<void(Tree)> flatten = [&](Tree u) {
-        Tree x, y;
-        tvec fs;
-        if (isSigMul(u, x, y)) {
-            flatten(x);
-            flatten(y);
-        } else if (isSigProd(u, fs)) {
-            for (Tree f : fs) flatten(f);
-        } else {
-            factors.push_back(u);
-        }
-    };
-    flatten(t);
-    const int  vprod = std::max(vlead, getCertifiedSigType(t)->variability());
-    ValueInst* slow     = nullptr;
-    ValueInst* fast     = nullptr;
-    int        vslow    = kKonst;
-    bool       computed = false;  // the slow part is an operation, not a variable
-    auto       join     = [](ValueInst* acc, ValueInst* f) {
-        return acc ? IB::genBinopInst(kMul, acc, f) : f;
-    };
-    if (vlead < vprod) {
-        slow     = lead;
-        vslow    = vlead;
-        computed = !(dynamic_cast<LoadVarInst*>(lead) || dynamic_cast<NumValueInst*>(lead));
-    } else {
-        fast = lead;
-    }
-    for (Tree f : factors) {
-        const int  vf = getCertifiedSigType(f)->variability();
-        ValueInst* cf = CS(f);
-        if (vf < vprod) {
-            computed = computed || slow != nullptr;
-            slow     = join(slow, cf);
-            vslow    = std::max(vslow, vf);
-        } else {
-            fast = join(fast, cf);
-        }
-    }
-    if (computed && fast && vslow < kSamp) {
-        slow = compoundSlowStore(vslow, slow);
-    }
-    ValueInst* r = fast ? join(slow, fast) : slow;
-    return (vprod < consumer && vprod < kSamp) ? compoundSlowStore(vprod, r) : r;
 }
 
 /**

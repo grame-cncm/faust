@@ -29,6 +29,7 @@
 #include "families.hh"
 #include "reciprocals.hh"
 #include "shareSums.hh"
+#include "slowPrefixes.hh"
 #include "sigtyperules.hh"
 #include "timing.hh"
 #include "typedAttributes.hh"
@@ -122,7 +123,20 @@ ComputeForm::ComputeForm(Tree L, bool lower, LaneOrder order, bool families) : f
     fProgram = translate(L);
     if (lower && gGlobal->gFloatSize != 4) {
         this->lower(order, families);
+    } else {
+        cutSlowPrefixes();
     }
+}
+
+void ComputeForm::cutSlowPrefixes()
+{
+    // the prefixes of the chains computed at their own rate, nodes of their own : the
+    // emission then translates the form as it is (slowPrefixes.hh)
+    std::unordered_map<Tree, Tree> memo;
+    startTiming("slowPrefixes");
+    fProgram = slowPrefixes(fProgram, &memo);
+    composeImage(fImage, memo);
+    endTiming("slowPrefixes");
 }
 
 void ComputeForm::lower(LaneOrder order, bool families)
@@ -197,6 +211,9 @@ void ComputeForm::lower(LaneOrder order, bool families)
         fProgram = thawFamilies(fProgram, frozen, memo);
         composeImage(fImage, memo);
     }
+    // after every rewrite of the chains, the families thawed : the cuts change no rounding,
+    // and the members of a family are cut alike
+    cutSlowPrefixes();
     if (gGlobal->gLateTaps) {
         // the late term of a filter added last (-nolt)
         markLateTaps(fProgram);

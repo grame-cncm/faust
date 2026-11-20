@@ -271,7 +271,6 @@ class InstructionsCompiler : public virtual Garbageable {
     bool               fusableFirInput(Tree fir);
     std::set<Tree>     fStoredFirs;  ///< the FIR filters compiled into a variable or a line
     ValueInst*         operandAtRate(Tree x);
-    ValueInst*         compoundProduct(ValueInst* lead, int vlead, Tree t, int consumer);
     virtual ValueInst* generateRemainder(Tree sig, Tree x, xtended* round);
     virtual ValueInst* generateTpt(Tree sig, Tree x);
     virtual ValueInst* generatePhase(Tree sig, Tree x, Tree p, bool byInverse);

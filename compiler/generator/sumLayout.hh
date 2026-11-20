@@ -184,7 +184,8 @@ inline std::vector<std::pair<bool, Tree>> signedTerms(const tvec& subs)
  * The code of Sum(t0, ..., tn), shared by the code generators : the chain
  * ((t0 + t1) + ...) + tn of the node, the association its interval follows, a negated
  * term subtracted. A computed prefix of the chain slower than the next term and than the
- * sum is stored at its rate (the normal form puts the slow terms first). Leading negated
+ * sum is a node of its own, cut by the computation form (slowPrefixes.hh) : the chain
+ * stores nothing (the normal form puts the slow terms first). Leading negated
  * terms n0, ..., nk-1 before the first positive term p are written p - (n0 + ... + nk-1) :
  * the same value, bit for bit, as (-n0 - ... - nk-1) + p, since a rounding to nearest
  * commutes with the negation and an addition with its operands. Without a positive term,
@@ -193,7 +194,7 @@ inline std::vector<std::pair<bool, Tree>> signedTerms(const tvec& subs)
  * alone does not tell, a partial sum can overflow when the whole sum does not.
  *
  * Ops provides term(Tree), negatedTerm(Tree) (the operand of a neg), add(V, V, wrap),
- * sub(V, V, wrap), neg(V, wrap), store(int variability, V) and zero(), the terms compiled
+ * sub(V, V, wrap), neg(V, wrap) and zero(), the terms compiled
  * in the order of the node.
  */
 template <class V, class Ops>
@@ -216,15 +217,12 @@ V emitSum(Tree sig, const tvec& subs, Ops& ops)
     auto wraps = [&](Acc& acc, int opcode, const IntRange& b) {
         return isInt && intOpWraps(opcode, acc.range, b, acc.range);
     };
-    // acc +/- t, the computed prefix stored first when slower than t and than the sum
-    // (the operand of a neg is not read by the sum as a node of its own : the occurrences
-    // saw it under the neg, the generator reads it at its rate, negatedTerm)
+    // acc +/- t ; a computed prefix slower than t and than the sum is a node of its own
+    // (slowPrefixes.hh) (the operand of a neg is not read by the sum as a node of its own :
+    // the occurrences saw it under the neg, the generator reads it at its rate, negatedTerm)
     auto extend = [&](Acc& acc, bool positive, Tree t, bool negated) {
         const int vt = rate(t);
-        if (acc.count >= 2 && acc.variability < vt && acc.variability < vsum) {
-            acc.value = ops.store(acc.variability, acc.value);
-            acc.count = 1;
-        }
+        faustassert(!(acc.count >= 2 && acc.variability < vt && acc.variability < vsum));
         V              x  = negated ? ops.negatedTerm(t) : ops.term(t);
         const IntRange xr = isInt ? intRange(t) : IntRange{};
         if (acc.count == 0) {
@@ -256,9 +254,7 @@ V emitSum(Tree sig, const tvec& subs, Ops& ops)
     Acc acc;
     extend(acc, true, st[first].second, false);
     if (lead.count > 0) {
-        if (lead.count >= 2 && lead.variability < acc.variability && lead.variability < vsum) {
-            lead.value = ops.store(lead.variability, lead.value);
-        }
+        faustassert(!(lead.count >= 2 && lead.variability < acc.variability && lead.variability < vsum));
         const bool w    = wraps(acc, kSub, lead.range);
         acc.value       = ops.sub(acc.value, lead.value, w);
         acc.variability = std::max(acc.variability, lead.variability);
@@ -298,11 +294,12 @@ inline bool isOneAtPrecision(Tree f)
 /**
  * The code of Prod(f0, ..., fn), shared by the code generators : the chain
  * ((f0 * f1) * ...) * fn of the node, the association its interval follows ; a computed
- * prefix slower than the next factor and than the product is stored at its rate (the
- * normal form puts the slow factors first). A factor that is 1 in the precision of the
+ * prefix slower than the next factor and than the product is a node of its own, cut by the
+ * computation form (slowPrefixes.hh) : the chain stores nothing (the normal form puts the
+ * slow factors first). A factor that is 1 in the precision of the
  * code is left out (isOneAtPrecision). An Int32 product of the chain wraps where its
- * partial result may leave Int32, as in emitSum. Ops provides term(Tree), mul(V, V, wrap)
- * and store(int variability, V), the factors compiled in the order of the node.
+ * partial result may leave Int32, as in emitSum. Ops provides term(Tree) and
+ * mul(V, V, wrap), the factors compiled in the order of the node.
  */
 template <class V, class Ops>
 V emitProd(Tree sig, const tvec& factors, Ops& ops)
@@ -329,10 +326,7 @@ V emitProd(Tree sig, const tvec& factors, Ops& ops)
     IntRange   range;
     for (Tree f : kept) {
         const int vf = getCertifiedSigType(f)->variability();
-        if (count >= 2 && variability < vf && variability < vprod) {
-            acc   = ops.store(variability, acc);
-            count = 1;
-        }
+        faustassert(!(count >= 2 && variability < vf && variability < vprod));
         V              x  = ops.term(f);
         const IntRange fr = isInt ? intRange(f) : IntRange{};
         if (count == 0) {

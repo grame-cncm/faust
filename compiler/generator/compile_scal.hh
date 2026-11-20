@@ -256,7 +256,6 @@ class ScalarCompiler : public Compiler {
     std::string         generateNeg(Tree sig, Tree x);
     std::string         compoundOperand(Tree x);
     std::string         compoundSlowStore(int variability, const std::string& exp, bool isInt = false);
-    std::string         compoundProduct(const std::string& lead, int vlead, Tree t, int consumer);
     std::string         generateRemainder(Tree sig, Tree x, xtended* round);
     std::string         generateTpt(Tree sig, Tree x);
     std::string         generatePhase(Tree sig, Tree x, Tree p, bool byInverse);
