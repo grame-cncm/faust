@@ -2902,7 +2902,9 @@ ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& iir)
  * An interpolation chosen by the interval of p, from x when p may be below 1/2, cancelled x
  * against y' for a slow smoother of an audio signal (an.resonator, in float, 12 times the
  * error of the source). The interval of the node bounds every form (Irm). The value is
- * stored in the node's line, read back at delay 1.
+ * stored in the node's line, read back at delay 1. In the forms written out by the
+ * computation form (lowerComposites.hh), (1 - p) * x and w are operands of the node : only
+ * under -fx are they computed here.
  */
 ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p, IrmForm form)
 {
@@ -2921,7 +2923,14 @@ ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p, IrmForm f
     ValueInst* prev = lineRead(vname, mxd, 1);
     ValueInst* vx   = compoundOperand(x);
     const int  vr   = std::max(getCertifiedSigType(x)->variability(), getCertifiedSigType(p)->variability());
-    if (form == IrmForm::kWeighted) {
+    if (form == IrmForm::kWeightedInput) {
+        // x the weighted input (1 - p) * x, a node of the computation form
+        code = IB::genBinopInst(kAdd, vx, IB::genBinopInst(kMul, compoundOperand(p), prev));
+    } else if (form == IrmForm::kFromStateWeight) {
+        // p the weight, a node of the computation form
+        ValueInst* d = IB::genBinopInst(kSub, vx, prev);
+        code         = IB::genBinopInst(kAdd, lineRead(vname, mxd, 1), IB::genBinopInst(kMul, compoundOperand(p), d));
+    } else if (form == IrmForm::kWeighted) {
         const int  vrp = getCertifiedSigType(p)->variability();
         ValueInst* vw  = IB::genBinopInst(kSub, IB::genRealNumInst(itfloat(), 1.0), compoundOperand(p));
         if (vrp != kSamp) {

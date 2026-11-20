@@ -19,6 +19,7 @@
 #include "computeSignals.hh"
 #include "definitionIndex.hh"
 #include "global.hh"
+#include "irm_weight.hh"
 #include "mixForm.hh"
 #include "rewrite.hh"
 #include "sigtype.hh"
@@ -32,8 +33,9 @@ bool isComposite(Tree t)
     Tree    x, y, z;
     bool    b;
     MixForm mf;
+    IrmForm rf;
     return isCfMix(t, x, y, z, mf) || isCfPhase(t, x, y, b) || isCfFrac(t, x, b) || isSigCfrac(t, x) ||
-           isSigTpt(t, x);
+           isSigTpt(t, x) || (isCfIrm(t, x, y, rf) && (rf == IrmForm::kWeighted || rf == IrmForm::kFromState));
 }
 
 /// a node the arithmetic of the typed attributes does not type (a rounding, a remainder, a
@@ -191,6 +193,26 @@ Tree lowerComposites(Tree L, std::unordered_map<Tree, Tree>* image)
             }
             r = typed(r, getCertifiedSigType(orig)->nature(), {xs});
             return sigSub(x, r);
+        }
+        if (IrmForm irmf; isCfIrm(rebuilt, x, p, irmf)) {
+            if (irmf == IrmForm::kWeighted) {
+                // u + p * y@1, u = (1 - p) * x : 1 - p from p rounded, even when p is
+                // written 1 - w (for p in [1/2, 1], 1 - p is exact)
+                Tree one = sigReal(1.0);
+                Tree w   = sigSub(one, p);
+                Tree u   = sigMul(w, x);
+                return cfIrm(u, p, IrmForm::kWeightedInput);
+            }
+            if (irmf == IrmForm::kFromState) {
+                // y@1 + w * (x - y@1), w read as it is when p is written 1 - w
+                Tree w = irmInputWeight(p);
+                if (w == nullptr) {
+                    Tree one = sigReal(1.0);
+                    w        = sigSub(one, p);
+                }
+                return cfIrm(x, w, IrmForm::kFromStateWeight);
+            }
+            return rebuilt;
         }
         if (isSigTpt(rebuilt, x)) {
             isSigTpt(orig, xo);

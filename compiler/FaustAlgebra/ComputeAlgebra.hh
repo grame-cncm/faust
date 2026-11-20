@@ -43,11 +43,16 @@ enum class MixForm {
     kFromWeight  ///< b + t * (a - b), c written 1 - t and t read as it is
 };
 
-/// The form of the smoother y = mix(c, x, y') in the code, y' its previous value
+/// The form of the smoother y = mix(c, x, y') in the code, y' its previous value. The two
+/// last forms are the first and the third written out (lowerComposites.hh) : their
+/// operands are the values the code reads, the weighted input u = (1 - c) * x and the
+/// weight w = 1 - c, nodes of their own
 enum class IrmForm {
-    kWeighted,   ///< (1 - c) * x + c * y', 1 - c and (1 - c) * x at their rates
-    kFromX,      ///< x + c * (y' - x)
-    kFromState   ///< y' + w * (x - y'), w the weight 1 - c (read as it is when c is 1 - w)
+    kWeighted,        ///< (1 - c) * x + c * y', 1 - c and (1 - c) * x at their rates
+    kFromX,           ///< x + c * (y' - x)
+    kFromState,       ///< y' + w * (x - y'), w the weight 1 - c (read as it is when c is 1 - w)
+    kWeightedInput,   ///< u + c * y', the operands u and c
+    kFromStateWeight  ///< y' + w * (x - y'), the operands x and w
 };
 
 template <typename T>
@@ -96,7 +101,8 @@ class ComputeAlgebra : public FaustCoreAlgebra<T>
 
     // The operations whose code the certification decides
     virtual T Mix(const T& c, const T& a, const T& b, MixForm form) const = 0;
-    //   Irm(x, c, form) = y, where y(n) = mix(c(n), x(n), y(n - 1)) and y(n < 0) = 0
+    //   Irm(x, c, form) = y, where y(n) = mix(c(n), x(n), y(n - 1)) and y(n < 0) = 0 ; in
+    //   the forms written out, the operands are those of the form
     virtual T Irm(const T& x, const T& c, IrmForm form) const = 0;
     //   (x % p) / p, the division a product by 1 / p computed at the rate of p when
     //   byInverse

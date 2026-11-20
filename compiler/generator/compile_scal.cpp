@@ -3015,7 +3015,16 @@ class LoopSplitEmitter {
                 return wslow ? leafOperand(subst("($0 - $1)", realLiteral(1.0), sp.code))
                              : bodyOp("($0 - $1)", {leafOperand(realLiteral(1.0)), sp}, false);
             };
-            if (irmf == IrmForm::kWeighted) {
+            if (irmf == IrmForm::kWeightedInput) {
+                // ix the weighted input (1 - p) * x, a node of the computation form
+                Operand m = bodyOp("($0 * $1)", {sp, prev}, false);
+                o         = bodyOp("($0 + $1)", {sx, m}, false);
+            } else if (irmf == IrmForm::kFromStateWeight) {
+                // ip the weight, a node of the computation form
+                Operand dif = bodyOp("($0 - $1)", {sx, prev}, false);
+                Operand m   = bodyOp("($0 * $1)", {sp, dif}, false);
+                o           = bodyOp("($0 + $1)", {prev, m}, false);
+            } else if (irmf == IrmForm::kWeighted) {
                 // 1 - p from p, as generateIRM, even when the pole is written 1 - w : for p
                 // in [1/2, 1], 1 - p is exact and the static gain exactly 1
                 wslow      = slowLeaf(ip, sp);
@@ -7132,7 +7141,9 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
  * (1 - p) * x + p * y', 1 - p from p rounded, when the source wrote the pole (si.smooth) and
  * for a pole written 1 - w with a slow target and pole, unless the node reaches a decision ;
  * otherwise the interpolation from the state y' + w * (x - y') (a TPT state). The value is
- * stored in the node's line, read back at delay 1.
+ * stored in the node's line, read back at delay 1. In the forms written out by the
+ * computation form (lowerComposites.hh), (1 - p) * x and w are operands of the node : only
+ * under -fx are they computed here.
  */
 string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p, IrmForm form)
 {
@@ -7146,7 +7157,13 @@ string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p, IrmForm form)
     std::string prev = generateDelayAccessRaw(sig, sig, 1);
     std::string sx   = compoundOperand(x);
     const int   vr   = std::max(getCertifiedSigType(x)->variability(), getCertifiedSigType(p)->variability());
-    if (form == IrmForm::kWeighted) {
+    if (form == IrmForm::kWeightedInput) {
+        // x the weighted input (1 - p) * x, a node of the computation form
+        code = subst("($0 + $1 * $2)", sx, compoundOperand(p), prev);
+    } else if (form == IrmForm::kFromStateWeight) {
+        // p the weight, a node of the computation form
+        code = subst("($0 + $1 * ($2 - $0))", prev, compoundOperand(p), sx);
+    } else if (form == IrmForm::kWeighted) {
         const int   vrp = getCertifiedSigType(p)->variability();
         std::string sw  = subst("($0 - $1)", realLiteral(1.0), compoundOperand(p));
         if (vrp != kSamp) {

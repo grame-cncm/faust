@@ -26,7 +26,10 @@
  *  - phase(x, p) : (x % p) / p, fmod(x, p) / p for reals ; for ints, float(x % p) / float(p),
  *    or float(x % p) * (1 / float(p)) when the node says so ;
  *  - frac(x) = x - floor(x) (its approximated floor under -mapp), cfrac(x) = x - rint(x),
- *    tpt(x) = x / (x + 1).
+ *    tpt(x) = x / (x + 1) ;
+ *  - IRM(x; p), the smoother : the weighted sum (1 - p) * x + p * y@1 as u + p * y@1, u =
+ *    (1 - p) * x a node ; the interpolation from the state y@1 + w * (x - y@1) with w = 1 - p
+ *    a node, or the w of a pole written 1 - w (irm_weight.hh). The node keeps its own past.
  *
  * A subterm the program already holds (floor(x), rint(x), x % p, fmod(x, p), x + 1 :
  * DefinitionIndex) is read, as the emission read it ; the others are built. The operations
