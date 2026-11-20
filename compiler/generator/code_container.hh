@@ -281,6 +281,9 @@ class CodeContainer : public virtual Garbageable {
 
     void addSubContainer(CodeContainer* container) { fSubContainers.push_back(container); }
 
+    // Move the sub-containers and the static code of <container>, a table generator, here
+    void hoistSubContainers(CodeContainer* container);
+
     void addIncludeFile(const std::string& str) { fIncludeFileSet.insert(str); }
     void addLibrary(const std::string& str) { fLibrarySet.insert(str); }
 

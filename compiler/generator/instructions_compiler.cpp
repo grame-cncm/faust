@@ -481,6 +481,8 @@ CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree s
             C.compileSingleSignal(sig);
         }
     }
+    // The tables read by the generator are generated and filled by the current container
+    fContainer->hoistSubContainers(container);
     return container;
 }
 
