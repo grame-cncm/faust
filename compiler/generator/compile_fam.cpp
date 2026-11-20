@@ -961,8 +961,12 @@ void ScalarCompiler::emitFamily(Family& f)
             for (int k = 0; k < G; k++) {
                 steps += subst(" { int c = c0 + $0;$1 $2A[$3] += $4;$5 }", T(4 * k), vbody, acc, T(k), vterm, vshifts);
             }
+            // in double with a single group, the vectors are slower than the scalar code on arm64
+            // (djembeMIDI, drums on Apple M1); both add in the same order, so the outputs are the same
+            const bool scalarArm = gGlobal->gFloatSize == 2 && G == 1;
             fClass->addExecCode(Statement("", subst("$0 \t$1L[4];", g.ty, acc)));
-            fClass->addExecCode(Statement("", "#if defined(__GNUC__) || defined(__clang__)"));
+            fClass->addExecCode(Statement("", scalarArm ? "#if (defined(__GNUC__) || defined(__clang__)) && !defined(__aarch64__)"
+                                                        : "#if defined(__GNUC__) || defined(__clang__)"));
             fClass->addExecCode(Statement("", "{"));
             fClass->addExecCode(Statement(
                 "", subst("typedef $0 $1 __attribute__((vector_size($2)));", g.ty, v.vty, T(4 * gGlobal->gFloatSize * 4))));
