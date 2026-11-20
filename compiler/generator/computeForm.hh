@@ -58,5 +58,6 @@ class ComputeForm {
     Tree                           fProgram;
     void                           annotate();
     void                           lower(LaneOrder order, bool families);
+    void                           lowerCompounds();
     void                           cutSlowPrefixes();
 };

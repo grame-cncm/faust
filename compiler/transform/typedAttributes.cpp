@@ -101,14 +101,12 @@ Type composedType(Tree t)
 
 namespace {
 
-/// t has no type of this program : none, or for a number, shared by every tree that holds
-/// it, the type of another typing that deferred its intervals
+/// t has no type of this program : none, or the type of another typing that deferred its
+/// intervals (a number, shared by every tree that holds it ; a node a lowering rebuilds as an
+/// earlier stage of the program wrote it, x - floor(x) before frac was revealed)
 bool untyped(Tree t)
 {
-    int    i;
-    double r;
-    return t->getType() == nullptr ||
-           ((isSigInt(t, &i) || isSigReal(t, &r)) && getSigType(t)->hasDeferredInterval());
+    return t->getType() == nullptr || getSigType(t)->hasDeferredInterval();
 }
 
 }  // namespace

@@ -30,6 +30,7 @@
 #include "reciprocals.hh"
 #include "shareSums.hh"
 #include "slowPrefixes.hh"
+#include "lowerComposites.hh"
 #include "sigtyperules.hh"
 #include "timing.hh"
 #include "typedAttributes.hh"
@@ -124,8 +125,22 @@ ComputeForm::ComputeForm(Tree L, bool lower, LaneOrder order, bool families) : f
     if (lower && gGlobal->gFloatSize != 4) {
         this->lower(order, families);
     } else {
+        if (gGlobal->gFloatSize != 4) {
+            lowerCompounds();
+        }
         cutSlowPrefixes();
     }
+}
+
+void ComputeForm::lowerCompounds()
+{
+    // the compound operations written as the operations their code computes : the emission
+    // then translates the form as it is (lowerComposites.hh)
+    std::unordered_map<Tree, Tree> memo;
+    startTiming("lowerComposites");
+    fProgram = lowerComposites(fProgram, &memo);
+    composeImage(fImage, memo);
+    endTiming("lowerComposites");
 }
 
 void ComputeForm::cutSlowPrefixes()
@@ -211,8 +226,9 @@ void ComputeForm::lower(LaneOrder order, bool families)
         fProgram = thawFamilies(fProgram, frozen, memo);
         composeImage(fImage, memo);
     }
-    // after every rewrite of the chains, the families thawed : the cuts change no rounding,
-    // and the members of a family are cut alike
+    // after every rewrite of the chains, the families thawed : the compound operations
+    // written out and the cuts change no rounding, and the members of a family change alike
+    lowerCompounds();
     cutSlowPrefixes();
     if (gGlobal->gLateTaps) {
         // the late term of a filter added last (-nolt)
