@@ -934,6 +934,8 @@ void ScalarCompiler::emitFamily(Family& f)
             // compilers without the vector extension adds in the same order, lane 4g + j
             const int G    = std::max(1, std::min(4, n / 16));
             const int main = lo + (n / (4 * G)) * (4 * G);
+            // a vector reads and writes the cells c .. c + 3 of arrays of P cells, with c + 4 <= main
+            faustassert(main <= hi && hi <= P && (main - lo) % (4 * G) == 0);
             auto      lanes = [&](const std::string& a, bool vector) {
                 std::vector<std::string> out;
                 for (int j = 0; j < 4; j++) {
