@@ -141,13 +141,15 @@ AudioFaust::AudioFaust() : AudioStream(FAUST_INPUTS, new audio_block_t*[FAUST_IN
 
 AudioFaust::~AudioFaust()
 {
+    int inputs = fDSP->getNumInputs();
+    int outputs = fDSP->getNumOutputs();
     delete fDSP;
     delete fUI;
-    for (int i = 0; i < fDSP->getNumInputs(); i++) {
+    for (int i = 0; i < inputs; i++) {
         delete[] fInChannel[i];
     }
     delete [] fInChannel;
-    for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+    for (int i = 0; i < outputs; i++) {
         delete[] fOutChannel[i];
     }
     delete [] fOutChannel;

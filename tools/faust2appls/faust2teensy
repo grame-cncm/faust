@@ -83,7 +83,7 @@ if [ $LIB -eq 1 ]; then
         echo '#define NVOICES '$NVOICES >> $MODULENAME/$MODULENAME.h
     fi
     if [ $MIDI -eq 1 ]; then
-        echo '#define MIDICTRL' >> $MODULENAME/$MODULENAME.h
+        echo '#define MIDICTRL 1' >> $MODULENAME/$MODULENAME.h
     fi
     cat $FAUSTARCH/teensy/teensy.h >> $MODULENAME/$MODULENAME.h
     TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.cpp)

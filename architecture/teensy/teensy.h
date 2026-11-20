@@ -31,7 +31,7 @@
 #include "AudioStream.h"
 #include "Audio.h"
 
-#define fprintf(X, Y, Z) Serial.printf(Y, Z)
+#define fprintf(stream, ...) Serial.printf(__VA_ARGS__)
 
 class dsp;
 class MapUI;
