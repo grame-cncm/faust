@@ -418,6 +418,7 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
             free_dsp();
             fDSP = fDSPfactory->create_dsp_instance(av[0].a_w.w_long);
             assert(fDSP);
+            fVoices = fDSPfactory->last_voices();
             
             // Init all controller (UI, MIDI, Soundfile)
             init_controllers();
@@ -425,14 +426,17 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
             // Prepare JSON
             fDSPfactory->make_json(fDSP);
             
-            // Send JSON to JS script
-            create_jsui();
-            
             // Initialize at the system's sampling rate
             fDSP->init(sys_getsr());
+            
+            // Polyphony changes the controls: all reported again
+            fReported.clear();
         }
         fDSPfactory->unlock_ui();
         fDSPfactory->unlock_audio();
+        
+        // Mono and polyphonic voices are not the same wasm (internal or external memory)
+        announce_dsp();
     }
 }
 
@@ -966,6 +970,7 @@ void faustgen::create_dsp(bool init)
     {
         fDSP = fDSPfactory->create_dsp_aux();
         assert(fDSP);
+        fVoices = fDSPfactory->last_voices();
         
         // Init all controllers (UI, MIDI, Soundfile)
         init_controllers();
@@ -997,17 +1002,62 @@ void faustgen::create_dsp(bool init)
             dsp_status("start");
         }
         
-        // Send JSON to JS script
-        create_jsui();
-        
         // A new DSP: every control is reported again, after its JSON
         fReported.clear();
-        if (fReportPeriod > 0) {
-            send_json();
-        }
     }
     fDSPfactory->unlock_ui();
     fDSPfactory->unlock_audio();
+    
+    // Outside the locks: the wasm compilation must not hold the audio back
+    announce_dsp();
+}
+
+// A new DSP: its wasm for the phones first (when 'wasm' is set), then its JSON, to the
+// js objects and, with 'report', on the control outlet. In that order, so that whoever
+// hears of the new JSON finds the wasm that goes with it.
+void faustgen::announce_dsp()
+{
+    export_wasm();
+    create_jsui();
+    if (fReportPeriod > 0) {
+        send_json();
+    }
+}
+
+// Write the DSP compiled to wasm in fWasmFolder, if set
+void faustgen::export_wasm()
+{
+    if (fWasmFolder.empty()) {
+        return;
+    }
+    string error;
+    bool poly = fVoices > 0;
+    if (fDSPfactory->write_wasm(fWasmFolder, poly, error)) {
+        post("DSP compiled to wasm in %s%s", fWasmFolder.c_str(), poly ? " (polyphonic voice)" : "");
+    } else {
+        post("DSP not compiled to wasm: %s", error.c_str());
+    }
+}
+
+// 'wasm <folder>': from now on, write each DSP compiled to wasm in folder, as faustwasm
+// runs it on a phone (dsp-module.wasm and dsp-meta.json), starting with the current one;
+// 'wasm' alone stops
+void faustgen::wasm(long inlet, t_symbol* s, long ac, t_atom* av)
+{
+    if (ac == 0) {
+        fWasmFolder.clear();
+        return;
+    }
+    if (ac != 1 || atom_gettype(&av[0]) != A_SYM) {
+        post("Should be : wasm <folder> (or wasm alone to stop)");
+        return;
+    }
+    fWasmFolder = atom_getsym(&av[0])->s_name;
+    // Without a trailing separator, which write_wasm adds
+    while (fWasmFolder.size() > 1 && fWasmFolder.back() == '/') {
+        fWasmFolder.pop_back();
+    }
+    export_wasm();
 }
 
 // Mark the patcher dirty so Max saves updated state
@@ -1164,6 +1214,9 @@ extern "C" void ext_main(void* r)
     
     // Register inside Max the faustgen::report method
     REGISTER_METHOD_GIMME(faustgen, report);
+    
+    // Register inside Max the faustgen::wasm method
+    REGISTER_METHOD_GIMME(faustgen, wasm);
     
     // Process the "multichanneloutputs" message
     REGISTER_METHOD_MULTICHANNELOUPUTS(faustgen, multichanneloutputs);

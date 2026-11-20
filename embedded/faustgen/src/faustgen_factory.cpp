@@ -36,6 +36,7 @@
 #include <cctype>
 #include <faust/dsp/libfaust.h>
 #include <faust/dsp/poly-dsp.h>
+#include <faust/dsp/wasm-dsp.h>
 
 using namespace std;
 
@@ -378,6 +379,80 @@ dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     }
 }
 
+// Write 'content' to 'path' through a temporary file renamed over it: a phone loading the
+// file while it is written gets the old one or the new one, never half of one
+static bool write_file_atomically(const std::string& path, const std::string& content)
+{
+    std::string temporary = path + ".tmp";
+    {
+        std::ofstream out(temporary, std::ios::binary | std::ios::trunc);
+        if (!out) return false;
+        out.write(content.data(), content.size());
+        if (!out) return false;
+    }
+    if (std::rename(temporary.c_str(), path.c_str()) != 0) {
+        std::remove(temporary.c_str());
+        return false;
+    }
+    return true;
+}
+
+// Compile the source to wasm for the phones and write it in 'folder'
+bool faustgen_factory::write_wasm(const std::string& folder, bool poly, std::string& error)
+{
+    if (!fSourceCode || fSourceCodeSize == 0) {
+        error = "no source code";
+        return false;
+    }
+    // The name of the LLVM compilation (create_factory_from_sourcecode), so that both
+    // compilations give the controls the same paths
+    char name_app[64];
+    snprintf(name_app, 64, "faustgen-%d", fFaustNumber);
+    
+    // The library paths and the 'compileoptions' options, as for LLVM, but those only LLVM
+    // reads; and the flush to zero faustwasm compiles with
+    std::vector<std::string> options;
+    for (const auto& path : fLibraryPath) {
+        options.push_back("-I");
+        options.push_back(path);
+    }
+    for (size_t i = 0; i < fOptions.size(); i++) {
+        if (fOptions[i] == "-opt") {
+            i++;
+            continue;
+        }
+        options.push_back(fOptions[i]);
+    }
+    options.push_back("-ftz");
+    options.push_back("2");
+    std::vector<const char*> argv;
+    for (const auto& option : options) argv.push_back(option.c_str());
+    argv.push_back(nullptr);
+    
+    // Internal memory for a mono DSP, external memory for the voices of a polyphonic one
+    wasm_dsp_factory* factory = createWasmDSPFactoryFromString(name_app, *fSourceCode, int(options.size()),
+                                                               argv.data(), error, !poly);
+    if (!factory) {
+        if (error.empty()) error = "wasm compilation failed";
+        return false;
+    }
+    std::string module = writeWasmDSPFactoryToBitcode(factory);
+    std::string json = factory->getJSON();
+    deleteWasmDSPFactory(factory);
+    if (module.empty() || json.empty()) {
+        // A libfaust older than the one where this API works without wasmtime
+        error = "no wasm module or JSON from libfaust";
+        return false;
+    }
+    // The module first: a phone told of the new JSON finds the module that goes with it
+    if (!write_file_atomically(folder + "/dsp-module.wasm", module)
+        || !write_file_atomically(folder + "/dsp-meta.json", json)) {
+        error = "cannot write in " + folder;
+        return false;
+    }
+    return true;
+}
+
 // Instantiate a DSP with optional polyphony and sample-format adaptation
 ::dsp* faustgen_factory::create_dsp_instance(int nvoices)
 {
@@ -401,6 +476,7 @@ dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     if (nvoices > 0) {
         dsp = new mydsp_poly(dsp, nvoices, true);
     }
+    fLastVoices = nvoices;
     
     return dsp;
 }

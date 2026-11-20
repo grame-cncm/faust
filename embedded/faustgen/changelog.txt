@@ -13,6 +13,9 @@ Next version (not released)
   changed them, and the bargraphs that changed are sent on the control outlet at most every ms, instead
   of every bargraph at every audio block; a new DSP sends its JSON first, then every control.
 - add the 'json' message: the DSP's JSON on the control outlet, for v8 and node.script objects.
+- add the 'wasm <folder>' message: each DSP also compiled to WebAssembly, as faustwasm runs it, and
+  written in folder (dsp-module.wasm, dsp-meta.json) before its JSON is announced; needs a libfaust
+  whose wasm-dsp.h API works without wasmtime.
 
 ----------------------------------------------------
 Version 1.87 - 28/10/2026

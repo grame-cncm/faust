@@ -89,6 +89,8 @@ class faustgen : public MspCpp5<faustgen> {
         void* fReportClock;             // Clock that sends the controls that changed
         long fReportPeriod;             // 'report' period in ms, 0 when off (outputs at every block)
         std::map<std::string, FAUSTFLOAT> fReported;  // Last value sent for each control path
+        std::string fWasmFolder;        // Where 'wasm' writes the DSP compiled for the phones, or empty
+        int fVoices = 0;                // Voices of fDSP, 0 for a mono DSP
         static t_jrgba gDefaultColor;   // Color of the object to be used when restoring default color
         
         // Display the full DSP source text in a Max window
@@ -138,6 +140,12 @@ class faustgen : public MspCpp5<faustgen> {
     
         // Start or stop the report clock, following fReportPeriod
         void schedule_report();
+    
+        // Write the DSP compiled to wasm in fWasmFolder, if set
+        void export_wasm();
+    
+        // Tell the patch about a new DSP: its wasm for the phones, then its JSON
+        void announce_dsp();
     
     public:
         
@@ -195,6 +203,9 @@ class faustgen : public MspCpp5<faustgen> {
     
         // 'report <ms>': send the controls that changed, at most every ms (0 = off)
         void report(long inlet, t_symbol* s, long argc, t_atom* argv);
+    
+        // 'wasm <folder>': write each DSP compiled to wasm in folder ('wasm' alone: stop)
+        void wasm(long inlet, t_symbol* s, long argc, t_atom* argv);
     
         // Called by the report clock: send the controls whose value changed
         void report_changes();

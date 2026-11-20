@@ -117,6 +117,7 @@ public:
     long fBitCodeSize = 0;
     long fSourceCodeSize = 0;
     sampleFormat fSampleFormat = kNone;
+    int fLastVoices = 0;
     int m_siginlets = 0;
     int m_sigoutlets = 0;
     int json_builds = 0;
@@ -162,18 +163,21 @@ int main() {
     dsp* inner = unwrap_poly(explicit_poly, 4);
     assert((dynamic_cast<dsp_sample_adapter<float, double>*>(inner)));
     assert(explicit_poly->getNumInputs() == 2 && explicit_poly->getNumOutputs() == 3);
+    assert(factory.fLastVoices == 4);
     delete explicit_poly;
 
     // nvoices metadata is used only when no explicit voice count is supplied.
     factory.fSampleFormat = faustgen_factory::kDouble;
     dsp* metadata_poly = factory.create_dsp_instance();
     assert(unwrap_poly(metadata_poly, 9));
+    assert(factory.fLastVoices == 9);
     delete metadata_poly;
 
     dsp_factory negative_factory(1, 1, {{"nvoices", "-3"}});
     factory.fDSPfactory = &negative_factory;
     dsp* negative = factory.create_dsp_instance();
     assert(!dynamic_cast<mydsp_poly*>(negative));
+    assert(factory.fLastVoices == 0);
     delete negative;
 
     dsp_factory invalid_factory(1, 1, {{"nvoices", "not-a-number"}});

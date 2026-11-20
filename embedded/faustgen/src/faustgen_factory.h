@@ -117,6 +117,7 @@ class faustgen_factory {
         std::recursive_mutex fUIMutex;       // Mutex to protect UI thread when recompiling DSP
     
         std::vector<std::string> fCompileOptions;   // Faust compiler options
+        int fLastVoices = 0;            // Voices of the DSP create_dsp_instance made last
         
         int fOptLevel;                  // LLVM optimization level
         sampleFormat fSampleFormat;     // Sample format in the LLVM module
@@ -195,6 +196,16 @@ class faustgen_factory {
         
         // Free the underlying LLVM factory
         void free_dsp_factory();
+    
+        // Compile the source to wasm, as faustwasm runs it on a phone (internal memory for a
+        // mono DSP, external memory for polyphonic voices), and write dsp-module.wasm and
+        // dsp-meta.json in 'folder'; false (and 'error' set) if it fails
+        bool write_wasm(const std::string& folder, bool poly, std::string& error);
+    
+        // The number of voices of the DSP create_dsp_instance made last (0: mono). Kept rather
+        // than found again with a dynamic_cast, which crashes on the DSPs of the LLVM backend,
+        // compiled without RTTI
+        int last_voices() { return fLastVoices; }
         
         // Release the stored source code buffer
         void free_sourcecode();
