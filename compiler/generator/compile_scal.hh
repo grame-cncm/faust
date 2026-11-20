@@ -88,9 +88,15 @@ class ScalarCompiler : public Compiler {
     std::vector<Tree>                      fDisplayStateful;
     std::vector<Tree>                      fDisplayCapturePoints;
     std::map<Tree, std::string, treeorder> fDisplayCaptures;
+    // a tail node used more than once is bound to a block-rate temporary :
+    // inlined at each use, the tail text doubles at every shared level
+    std::map<Tree, int, treeorder>         fDisplayUses;
+    std::map<Tree, std::string, treeorder> fDisplayTemps;
     Tree        harvestDisplay(Tree L);
     void        computeDisplayFrontier();
+    void        countDisplayUses(Tree t);
     std::string displayExpr(Tree t);
+    std::string displayExprAux(Tree t);
     void        emitDisplayList();
     void        emitDisplayWidgets();
     // iota caches hoisted to the head of the loop body (ring-preload) :
