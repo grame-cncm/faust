@@ -54,6 +54,13 @@ int Occurrences::getOccurrence(int variability) const
     return fOccurrences[variability];
 }
 
+bool Occurrences::hasComputeOccurrences() const
+{
+    // fOccurrences is indexed by the extended variability of the occurrence: slot 0 is a
+    // context evaluated at init time, every other slot is read by compute code
+    return fOccurrences[1] || fOccurrences[2] || fOccurrences[3];
+}
+
 Occurrences::Occurrences(int v, int r, Tree xc) : fXVariability(xVariability(v, r))
 {
     for (int i = 0; i < 4; i++) {
