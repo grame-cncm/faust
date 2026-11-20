@@ -366,11 +366,15 @@ class ui_scanner:
                         reslist.append(value)  # pin label, e.g. "D14"
                         reslist.append(label)  # control name
                     elif(key == "midi"):
-                        reslist.append("midi")
                         res = midiparse_reg.search(meta[key])
                         if(res == None):
-                            eprint("Midi failed to parse")
-                            exit()
+                            # The architecture only maps keyon, keyoff, key and
+                            # ctrl messages. Other bindings (pitchwheel, pgm,
+                            # chanpress, keypress, clock...) are ignored: the
+                            # control keeps its default value.
+                            eprint(f"faust2daisy warning: unsupported MIDI metadata [midi:{meta[key]}] on '{label}', ignored")
+                            continue
+                        reslist.append("midi")
                         miditype = ""
                         key = 0
                         chan = 0
