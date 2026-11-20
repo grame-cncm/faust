@@ -866,16 +866,20 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             
             // Then decide which one to steal
             if (oldest_date_release != INT_MAX) {
+            #ifdef POLY_DSP_DEBUG
                 fprintf(stderr, "Steal release voice : voice_date = %d cur_date = %d voice = %d \n",
                         fVoiceTable[voice_release]->fDate,
                         fDate,
                         voice_release);
+            #endif
                 return allocVoice(voice_release, kLegatoVoice);
             } else if (oldest_date_playing != INT_MAX) {
+            #ifdef POLY_DSP_DEBUG
                 fprintf(stderr, "Steal playing voice : voice_date = %d cur_date = %d voice = %d \n",
                         fVoiceTable[voice_playing]->fDate,
                         fDate,
                         voice_playing);
+            #endif
                 return allocVoice(voice_playing, kLegatoVoice);
             } else {
                 assert(false);
@@ -1126,7 +1130,9 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                 voice->keyOff();
                 voice->reset();
             } else {
+            #ifdef POLY_DSP_DEBUG
                 fprintf(stderr, "Voice not found\n");
+            #endif
             }
         }
 
@@ -1150,7 +1156,9 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                 if (voice != kNoVoice) {
                     fVoiceTable[voice]->keyOff();
                 } else {
+                #ifdef POLY_DSP_DEBUG
                     fprintf(stderr, "Playing pitch = %d not found\n", pitch);
+                #endif
                 }
             }
         }
