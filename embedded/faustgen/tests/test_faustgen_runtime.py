@@ -185,6 +185,7 @@ public:
     dsp* fDSP = nullptr;
     dsp* fMCDSP = nullptr;
     bool fMute = false;
+    long fReportPeriod = 0;
     bool m_is_mc = false;
     int output_dumps = 0;
 
@@ -309,6 +310,12 @@ int main() {
     assert(object.fDSP->computes == 1);
     assert(object.output_dumps == 1 && GUI::updates == 1);
     assert(factory.audio_unlocks == unlocks_before_audio + 1);
+
+    // With 'report', bargraphs come from the report clock, not every block.
+    object.fReportPeriod = 30;
+    object.perform(4, inputs, 1, outputs, 2);
+    assert(object.fDSP->computes == 2 && object.output_dumps == 1);
+    object.fReportPeriod = 0;
 
     // Multichannel mode lazily creates and then reuses its layout adapter.
     object.m_is_mc = true;

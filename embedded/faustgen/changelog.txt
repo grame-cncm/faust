@@ -7,6 +7,14 @@ http://www.grame.fr
 Copyright GRAME (c) 2012-2026
 
 ----------------------------------------------------
+Next version (not released)
+
+- add the 'report <ms>' message and '@report <ms>' attribute: the input controls that changed, whatever
+  changed them, and the bargraphs that changed are sent on the control outlet at most every ms, instead
+  of every bargraph at every audio block; a new DSP sends its JSON first, then every control.
+- add the 'json' message: the DSP's JSON on the control outlet, for v8 and node.script objects.
+
+----------------------------------------------------
 Version 1.87 - 28/10/2026
 
 - keep the compiled code in a cache on disk shared by all objects and patches, instead of the patch:

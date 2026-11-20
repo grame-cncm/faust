@@ -67,6 +67,8 @@ The **faustgen~/mc.faustgen~** object can be controlled with the following messa
 - `osc <IP inport outport xmit[0|1] bundle[0|1]>`: to activate OSC control in input and output mode, possibly generating messages when *xmit = 1*, and in bundle mode when *bundle = 1* 
 - `init`: to reset controllers to init values and generate all inputs and outputs control messages as a message list *[path, init, min, max]* that will be sent on the output messages outlet
 - `dump`: to generate all inputs and outputs control messages as a message list *[path, cur, min, max]* that will be sent on the output messages outlet. 
+- `report <ms>`: to send on the output messages outlet, at most every *ms* milliseconds, the input controls whose value changed, whatever changed them (a message, MIDI, OSC, `init`, a preset), and the output controls (bargraphs) that changed, as message lists *[path, cur, min, max]* like `dump`; the bargraphs are then no longer sent at every audio block. When reporting starts, and each time a new DSP is compiled, the DSP's JSON is sent first (as with `json`), then every control. `report 0` (the default) goes back to the bargraphs sent at every audio block. The same can be given when creating the object, as **faustgen~ @report 30**, and is then saved with the patch.
+- `json`: to send the DSP's JSON on the output messages outlet, as a `json <text>` message: for a `v8` or `node.script` object, which do not receive the JSON that **faustgen~/mc.faustgen~** sends to every `js` object of its patcher when a DSP is compiled.
 - `mute`: to mute audio rendering
 - `polyphony <nvoices>`: to set the DSP in polyphonic mode with *nvoices* 
 

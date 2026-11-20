@@ -33,6 +33,9 @@
 #include "faustgen_cache.h"
 #include "faustgen~.h"
 
+// The report clock's callback (defined with faustgen::report)
+static void report_tick(faustgen* x);
+
 using namespace std;
 
 // globals
@@ -90,6 +93,8 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     fEditor = nullptr;
     fMute = false;
     fRNBOAttr = false;
+    fReportPeriod = 0;
+    fReportClock = clock_new((t_object*)this, (method)report_tick);
    
     // sym can be "faustgen~" or "mc.faustgen~"
     m_is_mc = (string(sym->s_name) == "mc.faustgen~");
@@ -106,6 +111,12 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
             // Check "@rnbo" attribute
             if (strcmp(atom_getsym(ap)->s_name, "@rnbo") == 0) {
                 fRNBOAttr = true;
+            // Check "@report <ms>" attribute
+            } else if (strcmp(atom_getsym(ap)->s_name, "@report") == 0) {
+                if (i + 1 < ac && (atom_gettype(ap + 1) == A_LONG || atom_gettype(ap + 1) == A_FLOAT)) {
+                    fReportPeriod = std::max(0L, long(atom_getfloat(ap + 1)));
+                    i++; ap++;
+                }
             } else {
                 res = allocate_factory(atom_getsym(ap)->s_name);
             }
@@ -137,11 +148,17 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     }
     
     create_dsp(true);
+    schedule_report();
 }
 
 // Called upon deleting the object inside the patcher
 faustgen::~faustgen()
 {
+    // No report once the DSP is gone
+    clock_unset(fReportClock);
+    object_free(fReportClock);
+    fReportClock = nullptr;
+    
     // Stop audio work before removing the instance
     fDSPfactory->lock_audio();
     free_dsp();
@@ -479,6 +496,102 @@ void faustgen::dump(long inlet, t_symbol* s, long ac, t_atom* av)
     dump_outputs();
 }
 
+// Send 'json <text>' on the control outlet: for a v8 or node.script object,
+// which create_jsui does not reach (it only notifies js objects)
+void faustgen::send_json()
+{
+    t_atom json;
+    atom_setsym(&json, gensym(fDSPfactory->get_json()));
+    outlet_anything(m_control_outlet, gensym("json"), 1, &json);
+}
+
+// Answer 'json' with the DSP's JSON on the control outlet
+void faustgen::json(long inlet, t_symbol* s, long ac, t_atom* av)
+{
+    send_json();
+}
+
+// The report clock's callback, on the scheduler thread
+static void report_tick(faustgen* x)
+{
+    x->report_changes();
+}
+
+// Start the report clock when 'report' is on, stop it otherwise
+void faustgen::schedule_report()
+{
+    if (fReportPeriod > 0) {
+        clock_fdelay(fReportClock, double(fReportPeriod));
+    } else {
+        clock_unset(fReportClock);
+    }
+}
+
+// 'report <ms>': every ms, send on the control outlet the input controls
+// whose value changed, whatever changed them (a message, MIDI, OSC, init,
+// a preset), and the bargraphs that changed, instead of every bargraph at
+// every audio block; as [path, cur, min, max], like 'dump'. A new DSP sends
+// its JSON ('json <text>'), then all its controls. 'report 0' (the default)
+// goes back to bargraphs at every block.
+void faustgen::report(long inlet, t_symbol* s, long ac, t_atom* av)
+{
+    if (ac != 1 || (atom_gettype(&av[0]) != A_LONG && atom_gettype(&av[0]) != A_FLOAT)) {
+        post("Should be : report <ms> (0 to stop)");
+        return;
+    }
+    long period = std::max(0L, long(atom_getfloat(&av[0])));
+    bool starting = (fReportPeriod == 0 && period > 0);
+    fReportPeriod = period;
+    if (starting) {
+        // From the start: the JSON, then every control
+        fDSPfactory->lock_ui();
+        fReported.clear();
+        fDSPfactory->unlock_ui();
+        send_json();
+    }
+    schedule_report();
+}
+
+// Send the controls whose value changed since they were last sent
+void faustgen::report_changes()
+{
+    struct Change { t_symbol* path; FAUSTFLOAT cur, min, max; };
+    std::vector<Change> changes;
+    
+    // Collected under the lock, sent after it: what the outlet triggers
+    // downstream may well come back to this object
+    fDSPfactory->lock_ui();
+    if (fDSPUI) {
+        auto collect = [&](mspUI::iterator begin, mspUI::iterator end) {
+            for (mspUI::iterator it = begin; it != end; it++) {
+                FAUSTFLOAT cur = (*it).second->getValue();
+                auto last = fReported.find((*it).first);
+                bool same = (last != fReported.end())
+                    && (last->second == cur || (std::isnan(last->second) && std::isnan(cur)));
+                if (!same) {
+                    fReported[(*it).first] = cur;
+                    changes.push_back({gensym((*it).first.c_str()), cur,
+                                       (*it).second->getMinValue(), (*it).second->getMaxValue()});
+                }
+            }
+        };
+        collect(fDSPUI->begin2(), fDSPUI->end2());
+        collect(fDSPUI->begin4(), fDSPUI->end4());
+    }
+    fDSPfactory->unlock_ui();
+    
+    for (const Change& change : changes) {
+        t_atom myList[4];
+        atom_setsym(&myList[0], change.path);
+        atom_setfloat(&myList[1], change.cur);
+        atom_setfloat(&myList[2], change.min);
+        atom_setfloat(&myList[3], change.max);
+        outlet_list(m_control_outlet, 0, 4, myList);
+    }
+    
+    schedule_report();
+}
+
 // Configure OSC destinations using 'IP inport outport xmit bundle'
 void faustgen::osc(long inlet, t_symbol* s, long ac, t_atom* av)
 {
@@ -734,8 +847,11 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
             } else {
                 fDSP->compute(vs, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
             }
-            // Use the right outlet to output messages
-            dump_outputs();
+            // Use the right outlet to output messages: at every block, unless
+            // 'report' sends only the bargraphs that changed, from its clock
+            if (fReportPeriod == 0) {
+                dump_outputs();
+            }
             // Done for fMidiUI and fOSCUI
             // Do not ever block the audio callback. A concurrent UI/OSC
             // reconfiguration simply defers this refresh to a later block.
@@ -883,6 +999,12 @@ void faustgen::create_dsp(bool init)
         
         // Send JSON to JS script
         create_jsui();
+        
+        // A new DSP: every control is reported again, after its JSON
+        fReported.clear();
+        if (fReportPeriod > 0) {
+            send_json();
+        }
     }
     fDSPfactory->unlock_ui();
     fDSPfactory->unlock_audio();
@@ -1036,6 +1158,12 @@ extern "C" void ext_main(void* r)
     
     // Process the "osc" message
     REGISTER_METHOD_GIMME(faustgen, osc);
+    
+    // Register inside Max the faustgen::json method
+    REGISTER_METHOD_GIMME(faustgen, json);
+    
+    // Register inside Max the faustgen::report method
+    REGISTER_METHOD_GIMME(faustgen, report);
     
     // Process the "multichanneloutputs" message
     REGISTER_METHOD_MULTICHANNELOUPUTS(faustgen, multichanneloutputs);

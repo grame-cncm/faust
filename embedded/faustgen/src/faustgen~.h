@@ -38,6 +38,8 @@
 #include <vector>
 #include <mutex>
 #include <map>
+#include <algorithm>
+#include <cmath>
 
 #include <faust/gui/JSONUI.h>
 #include <faust/gui/MidiUI.h>
@@ -84,6 +86,9 @@ class faustgen : public MspCpp5<faustgen> {
         t_object* fEditor;              // Text editor object
         bool fRNBOAttr;                 // RNBO attribute
         bool fMute;                     // DSP mute state
+        void* fReportClock;             // Clock that sends the controls that changed
+        long fReportPeriod;             // 'report' period in ms, 0 when off (outputs at every block)
+        std::map<std::string, FAUSTFLOAT> fReported;  // Last value sent for each control path
         static t_jrgba gDefaultColor;   // Color of the object to be used when restoring default color
         
         // Display the full DSP source text in a Max window
@@ -127,6 +132,12 @@ class faustgen : public MspCpp5<faustgen> {
         
         // Parse JSON text into a Max dictionary
         t_dictionary* json_reader(const char* jsontext);
+    
+        // Send 'json <text>' on the control outlet
+        void send_json();
+    
+        // Start or stop the report clock, following fReportPeriod
+        void schedule_report();
     
     public:
         
@@ -178,6 +189,15 @@ class faustgen : public MspCpp5<faustgen> {
         
         // Configure or query OSC support
         void osc(long inlet, t_symbol* s, long argc, t_atom* argv);
+    
+        // Send the DSP's JSON on the control outlet, as 'json <text>'
+        void json(long inlet, t_symbol* s, long argc, t_atom* argv);
+    
+        // 'report <ms>': send the controls that changed, at most every ms (0 = off)
+        void report(long inlet, t_symbol* s, long argc, t_atom* argv);
+    
+        // Called by the report clock: send the controls whose value changed
+        void report_changes();
     
         // Print input parameter names/types
         void dump_inputs();
