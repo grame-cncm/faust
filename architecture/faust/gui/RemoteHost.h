@@ -39,10 +39,17 @@
  the conformance test of faustwasm (`test/cli/remote-native.test.mjs`) plays
  the same sessions against both hosts.
 
- Phase 1 of the plan: the `shared` policy, the `shared` sensor policy, no
- playout delay. What it does:
+ No playout delay (the timestamped mode is not ported). What it does:
 
  - accepts remote controls with the room's token, at most `maxClients`;
+ - shares the controls among them as FaustRemoteHost's options say:
+   `policy` (`shared`: every remote control writes; `exclusive`: only the
+   first to have joined), `assign: 'groups'` (each remote control is given
+   the next top-level group of the DSP no other one holds, and writes only
+   in it), `sensorPolicy` (`shared`: every reading drives every sensor
+   control; `mean`: they follow the mean of the remote controls' latest
+   readings; `assigned`: each remote control's readings drive only the
+   sensor controls it may write, mapped here with the DSP's curves);
  - applies their writes, held to each control's range, refusing controls
    marked `[remote:off]` (the real value is sent back);
  - passes their accelerometer and gyroscope readings to the DSP's own
@@ -76,6 +83,7 @@
 #include <algorithm>
 
 #include "faust/gui/RemoteSocket.h"
+#include "faust/gui/ValueConverter.h"
 
 // ------------------------------------------------------------------- JSON
 
@@ -583,6 +591,12 @@ struct RemoteInput {
     double fMin, fMax;      // the range writes are held to ([0, 1] for buttons and checkboxes)
     bool fRemoteOff;        // [remote:off]: remote controls follow it but cannot change it
     bool fAcc, fGyr;        // has [acc:] / [gyr:] metadata
+    double fInit;           // its initial value: the middle point of a sensor curve
+    std::string fAccSpec;   // the [acc:] metadata, "axis curve amin amid amax", or empty
+    std::string fGyrSpec;   // the [gyr:] one
+    int fGroup;             // the top-level group it is in (index in getRemoteGroups()), or -1
+
+    RemoteInput():fButton(false), fMin(0), fMax(1), fRemoteOff(false), fAcc(false), fGyr(false), fInit(0), fGroup(-1) {}
 };
 
 /** An output control: a bargraph. */
@@ -615,6 +629,8 @@ class RemoteTarget {
         virtual void remoteMidi(const std::vector<int>& data) = 0;
         /** Active voices of a polyphonic DSP; negative for a monophonic one. */
         virtual int getRemoteVoices() { return -1; }
+        /** The labels of the groups directly under the DSP's top group, in order (`assign: 'groups'`). */
+        virtual std::vector<std::string> getRemoteGroups() { return std::vector<std::string>(); }
         /** Whether values live in float zones (FAUSTFLOAT is float): they are then written as floats. */
         virtual bool remoteFloatValues() { return false; }
 };
@@ -637,10 +653,19 @@ struct RemoteHostOptions {
     double fMaxMessageRate;
     /** Milliseconds during which a write is not echoed to its writer. */
     double fEchoWindow;
+    /** `shared`: every remote control writes, the last write wins; `exclusive`: only the first to have joined. */
+    std::string fPolicy;
+    /** Each remote control is given the next top-level group no other one holds, and writes only in it. */
+    bool fAssignGroups;
+    /** `shared`, `mean` or `assigned`: what several remote controls' sensors do. */
+    std::string fSensorPolicy;
+    /** Milliseconds a reading counts in the `mean`. */
+    double fSensorWindow;
 
     RemoteHostOptions()
     :fMode("bi"), fMaxClients(16), fOutputRate(30), fOutputDeadband(0.001),
-    fLivenessTimeout(3000), fMaxMessageRate(200), fEchoWindow(500)
+    fLivenessTimeout(3000), fMaxMessageRate(200), fEchoWindow(500),
+    fPolicy("shared"), fAssignGroups(false), fSensorPolicy("shared"), fSensorWindow(1000)
     {}
 };
 
@@ -671,7 +696,15 @@ class RemoteHost {
             double fLastMessageAt;
             double fWindowStart;
             double fWindowCount;
-            Client():fOpen(false), fClosing(false), fLastMessageAt(0), fWindowStart(0), fWindowCount(0) {}
+            int fGroup;                         // the group it holds (assign groups), or -1
+            bool fHasAcc, fHasGyr;              // its latest readings, sign corrected, for the `mean`
+            double fAcc[3], fGyr[3];
+            double fAccAt, fGyrAt;
+            Client():fOpen(false), fClosing(false), fLastMessageAt(0), fWindowStart(0), fWindowCount(0),
+            fGroup(-1), fHasAcc(false), fHasGyr(false), fAccAt(0), fGyrAt(0)
+            {
+                fAcc[0] = fAcc[1] = fAcc[2] = fGyr[0] = fGyr[1] = fGyr[2] = 0;
+            }
         };
 
         RemoteTarget* fTarget;
@@ -682,6 +715,14 @@ class RemoteHost {
         std::string fJSON;
         std::string fHash;                      // SHA-256 of the JSON, in hex, computed when first asked
         bool fRemoteAcc, fRemoteGyr;            // whether remote sensor readings may drive anything
+        // A control a sensor axis drives, with the DSP's curve for it: the `assigned` policy
+        struct SensorTarget {
+            int fInput;
+            int fAxis;
+            std::shared_ptr<ValueConverter> fConvert;
+        };
+        std::vector<SensorTarget> fAccTargets, fGyrTargets;
+        std::vector<std::string> fGroups;
         std::vector<double> fOutputThreshold;
         std::vector<double> fOutValues;
         std::vector<double> fSeen;              // inputs as last polled: a change is a `sync`
@@ -782,6 +823,93 @@ class RemoteHost {
             return true;
         }
 
+        /** The control a sensor axis drives, from its metadata, "axis curve amin amid amax". */
+        static void addTarget(std::vector<SensorTarget>& targets, int i, const RemoteInput& input, const std::string& spec)
+        {
+            if (spec.empty()) return;
+            std::istringstream in(spec);
+            in.imbue(std::locale::classic());
+            int axis, curve;
+            double amin, amid, amax;
+            if (!(in >> axis >> curve >> amin >> amid >> amax) || axis < 0 || axis > 2 || curve < 0 || curve > 3) return;
+            SensorTarget target;
+            target.fInput = i;
+            target.fAxis = axis;
+            switch (curve) {
+                case 0: target.fConvert.reset(new UpConverter(amin, amid, amax, input.fMin, input.fInit, input.fMax)); break;
+                case 1: target.fConvert.reset(new DownConverter(amin, amid, amax, input.fMin, input.fInit, input.fMax)); break;
+                case 2: target.fConvert.reset(new UpDownConverter(amin, amid, amax, input.fMin, input.fInit, input.fMax)); break;
+                default: target.fConvert.reset(new DownUpConverter(amin, amid, amax, input.fMin, input.fInit, input.fMax)); break;
+            }
+            targets.push_back(target);
+        }
+
+        /** `exclusive`: only the first remote control to have joined drives. */
+        bool mayDrive(Client* c)
+        {
+            if (fOptions.fPolicy != "exclusive") return true;
+            std::vector<Client*> clients = open();
+            return !clients.empty() && clients[0] == c;
+        }
+
+        bool mayWrite(Client* c, int i)
+        {
+            if (!mayDrive(c)) return false;
+            if (!fOptions.fAssignGroups) return true;
+            return c->fGroup >= 0 && fTarget->getRemoteInputs()[i].fGroup == c->fGroup;
+        }
+
+        /*
+         The `assigned` policy: map one remote control's reading onto the
+         controls of that sensor it may write, with the DSP's curves, and write
+         them. Not recorded as its writes, so that the echo reaches it: its
+         sliders follow its gesture, as under the other policies.
+        */
+        void drive(Client* c, const std::vector<SensorTarget>& targets, const double axes[3])
+        {
+            for (const SensorTarget& target : targets) {
+                if (!mayWrite(c, target.fInput)) continue;
+                fTarget->setRemoteInput(target.fInput, target.fConvert->ui2faust(axes[target.fAxis]));
+            }
+        }
+
+        /** The mean of the accelerometer readings of the last `sensorWindow` ms. */
+        void meanAcc(double t, double mean[3])
+        {
+            double sum[3] = {0, 0, 0};
+            int count = 0;
+            for (Client* c : open()) {
+                if (!c->fHasAcc || t - c->fAccAt > fOptions.fSensorWindow) continue;
+                for (int k = 0; k < 3; k++) sum[k] += c->fAcc[k];
+                count++;
+            }
+            for (int k = 0; k < 3; k++) mean[k] = sum[k] / count;
+        }
+
+        /*
+         The mean of the gyroscope readings of the last `sensorWindow` ms:
+         circular for alpha (compass, 0 to 360) and beta (-180 to 180), where
+         350 and 10 average to 0, not 180; plain for gamma (-90 to 90).
+        */
+        void meanGyr(double t, double mean[3])
+        {
+            const double kPi = 3.14159265358979323846;   // M_PI is not standard (MSVC)
+            double sinSum[2] = {0, 0}, cosSum[2] = {0, 0}, gamma = 0;
+            int count = 0;
+            for (Client* c : open()) {
+                if (!c->fHasGyr || t - c->fGyrAt > fOptions.fSensorWindow) continue;
+                for (int k = 0; k < 2; k++) {
+                    sinSum[k] += sin(c->fGyr[k] * kPi / 180);
+                    cosSum[k] += cos(c->fGyr[k] * kPi / 180);
+                }
+                gamma += c->fGyr[2];
+                count++;
+            }
+            mean[0] = fmod(atan2(sinSum[0], cosSum[0]) * 180 / kPi + 360, 360);
+            mean[1] = atan2(sinSum[1], cosSum[1]) * 180 / kPi;
+            mean[2] = gamma / count;
+        }
+
         void reject(Client* c, const std::string& code, const std::string& reason)
         {
             send(c, "{\"type\":\"reject\",\"code\":" + RemoteJSON::quote(code) + ",\"reason\":" + RemoteJSON::quote(reason) + "}");
@@ -804,6 +932,18 @@ class RemoteHost {
 
             c->fId = m.fId;
             c->fMode = (fOptions.fMode == "uni") ? "uni" : m.fMode;
+            if (fOptions.fAssignGroups) {
+                // The next group no other remote control holds, if any
+                std::set<int> held;
+                for (Client* other : open()) held.insert(other->fGroup);
+                c->fGroup = -1;
+                for (int g = 0; g < int(fGroups.size()); g++) {
+                    if (!held.count(g)) {
+                        c->fGroup = g;
+                        break;
+                    }
+                }
+            }
             // The bargraphs as they are now, not at the last tick: a node reports
             // them at every block, so a Web Audio host's welcome has them fresh
             readOutputs();
@@ -823,7 +963,9 @@ class RemoteHost {
             for (size_t i = 0; i < inputs.size(); i++) w += (i ? "," : "") + val(fTarget->getRemoteInput(int(i)));
             w += "],\"outputValues\":[";
             for (size_t k = 0; k < fOutValues.size(); k++) w += (k ? "," : "") + val(fOutValues[k]);
-            w += "],\"voices\":" + num(fVoices) + ",\"rates\":{\"out\":" + num(fOptions.fOutputRate) + "},\"sensors\":\"shared\"}";
+            w += "],\"voices\":" + num(fVoices) + ",\"rates\":{\"out\":" + num(fOptions.fOutputRate) + "}";
+            if (c->fGroup >= 0) w += ",\"group\":" + RemoteJSON::quote(fGroups[c->fGroup]);
+            w += ",\"sensors\":" + RemoteJSON::quote(fOptions.fSensorPolicy) + "}";
             send(c, w);
             if (fOnJoin) fOnJoin(c->fId);
         }
@@ -842,6 +984,12 @@ class RemoteHost {
                         sendSync(c, i, fTarget->getRemoteInput(i));
                         return;
                     }
+                    if (!mayWrite(c, i)) {
+                        // Refused: the real value goes back, so the writer's
+                        // control does not stay on a value nothing applied
+                        sendSync(c, i, fTarget->getRemoteInput(i));
+                        return;
+                    }
                     if (!fresh(c, "p" + std::to_string(i), m)) return;
                     double value = std::min(item.fMax, std::max(item.fMin, m.fValue));
                     // The value asked for, not the one applied: if the two differ,
@@ -855,22 +1003,49 @@ class RemoteHost {
                     return;
                 }
                 case RemoteClientMessage::kAcc: {
-                    if (!fRemoteAcc) return;
+                    if (!fRemoteAcc || !mayDrive(c)) return;
                     if (!fresh(c, "acc", m)) return;
-                    if (!fTarget->hasRemoteAcc()) return;
-                    // Android reports the opposite sign: corrected here, once
+                    const std::string& policy = fOptions.fSensorPolicy;
+                    if (policy != "assigned" && !fTarget->hasRemoteAcc()) return;
+                    // Android reports the opposite sign: corrected here, once,
+                    // so that readings of different phones can be combined
                     double sign = m.fInvert ? -1 : 1;
-                    fTarget->propagateRemoteAcc(sign * m.fAxes[0], sign * m.fAxes[1], sign * m.fAxes[2]);
+                    double axes[3] = {sign * m.fAxes[0], sign * m.fAxes[1], sign * m.fAxes[2]};
+                    if (policy == "assigned") {
+                        drive(c, fAccTargets, axes);
+                    } else if (policy == "mean") {
+                        for (int k = 0; k < 3; k++) c->fAcc[k] = axes[k];
+                        c->fHasAcc = true;
+                        c->fAccAt = t;
+                        double mean[3];
+                        meanAcc(t, mean);
+                        fTarget->propagateRemoteAcc(mean[0], mean[1], mean[2]);
+                    } else {
+                        fTarget->propagateRemoteAcc(axes[0], axes[1], axes[2]);
+                    }
                     return;
                 }
                 case RemoteClientMessage::kGyr: {
-                    if (!fRemoteGyr) return;
+                    if (!fRemoteGyr || !mayDrive(c)) return;
                     if (!fresh(c, "gyr", m)) return;
-                    if (!fTarget->hasRemoteGyr()) return;
-                    fTarget->propagateRemoteGyr(m.fAxes[0], m.fAxes[1], m.fAxes[2]);
+                    const std::string& policy = fOptions.fSensorPolicy;
+                    if (policy != "assigned" && !fTarget->hasRemoteGyr()) return;
+                    if (policy == "assigned") {
+                        drive(c, fGyrTargets, m.fAxes);
+                    } else if (policy == "mean") {
+                        for (int k = 0; k < 3; k++) c->fGyr[k] = m.fAxes[k];
+                        c->fHasGyr = true;
+                        c->fGyrAt = t;
+                        double mean[3];
+                        meanGyr(t, mean);
+                        fTarget->propagateRemoteGyr(mean[0], mean[1], mean[2]);
+                    } else {
+                        fTarget->propagateRemoteGyr(m.fAxes[0], m.fAxes[1], m.fAxes[2]);
+                    }
                     return;
                 }
                 case RemoteClientMessage::kMidi:
+                    if (!mayDrive(c)) return;
                     trackNotes(c->fNotes, m.fData);
                     fTarget->remoteMidi(m.fData);
                     return;
@@ -992,12 +1167,17 @@ class RemoteHost {
             fSession = RemoteHash::randomHex(4);
             fJSON = target->getRemoteJSON();
             fRemoteAcc = fRemoteGyr = false;
-            for (const RemoteInput& input : target->getRemoteInputs()) {
+            const std::vector<RemoteInput>& inputs = target->getRemoteInputs();
+            for (size_t i = 0; i < inputs.size(); i++) {
+                const RemoteInput& input = inputs[i];
                 // A control kept from remote controls is not theirs to drive by their sensors either
                 if (input.fRemoteOff) continue;
                 fRemoteAcc |= input.fAcc;
                 fRemoteGyr |= input.fGyr;
+                addTarget(fAccTargets, int(i), input, input.fAccSpec);
+                addTarget(fGyrTargets, int(i), input, input.fGyrSpec);
             }
+            fGroups = target->getRemoteGroups();
             for (const RemoteOutput& output : target->getRemoteOutputs()) {
                 double range = output.fMax - output.fMin;
                 fOutputThreshold.push_back(std::isfinite(range) ? fabs(range) * fOptions.fOutputDeadband : 0);

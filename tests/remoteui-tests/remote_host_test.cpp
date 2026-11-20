@@ -104,7 +104,8 @@ struct FakeTarget : public RemoteTarget {
     }
     double getRemoteOutput(int k) { return fOutValues[k]; }
     bool hasRemoteAcc() { return true; }
-    bool hasRemoteGyr() { return false; }
+    bool hasRemoteGyr() { return fHasGyr; }
+    bool fHasGyr = false;
     void propagateRemoteAcc(double x, double y, double z) { fAcc = {x, y, z}; }
     void propagateRemoteGyr(double a, double b, double g) { fGyr = {a, b, g}; }
     void remoteMidi(const std::vector<int>& data) { fMidi.push_back(data); }
@@ -590,6 +591,161 @@ static void testChunks()
     CHECK(RemoteJSON::parse(whole, w) && Bench::type(w) == "welcome" && w.get("json")->fString == big);
 }
 
+/** A DSP with one control per player group, each on the accelerometer's x axis, and one outside. */
+struct GroupTarget : public FakeTarget {
+    std::vector<std::string> fGroups;
+    GroupTarget()
+    {
+        fInputs.clear();
+        fValues.clear();
+        fOutputs.clear();
+        fOutValues.clear();
+        addInput("/t/p1/x", false, 0, 1, 0.5);
+        fInputs.back().fGroup = 0;
+        addInput("/t/p2/x", false, 0, 1, 0.5);
+        fInputs.back().fGroup = 1;
+        for (RemoteInput& input : fInputs) {
+            input.fInit = 0.5;
+            input.fAcc = true;
+            input.fAccSpec = "0 0 -10 0 10";
+        }
+        addInput("/t/free", false, 0, 1, 0);
+        fGroups = {"p1", "p2"};
+    }
+    std::vector<std::string> getRemoteGroups() { return fGroups; }
+};
+
+/** A host on a GroupTarget. */
+struct GroupBench : public Bench {
+    GroupTarget fGroupTarget;
+    RemoteHost fGroupHost;
+    GroupBench(RemoteHostOptions options)
+    :Bench(options), fGroupHost(&fGroupTarget, options, [this](const std::string& text) { fSent.push_back(text); }, [this]() { return fTime; })
+    {}
+    void say(const std::string& peer, const std::string& message, char channel = 'c')
+    {
+        fGroupHost.receive(peer + "\n" + channel + message);
+    }
+    void join(const std::string& peer, const std::string& id)
+    {
+        say(peer, "{\"type\":\"hello\",\"v\":1,\"id\":\"" + id + "\",\"token\":\"secret\",\"mode\":\"bi\"}");
+    }
+};
+
+static void testExclusive()
+{
+    RemoteHostOptions options = Bench::defaults();
+    options.fPolicy = "exclusive";
+    Bench bench(options);
+    FakeTarget& t = bench.fTarget;
+    bench.join("p1", "a");
+    bench.join("p2", "b");
+    bench.heard("p1");
+    bench.heard("p2");
+    // The second watches: its write is refused, the real value sent back
+    bench.say("p2", "{\"type\":\"param\",\"i\":0,\"value\":1000}");
+    std::vector<RemoteJSON> got = bench.heard("p2");
+    CHECK(t.fValues[0] == 440 && got.size() == 1 && Bench::type(got[0]) == "sync" && Bench::number(got[0], "value") == 440);
+    bench.say("p2", "{\"type\":\"acc\",\"x\":1,\"y\":2,\"z\":3,\"invert\":false}", 's');
+    bench.say("p2", "{\"type\":\"midi\",\"data\":[144,60,100]}");
+    CHECK(t.fAcc.empty() && t.fMidi.empty());
+    // The first drives
+    bench.say("p1", "{\"type\":\"param\",\"i\":0,\"value\":1000}");
+    CHECK(t.fValues[0] == 1000);
+    // Once it is gone, the next one does
+    bench.fHost.receive("p1\n!");
+    bench.say("p2", "{\"type\":\"param\",\"i\":0,\"value\":500}");
+    CHECK(t.fValues[0] == 500);
+}
+
+static void testGroups()
+{
+    RemoteHostOptions options = Bench::defaults();
+    options.fAssignGroups = true;
+    GroupBench bench(options);
+    GroupTarget& t = bench.fGroupTarget;
+    bench.join("p1", "a");
+    bench.join("p2", "b");
+    bench.join("p3", "c");
+    std::vector<RemoteJSON> a = bench.heard("p1"), b = bench.heard("p2"), c = bench.heard("p3");
+    CHECK(a.size() == 1 && a[0].get("group") && a[0].get("group")->fString == "p1");
+    CHECK(b.size() == 1 && b[0].get("group") && b[0].get("group")->fString == "p2");
+    // None left for the third: no group, and nothing to write
+    CHECK(c.size() == 1 && !c[0].get("group"));
+    bench.say("p1", "{\"type\":\"param\",\"i\":0,\"value\":0.9}");
+    CHECK(t.fValues[0] == 0.9);
+    bench.say("p1", "{\"type\":\"param\",\"i\":1,\"value\":0.9}");
+    a = bench.heard("p1");
+    CHECK(t.fValues[1] == 0.5 && a.size() == 1 && Bench::type(a[0]) == "sync" && Bench::number(a[0], "i") == 1);
+    bench.say("p1", "{\"type\":\"param\",\"i\":2,\"value\":1}");
+    CHECK(t.fValues[2] == 0);
+    bench.say("p3", "{\"type\":\"param\",\"i\":2,\"value\":1}");
+    CHECK(t.fValues[2] == 0);
+    // A group is freed when its holder leaves
+    bench.fGroupHost.receive("p1\n!");
+    bench.join("p4", "d");
+    std::vector<RemoteJSON> d = bench.heard("p4");
+    CHECK(d.size() == 1 && d[0].get("group") && d[0].get("group")->fString == "p1");
+}
+
+static void testAssignedSensors()
+{
+    RemoteHostOptions options = Bench::defaults();
+    options.fAssignGroups = true;
+    options.fSensorPolicy = "assigned";
+    GroupBench bench(options);
+    GroupTarget& t = bench.fGroupTarget;
+    bench.join("p1", "a");
+    bench.join("p2", "b");
+    std::vector<RemoteJSON> got = bench.heard("p1");
+    CHECK(got.size() == 1 && got[0].get("sensors")->fString == "assigned");
+    bench.heard("p2");
+    // Mapped here, with the curve of the metadata, on its own group's control only
+    bench.say("p1", "{\"type\":\"acc\",\"x\":10,\"y\":0,\"z\":0,\"invert\":false}", 's');
+    CHECK(t.fValues[0] == 1 && t.fValues[1] == 0.5 && t.fAcc.empty());
+    bench.say("p2", "{\"type\":\"acc\",\"x\":5,\"y\":0,\"z\":0,\"invert\":true}", 's');
+    CHECK(t.fValues[1] == 0.25 && t.fValues[0] == 1);
+    // Not recorded as its write: the echo reaches it
+    bench.fTime += 40;
+    bench.fGroupHost.tick();
+    got = bench.heard("p1");
+    bool echoed = false;
+    for (const RemoteJSON& m : got) echoed |= Bench::type(m) == "sync" && Bench::number(m, "i") == 0;
+    CHECK(echoed);
+}
+
+static void testMeanSensors()
+{
+    RemoteHostOptions options = Bench::defaults();
+    options.fSensorPolicy = "mean";
+    Bench bench(options);
+    FakeTarget& t = bench.fTarget;
+    // The gyroscope too, for this test
+    t.fInputs[3].fGyr = true;
+    t.fHasGyr = true;
+    RemoteHost host(&t, options, [&bench](const std::string& text) { bench.fSent.push_back(text); }, [&bench]() { return bench.fTime; });
+    host.receive("p1\nc{\"type\":\"hello\",\"v\":1,\"id\":\"a\",\"token\":\"secret\",\"mode\":\"bi\"}");
+    host.receive("p2\nc{\"type\":\"hello\",\"v\":1,\"id\":\"b\",\"token\":\"secret\",\"mode\":\"bi\"}");
+    std::vector<RemoteJSON> got = bench.heard("p1");
+    CHECK(got.size() == 1 && got[0].get("sensors")->fString == "mean");
+    host.receive("p1\ns{\"type\":\"acc\",\"x\":2,\"y\":0,\"z\":0,\"invert\":false}");
+    CHECK(t.fAcc.size() == 3 && t.fAcc[0] == 2);
+    // Android's sign corrected before the mean
+    host.receive("p2\ns{\"type\":\"acc\",\"x\":-4,\"y\":0,\"z\":0,\"invert\":true}");
+    CHECK(t.fAcc[0] == 3);
+    // A reading older than the window no longer counts
+    bench.fTime += 1001;
+    host.receive("p2\ns{\"type\":\"acc\",\"x\":6,\"y\":0,\"z\":0,\"invert\":false}");
+    CHECK(t.fAcc[0] == 6);
+    // Circular for alpha and beta
+    host.receive("p1\ns{\"type\":\"gyr\",\"alpha\":350,\"beta\":170,\"gamma\":10}");
+    host.receive("p2\ns{\"type\":\"gyr\",\"alpha\":10,\"beta\":-170,\"gamma\":20}");
+    CHECK(t.fGyr.size() == 3);
+    CHECK(fabs(t.fGyr[0]) < 1e-9 || fabs(t.fGyr[0] - 360) < 1e-9);
+    CHECK(fabs(fabs(t.fGyr[1]) - 180) < 1e-9);
+    CHECK(t.fGyr[2] == 15);
+}
+
 int main()
 {
     testHashes();
@@ -603,6 +759,10 @@ int main()
     testHeldElsewhereAndAllNotesOff();
     testLimits();
     testChunks();
+    testExclusive();
+    testGroups();
+    testAssignedSensors();
+    testMeanSensors();
     printf("%d checks, %d failed\n", gChecks, gErrors);
     return gErrors ? 1 : 0;
 }

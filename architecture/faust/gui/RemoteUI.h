@@ -57,6 +57,14 @@
                                  by default the -remote address itself
      -remote-room <name>         the room; random by default
      -remote-token <token>       the pairing token; random (128 bits) by default
+     -remote-policy <p>          shared (default): every phone writes, the last write wins;
+                                 exclusive: only the first phone to have joined
+     -remote-assign groups       each phone gets the next top-level group of the DSP no other
+                                 phone holds (hgroup("p1", ...), hgroup("p2", ...)), and writes
+                                 only there; a phone that finds none free writes nothing
+     -remote-sensors <p>         shared (default): every phone's sensors drive every [acc:]/[gyr:]
+                                 control; mean: they follow the phones' mean reading;
+                                 assigned: each phone drives only those it may write
 
  The protocol and the host's rules are those of RemoteHost.h, a port of
  faustwasm's host. A network thread of its own reads the relay, writes the
@@ -97,6 +105,11 @@ class RemoteUI : public APIUI, public RemoteTarget {
         std::vector<int> fInputItems;   // index in fItems of each input
         std::vector<int> fOutputItems;  // of each output
         bool fHasAcc, fHasGyr;
+        // The groups directly under the DSP's top group, and the one of each item (-1: none)
+        std::vector<std::string> fGroups;
+        std::vector<int> fItemGroup;
+        int fDepth;
+        int fCurrentGroup;
 
         std::function<void(const std::vector<int>&)> fMidi;
         std::function<int()> fVoices;
@@ -178,14 +191,43 @@ class RemoteUI : public APIUI, public RemoteTarget {
                     off.erase(off.find_last_not_of(" \t") + 1);
                     for (size_t i = 0; i < off.size(); i++) off[i] = char(tolower((unsigned char)off[i]));
                     input.fRemoteOff = (off == "off");
-                    input.fAcc = getMetadata(p, "acc") != nullptr;
-                    input.fGyr = getMetadata(p, "gyr") != nullptr;
+                    const char* acc = getMetadata(p, "acc");
+                    const char* gyr = getMetadata(p, "gyr");
+                    input.fAcc = acc != nullptr;
+                    input.fGyr = gyr != nullptr;
+                    input.fAccSpec = acc ? acc : "";
+                    input.fGyrSpec = gyr ? gyr : "";
+                    input.fInit = getParamInit(p);
+                    input.fGroup = p < int(fItemGroup.size()) ? fItemGroup[p] : -1;
                     fInputs.push_back(input);
                     fInputItems.push_back(p);
                 }
             }
             fHasAcc = getAccCount(0) + getAccCount(1) + getAccCount(2) > 0;
             fHasGyr = getGyrCount(0) + getGyrCount(1) + getGyrCount(2) > 0;
+        }
+
+        // The top-level groups, as the boxes open and close
+        void openBox(const char* label)
+        {
+            fDepth++;
+            // A box directly in the top one: a group to hand out
+            if (fDepth == 2) {
+                fGroups.push_back(label);
+                fCurrentGroup = int(fGroups.size()) - 1;
+            }
+        }
+        void closeTheBox()
+        {
+            if (fDepth == 2) fCurrentGroup = -1;
+            fDepth--;
+        }
+
+        virtual void addParameter(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+                                  FAUSTFLOAT max, FAUSTFLOAT step, ItemType type)
+        {
+            APIUI::addParameter(label, zone, init, min, max, step, type);
+            fItemGroup.push_back(fCurrentGroup);
         }
 
         void printQRCode(const std::string& text)
@@ -288,7 +330,7 @@ class RemoteUI : public APIUI, public RemoteTarget {
          *        the same DSP afterwards)
          */
         RemoteUI(const char* name, ::dsp* dsp, int argc, char* argv[])
-        :fName(name), fHasAcc(false), fHasGyr(false), fRunning(false)
+        :fName(name), fHasAcc(false), fHasGyr(false), fDepth(0), fCurrentGroup(-1), fRunning(false)
         {
             JSONUI json(name, "", dsp->getNumInputs(), dsp->getNumOutputs());
             dsp->buildUserInterface(&json);
@@ -299,6 +341,38 @@ class RemoteUI : public APIUI, public RemoteTarget {
             fRoom = option(argc, argv, "-remote-room", RemoteHash::randomHex(8));
             fToken = option(argc, argv, "-remote-token", RemoteHash::randomHex(16));
             fOptions.fToken = fToken;
+            std::string policy = option(argc, argv, "-remote-policy", "shared");
+            if (policy == "shared" || policy == "exclusive") fOptions.fPolicy = policy;
+            else std::cerr << "RemoteUI: -remote-policy is shared or exclusive, not " << policy << std::endl;
+            std::string assign = option(argc, argv, "-remote-assign", "");
+            if (assign == "groups") fOptions.fAssignGroups = true;
+            else if (!assign.empty()) std::cerr << "RemoteUI: -remote-assign takes groups, not " << assign << std::endl;
+            std::string sensors = option(argc, argv, "-remote-sensors", "shared");
+            if (sensors == "shared" || sensors == "mean" || sensors == "assigned") fOptions.fSensorPolicy = sensors;
+            else std::cerr << "RemoteUI: -remote-sensors is shared, mean or assigned, not " << sensors << std::endl;
+        }
+
+        // -- the boxes, for the top-level groups
+
+        virtual void openTabBox(const char* label)
+        {
+            APIUI::openTabBox(label);
+            openBox(label);
+        }
+        virtual void openHorizontalBox(const char* label)
+        {
+            APIUI::openHorizontalBox(label);
+            openBox(label);
+        }
+        virtual void openVerticalBox(const char* label)
+        {
+            APIUI::openVerticalBox(label);
+            openBox(label);
+        }
+        virtual void closeBox()
+        {
+            APIUI::closeBox();
+            closeTheBox();
         }
 
         virtual ~RemoteUI() { stop(); }
@@ -377,6 +451,7 @@ class RemoteUI : public APIUI, public RemoteTarget {
         }
         void remoteMidi(const std::vector<int>& data) { if (fMidi) fMidi(data); }
         int getRemoteVoices() { return fVoices ? fVoices() : -1; }
+        std::vector<std::string> getRemoteGroups() { return fGroups; }
         bool remoteFloatValues() { return sizeof(FAUSTFLOAT) == sizeof(float); }
 };
 
