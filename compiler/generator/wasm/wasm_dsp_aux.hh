@@ -182,13 +182,17 @@ class LIBFAUST_API wasm_dsp_factory : public dsp_factory, public faust_smartable
    protected:
     dsp_factory_base*  fFactory;
     JSONUIDecoderBase* fDecoder;
+    // The JSON fDecoder was made from: getJSON returns it without a dynamic_cast of
+    // fDecoder, whose vtable may come from a translation unit compiled without RTTI
+    // (llvm_dsp_aux.cpp, in a libfaust with LLVM)
+    std::string fJSON;
 
    public:
     wasm_dsp_factory() : fFactory(nullptr), fDecoder(nullptr) {}
     wasm_dsp_factory(dsp_factory_base* factory);
     wasm_dsp_factory(int instance, const std::string& json);
 
-    virtual ~wasm_dsp_factory() {}
+    virtual ~wasm_dsp_factory() { delete fDecoder; }
 
     std::string getName();
 

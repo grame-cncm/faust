@@ -426,66 +426,6 @@ wasm_dsp* wasm_dsp_factory::createDSPInstance()
     return new wasm_dsp(this, store, inst, memory);
 }
 
-LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromBitcode(const string& bit_code,
-                                                             string&       error_msg)
-{
-    wasm_dsp_factory* factory =
-        new wasm_dsp_factory(new text_dsp_factory_aux("BitcodeDSP", "", "", bit_code, ""));
-    wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
-    return factory;
-}
-
-LIBFAUST_API string writeWasmDSPFactoryToBitcode(wasm_dsp_factory* factory)
-{
-    return factory->getBinaryCode();
-}
-
-LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromBitcodeFile(const string& bit_code_path,
-                                                                 string&       error_msg)
-{
-    ifstream infile;
-    infile.open(bit_code_path, ifstream::in | ifstream::binary);
-
-    if (infile.is_open()) {
-        // get length of file:
-        infile.seekg(0, infile.end);
-        int length = infile.tellg();
-        infile.seekg(0, infile.beg);
-
-        // read code
-        char* bit_code = new char[length];
-        infile.read(bit_code, length);
-
-        // create factory
-        wasm_dsp_factory* factory = readWasmDSPFactoryFromBitcode(
-            string(bit_code, length), error_msg);  // Keep the binary string
-
-        infile.close();
-        delete[] bit_code;
-
-        return factory;
-    } else {
-        error_msg = "ERROR : cannot open '" + bit_code_path + "' file\n";
-        return nullptr;
-    }
-}
-
-LIBFAUST_API bool writeWasmDSPFactoryToBitcodeFile(wasm_dsp_factory* factory,
-                                                   const string&     bit_code_path)
-{
-    ofstream outfile;
-    outfile.open(bit_code_path, ofstream::out | ofstream::binary);
-    if (outfile.is_open()) {
-        outfile << factory->getBinaryCode();
-        ;
-        outfile.close();
-        return true;
-    } else {
-        cerr << "writeWasmDSPFactoryToBitcodeFile : cannot open '" << bit_code_path << "' file\n";
-        return false;
-    }
-}
-
 // ---------------------------------------------------------------------
 // DSP instance
 // ---------------------------------------------------------------------
@@ -617,15 +557,78 @@ void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
 
 #else
 
+// The JSON a Faust wasm module carries: the string at offset 0 of its first data segment
+// (see WASMCodeContainer::produceClass), read from the module's sections, without a wasm
+// engine to instantiate it. Empty if the module has none.
+static unsigned long long readLEB128(const string& bytes, size_t& pos, bool& ok)
+{
+    unsigned long long result = 0;
+    int                shift  = 0;
+    while (pos < bytes.size() && shift < 64) {
+        unsigned char byte = (unsigned char)bytes[pos++];
+        result |= (unsigned long long)(byte & 0x7f) << shift;
+        if (!(byte & 0x80)) {
+            return result;
+        }
+        shift += 7;
+    }
+    ok = false;
+    return 0;
+}
+
+static string wasmModuleJSON(const string& bytes)
+{
+    // Magic number "\0asm" and version
+    if (bytes.size() < 8 || bytes.compare(0, 4, string("\0asm", 4)) != 0) {
+        return "";
+    }
+    size_t pos = 8;
+    bool   ok  = true;
+    while (ok && pos < bytes.size()) {
+        unsigned char id   = (unsigned char)bytes[pos++];
+        size_t        size = (size_t)readLEB128(bytes, pos, ok);
+        if (!ok || size > bytes.size() - pos) {
+            return "";
+        }
+        size_t end = pos + size;
+        if (id == 11) {
+            // Data section: its first segment, active in memory 0 at 'i32.const 0'
+            readLEB128(bytes, pos, ok);  // segment count
+            unsigned long long flags = readLEB128(bytes, pos, ok);
+            if (!ok || flags != 0 || pos >= end || (unsigned char)bytes[pos++] != 0x41) {
+                return "";
+            }
+            unsigned long long offset = readLEB128(bytes, pos, ok);
+            if (!ok || offset != 0 || pos >= end || (unsigned char)bytes[pos++] != 0x0b) {
+                return "";
+            }
+            size_t length = (size_t)readLEB128(bytes, pos, ok);
+            if (!ok || length > end - pos) {
+                return "";
+            }
+            string data = bytes.substr(pos, length);
+            // The JSON, without the padding that may follow it
+            size_t zero = data.find('\0');
+            return (zero == string::npos) ? data : data.substr(0, zero);
+        }
+        pos = end;
+    }
+    return "";
+}
+
+// Without wasmtime the module cannot be instantiated: its JSON is read in its data segment,
+// so that getJSON, getCompileOptions... work as with wasmtime
 LIBFAUST_API wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory)
 {
     fFactory = factory;
-    fDecoder = nullptr;
+    fJSON    = wasmModuleJSON(factory->getBinaryCode());
+    fDecoder = fJSON.empty() ? nullptr : createJSONUIDecoder(fJSON);
 }
 
 LIBFAUST_API string wasm_dsp_factory::getName()
 {
-    return fFactory->getName();
+    // As with wasmtime: from the module's JSON (the base factory does not keep the name)
+    return fDecoder ? fDecoder->getName() : fFactory->getName();
 }
 
 LIBFAUST_API string wasm_dsp_factory::getSHAKey()
@@ -663,16 +666,7 @@ LIBFAUST_API vector<string> wasm_dsp_factory::getIncludePathnames()
 
 LIBFAUST_API string wasm_dsp_factory::getJSON()
 {
-    if (!fDecoder) {
-        return "";
-    }
-    if (auto* decoder = dynamic_cast<JSONUIDecoderReal<float>*>(fDecoder)) {
-        return decoder->fJSON;
-    }
-    if (auto* decoder = dynamic_cast<JSONUIDecoderReal<double>*>(fDecoder)) {
-        return decoder->fJSON;
-    }
-    return "";
+    return fJSON;
 }
 
 LIBFAUST_API vector<string> wasm_dsp_factory::getWarningMessages()
@@ -717,6 +711,68 @@ LIBFAUST_API void wasm_dsp_factory::deleteDSPInstance(wasm_dsp* dsp)
 }
 
 #endif
+
+// Bitcode: the module's binary code, with or without wasmtime
+
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromBitcode(const string& bit_code,
+                                                             string&       error_msg)
+{
+    wasm_dsp_factory* factory =
+        new wasm_dsp_factory(new text_dsp_factory_aux("BitcodeDSP", "", "", bit_code, ""));
+    wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
+    return factory;
+}
+
+LIBFAUST_API string writeWasmDSPFactoryToBitcode(wasm_dsp_factory* factory)
+{
+    return factory->getBinaryCode();
+}
+
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromBitcodeFile(const string& bit_code_path,
+                                                                 string&       error_msg)
+{
+    ifstream infile;
+    infile.open(bit_code_path, ifstream::in | ifstream::binary);
+
+    if (infile.is_open()) {
+        // get length of file:
+        infile.seekg(0, infile.end);
+        int length = infile.tellg();
+        infile.seekg(0, infile.beg);
+
+        // read code
+        char* bit_code = new char[length];
+        infile.read(bit_code, length);
+
+        // create factory
+        wasm_dsp_factory* factory = readWasmDSPFactoryFromBitcode(
+            string(bit_code, length), error_msg);  // Keep the binary string
+
+        infile.close();
+        delete[] bit_code;
+
+        return factory;
+    } else {
+        error_msg = "ERROR : cannot open '" + bit_code_path + "' file\n";
+        return nullptr;
+    }
+}
+
+LIBFAUST_API bool writeWasmDSPFactoryToBitcodeFile(wasm_dsp_factory* factory,
+                                                   const string&     bit_code_path)
+{
+    ofstream outfile;
+    outfile.open(bit_code_path, ofstream::out | ofstream::binary);
+    if (outfile.is_open()) {
+        outfile << factory->getBinaryCode();
+        ;
+        outfile.close();
+        return true;
+    } else {
+        cerr << "writeWasmDSPFactoryToBitcodeFile : cannot open '" << bit_code_path << "' file\n";
+        return false;
+    }
+}
 
 // Static constructor
 
