@@ -64,6 +64,7 @@ class AudioFaust : public AudioStream
     #if MIDICTRL
         teensy_midi* fMIDIHandler;
         MidiUI* fMIDIInterface;
+        void startMidi();
     #endif
         dsp* fDSP;
 };
