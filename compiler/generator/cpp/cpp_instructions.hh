@@ -499,10 +499,15 @@ class CPPInstVisitor : public TextInstVisitor {
         }
     }
 
+    // Only -ftz 2 creates bitcasts: float to int32, or double to int64. Taking
+    // the address of the operand fails on an expression (an rvalue) and breaks
+    // strict aliasing, so the bits are copied by the faust_float_bits and
+    // faust_double_bits helpers that CPPCodeContainer emits in that mode.
     virtual void visit(BitcastInst* inst)
     {
-        std::string type = fTypeManager->generateType(inst->fType);
-        *fOut << "*reinterpret_cast<" << type << "*>(&";
+        Typed::VarType type = inst->fType->getType();
+        faustassert(type == Typed::kInt32 || type == Typed::kInt64);
+        *fOut << ((type == Typed::kInt32) ? "faust_float_bits(" : "faust_double_bits(");
         inst->fInst->accept(this);
         *fOut << ")";
     }

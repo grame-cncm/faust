@@ -64,18 +64,18 @@ binary explicitly in both, and have the report say which one was judged.
 `nnx`, `linen`, `julia`. Several need toolchains that are not installed
 everywhere, so running a subset is normal — but choose it knowingly:
 
-- `cpp-core` is the required C++ subset: nineteen option sets, **float and
-  double**, `-vec` at `lv 0` / `lv 1` / `vs 16` / `-fun`, plus
+- `cpp-core` is the required C++ subset: twenty-one option sets, **float
+  and double**, `-vec` at `lv 0` / `lv 1` / `vs 16` / `-fun`, plus
   `-uim`, `-it`, `-fp`, `-wall`, `-mcd 0`, `-mapp`, `-rui`, `-nvi`,
-  `-dlt 0`, `-dlt 256`.
+  `-dlt 0`, `-dlt 256`, `-ftz 2`.
 - `ocpp` and `ocpp-float` cover the legacy backend in double and single
-  precision, each in scalar mode, with `-mcd 0`, and with `-vec` at
-  `lv 0` / `lv 1`. The continuous integration never exercises it.
+  precision, each in scalar mode, with `-mcd 0`, with `-ftz 2`, and with
+  `-vec` at `lv 0` / `lv 1`. The continuous integration never exercises it.
 
 **OpenMP (`-omp`) and the scheduler (`-sch`) are optional.** Neither is
 required for routine compiler validation or integration into `master-dev`;
 an omitted leg is not a failing gate. The broader `cpp` target still runs
-all twenty-five option sets, including these six optional legs, when
+all twenty-seven option sets, including these six optional legs, when
 their coverage is wanted. Use `cpp-core` for the required gate.
 
 Do not settle for the double-precision legs. A one-sample float bug can

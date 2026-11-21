@@ -5656,10 +5656,12 @@ string ScalarCompiler::generateIntCast(Tree sig, Tree x)
 
 string ScalarCompiler::generateBitCast(Tree sig, Tree x)
 {
+    // The bits are copied by helpers that Klass::printAdditionalCode emits in
+    // -ftz 2 mode: taking the address of the operand fails on an expression.
     if (gGlobal->gFloatSize == 1) {
-        return generateCacheCode(sig, subst("(*(int*)&$0)", CS(x)));
+        return generateCacheCode(sig, subst("faust_float_bits($0)", CS(x)));
     } else if (gGlobal->gFloatSize == 2) {
-        return generateCacheCode(sig, subst("((*(int64_t*)&$0)", CS(x)));
+        return generateCacheCode(sig, subst("faust_double_bits($0)", CS(x)));
     } else {
         faustassert(false);
         return "";

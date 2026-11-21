@@ -256,6 +256,22 @@ void CCodeContainer::produceClass()
              "(unsigned int)b); }"
           << endl;
     *fOut << "#endif" << endl;
+
+    // -ftz 2 tests the exponent bits of real values: memcpy reads them from
+    // any expression without breaking strict aliasing, and compiles to a move.
+    if (gGlobal->gFTZMode == 2) {
+        *fOut << "#ifndef FAUST_FLOAT_BITS" << endl;
+        *fOut << "#define FAUST_FLOAT_BITS" << endl;
+        *fOut << "#include <stdint.h>" << endl;
+        *fOut << "#include <string.h>" << endl;
+        *fOut << "static inline int faust_float_bits(float x) { int r; memcpy(&r, &x, "
+                 "sizeof(r)); return r; }"
+              << endl;
+        *fOut << "static inline int64_t faust_double_bits(double x) { int64_t r; memcpy(&r, &x, "
+                 "sizeof(r)); return r; }"
+              << endl;
+        *fOut << "#endif" << endl;
+    }
     tab(n, *fOut);
 
     if (gGlobal->gInlineTable) {

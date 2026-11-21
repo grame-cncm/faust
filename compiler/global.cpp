@@ -2132,11 +2132,17 @@ bool global::processCmdline(int argc, const char* argv[])
             "ERROR : -fx can only be used with 'c', 'cpp', 'ocpp' or 'fir' backends\n");
     }
 
-    if (gFTZMode == 2 && gOutputLang != "cpp" && gOutputLang != "ocpp" && gOutputLang != "c" &&
-        gOutputLang != "llvm" && startWith(gOutputLang, "wast") && startWith(gOutputLang, "wasm")) {
+    // -ftz 2 bitcasts real values to integers: only these backends implement
+    // the bitcast, and the interpreter only from float to int32.
+    bool ftz2_backend = (gOutputLang == "cpp") || (gOutputLang == "ocpp") ||
+                        (gOutputLang == "c") || (gOutputLang == "llvm") ||
+                        (gOutputLang == "rust") || (gOutputLang == "fir") ||
+                        startWith(gOutputLang, "wast") || startWith(gOutputLang, "wasm") ||
+                        ((gOutputLang == "interp") && (gFloatSize == 1));
+    if (gFTZMode == 2 && !ftz2_backend) {
         throw faustexception(
-            "ERROR : -ftz 2 can only be used with 'c', 'cpp', 'ocpp', 'llvm' or wast/wasm "
-            "backends\n");
+            "ERROR : -ftz 2 can only be used with the 'c', 'cpp', 'ocpp', 'llvm', 'rust', 'fir' "
+            "and wast/wasm backends, or 'interp' with -single\n");
     }
 
     if (gClang && gOutputLang != "cpp" && gOutputLang != "ocpp" && gOutputLang != "c") {

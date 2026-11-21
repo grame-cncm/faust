@@ -692,10 +692,11 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(BitcastInst* inst)
     {
-        std::string type = fTypeManager->generateType(inst->fType);
-        *fOut << "(";
+        // The operand may be an expression: a method call binds tighter than
+        // unary minus in Rust, so -x.to_bits() would negate the bits of x.
+        *fOut << "((";
         inst->fInst->accept(this);
-        *fOut << ".to_bits().cast_signed())";
+        *fOut << ").to_bits().cast_signed())";
     }
 
     virtual void visit(FunCallInst* inst)

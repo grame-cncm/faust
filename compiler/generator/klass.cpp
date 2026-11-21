@@ -240,6 +240,22 @@ void Klass::printAdditionalCode(ostream& fout)
          << endl;
     fout << "#endif" << endl;
 
+    // -ftz 2 tests the exponent bits of real values: memcpy reads them from
+    // any expression without breaking strict aliasing, and compiles to a move.
+    if (gGlobal->gFTZMode == 2) {
+        fout << "#ifndef FAUST_FLOAT_BITS" << endl;
+        fout << "#define FAUST_FLOAT_BITS" << endl;
+        fout << "#include <cstdint>" << endl;
+        fout << "#include <cstring>" << endl;
+        fout << "inline int faust_float_bits(float x) { int r; std::memcpy(&r, &x, sizeof(r)); "
+                "return r; }"
+             << endl;
+        fout << "inline int64_t faust_double_bits(double x) { int64_t r; std::memcpy(&r, &x, "
+                "sizeof(r)); return r; }"
+             << endl;
+        fout << "#endif" << endl;
+    }
+
     if (fNeedPowerDef) {
         // Add faustpower definition to C++ code
         fout << "#ifndef FAUSTPOWER" << endl;

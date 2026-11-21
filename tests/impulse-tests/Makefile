@@ -174,6 +174,7 @@ $(eval $(call LEG, cpp/double/mapp              , cpp , impulsearch.cpp     , -I
 $(eval $(call LEG, cpp/double/rui               , cpp , impulsearch.cpp     , -I dsp -double -rui))
 $(eval $(call LEG, cpp/double/nvi               , cpp , impulsearch.cpp     , -I dsp -double -nvi))
 $(eval $(call LEG, cpp/double/dlt256            , cpp , impulsearch.cpp     , -I dsp -double -dlt 256))
+$(eval $(call LEG, cpp/double/ftz2              , cpp , impulsearch.cpp     , -I dsp -double -ftz 2))
 $(eval $(call LEG, cpp/double/vec/lv0           , cpp , impulsearch.cpp     , -I dsp -double -vec -lv 0))
 $(eval $(call LEG, cpp/double/vec/lv0/fun       , cpp , impulsearch.cpp     , -I dsp -double -vec -lv 0 -fun))
 $(eval $(call LEG, cpp/double/vec/lv0/vs16      , cpp , impulsearch.cpp     , -I dsp -double -vec -lv 0 -vs 16))
@@ -187,6 +188,7 @@ $(eval $(call LEG, cpp/float                    , cpp , impulsearch.cpp     , -I
 $(eval $(call LEG, cpp/float/vec                , cpp , impulsearch.cpp     , -I dsp -single -vec))
 $(eval $(call LEG, cpp/float/sched              , cpp , impulsearch.cpp     , -I dsp -single -sch))
 $(eval $(call LEG, cpp/float/omp                , cpp , impulsearch.cpp     , -I dsp -single -omp))
+$(eval $(call LEG, cpp/float/ftz2               , cpp , impulsearch.cpp     , -I dsp -single -ftz 2))
 
 # quad
 $(eval $(call LEG, cpp/quad                     , cpp , impulsearch.cpp     , -I dsp -quad))
@@ -257,6 +259,7 @@ $(eval $(call LEG, ocpp/double                  , ocpp, impulsearch.cpp     , -I
 $(eval $(call LEG, ocpp/double/mcd0             , ocpp, impulsearch.cpp     , -I dsp -double -mcd 0))
 $(eval $(call LEG, ocpp/double/vec/lv0          , ocpp, impulsearch.cpp     , -I dsp -double -vec -lv 0))
 $(eval $(call LEG, ocpp/double/vec/lv1          , ocpp, impulsearch.cpp     , -I dsp -double -vec -lv 1))
+$(eval $(call LEG, ocpp/double/ftz2             , ocpp, impulsearch.cpp     , -I dsp -double -ftz 2))
 
 # me
 $(eval $(call LEG, me/double                    , cpp , impulsearch3.cpp    , -I dsp -double))
@@ -267,6 +270,7 @@ $(eval $(call LEG, c/double/it                  , c   , impulsearch2.cpp    , -I
 $(eval $(call LEG, c/double/lp                  , c   , impulsearch2.cpp    , -I dsp -double -fp))
 $(eval $(call LEG, c/double/dlt0                , c   , impulsearch2.cpp    , -I dsp -double -dlt 0))
 $(eval $(call LEG, c/double/dlt256              , c   , impulsearch2.cpp    , -I dsp -double -dlt 256))
+$(eval $(call LEG, c/double/ftz2                , c   , impulsearch2.cpp    , -I dsp -double -ftz 2))
 $(eval $(call LEG, c/double/vec/lv0             , c   , impulsearch2.cpp    , -I dsp -double -vec -lv 0))
 $(eval $(call LEG, c/double/vec/lv0/fun         , c   , impulsearch2.cpp    , -I dsp -double -vec -lv 0 -fun))
 $(eval $(call LEG, c/double/vec/lv0/vs16        , c   , impulsearch2.cpp    , -I dsp -double -vec -lv 0 -vs 16))
@@ -281,6 +285,7 @@ $(eval $(call LEG, c/float                      , c   , impulsearch2.cpp    , -I
 $(eval $(call LEG, c/float/vec                  , c   , impulsearch2.cpp    , -I dsp -single -vec))
 $(eval $(call LEG, c/float/sched                , c   , impulsearch2.cpp    , -I dsp -single -sch))
 $(eval $(call LEG, c/float/omp                  , c   , impulsearch2.cpp    , -I dsp -single -omp))
+$(eval $(call LEG, c/float/ftz2                 , c   , impulsearch2.cpp    , -I dsp -single -ftz 2))
 
 # c1
 $(eval $(call LEG, c1/double/ec                 , c   , impulsearch9.cpp    , -I dsp -double -ec))
@@ -320,6 +325,7 @@ CPP_LEGS := leg/cpp/double \
 	leg/cpp/double/nvi \
 	leg/cpp/double/dlt0 \
 	leg/cpp/double/dlt256 \
+	leg/cpp/double/ftz2 \
 	leg/cpp/double/vec/lv0 \
 	leg/cpp/double/vec/lv0/fun \
 	leg/cpp/double/vec/lv0/vs16 \
@@ -333,7 +339,8 @@ CPP_LEGS := leg/cpp/double \
 	leg/cpp/float \
 	leg/cpp/float/vec \
 	leg/cpp/float/sched \
-	leg/cpp/float/omp
+	leg/cpp/float/omp \
+	leg/cpp/float/ftz2
 
 .PHONY: cpp cpp-core
 cpp: $(CPP_LEGS)
@@ -411,16 +418,19 @@ cpp4: leg/cpp4/double/mem2 \
 ocpp: leg/ocpp/double \
 	leg/ocpp/double/mcd0 \
 	leg/ocpp/double/vec/lv0 \
-	leg/ocpp/double/vec/lv1
+	leg/ocpp/double/vec/lv1 \
+	leg/ocpp/double/ftz2
 
 $(eval $(call LEG, ocpp/float, ocpp, impulsearch.cpp, -I dsp -single))
 $(eval $(call LEG, ocpp/float/mcd0, ocpp, impulsearch.cpp, -I dsp -single -mcd 0))
 $(eval $(call LEG, ocpp/float/vec/lv0, ocpp, impulsearch.cpp, -I dsp -single -vec -lv 0))
 $(eval $(call LEG, ocpp/float/vec/lv1, ocpp, impulsearch.cpp, -I dsp -single -vec -lv 1))
+$(eval $(call LEG, ocpp/float/ftz2, ocpp, impulsearch.cpp, -I dsp -single -ftz 2))
 
 .PHONY: ocpp-float
 ocpp-float: leg/ocpp/float leg/ocpp/float/mcd0 \
-	leg/ocpp/float/vec/lv0 leg/ocpp/float/vec/lv1
+	leg/ocpp/float/vec/lv0 leg/ocpp/float/vec/lv1 \
+	leg/ocpp/float/ftz2
 
 .PHONY: vecocpp
 vecocpp: leg/ocpp/double/vec/lv1
@@ -434,6 +444,7 @@ c: leg/c/double \
 	leg/c/double/lp \
 	leg/c/double/dlt0 \
 	leg/c/double/dlt256 \
+	leg/c/double/ftz2 \
 	leg/c/double/vec/lv0 \
 	leg/c/double/vec/lv0/fun \
 	leg/c/double/vec/lv0/vs16 \
@@ -447,7 +458,8 @@ c: leg/c/double \
 	leg/c/float \
 	leg/c/float/vec \
 	leg/c/float/sched \
-	leg/c/float/omp
+	leg/c/float/omp \
+	leg/c/float/ftz2
 
 .PHONY: c1
 c1: leg/c1/double/ec \
