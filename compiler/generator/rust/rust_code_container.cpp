@@ -169,6 +169,14 @@ void RustCodeContainer::produceInternal()
               << ifloat() << "]) {";
     }
     tab(n + 2, *fOut);
+    // The tables read by the generator (see CodeContainer::hoistSubContainers)
+    CollectStaticVarsVisitor collectStaticVarsVisitor{};
+    generateGlobalDeclarations(&collectStaticVarsVisitor);
+    fStaticVarNames = collectStaticVarsVisitor.getStaticVarNames();
+    if (fStaticVarNames.size() > 0) {
+        fCodeProducer.setVarsRequiringGuards(toUnorderedSet(fStaticVarNames));
+        generateLockGuards(n + 2, true);
+    }
     fCodeProducer.Tab(n + 2);
     generateComputeBlock(&fCodeProducer);
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(counter);
