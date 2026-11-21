@@ -48,9 +48,14 @@
 #include "faust/midi/teensy-midi.h"
 #endif
 
-// for polyphonic synths
+// for polyphonic synths (poly-dsp.h needs RTTI, Teensy builds have none)
 #ifdef NVOICES
-#include "faust/dsp/poly-dsp.h"
+#include "faust/dsp/mcu-poly-dsp.h"
+#endif
+
+// -mem: the program's memory in the fastest place it fits (DTCM, RAM2, PSRAM)
+#ifdef FAUST_TEENSY_MEM
+#include "faust/dsp/teensy-memory.h"
 #endif
 
 // we require macro declarations
@@ -97,16 +102,34 @@ std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 #endif
 
+// the DSP (or a voice): through the memory manager with -mem
+#ifdef FAUST_TEENSY_MEM
+static dsp* newVoice() { return mydsp::create(); }
+static void deleteVoice(dsp* d) { mydsp::destroy(d); }
+#else
+static dsp* newVoice() { return new mydsp(); }
+static void deleteVoice(dsp* d) { delete d; }
+#endif
+
 AudioFaust::AudioFaust() : AudioStream(FAUST_INPUTS, new audio_block_t*[FAUST_INPUTS])
 {
-#ifdef NVOICES
-    int nvoices = NVOICES;
-    fDSP = new mydsp_poly(new mydsp(), nvoices, true, true);
-#else
-    fDSP = new mydsp();
+#ifdef FAUST_TEENSY_MEM
+    // allocated through the tiers (DTCM, RAM2, PSRAM)
+    mydsp::fManager = &teensy_memory::manager();
 #endif
-    
-    fDSP->init(AUDIO_SAMPLE_RATE_EXACT);
+    // init() = classInit() + instanceInit(); with -mem init() does nothing
+    mydsp::classInit(AUDIO_SAMPLE_RATE_EXACT);
+#ifdef NVOICES
+    dsp* voices[NVOICES];
+    for (int i = 0; i < NVOICES; i++) {
+        voices[i] = newVoice();
+    }
+    fPoly = new mcu_dsp_poly(voices, NVOICES, deleteVoice, nullptr, nullptr, AUDIO_BLOCK_SAMPLES);
+    fDSP = fPoly;
+#else
+    fDSP = newVoice();
+#endif
+    fDSP->instanceInit(AUDIO_SAMPLE_RATE_EXACT);
     
     fUI = new MapUI();
     fDSP->buildUserInterface(fUI);
@@ -149,6 +172,9 @@ void AudioFaust::startMidi()
     fMIDIHandler = new teensy_midi();
     fMIDIInterface = new MidiUI(fMIDIHandler);
     fDSP->buildUserInterface(fMIDIInterface);
+#ifdef NVOICES
+    fPoly->setMidiHandler(fMIDIHandler);  // notes to the voices (Teensy builds have no RTTI)
+#endif
     fMIDIInterface->run();
 }
 #endif
@@ -157,7 +183,14 @@ AudioFaust::~AudioFaust()
 {
     int inputs = fDSP->getNumInputs();
     int outputs = fDSP->getNumOutputs();
-    delete fDSP;
+#ifdef NVOICES
+    delete fPoly;  // destroys the voices
+#else
+    deleteVoice(fDSP);
+#endif
+#ifdef FAUST_TEENSY_MEM
+    teensy_memory::reset();  // the DTCM arena is freed as a whole
+#endif
     delete fUI;
     for (int i = 0; i < inputs; i++) {
         delete[] fInChannel[i];

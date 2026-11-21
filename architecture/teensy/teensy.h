@@ -35,6 +35,9 @@
 
 class dsp;
 class MapUI;
+#ifdef NVOICES
+class mcu_dsp_poly;
+#endif
 
 #if MIDICTRL
 class MidiUI;
@@ -67,6 +70,9 @@ class AudioFaust : public AudioStream
         void startMidi();
     #endif
         dsp* fDSP;
+    #ifdef NVOICES
+        mcu_dsp_poly* fPoly;
+    #endif
 };
 
 #endif

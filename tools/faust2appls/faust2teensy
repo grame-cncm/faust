@@ -20,14 +20,16 @@ set -e
 LIB="0"
 NVOICES=0
 MIDI=0
+MEM=0
 
 echoHelp()
 {
-    echo "faust2teensy [-lib] [-midi] [-nvoices <num>] [Faust options (-vec -vs 8...)] <file.dsp>"
+    echo "faust2teensy [-lib] [-midi] [-nvoices <num>] [-mem] [Faust options (-vec -vs 8...)] <file.dsp>"
     option
     option -lib "generates a package containing an object compatible with the Teensy audio library (see https://github.com/grame-cncm/faust/tree/master-dev/architecture/teensy)"
     option -midi
     option "-nvoices <num>"
+    option -mem "Teensy 4.x: the DSP memory in the fastest place it fits (DTCM, RAM2, PSRAM)"
     option "Faust options"
     exit
 }
@@ -53,6 +55,8 @@ do
         NVOICES=$1
     elif [ $p = "-midi" ]; then
         MIDI=1
+    elif [ $p = "-mem" ]; then
+        MEM=1
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILE="$p"
     elif [ $p = "-lib" ]; then
@@ -78,12 +82,18 @@ MODULENAME="${BASENAME%.dsp}"
 
 if [ $LIB -eq 1 ]; then
     mkdir -p $MODULENAME
+    if [ $MEM -eq 1 ]; then
+        OPTIONS="$OPTIONS -mem"
+    fi
     faust $OPTIONS -uim -a $FAUSTARCH/teensy/teensy.cpp -i $FILE -o $MODULENAME/$MODULENAME.cpp
     if [ $NVOICES -gt 0 ]; then
         echo '#define NVOICES '$NVOICES >> $MODULENAME/$MODULENAME.h
     fi
     if [ $MIDI -eq 1 ]; then
         echo '#define MIDICTRL 1' >> $MODULENAME/$MODULENAME.h
+    fi
+    if [ $MEM -eq 1 ]; then
+        echo '#define FAUST_TEENSY_MEM 1' >> $MODULENAME/$MODULENAME.h
     fi
     cat $FAUSTARCH/teensy/teensy.h >> $MODULENAME/$MODULENAME.h
     TMP=$(awk -v modName="$MODULENAME" '{gsub(/AudioFaust/,modName)}1' $MODULENAME/$MODULENAME.cpp)
