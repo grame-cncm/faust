@@ -1,7 +1,7 @@
 name: libfaust
 
 env:
-  FAUST_VERSION: 2.94.1
+  FAUST_VERSION: 2.95.0
   FAUSTGEN_VERSION: "1.88"
   CMAKE_OSX_DEPLOYMENT_TARGET: "10.15"
   # The LLVM version is chosen in .github/llvm/release.env: every job builds
