@@ -412,9 +412,11 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
         *fOut << ")";
     }
 
+    // Only -ftz 2 creates bitcasts: float to i32, or double to i64. The bits are
+    // reinterpreted, not converted: <i32>(x) would truncate the value.
     virtual void visit(BitcastInst* inst)
     {
-        *fOut << "<" << fTypeManager->generateType(inst->fType) << ">(";
+        *fOut << "reinterpret<" << fTypeManager->generateType(inst->fType) << ">(";
         inst->fInst->accept(this);
         *fOut << ")";
     }

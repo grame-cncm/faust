@@ -2137,12 +2137,13 @@ bool global::processCmdline(int argc, const char* argv[])
     bool ftz2_backend = (gOutputLang == "cpp") || (gOutputLang == "ocpp") ||
                         (gOutputLang == "c") || (gOutputLang == "llvm") ||
                         (gOutputLang == "rust") || (gOutputLang == "fir") ||
+                        (gOutputLang == "asc") ||
                         startWith(gOutputLang, "wast") || startWith(gOutputLang, "wasm") ||
                         ((gOutputLang == "interp") && (gFloatSize == 1));
     if (gFTZMode == 2 && !ftz2_backend) {
         throw faustexception(
-            "ERROR : -ftz 2 can only be used with the 'c', 'cpp', 'ocpp', 'llvm', 'rust', 'fir' "
-            "and wast/wasm backends, or 'interp' with -single\n");
+            "ERROR : -ftz 2 can only be used with the 'c', 'cpp', 'ocpp', 'llvm', 'rust', 'fir', "
+            "'asc' and wast/wasm backends, or 'interp' with -single\n");
     }
 
     if (gClang && gOutputLang != "cpp" && gOutputLang != "ocpp" && gOutputLang != "c") {

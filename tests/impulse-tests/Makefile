@@ -676,8 +676,13 @@ leg/java/double:
 
 #########################################################################
 # AssemblyScript backend (experimental smoke test)
-assemblyscript:
+# Two targets, so that -k runs the second when the first fails.
+.PHONY: assemblyscript assemblyscript-double assemblyscript-ftz2
+assemblyscript: assemblyscript-double assemblyscript-ftz2
+assemblyscript-double:
 	$(MAKE) -f Make.assemblyscript outdir=assemblyscript/double FAUSTOPTIONS="-I dsp -double"
+assemblyscript-ftz2:
+	$(MAKE) -f Make.assemblyscript outdir=assemblyscript/double/ftz2 FAUSTOPTIONS="-I dsp -double -ftz 2"
 
 #########################################################################
 # output directories
