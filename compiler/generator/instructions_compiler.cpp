@@ -2929,7 +2929,8 @@ ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p, IrmForm f
     } else if (form == IrmForm::kFromStateWeight) {
         // p the weight, a node of the computation form
         ValueInst* d = IB::genBinopInst(kSub, vx, prev);
-        code         = IB::genBinopInst(kAdd, lineRead(vname, mxd, 1), IB::genBinopInst(kMul, compoundOperand(p), d));
+        ValueInst* m = IB::genBinopInst(kMul, compoundOperand(p), d);
+        code         = IB::genBinopInst(kAdd, lineRead(vname, mxd, 1), m);
     } else if (form == IrmForm::kWeighted) {
         const int  vrp = getCertifiedSigType(p)->variability();
         ValueInst* vw  = IB::genBinopInst(kSub, IB::genRealNumInst(itfloat(), 1.0), compoundOperand(p));
