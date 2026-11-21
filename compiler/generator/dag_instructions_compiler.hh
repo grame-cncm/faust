@@ -22,9 +22,15 @@
 #ifndef _DAG_INSTRUCTION_COMPILER_H
 #define _DAG_INSTRUCTION_COMPILER_H
 
+#include <unordered_set>
+
 #include "instructions_compiler.hh"
 
 class DAGInstructionsCompiler : public InstructionsCompiler {
+    // the expressions whose recursions are all compiled : generateCodeRecursions does not
+    // walk them again
+    std::unordered_set<Tree> fRecursionsDone;
+
    public:
     DAGInstructionsCompiler(CodeContainer* container);
 

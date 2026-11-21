@@ -203,7 +203,7 @@ void DAGInstructionsCompiler::generateCodeRecursions(Tree sig)
     Tree       id, body;
     ValueInst* code;
     // cerr << "DAGInstructionsCompiler::generateCodeRecursions( " << ppsig(sig) << " )" << endl;
-    if (getCompiledExpression(sig, code)) {
+    if (getCompiledExpression(sig, code) || fRecursionsDone.count(sig)) {
         // cerr << "** ALREADY VISITED : " << code << " ===> " << ppsig(sig) << endl;
         return;
     } else if (isRec(sig, id, body)) {
@@ -219,6 +219,11 @@ void DAGInstructionsCompiler::generateCodeRecursions(Tree sig)
         for (int i = 0; i < n; i++) {
             generateCodeRecursions(subsigs[i]);
         }
+        // Every recursion below sig is compiled now : a shared expression is walked once,
+        // not once per path that reaches it. It is marked after its walk, not before : a
+        // walk that comes back to sig through the body of one of its recursions walks it
+        // again, and compiles its other recursions inside that loop, as before.
+        fRecursionsDone.insert(sig);
     }
 }
 
