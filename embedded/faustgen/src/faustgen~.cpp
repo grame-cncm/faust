@@ -114,7 +114,8 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
             // Check "@report <ms>" attribute
             } else if (strcmp(atom_getsym(ap)->s_name, "@report") == 0) {
                 if (i + 1 < ac && (atom_gettype(ap + 1) == A_LONG || atom_gettype(ap + 1) == A_FLOAT)) {
-                    fReportPeriod = std::max(0L, long(atom_getfloat(ap + 1)));
+                    // (std::max): windows.h, through the Max SDK, defines a max macro
+                    fReportPeriod = (std::max)(0L, long(atom_getfloat(ap + 1)));
                     i++; ap++;
                 }
             } else {
@@ -543,7 +544,7 @@ void faustgen::report(long inlet, t_symbol* s, long ac, t_atom* av)
         post("Should be : report <ms> (0 to stop)");
         return;
     }
-    long period = std::max(0L, long(atom_getfloat(&av[0])));
+    long period = (std::max)(0L, long(atom_getfloat(&av[0])));
     bool starting = (fReportPeriod == 0 && period > 0);
     fReportPeriod = period;
     if (starting) {
