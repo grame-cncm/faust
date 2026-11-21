@@ -139,6 +139,24 @@ ir/$(lang)/float/comb_delay2.ir:			precision=0.065
 ir/$(lang)/float/comb_delay1.ir:			precision=0.065
 ir/$(lang)/float/carre_volterra.ir: 		precision=0.0015
 
+# -ftz 2 only flushes subnormals: the same tolerances as the float leg.
+ir/$(lang)/float/ftz2/zita_rev1.ir:				precision=0.00001
+ir/$(lang)/float/ftz2/virtual_analog_oscillators.ir: precision=0.00004
+ir/$(lang)/float/ftz2/thru_zero_flanger.ir:		precision=0.002
+ir/$(lang)/float/ftz2/tester2.ir:				precision=0.000003
+ir/$(lang)/float/ftz2/tester.ir:					precision=0.00008
+ir/$(lang)/float/ftz2/spectral_tilt.ir:			precision=0.003
+ir/$(lang)/float/ftz2/phaser_flanger.ir:			precision=0.005
+ir/$(lang)/float/ftz2/parametric_eq.ir:			precision=0.015
+ir/$(lang)/float/ftz2/osci.ir:					precision=0.005
+ir/$(lang)/float/ftz2/osc.ir:					precision=0.002
+ir/$(lang)/float/ftz2/lowcut.ir:					precision=1e-05
+ir/$(lang)/float/ftz2/lfboost.ir:				precision=5e-05
+ir/$(lang)/float/ftz2/cubic_distortion.ir:		precision=0.03
+ir/$(lang)/float/ftz2/comb_delay2.ir:			precision=0.065
+ir/$(lang)/float/ftz2/comb_delay1.ir:			precision=0.065
+ir/$(lang)/float/ftz2/carre_volterra.ir: 		precision=0.0015
+
 ir/c/double/sched/parametric_eq.ir:		precision=0.004
 ir/cpp/double/sched/parametric_eq.ir: 	precision=0.04
 
