@@ -380,7 +380,9 @@ dsp_factory* faustgen_factory::create_factory_from_sourcecode()
 }
 
 // Write 'content' to 'path' through a temporary file renamed over it: a phone loading the
-// file while it is written gets the old one or the new one, never half of one
+// file while it is written gets the old one or the new one, never half of one.
+// On Windows, rename fails when the destination exists, as it does from the second DSP on:
+// MoveFileEx replaces it (as faustgen_cache::write does).
 static bool write_file_atomically(const std::string& path, const std::string& content)
 {
     std::string temporary = path + ".tmp";
@@ -390,7 +392,12 @@ static bool write_file_atomically(const std::string& path, const std::string& co
         out.write(content.data(), content.size());
         if (!out) return false;
     }
-    if (std::rename(temporary.c_str(), path.c_str()) != 0) {
+#ifdef WIN32
+    bool renamed = MoveFileExA(temporary.c_str(), path.c_str(), MOVEFILE_REPLACE_EXISTING) != 0;
+#else
+    bool renamed = std::rename(temporary.c_str(), path.c_str()) == 0;
+#endif
+    if (!renamed) {
         std::remove(temporary.c_str());
         return false;
     }
