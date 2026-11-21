@@ -54,7 +54,12 @@ class ConstantPropagationAlgebra final : public TransformAlgebra {
         if (hasSideEffect(orig)) {
             return nullptr;
         }
-        Tree res = (tt->nature() == kInt) ? sigInt(int(I.lo())) : sigReal(I.lo());
+        // A value proven zero whose sign is not known is +0 : [-0, +0] holds both zeros
+        // (min(sqrt(x), 0) is -0 for x = -0 and +0 for x > 0), and its lower bound would make
+        // every one of them -0. A zero of known sign keeps it : min(-0, +0) is -0
+        // (LES-NAN-DU-MAX-ET-DU-MIN, « Le pliage des zéros »)
+        const double v   = (std::signbit(I.lo()) != std::signbit(I.hi())) ? 0.0 : I.lo();
+        Tree         res = (tt->nature() == kInt) ? sigInt(int(v)) : sigReal(v);
         Tree exp;
         // We want to keep the sigGen indication, we don't want
         // sigGen(2) to be replaced by 2
