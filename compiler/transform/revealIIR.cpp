@@ -24,9 +24,11 @@
 #include "simplify.hh"
 #include "mterm.hh"
 #include <map>
+#include <algorithm>
 #include <functional>
 
 #include <iostream>
+#include <limits>
 #include <numeric>
 #include <optional>
 #include <unordered_map>
@@ -36,6 +38,7 @@
 #include "DirectedGraph.hh"
 #include "DirectedGraphAlgorythm.hh"
 #include "global.hh"
+#include "interval_def.hh"
 #include "ppsig.hh"
 #include "rewrite.hh"
 #include "sigFIR.hh"
@@ -744,6 +747,320 @@ static Tree iirAsIRM(Tree t)
     return nullptr;
 }
 
+// The smoother written by its error e = y - x (si.smooth of the libraries) : y = x + e,
+// e = c * (e@1 + x@1 - x), which the normal form writes x + c * IIR(x@1 - x; c), or
+// x + IIR(c * (x@1 - x); c) when the pole changes in time. Its value is the smoother's,
+// y = (1 - c) x + c y@1, from the same initial state (x@1 and e@1 are 0 at the start) : the
+// node IRM(x; c). The library keeps x@1 - x computed first by min(MAX, x@1 - x), the same
+// number. The normal form may distribute a number g, or a sign, over x + e, and add other
+// terms : g x + g e + r becomes g IRM(x; c) + r, x read from the difference. A sum where x and
+// e no longer meet (a factor that is not a number, distributed over x + e) is left as it is :
+// its interval stays sound, wider.
+
+// t is min(M, u) or min(u, M), M the largest finite number of the program's precision once
+// rounded to it (ma.MAX, 3.402823466e+38 in single precision, rounds to the largest float) :
+// gives u. Single and double precision only.
+static bool isMaxBound(Tree t, Tree& u)
+{
+    xtended* p = (xtended*)sigXtendedData(t);
+    if (p != gGlobal->gMinPrim || t->arity() != 2) {
+        return false;
+    }
+    const double largest = (gGlobal->gFloatSize == 1) ? double(std::numeric_limits<float>::max())
+                         : (gGlobal->gFloatSize == 2) ? std::numeric_limits<double>::max()
+                                                       : HUGE_VAL;
+    double m;
+    for (int i = 0; i < 2; i++) {
+        if (isSigReal(t->branch(i), &m) && itv::programBound(m) >= largest) {
+            u = t->branch(1 - i);
+            return true;
+        }
+    }
+    return false;
+}
+
+// the normal form of x@1 - x
+static Tree backwardDifference(Tree x)
+{
+    Tree x1 = sigDelay(x, sigInt(1));
+    Tree dx = sigSub(x1, x);
+    return simplify(dx);
+}
+
+// d is the sum of -t and t@1 for every term t of x, compared term by term : no tree is built
+// or walked, x may read a recursion being rebuilt
+static bool isTermwiseDifference(Tree d, Tree x)
+{
+    tvec xs, ds;
+    if (!isSigSum(x, xs)) {
+        xs = {x};
+    }
+    if (!isSigSum(d, ds) || ds.size() != 2 * xs.size()) {
+        return false;
+    }
+    std::vector<bool> used(ds.size(), false);
+    auto take = [&](const std::function<bool(Tree)>& match) {
+        for (size_t i = 0; i < ds.size(); i++) {
+            if (!used[i] && match(ds[i])) {
+                used[i] = true;
+                return true;
+            }
+        }
+        return false;
+    };
+    for (Tree t : xs) {
+        auto negated = [t](Tree a) {
+            Tree z;
+            return (isSigNeg(a, z) && z == t) || (isSigNeg(t, z) && z == a);
+        };
+        auto delayed = [t](Tree a) {
+            Tree z, n;
+            int  k;
+            return isSigDelay(a, z, n) && z == t && isSigInt(n, &k) && k == 1;
+        };
+        if (!take(negated) || !take(delayed)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// d is x@1 - x : term by term, or, x free of recursions, as the normal form writes it, or as
+// the difference of the integers whose conversion x is (1 : si.smooth(p) computes
+// float(1@1 - 1))
+static bool isDifferenceOf(Tree d, Tree x)
+{
+    if (isTermwiseDifference(d, x)) {
+        return true;
+    }
+    if (!x->isRecFree() || !d->isRecFree()) {
+        return false;
+    }
+    if (backwardDifference(x) == d) {
+        return true;
+    }
+    Tree   di, xi;
+    double k;
+    if (!isSigFloatCast(d, di)) {
+        return false;
+    }
+    if (isSigFloatCast(x, xi)) {
+        return backwardDifference(xi) == di;
+    }
+    if (isSigReal(x, &k) && k == std::trunc(k) && std::abs(k) < 2147483648.0) {
+        Tree ki = sigInt(int(k));
+        return backwardDifference(ki) == di;
+    }
+    return false;
+}
+
+// the factors of a product, nested products flattened
+static void productFactors(Tree t, tvec& fs)
+{
+    tvec ps;
+    if (isSigProd(t, ps)) {
+        for (Tree p : ps) productFactors(p, fs);
+    } else {
+        fs.push_back(t);
+    }
+}
+
+// t is the error term g * c * IIR(d; c) or g * IIR(c * d; c), g a number (none : nullptr),
+// which the normal form distributes over the sum x + e (si.smoo : *(0.25)), possibly negated
+// (neg)
+static bool isErrorTerm(Tree t, bool& neg, Tree& g, Tree& c, Tree& d)
+{
+    tvec fs;
+    Tree u;
+    neg = isSigNeg(t, u);
+    productFactors(neg ? u : t, fs);
+    for (size_t i = 0; i < fs.size(); i++) {
+        tvec v, ins;
+        if (!isSigIIR(fs[i], v) || v.size() != 2) continue;
+        std::vector<bool> used(fs.size(), false);
+        used[i] = true;
+        c = d = nullptr;
+        for (size_t j = 0; j < fs.size() && !c; j++) {
+            if (!used[j] && fs[j] == v[1]) {
+                used[j] = true;
+                c = v[1];
+                d = v[0];
+            }
+        }
+        if (!c && isSigProd(v[0], ins) && ins.size() == 2) {
+            for (int j = 0; j < 2 && !c; j++) {
+                if (ins[j] == v[1]) {
+                    c = v[1];
+                    d = ins[1 - j];
+                }
+            }
+        }
+        if (!c) continue;
+        tvec rest;
+        for (size_t j = 0; j < fs.size(); j++) {
+            if (!used[j]) rest.push_back(fs[j]);
+        }
+        if (rest.size() > 1 || (rest.size() == 1 && !isNum(rest[0]))) continue;
+        g = rest.empty() ? nullptr : rest[0];
+        return true;
+    }
+    return false;
+}
+
+// a term k * z of the target of a smoother, k a number (1 for z alone)
+struct ScaledTerm {
+    double k;
+    Tree   z;
+};
+
+// the number of a numeric constant
+static bool numValue(Tree t, double& v)
+{
+    int i;
+    if (isSigReal(t, &v)) return true;
+    if (isSigInt(t, &i)) {
+        v = i;
+        return true;
+    }
+    return false;
+}
+
+// t is k * z, a negation read as the factor -1
+static bool isScaledBy(Tree t, const ScaledTerm& s)
+{
+    Tree u;
+    if (isSigNeg(t, u)) {
+        return isScaledBy(u, {-s.k, s.z});
+    }
+    if (isSigNeg(s.z, u)) {
+        return isScaledBy(t, {-s.k, u});
+    }
+    if (s.k == 1) {
+        return t == s.z;
+    }
+    tvec   fs;
+    double v;
+    return isSigProd(t, fs) && fs.size() == 2 &&
+           ((fs[1] == s.z && numValue(fs[0], v) && v == s.k) || (fs[0] == s.z && numValue(fs[1], v) && v == s.k));
+}
+
+// the terms of the target x of a difference d = x@1 - x : the pairs -z and z@1 of a sum (k = 1),
+// or FIR(z; -k, k), k (z@1 - z)
+static bool differenceTerms(Tree d, std::vector<ScaledTerm>& ts)
+{
+    tvec   ds, fir;
+    double c0, c1;
+    if (isSigFIR(d, fir) && fir.size() == 3 && numValue(fir[1], c0) && numValue(fir[2], c1) && c0 == -c1 &&
+        c1 != 0) {
+        ts.push_back({c1, fir[0]});
+        return true;
+    }
+    if (!isSigSum(d, ds) || ds.size() % 2 != 0) {
+        return false;
+    }
+    std::vector<bool> used(ds.size(), false);
+    for (size_t i = 0; i < ds.size(); i++) {
+        Tree z, n;
+        int  k;
+        if (used[i] || !(isSigDelay(ds[i], z, n) && isSigInt(n, &k) && k == 1)) continue;
+        for (size_t j = 0; j < ds.size(); j++) {
+            Tree w;
+            if (used[j] || j == i) continue;
+            if ((isSigNeg(ds[j], w) && w == z) || (isSigNeg(z, w) && w == ds[j])) {
+                used[i] = used[j] = true;
+                ts.push_back({1.0, z});
+                break;
+            }
+        }
+    }
+    return std::all_of(used.begin(), used.end(), [](bool u) { return u; });
+}
+
+static Tree errorFormAsIRM(Tree t)
+{
+    tvec ws;
+    if (!isSigSum(t, ws) || ws.size() < 2) {
+        return nullptr;
+    }
+    for (size_t k = 0; k < ws.size(); k++) {
+        Tree g, c, d, u;
+        bool neg;
+        if (!isErrorTerm(ws[k], neg, g, c, d)) continue;
+        if (isMaxBound(d, u)) {
+            d = u;
+        }
+        // x, the terms of the difference, found among the other terms of the sum : the
+        // smoother is a part of the sum
+        std::vector<ScaledTerm> ts;
+        double                  gv = 1;
+        if ((g == nullptr || numValue(g, gv)) && differenceTerms(d, ts)) {
+            const bool scaled = (g != nullptr) || neg;
+            if (neg) gv = -gv;
+            std::vector<bool> used(ws.size(), false);
+            used[k]    = true;
+            bool found = true;
+            tvec xs;
+            for (const ScaledTerm& s : ts) {
+                // the term of the sum is g * k * z ; under a gain or a sign, x keeps z alone
+                // (k = 1)
+                if (scaled && s.k != 1) {
+                    found = false;
+                    break;
+                }
+                size_t i = 0;
+                while (i < ws.size() && (used[i] || !isScaledBy(ws[i], {gv * s.k, s.z}))) i++;
+                if (i == ws.size()) {
+                    found = false;
+                    break;
+                }
+                used[i] = true;
+                xs.push_back(scaled ? s.z : ws[i]);
+            }
+            if (found) {
+                Tree x  = (xs.size() == 1) ? xs[0] : sigSum(xs);
+                Tree m  = sigIRM(x, c);
+                Tree gm = (g == nullptr) ? m : sigMul(g, m);
+                if (neg) gm = sigNeg(gm);
+                tvec rest;
+                for (size_t i = 0; i < ws.size(); i++) {
+                    if (!used[i]) rest.push_back(ws[i]);
+                }
+                if (rest.empty()) {
+                    return gm;
+                }
+                rest.push_back(gm);
+                return sigSum(rest);
+            }
+        }
+        // x, all the other terms, each one divided by the gain g, exactly : the difference
+        // may then be factored (sr * (d@1 - d)) or computed in integers
+        tvec xs;
+        bool exact = !neg;
+        for (size_t i = 0; i < ws.size() && exact; i++) {
+            if (i == k) continue;
+            if (g == nullptr) {
+                xs.push_back(ws[i]);
+                continue;
+            }
+            if (!ws[i]->isRecFree()) {
+                exact = false;
+                continue;
+            }
+            Tree q  = sigDiv(ws[i], g);
+            Tree qs = simplify(q);
+            Tree p  = sigMul(g, qs);
+            exact   = (simplify(p) == ws[i]);
+            xs.push_back(qs);
+        }
+        if (!exact) continue;
+        Tree x = (xs.size() == 1) ? xs[0] : (g == nullptr) ? sigSum(xs) : simplify(sigSum(xs));
+        if (!isDifferenceOf(d, x)) continue;
+        Tree m = sigIRM(x, c);
+        return (g == nullptr) ? m : sigMul(g, m);
+    }
+    return nullptr;
+}
+
 Tree revealIRM(Tree L1)
 {
     std::unordered_map<Tree, Tree> memo;
@@ -758,6 +1075,9 @@ Tree revealIRM(Tree L1)
             return x;
         }
         if (Tree m = iirAsIRM(rebuilt)) {
+            return m;
+        }
+        if (Tree m = errorFormAsIRM(rebuilt)) {
             return m;
         }
         int  p;
