@@ -112,6 +112,7 @@ jobs:
         ./libfaust-smoke run
         ./libfaust-smoke write "$RUNNER_TEMP/smoke.machine"
         ./libfaust-smoke read "$RUNNER_TEMP/smoke.machine"
+        ./libfaust-smoke wasm
 
     - name: Make distribution
       run: |
@@ -302,6 +303,7 @@ jobs:
         ./libfaust-smoke run
         ./libfaust-smoke write "$RUNNER_TEMP/smoke.machine"
         ./libfaust-smoke read "$RUNNER_TEMP/smoke.machine"
+        ./libfaust-smoke wasm
 
     - name: Upload Faust artifact
       uses: actions/upload-artifact@v4
