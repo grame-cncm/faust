@@ -1210,16 +1210,22 @@ class AffineOps : public Base {
         return ftz(numericTanh(x).withInvalid(x.mayBeInvalid));
     }
 
-    // Public API: enclose Max over the horizon, retaining possible invalidity.
+    // Public API: enclose Max over the horizon, retaining possible invalidity. An operand
+    // without a value may be NaN only, and the other one may then be the result : the rule of
+    // the intervals over the horizon decides.
     AffItv Max(const AffItv& x, const AffItv& y) const override
     {
-        return ftz(numericMax(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
+        if (x.isEmpty() || y.isEmpty())
+            return ftz(collapse(x.moving() || y.moving(), [&](auto hull) { return fItv.Max(hull(x), hull(y)); }));
+        return ftz(numericMax(x, y).withInvalid(detail::minMaxInvalid(x.mayBeInvalid, x.lsb < 0, y.mayBeInvalid, y.lsb < 0)));
     }
 
-    // Public API: enclose Min over the horizon, retaining possible invalidity.
+    // Public API: enclose Min over the horizon, retaining possible invalidity, as Max.
     AffItv Min(const AffItv& x, const AffItv& y) const override
     {
-        return ftz(numericMin(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
+        if (x.isEmpty() || y.isEmpty())
+            return ftz(collapse(x.moving() || y.moving(), [&](auto hull) { return fItv.Min(hull(x), hull(y)); }));
+        return ftz(numericMin(x, y).withInvalid(detail::minMaxInvalid(x.mayBeInvalid, x.lsb < 0, y.mayBeInvalid, y.lsb < 0)));
     }
 
     // Public API: enclose RDTbl over the horizon, retaining possible invalidity.

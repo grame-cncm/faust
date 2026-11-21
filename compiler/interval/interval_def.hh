@@ -76,6 +76,20 @@ inline bool& libmCompensation()
 }
 
 /**
+ * Public API: true when the program's min and max of reals are maximumNumber and
+ * minimumNumber of IEEE 754-2019 : a NaN operand gives the other operand, NaN only when both
+ * are. False by default : a target may return a NaN operand (wasm's f32.max, or a comparison
+ * that returns its first operand). Set it only for a target whose min and max have this value
+ * and whose undefined operations are refused or made defined where they happen : the alert
+ * of a real operand of a min or a max is then the possibility of a NaN.
+ */
+inline bool& minMaxNumber()
+{
+    static bool number = false;
+    return number;
+}
+
+/**
  * Public API: round an explicitly known literal/conversion to program precision.
  * Float selects nearest-even independently of the host rounding mode, including
  * gradual underflow. Handle overflow before narrowing a finite double.

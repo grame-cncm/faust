@@ -20,6 +20,21 @@ inline bool inputInvalid(const Inputs&... inputs)
     return (false || ... || inputs.mayBeInvalid());
 }
 
+// A min or a max may be invalid when an operand may be. Under maximumNumber and minimumNumber
+// (minMaxNumber()), a real operand that is NaN gives the other one : its alert reaches the
+// result only when the other operand may be invalid too. The alert of an integer operand,
+// promoted to a real or not, is no NaN, and always reaches the result.
+inline bool minMaxInvalid(bool xInvalid, bool xReal, bool yInvalid, bool yReal)
+{
+    if (!minMaxNumber()) return xInvalid || yInvalid;
+    return (xInvalid && (!xReal || yInvalid)) || (yInvalid && (!yReal || xInvalid));
+}
+
+inline bool minMaxInvalid(const interval& x, const interval& y)
+{
+    return minMaxInvalid(x.mayBeInvalid(), x.lsb() < 0, y.mayBeInvalid(), y.lsb() < 0);
+}
+
 inline bool unaryInvalid(UnaryOp op, const interval& input)
 {
     if (input.isEmpty()) return input.mayBeInvalid();

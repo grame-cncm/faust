@@ -549,7 +549,7 @@ interval interval_algebra::Max(const interval& xInput, const interval& yInput) c
 {
     if (movesAny(xInput, yInput)) return withMotionFrom(Max(still(xInput), still(yInput)), Max(forAllTime(xInput), forAllTime(yInput)));
     const interval z = withOperandThroughNaN(numericMax(xInput, yInput), xInput, yInput);
-    return flushedToZero(z.withInvalid(detail::inputInvalid(xInput, yInput)));
+    return flushedToZero(z.withInvalid(detail::minMaxInvalid(xInput, yInput)));
 }
 
 // Public API: Mem encloses valid numeric results and conservatively retains
@@ -566,7 +566,7 @@ interval interval_algebra::Min(const interval& xInput, const interval& yInput) c
 {
     if (movesAny(xInput, yInput)) return withMotionFrom(Min(still(xInput), still(yInput)), Min(forAllTime(xInput), forAllTime(yInput)));
     const interval z = withOperandThroughNaN(numericMin(xInput, yInput), xInput, yInput);
-    return flushedToZero(z.withInvalid(detail::inputInvalid(xInput, yInput)));
+    return flushedToZero(z.withInvalid(detail::minMaxInvalid(xInput, yInput)));
 }
 
 // Public API: Mod encloses valid numeric results and conservatively retains

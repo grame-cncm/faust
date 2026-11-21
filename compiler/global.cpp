@@ -552,6 +552,7 @@ void global::reset()
 
     gFloatSize      = 1;             // -single by default
     itv::programPrecision() = gFloatSize;  // the precision of the intervals follows it
+    itv::minMaxNumber()     = false;       // the rule of every backend, set by processCmdline
     gFixedPointSize = AP_INT_MAX_W;  // Special -1 value will be used to generate fixpoint_t type
     gFixedPointMSB  = 0;
     gFixedPointLSB  = 0;
@@ -2238,6 +2239,9 @@ bool global::processCmdline(int argc, const char* argv[])
 
     // the intervals describe the program : float-carried bounds at its precision
     itv::programPrecision() = gFloatSize;
+    // and its min and max : maximumNumber and minimumNumber in the C and C++ generators, where
+    // a NaN operand gives the other one ; the other backends may return a NaN operand
+    itv::minMaxNumber() = (gOutputLang == "c" || gOutputLang == "cpp" || gOutputLang == "ocpp");
 
     if (gFloatSize == 4 && gOutputLang != "cpp" && gOutputLang != "ocpp" && gOutputLang != "c" &&
         gOutputLang != "fir") {

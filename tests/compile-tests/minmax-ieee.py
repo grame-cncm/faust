@@ -16,7 +16,8 @@ arm64, every form is fmax and fmin (fmaxnm and fminnm, this value for any operan
    x and y in {1.5, -2, +0, -0, +inf, -inf, 0.25} : sixteen max and min of a, b, x, y and the
    constants 0.5 and 0 in both orders, compared bit for bit with the model computed here, in
    single and double precision, for cpp, ocpp and C, compiled by g++ and gcc and, when
-   installed, by clang.
+   installed, by clang. min(a, 0) and min(0, a) are proven zero, of unknown sign : the compiler
+   replaces such a value by +0.
 3. The constant folding, done once in the normal form : max and min of -0 and +0 in both
    orders fold to +0 and -0 (read in the cpp code, which writes every output).
 4. The interpreter of the signals, when the static libfaust of the build exists (--libfaust) :
@@ -41,8 +42,8 @@ OUTPUTS = [
     ("max(b, a)", lambda x, y, a, b: rmax(b, a)), ("min(b, a)", lambda x, y, a, b: rmin(b, a)),
     ("max(a, 0.5)", lambda x, y, a, b: rmax(a, 0.5)), ("min(a, 0.5)", lambda x, y, a, b: rmin(a, 0.5)),
     ("max(0.5, a)", lambda x, y, a, b: rmax(0.5, a)), ("min(0.5, a)", lambda x, y, a, b: rmin(0.5, a)),
-    ("max(a, 0.0)", lambda x, y, a, b: rmax(a, 0.0)), ("min(a, 0.0)", lambda x, y, a, b: rmin(a, 0.0)),
-    ("max(0.0, a)", lambda x, y, a, b: rmax(0.0, a)), ("min(0.0, a)", lambda x, y, a, b: rmin(0.0, a)),
+    ("max(a, 0.0)", lambda x, y, a, b: rmax(a, 0.0)), ("min(a, 0.0)", lambda x, y, a, b: proven_zero(rmin(a, 0.0))),
+    ("max(0.0, a)", lambda x, y, a, b: rmax(0.0, a)), ("min(0.0, a)", lambda x, y, a, b: proven_zero(rmin(0.0, a))),
     ("max(x, y)", lambda x, y, a, b: rmax(x, y)), ("min(x, y)", lambda x, y, a, b: rmin(x, y)),
     ("max(a, y)", lambda x, y, a, b: rmax(a, y)), ("min(y, a)", lambda x, y, a, b: rmin(y, a)),
 ]
@@ -71,6 +72,13 @@ def rmin(a, b):
     if math.isnan(b): return a
     if a == b: return a if math.copysign(1, a) < 0 else b
     return min(a, b)
+
+
+def proven_zero(v):
+    # min(sqrt(x), 0) is proven zero, -0 or +0 (a NaN gives 0) : the compiler replaces a value
+    # proven zero whose sign is not known by +0, in every generator
+    assert v == 0
+    return 0.0
 
 
 def f32(v):
