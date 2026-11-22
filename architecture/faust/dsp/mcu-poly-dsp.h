@@ -31,17 +31,25 @@
 // - no std::map, std::string, MapUI or RTTI: a voice keeps pointers to its
 //   zones only (FAUST's dsp_voice is a MapUI: tens of kB of heap per voice
 //   for a program with many parameters);
-// - the voices share their other parameters: the UI shows the first voice's
-//   (and the effect's), copied to the others before every block;
+// - every freq/key/gain/vel/velocity/gate zone of a voice is driven (also
+//   several of one kind, e.g. in different groups), as poly-dsp.h;
+// - the voices share their other parameters and their soundfiles: the UI
+//   shows the first voice's (and the effect's), copied to the others
+//   before every block;
 // - silent voices are skipped: a voice is computed from its note on until
-//   its output stayed below kStopLevel (-66 dB peak) for 10 ms after
-//   the note off (poly-dsp.h: one block below -90 dB rms);
+//   its output stayed below the stop level (default -66 dB peak, a
+//   constructor argument) for 10 ms after the note off (poly-dsp.h: one
+//   block below -90 dB);
 // - a new note takes the free voice unused longest (notes rotate through
 //   the voices), else the oldest releasing one, else the oldest playing
-//   one. A voice that still sounds fades out in 3 ms with its gate
-//   off, takes the new note and fades in over 3 ms: no jump in pitch or
-//   level at full volume; the envelopes go on from their level, as a
-//   retrigger (poly-dsp.h: fades over half a block);
+//   one, else (every voice already being stolen) the one stolen first,
+//   whose waiting note it replaces: the last note played always sounds.
+//   A voice that still sounds fades out in 3 ms with its gate off, takes
+//   the new note and fades in over 3 ms: no jump in pitch or level at full
+//   volume; the envelopes go on from their level, as a retrigger
+//   (poly-dsp.h: fades over half a block). A voice cut off by a fade
+//   (Panic, CC 120, a mode change, REUSE) fades in when it plays again:
+//   its state was not silent;
 // - assign modes (a parameter with [poly:mode], 0..2, or setAssignMode()):
 //   ROTATE (0) as above, release tails ring on; REUSE (1) takes the lowest
 //   free or releasing voice and stops the other release tails, so only the
@@ -57,19 +65,29 @@
 // (without RTTI, e.g. on a Teensy: setMidiHandler()); notes can
 // also be sent directly: keyOn(channel, pitch, velocity), keyOff(..). A note
 // off releases the oldest voice playing that note on that channel (a note
-// played again while held restarts its voice: setRetrigger()); CC 123
-// (all notes off) releases the channel's voices, CC 120 (all sound off)
-// stops them (a 3 ms fade); allNotesOff(hard), the "Panic" button. The
-// program's [midi:..] parameters are the MidiUI's (or the architecture's)
-// job: they are set on the first voice and so reach all.
+// played again while held, or while waiting for its voice, restarts that
+// voice: setRetrigger()); CC 123 (all notes off) releases the channel's
+// voices, CC 120 (all sound off) stops them (a 3 ms fade); allNotesOff(hard),
+// the "Panic" button. The program's [midi:..] parameters are the MidiUI's
+// (or the architecture's) job: they are set on the first voice and so reach
+// all.
 //
 // The UI as poly-dsp.h's grouped mode: "Polyphonic" / "Voices" with "Panic"
 // and the first voice's parameters (without freq/key/gain/vel/gate and
 // [poly:voice]: they belong to the voice allocation); with an effect inside
 // "Sequencer" / "DSP1", the effect in "DSP2" (as dsp_sequencer).
 //
+// The effect gets the voice mix: if it has more inputs than a voice has
+// outputs, the others are silent; if fewer, it doesn't hear the voices'
+// last outputs.
+//
+// Programs compiled with -mem: their init() is empty, so the caller runs
+// classInit() (static tables) itself, and classDestroy() after deleting
+// this object. Use instanceInit(), not init(), then.
+//
 // Not here: individual voice UIs (poly-dsp.h 'group' false), newVoice() /
-// deleteVoice(), clone().
+// deleteVoice(), clone() (returns null: the voices come from the program's
+// create(), which this class doesn't know).
 
 #ifndef __mcu_poly_dsp__
 #define __mcu_poly_dsp__
@@ -88,54 +106,70 @@ class mcu_dsp_poly : public dsp, public midi {
         typedef void (*destroy_fn)(dsp*);
 
         static constexpr float kStopLevel = 0.0005f;  // -66 dB
-        static constexpr int MAX_VOICES = 16;
-        static constexpr int MAX_CHANNELS = 16;
-        static constexpr int MAX_SHARED = 256;  // parameters copied to all voices
 
     private:
         enum { FREE = -1 };
+        enum { FREQ, KEY, GAIN, VEL, GATE };
+
+        struct NoteZone {
+            FAUSTFLOAT* fZone;
+            int fKind;
+        };
 
         struct Voice {
             dsp* fDSP = nullptr;
-            FAUSTFLOAT* fFreq = nullptr;
-            FAUSTFLOAT* fKey = nullptr;
-            FAUSTFLOAT* fGain = nullptr;
-            FAUSTFLOAT* fVel = nullptr;
-            FAUSTFLOAT* fGate = nullptr;
+            NoteZone* fNotes = nullptr;     // freq/key/gain/vel/gate zones (fNoteCount)
             FAUSTFLOAT* fIndex = nullptr;   // [poly:voice]
             int fNote = FREE;         // the note it plays (also while releasing)
             int fChannel = 0;         // MIDI channel 0..15 of that note (of the next one while stolen)
             bool fHeld = false;       // gate on
+            bool fCut = false;        // freed by a fade: its state isn't silent
             int fNextNote = FREE;     // stolen: the note after the fade out
             int fNextVel = 0;
             int fFadeOut = 0;         // samples left of the fade out (stolen or stopped)
             int fFadeIn = 0;          // samples left of the fade in (after a steal)
             uint32_t fAge = 0;        // note on order
-            int fQuiet = 0;           // samples below kStopLevel after the note off
+            int fQuiet = 0;           // samples below the stop level after the note off
         };
 
-        // a voice's zones in the order of its UI: the same order in every voice
+        // a voice's zones in the order of its UI (the same in every voice);
+        // with null arrays it only counts them
         struct ZoneList : public UI {
-            FAUSTFLOAT** fZones;
-            int fMax;
-            int fCount = 0;
-            Voice* fVoice;
+            FAUSTFLOAT** fShared;
+            NoteZone* fNotes;
+            Soundfile*** fSounds;
+            int fSharedCount = 0;
+            int fNoteCount = 0;
+            int fSoundCount = 0;
             FAUSTFLOAT* fIndexZone = nullptr;   // declared [poly:voice]
             FAUSTFLOAT* fModeZone = nullptr;    // declared [poly:mode] (stays shared: a setting)
-            ZoneList(FAUSTFLOAT** zones, int max, Voice* voice) : fZones(zones), fMax(max), fVoice(voice) {}
+            FAUSTFLOAT* fIndex = nullptr;
+            ZoneList(FAUSTFLOAT** shared, NoteZone* notes, Soundfile*** sounds)
+                : fShared(shared), fNotes(notes), fSounds(sounds) {}
 
             static bool is(const char* label, const char* name) { return strcmp(label, name) == 0; }
+            // FAUST's poly-dsp.h finds them by the end of the path
+            static int kind(const char* label)
+            {
+                if (is(label, "freq")) return FREQ;
+                if (is(label, "key")) return KEY;
+                if (is(label, "gain")) return GAIN;
+                if (is(label, "vel") || is(label, "velocity")) return VEL;
+                if (is(label, "gate")) return GATE;
+                return -1;
+            }
             void add(const char* label, FAUSTFLOAT* zone)
             {
-                // FAUST's poly-dsp.h finds them by the end of the path
-                if (is(label, "freq")) fVoice->fFreq = zone;
-                else if (is(label, "key")) fVoice->fKey = zone;
-                else if (is(label, "gain")) fVoice->fGain = zone;
-                else if (is(label, "vel") || is(label, "velocity")) fVoice->fVel = zone;
-                else if (is(label, "gate")) fVoice->fGate = zone;
-                else if (zone == fIndexZone) fVoice->fIndex = zone;
-                else if (fZones && fCount < fMax) fZones[fCount++] = zone;
-                else fCount++;
+                int k = kind(label);
+                if (k >= 0) {
+                    if (fNotes) fNotes[fNoteCount] = NoteZone{zone, k};
+                    fNoteCount++;
+                } else if (zone == fIndexZone) {
+                    fIndex = zone;
+                } else {
+                    if (fShared) fShared[fSharedCount] = zone;
+                    fSharedCount++;
+                }
             }
             void openTabBox(const char*) override {}
             void openHorizontalBox(const char*) override {}
@@ -148,7 +182,11 @@ class mcu_dsp_poly : public dsp, public midi {
             void addNumEntry(const char* l, FAUSTFLOAT* z, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT) override { add(l, z); }
             void addHorizontalBargraph(const char*, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) override {}
             void addVerticalBargraph(const char*, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) override {}
-            void addSoundfile(const char*, const char*, Soundfile**) override {}
+            void addSoundfile(const char*, const char*, Soundfile** zone) override
+            {
+                if (fSounds) fSounds[fSoundCount] = zone;
+                fSoundCount++;
+            }
             void declare(FAUSTFLOAT* zone, const char* key, const char* value) override
             {
                 if (zone && strcmp(key, "poly") == 0 && strcmp(value, "voice") == 0) fIndexZone = zone;
@@ -162,11 +200,15 @@ class mcu_dsp_poly : public dsp, public midi {
         struct HideNotes : public UI {
             UI* fUI;
             const Voice* fVoice;
-            HideNotes(UI* ui, const Voice* voice) : fUI(ui), fVoice(voice) {}
+            int fNoteCount;
+            HideNotes(UI* ui, const Voice* voice, int notes) : fUI(ui), fVoice(voice), fNoteCount(notes) {}
             bool hidden(FAUSTFLOAT* z) const
             {
-                return z && (z == fVoice->fFreq || z == fVoice->fKey || z == fVoice->fGain || z == fVoice->fVel ||
-                             z == fVoice->fGate || z == fVoice->fIndex);
+                if (!z) return false;
+                if (z == fVoice->fIndex) return true;
+                for (int k = 0; k < fNoteCount; k++)
+                    if (z == fVoice->fNotes[k].fZone) return true;
+                return false;
             }
             void openTabBox(const char* l) override { fUI->openTabBox(l); }
             void openHorizontalBox(const char* l) override { fUI->openHorizontalBox(l); }
@@ -187,11 +229,12 @@ class mcu_dsp_poly : public dsp, public midi {
 #endif
         };
 
-        Voice fVoices[MAX_VOICES];
+        Voice* fVoices;
         int fCount;
         int fLimit;               // voices in use (setVoiceLimit)
         bool fControl;            // false: every voice always runs (poly-dsp.h 'control')
         bool fRetrigger = true;   // a held note played again restarts its voice
+        FAUSTFLOAT fStopLevel;
         // assign mode: ROTATE, REUSE, UNISON; from a [poly:mode]
         // parameter if the program has one, else setAssignMode()
         FAUSTFLOAT* fModeZone = nullptr;
@@ -203,20 +246,43 @@ class mcu_dsp_poly : public dsp, public midi {
         destroy_fn fDestroyVoice;
         dsp* fEffect;
         destroy_fn fDestroyEffect;
+        NoteZone* fNoteZones;     // [voice * fNoteCount + i]
+        int fNoteCount;
         FAUSTFLOAT** fShared;     // [voice * fSharedCount + i]
         int fSharedCount;
-        int fBlock;               // largest block size
+        Soundfile*** fSounds;     // [voice * fSoundCount + i]
+        int fSoundCount;
+        int fBlock;               // largest block size computed at once (longer ones in slices)
+        int fInputs;
+        int fOutputs;
         int fVoiceOutputs;
-        FAUSTFLOAT* fVoiceOut[MAX_CHANNELS];   // one voice's output
-        FAUSTFLOAT* fMix[MAX_CHANNELS];        // the sum of the voices (the effect's input)
+        int fMixChannels;         // fVoiceOutputs, or the effect's inputs if more
+        FAUSTFLOAT** fVoiceOut;   // one voice's output
+        FAUSTFLOAT** fMix;        // the sum of the voices (the effect's input)
+        FAUSTFLOAT** fInSlice;    // compute() in slices of fBlock
+        FAUSTFLOAT** fOutSlice;
         uint32_t fClock = 0;
         int fFade;                // fade length in samples (3 ms)
         FAUSTFLOAT fPanic = 0;    // the "Panic" button
         FAUSTFLOAT fPanicBefore = 0;
         midi_interface* fMidiHandler = nullptr;
 
-        // as poly-dsp.h (in double: the same frequency to the last bit)
+        // as poly-dsp.h (in double: the same values to the last bit)
         static double noteHz(int note) { return 440.0 * pow(2.0, (note - 69.0) / 12.0); }
+
+        void setPitch(Voice& v, int note)
+        {
+            for (int k = 0; k < fNoteCount; k++) {
+                NoteZone& z = v.fNotes[k];
+                if (z.fKind == FREQ) *z.fZone = FAUSTFLOAT(noteHz(note));
+                else if (z.fKind == KEY) *z.fZone = FAUSTFLOAT(note);
+            }
+        }
+        void setGate(Voice& v, FAUSTFLOAT gate)
+        {
+            for (int k = 0; k < fNoteCount; k++)
+                if (v.fNotes[k].fKind == GATE) *v.fNotes[k].fZone = gate;
+        }
 
         void start(Voice& v, int note, int velocity)
         {
@@ -225,15 +291,29 @@ class mcu_dsp_poly : public dsp, public midi {
             v.fAge = ++fClock;
             v.fQuiet = 0;
             v.fFadeOut = 0;
-            if (v.fFreq) *v.fFreq = noteHz(note);
-            if (v.fKey) *v.fKey = note;
-            if (v.fGain) *v.fGain = velocity / 127.0f;
-            if (v.fVel) *v.fVel = velocity;
-            if (v.fGate) *v.fGate = 1;
+            setPitch(v, note);
+            for (int k = 0; k < fNoteCount; k++) {
+                NoteZone& z = v.fNotes[k];
+                if (z.fKind == GAIN) *z.fZone = FAUSTFLOAT(double(velocity) / 127.0);
+                else if (z.fKind == VEL) *z.fZone = FAUSTFLOAT(velocity);
+            }
+            setGate(v, FAUSTFLOAT(1));
         }
 
         // a voice fading out to free (stopped: Panic, CC 120, a mode change)
         static bool stopping(const Voice& v) { return v.fFadeOut > 0 && v.fNextNote == FREE; }
+
+        // every voice already being stolen: the one stolen first (its
+        // waiting note is replaced by the new one)
+        Voice* oldestStolen()
+        {
+            Voice* oldest = nullptr;
+            for (int i = 0; i < fLimit; i++) {
+                Voice& v = fVoices[i];
+                if (v.fFadeOut > 0 && (!oldest || v.fAge < oldest->fAge)) oldest = &v;
+            }
+            return oldest;
+        }
 
         Voice* allocate()
         {
@@ -252,23 +332,27 @@ class mcu_dsp_poly : public dsp, public midi {
                 if (!v.fHeld) { if (!releasing || v.fAge < releasing->fAge) releasing = &v; }
                 else if (!playing || v.fAge < playing->fAge) playing = &v;
             }
-            return free ? free : stop ? stop : releasing ? releasing : playing;
+            Voice* v = free ? free : stop ? stop : releasing ? releasing : playing;
+            return v ? v : oldestStolen();
         }
 
         void release(Voice& v)
         {
             v.fHeld = false;
             v.fQuiet = 0;
-            if (v.fGate) *v.fGate = 0;
+            setGate(v, FAUSTFLOAT(0));
         }
 
         // gate off and a 3 ms fade out (from its level), then the voice is
         // free, or plays fNextNote if one is set
         void fadeOut(Voice& v)
         {
-            if (v.fGate) *v.fGate = 0;
+            setGate(v, FAUSTFLOAT(0));
             v.fHeld = false;
-            v.fFadeOut = fFade - v.fFadeIn;
+            // from where its fade in got to; at least one sample, so the end
+            // of the fade (which starts fNextNote) is always reached
+            int n = fFade - v.fFadeIn;
+            v.fFadeOut = n > 0 ? n : 1;
             v.fFadeIn = 0;
         }
 
@@ -304,8 +388,8 @@ class mcu_dsp_poly : public dsp, public midi {
         }
 
         // REUSE: the lowest voice that is free or only releasing (else the
-        // oldest playing one); the other release tails stop, so only the
-        // last notes played together keep their release
+        // oldest playing one, else the one stolen first); the other release
+        // tails stop, so only the last notes played together keep their release
         Voice* allocateReuse()
         {
             Voice* v = nullptr;
@@ -317,6 +401,7 @@ class mcu_dsp_poly : public dsp, public midi {
                 else if (w.fHeld && w.fFadeOut == 0 && (!playing || w.fAge < playing->fAge)) playing = &w;
             }
             if (!v) v = playing;
+            if (!v) v = oldestStolen();
             for (int i = 0; i < fCount; i++) {
                 Voice& w = fVoices[i];
                 if (&w != v && !w.fHeld && w.fNote != FREE && w.fFadeOut == 0) { w.fNextNote = FREE; fadeOut(w); }
@@ -334,9 +419,11 @@ class mcu_dsp_poly : public dsp, public midi {
                 if (v.fFadeOut == 0) fadeOut(v);
                 v.fAge = ++fClock;
             } else {
-                v.fFadeIn = 0;
+                // cut off by a fade: its envelopes and filters still hold a level
+                v.fFadeIn = v.fCut ? fFade : 0;
                 start(v, pitch, velocity);
             }
+            v.fCut = false;
             v.fChannel = channel;
         }
 
@@ -353,8 +440,7 @@ class mcu_dsp_poly : public dsp, public midi {
                     v.fNextNote = pitch;   // still fading out: its next note
                 } else {
                     v.fNote = pitch;
-                    if (v.fFreq) *v.fFreq = noteHz(pitch);
-                    if (v.fKey) *v.fKey = pitch;
+                    setPitch(v, pitch);
                 }
                 v.fChannel = channel;
             }
@@ -400,40 +486,133 @@ class mcu_dsp_poly : public dsp, public midi {
             ui->openTabBox("Polyphonic");
             ui->openVerticalBox("Voices");
             ui->addButton("Panic", &fPanic);
-            HideNotes hide(ui, &fVoices[0]);
+            HideNotes hide(ui, &fVoices[0], fNoteCount);
             fVoices[0].fDSP->buildUserInterface(&hide);
             ui->closeBox();
             ui->closeBox();
         }
 
+        static FAUSTFLOAT absf(FAUSTFLOAT x) { return x < 0 ? -x : x; }
+
+        // one block of at most fBlock samples
+        void computeBlock(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            // the "Panic" button: every voice stopped
+            checkMode();
+            if (fPanic != fPanicBefore) {
+                if (fPanic > FAUSTFLOAT(0.5)) allNotesOff(true);
+                fPanicBefore = fPanic;
+            }
+            // the first voice's parameters (set by the UI) and soundfiles to the others
+            for (int i = 1; i < fCount; i++) {
+                FAUSTFLOAT** to = fShared + i * fSharedCount;
+                for (int k = 0; k < fSharedCount; k++) *to[k] = *fShared[k];
+                Soundfile*** sounds = fSounds + i * fSoundCount;
+                for (int k = 0; k < fSoundCount; k++) *sounds[k] = *fSounds[k];
+            }
+            FAUSTFLOAT** mix = fEffect ? fMix : outputs;
+            int channels = fEffect ? fMixChannels : fVoiceOutputs;
+            for (int c = 0; c < channels; c++) memset(mix[c], 0, count * sizeof(FAUSTFLOAT));
+            for (int i = 0; i < fCount; i++) {
+                Voice& v = fVoices[i];
+                if (fControl && v.fNote == FREE && v.fNextNote == FREE) continue;  // silent: skipped
+                v.fDSP->compute(count, inputs, fVoiceOut);
+                // fades: out before a stolen voice's new note, in after it
+                bool fading = v.fFadeOut > 0 || v.fFadeIn > 0;
+                int fadeOut = v.fFadeOut, fadeIn = v.fFadeIn;
+                FAUSTFLOAT peak = 0;
+                for (int c = 0; c < fVoiceOutputs; c++) {
+                    const FAUSTFLOAT* in = fVoiceOut[c];
+                    FAUSTFLOAT* out = mix[c];
+                    if (fading) {
+                        int fo = fadeOut, fi = fadeIn;
+                        const FAUSTFLOAT step = FAUSTFLOAT(1) / FAUSTFLOAT(fFade);
+                        for (int s = 0; s < count; s++) {
+                            FAUSTFLOAT g = 1;
+                            if (fadeOut > 0) { g = fo > 0 ? fo * step : FAUSTFLOAT(0); if (fo > 0) fo--; }
+                            else if (fi > 0) { g = 1 - fi * step; fi--; }
+                            FAUSTFLOAT x = in[s] * g;
+                            out[s] += x;
+                            FAUSTFLOAT a = absf(x);
+                            if (a > peak) peak = a;
+                        }
+                        if (c == fVoiceOutputs - 1) { v.fFadeOut = fo; v.fFadeIn = fi; }
+                    } else {
+                        for (int s = 0; s < count; s++) {
+                            out[s] += in[s];
+                            FAUSTFLOAT a = absf(in[s]);
+                            if (a > peak) peak = a;
+                        }
+                    }
+                }
+                if (fVoiceOutputs == 0) { v.fFadeOut = 0; v.fFadeIn = 0; }
+                if (fadeOut > 0 && v.fFadeOut == 0) {
+                    // faded out (the rest of the block was silent)
+                    if (v.fNextNote != FREE) {
+                        int note = v.fNextNote;
+                        v.fNextNote = FREE;
+                        start(v, note, v.fNextVel);
+                        v.fFadeIn = fFade;
+                    } else {
+                        v.fNote = FREE;  // stopped, or its new note was released before it started
+                        v.fCut = true;
+                    }
+                } else if (v.fFadeOut > 0) {
+                    // still fading out
+                } else if (!v.fHeld && v.fNote != FREE) {
+                    v.fQuiet = peak < fStopLevel ? v.fQuiet + count : 0;
+                    if (v.fQuiet >= getSampleRate() / 100) v.fNote = FREE;  // 10 ms quiet
+                }
+            }
+            if (fEffect) fEffect->compute(count, fMix, outputs);
+        }
+
     public:
         // voices: count instances made by the program's create(), destroyed
-        // with destroy_voice; effect (or null): runs once on the voice mix;
-        // control false: all voices always run (no allocation by notes)
+        // with destroy_voice (also when the constructor is not given an
+        // effect); effect (or null): runs once on the voice mix; block: the
+        // largest block computed at once (longer ones are computed in
+        // slices); control false: all voices always run (no allocation by
+        // notes); stoplevel: a released voice is freed after its output
+        // peak stayed below it for 10 ms (linear, 0 .. 0.01)
         mcu_dsp_poly(dsp** voices, int count, destroy_fn destroy_voice, dsp* effect, destroy_fn destroy_effect, int block,
-                     bool control = true)
-            : fCount(count < MAX_VOICES ? count : MAX_VOICES), fLimit(fCount), fControl(control),
-              fDestroyVoice(destroy_voice), fEffect(effect), fDestroyEffect(destroy_effect), fBlock(block)
+                     bool control = true, FAUSTFLOAT stoplevel = kStopLevel)
+            : fCount(count > 0 ? count : 0), fLimit(fCount), fControl(control),
+              fDestroyVoice(destroy_voice), fEffect(effect), fDestroyEffect(destroy_effect), fBlock(block > 0 ? block : 1)
         {
+            fStopLevel = (stoplevel > FAUSTFLOAT(0) && stoplevel <= FAUSTFLOAT(0.01)) ? stoplevel : FAUSTFLOAT(kStopLevel);
+            fVoices = new Voice[fCount > 0 ? fCount : 1];
             for (int i = 0; i < fCount; i++) fVoices[i].fDSP = voices[i];
-            // the shared parameters, in UI order (the same in every voice)
-            ZoneList counter(nullptr, 0, &fVoices[0]);
-            fVoices[0].fDSP->buildUserInterface(&counter);
+            // the zones, in UI order (the same in every voice)
+            ZoneList counter(nullptr, nullptr, nullptr);
+            if (fCount > 0) fVoices[0].fDSP->buildUserInterface(&counter);
             fModeZone = counter.fModeZone;
-            fSharedCount = counter.fCount < MAX_SHARED ? counter.fCount : MAX_SHARED;
+            fNoteCount = counter.fNoteCount;
+            fSharedCount = counter.fSharedCount;
+            fSoundCount = counter.fSoundCount;
+            fNoteZones = new NoteZone[fCount * fNoteCount + 1];
             fShared = new FAUSTFLOAT*[fCount * fSharedCount + 1];
+            fSounds = new Soundfile**[fCount * fSoundCount + 1];
             for (int i = 0; i < fCount; i++) {
-                ZoneList list(fShared + i * fSharedCount, fSharedCount, &fVoices[i]);
-                fVoices[i].fDSP->buildUserInterface(&list);
+                Voice& v = fVoices[i];
+                v.fNotes = fNoteZones + i * fNoteCount;
+                ZoneList list(fShared + i * fSharedCount, v.fNotes, fSounds + i * fSoundCount);
+                v.fDSP->buildUserInterface(&list);
+                v.fIndex = list.fIndex;
             }
             fFade = 144;  // 3 ms at 48 kHz, set again by instanceInit()
             setIndices();
-            fVoiceOutputs = fVoices[0].fDSP->getNumOutputs();
-            if (fVoiceOutputs > MAX_CHANNELS) fVoiceOutputs = MAX_CHANNELS;
-            for (int c = 0; c < fVoiceOutputs; c++) {
-                fVoiceOut[c] = new FAUSTFLOAT[fBlock];
-                fMix[c] = new FAUSTFLOAT[fBlock];
-            }
+            fInputs = fCount > 0 ? fVoices[0].fDSP->getNumInputs() : 0;
+            fVoiceOutputs = fCount > 0 ? fVoices[0].fDSP->getNumOutputs() : 0;
+            fMixChannels = fVoiceOutputs;
+            if (fEffect && fEffect->getNumInputs() > fMixChannels) fMixChannels = fEffect->getNumInputs();
+            fOutputs = fEffect ? fEffect->getNumOutputs() : fVoiceOutputs;
+            fVoiceOut = new FAUSTFLOAT*[fVoiceOutputs + 1];
+            for (int c = 0; c < fVoiceOutputs; c++) fVoiceOut[c] = new FAUSTFLOAT[fBlock];
+            fMix = new FAUSTFLOAT*[fMixChannels + 1];
+            for (int c = 0; c < fMixChannels; c++) fMix[c] = fEffect ? new FAUSTFLOAT[fBlock] : nullptr;
+            fInSlice = new FAUSTFLOAT*[fInputs + 1];
+            fOutSlice = new FAUSTFLOAT*[fOutputs + 1];
         }
 
         virtual ~mcu_dsp_poly()
@@ -441,11 +620,16 @@ class mcu_dsp_poly : public dsp, public midi {
             if (fMidiHandler) fMidiHandler->removeMidiIn(this);
             for (int i = 0; i < fCount; i++) fDestroyVoice(fVoices[i].fDSP);
             if (fEffect) fDestroyEffect(fEffect);
+            for (int c = 0; c < fVoiceOutputs; c++) delete[] fVoiceOut[c];
+            for (int c = 0; c < fMixChannels; c++) delete[] fMix[c];
+            delete[] fVoiceOut;
+            delete[] fMix;
+            delete[] fInSlice;
+            delete[] fOutSlice;
+            delete[] fNoteZones;
             delete[] fShared;
-            for (int c = 0; c < fVoiceOutputs; c++) {
-                delete[] fVoiceOut[c];
-                delete[] fMix[c];
-            }
+            delete[] fSounds;
+            delete[] fVoices;
         }
 
         // the MIDI handler sending notes here (registered by buildUserInterface()
@@ -462,15 +646,21 @@ class mcu_dsp_poly : public dsp, public midi {
 
         MapUI* keyOn(int channel, int pitch, int velocity) override
         {
+            if (fCount == 0) return nullptr;
             if (velocity == 0) { keyOff(channel, pitch, 0); return nullptr; }
             checkMode();
             if (fMode == UNISON) { unisonOn(channel, pitch, velocity); return nullptr; }
             Voice* v = nullptr;
             if (fRetrigger) {
-                // the note is already held on this channel: its voice starts
-                // again, so a repeated note on can't leave a voice hanging
-                for (int i = 0; i < fCount && !v; i++)
-                    if (fVoices[i].fHeld && fVoices[i].fNote == pitch && fVoices[i].fChannel == channel) v = &fVoices[i];
+                // the note is already held on this channel, or waits for a
+                // voice being stolen: that voice starts it again, so a
+                // repeated note on can't leave a voice hanging
+                for (int i = 0; i < fCount && !v; i++) {
+                    Voice& w = fVoices[i];
+                    bool held = w.fHeld && w.fNote == pitch;
+                    bool waiting = w.fFadeOut > 0 && w.fNextNote == pitch;
+                    if ((held || waiting) && w.fChannel == channel) v = &w;
+                }
             }
             if (!v) v = fMode == REUSE ? allocateReuse() : allocate();
             if (!v) return nullptr;
@@ -540,10 +730,11 @@ class mcu_dsp_poly : public dsp, public midi {
 
         // dsp
 
-        int getNumInputs() override { return fVoices[0].fDSP->getNumInputs(); }
-        int getNumOutputs() override { return fEffect ? fEffect->getNumOutputs() : fVoiceOutputs; }
+        int getNumInputs() override { return fInputs; }
+        int getNumOutputs() override { return fOutputs; }
         void buildUserInterface(UI* ui) override
         {
+            if (fCount == 0) return;
             registerMidi(ui);
             if (fEffect) {
                 // as dsp_sequencer(poly, effect)
@@ -559,9 +750,10 @@ class mcu_dsp_poly : public dsp, public midi {
                 buildVoicesUI(ui);
             }
         }
-        int getSampleRate() override { return fVoices[0].fDSP->getSampleRate(); }
-        // as dsp::init(): the static tables too (classInit, through the first
-        // voice's and the effect's init()), then every instance
+        int getSampleRate() override { return fCount > 0 ? fVoices[0].fDSP->getSampleRate() : 0; }
+        // as dsp::init(): the static tables (classInit, through the first
+        // voice's and the effect's init()), then every instance. With -mem
+        // the program's init() is empty: call classInit() and instanceInit()
         void init(int sample_rate) override
         {
             if (fCount > 0) fVoices[0].fDSP->init(sample_rate);
@@ -572,7 +764,7 @@ class mcu_dsp_poly : public dsp, public midi {
         void setIndices()
         {
             for (int i = 0; i < fCount; i++)
-                if (fVoices[i].fIndex) *fVoices[i].fIndex = i;
+                if (fVoices[i].fIndex) *fVoices[i].fIndex = FAUSTFLOAT(i);
         }
 
         void instanceInit(int sample_rate) override
@@ -610,82 +802,28 @@ class mcu_dsp_poly : public dsp, public midi {
                 Voice& v = fVoices[i];
                 v.fNote = v.fNextNote = FREE;
                 v.fHeld = false;
+                v.fCut = false;
                 v.fFadeOut = v.fFadeIn = v.fQuiet = 0;
                 v.fChannel = 0;
                 v.fAge = 0;
-                if (v.fGate) *v.fGate = 0;
+                setGate(v, FAUSTFLOAT(0));
             }
             fClock = 0;
         }
+        // not supported: the voices come from the program's create()
         dsp* clone() override { return nullptr; }
-        void metadata(Meta* m) override { fVoices[0].fDSP->metadata(m); }
+        void metadata(Meta* m) override { if (fCount > 0) fVoices[0].fDSP->metadata(m); }
 
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) override
         {
-            if (count > fBlock) count = fBlock;
-            // the "Panic" button: every voice stopped
-            checkMode();
-            if (fPanic != fPanicBefore) {
-                if (fPanic > FAUSTFLOAT(0.5)) allNotesOff(true);
-                fPanicBefore = fPanic;
+            if (fCount == 0) return;
+            if (count <= fBlock) { computeBlock(count, inputs, outputs); return; }
+            for (int pos = 0; pos < count; pos += fBlock) {
+                int n = count - pos < fBlock ? count - pos : fBlock;
+                for (int c = 0; c < fInputs; c++) fInSlice[c] = inputs[c] + pos;
+                for (int c = 0; c < fOutputs; c++) fOutSlice[c] = outputs[c] + pos;
+                computeBlock(n, fInSlice, fOutSlice);
             }
-            // the first voice's parameters (set by the UI) to the others
-            for (int i = 1; i < fCount; i++) {
-                FAUSTFLOAT** to = fShared + i * fSharedCount;
-                for (int k = 0; k < fSharedCount; k++) *to[k] = *fShared[k];
-            }
-            FAUSTFLOAT** mix = fEffect ? fMix : outputs;
-            for (int c = 0; c < fVoiceOutputs; c++) memset(mix[c], 0, count * sizeof(FAUSTFLOAT));
-            for (int i = 0; i < fCount; i++) {
-                Voice& v = fVoices[i];
-                if (fControl && v.fNote == FREE && v.fNextNote == FREE) continue;  // silent: skipped
-                v.fDSP->compute(count, inputs, fVoiceOut);
-                // fades: out before a stolen voice's new note, in after it
-                bool fading = v.fFadeOut > 0 || v.fFadeIn > 0;
-                int fadeOut = v.fFadeOut, fadeIn = v.fFadeIn;
-                float peak = 0.0f;
-                for (int c = 0; c < fVoiceOutputs; c++) {
-                    const FAUSTFLOAT* in = fVoiceOut[c];
-                    FAUSTFLOAT* out = mix[c];
-                    if (fading) {
-                        int fo = fadeOut, fi = fadeIn;
-                        const float step = 1.0f / fFade;
-                        for (int s = 0; s < count; s++) {
-                            float g = 1.0f;
-                            if (fadeOut > 0) { g = fo > 0 ? fo * step : 0.0f; if (fo > 0) fo--; }
-                            else if (fi > 0) { g = 1.0f - fi * step; fi--; }
-                            float x = in[s] * g;
-                            out[s] += x;
-                            float a = fabsf(x);
-                            if (a > peak) peak = a;
-                        }
-                        if (c == fVoiceOutputs - 1) { v.fFadeOut = fo; v.fFadeIn = fi; }
-                    } else {
-                        for (int s = 0; s < count; s++) {
-                            out[s] += in[s];
-                            float a = fabsf(in[s]);
-                            if (a > peak) peak = a;
-                        }
-                    }
-                }
-                if (fadeOut > 0 && v.fFadeOut == 0) {
-                    // faded out (the rest of the block was silent)
-                    if (v.fNextNote != FREE) {
-                        int note = v.fNextNote;
-                        v.fNextNote = FREE;
-                        start(v, note, v.fNextVel);
-                        v.fFadeIn = fFade;
-                    } else {
-                        v.fNote = FREE;  // stopped, or its new note was released before it started
-                    }
-                } else if (v.fFadeOut > 0) {
-                    // still fading out
-                } else if (!v.fHeld && v.fNote != FREE) {
-                    v.fQuiet = peak < kStopLevel ? v.fQuiet + count : 0;
-                    if (v.fQuiet >= getSampleRate() / 100) v.fNote = FREE;  // 10 ms quiet
-                }
-            }
-            if (fEffect) fEffect->compute(count, fMix, outputs);
         }
 };
 
