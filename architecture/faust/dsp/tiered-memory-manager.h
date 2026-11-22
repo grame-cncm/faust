@@ -39,25 +39,29 @@
 //   mydsp::fManager = &manager;
 //   mydsp::classInit(sample_rate);                   // static tables
 //   mydsp* dsp = mydsp::create();                    // allocates through the tiers
+//   if (manager.failures()) { ... }                  // a zone found no memory
+//   dsp->instanceInit(sample_rate);                  // with -mem init() is empty
 //   ...
 //   mydsp::destroy(dsp);                             // frees through the tiers
-//   arena.reset();                                   // memory_arena: freed as a whole
+//   mydsp::classDestroy();                           // the tables, when no instance is left
 //
 // A tier is a memory_tier: allocate(), free() and, for a reserve, the bytes
-// still free. memory_arena (a bump allocator on a static buffer, freed as a
-// whole by reset()) and malloc_tier (malloc/free with an optional function
-// that tells the free heap) are below; a platform adds its own, e.g. one for
-// extmem_malloc() on a Teensy 4.1 (faust/dsp/teensy-memory.h).
-// destroy() gives a zone back to the tier that allocated it (each zone is
-// recorded; FAUST programs have tens of zones).
+// still free. memory_arena (a bump allocator on a static buffer) and
+// malloc_tier (malloc/free with an optional function that tells the free
+// heap) are below; a platform adds its own, e.g. one for extmem_malloc() on
+// a Teensy 4.1 (faust/dsp/teensy-memory.h). destroy() gives a zone back to
+// the tier that allocated it (each zone is recorded).
 //
-// The tiers are tried in order; a zone that no tier takes makes allocate()
-// return nullptr (the program's create() then fails, a check the
-// architecture can make).
+// The tiers are tried in order. A zone that no tier takes gets nullptr and
+// counts as a failure: the generated create() and classInit() do not test
+// the pointers they get, so the architecture checks failures() after them
+// and must not use the program if it is not 0 (destroy() it: freeing the
+// zones that were allocated is safe).
 
 #ifndef __tiered_memory_manager__
 #define __tiered_memory_manager__
 
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -74,14 +78,19 @@ struct memory_tier {
 };
 
 // A bump allocator on a buffer (e.g. a static array in fast RAM): zones are
-// aligned to 'align' bytes (a cache line), free() does nothing, reset()
-// frees everything (when the program is destroyed)
+// aligned to 'align' bytes (a cache line). It counts the zones it holds and
+// starts again from the bottom when the last one is freed; freeing the
+// topmost zone also gives its room back. A zone freed below others stays
+// used until they are freed too (FAUST programs allocate and free their
+// zones all at once, so the arena empties when the program is destroyed).
 class memory_arena : public memory_tier {
     private:
         uint8_t* fBase;
         size_t fSize;
         size_t fUsed = 0;
         size_t fAlign;
+        size_t fTop = SIZE_MAX;   // offset of the topmost zone, SIZE_MAX if unknown
+        int fLive = 0;
 
     public:
         memory_arena(void* base, size_t size, size_t align = 32)
@@ -89,22 +98,35 @@ class memory_arena : public memory_tier {
 
         void* allocate(size_t size) override
         {
-            uintptr_t base = reinterpret_cast<uintptr_t>(fBase);
-            uintptr_t start = (base + fUsed + fAlign - 1) / fAlign * fAlign;
-            if (start + size > base + fSize) return nullptr;
-            fUsed = start + size - base;
-            return reinterpret_cast<void*>(start);
+            if (size == 0) size = 1;   // distinct pointers
+            size_t start = (reinterpret_cast<uintptr_t>(fBase) + fUsed + fAlign - 1) / fAlign * fAlign
+                - reinterpret_cast<uintptr_t>(fBase);
+            if (start > fSize || size > fSize - start) return nullptr;
+            fTop = start;
+            fUsed = start + size;
+            fLive++;
+            return fBase + start;
         }
-        void free(void* ptr) override { (void)ptr; }
+        void free(void* ptr) override
+        {
+            if (!ptr || !owns(ptr) || fLive == 0) return;
+            if (--fLive == 0) {
+                fUsed = 0;
+                fTop = SIZE_MAX;
+            } else if (size_t(static_cast<uint8_t*>(ptr) - fBase) == fTop) {
+                fUsed = fTop;
+                fTop = SIZE_MAX;
+            }
+        }
         size_t available() override { return fSize - fUsed; }
 
         bool owns(const void* ptr) const
         {
             return ptr >= static_cast<const void*>(fBase) && ptr < static_cast<const void*>(fBase + fSize);
         }
-        void reset() { fUsed = 0; }
         size_t used() const { return fUsed; }
         size_t size() const { return fSize; }
+        int zones() const { return fLive; }
 };
 
 // malloc() and free(); 'available' (optional) tells the free heap, so a
@@ -121,8 +143,9 @@ class malloc_tier : public memory_tier {
         size_t available() override { return fAvailable ? fAvailable() : SIZE_MAX; }
 };
 
-// MAX_TIERS tiers, at most MAX_ZONES zones allocated at a time
-template <int MAX_TIERS = 4, int MAX_ZONES = 128>
+// MAX_TIERS tiers; the table of allocated zones starts with room for ZONES
+// and grows (with malloc) when more are allocated at a time
+template <int MAX_TIERS = 4, int ZONES = 128>
 class tiered_memory_manager : public dsp_memory_manager {
     private:
         struct Tier {
@@ -139,10 +162,33 @@ class tiered_memory_manager : public dsp_memory_manager {
 
         Tier fTiers[MAX_TIERS];
         int fTierCount = 0;
-        Zone fZones[MAX_ZONES];
+        Zone fFixed[ZONES];
+        Zone* fZones = fFixed;
+        int fCapacity = ZONES;
         int fZoneCount = 0;
+        int fFailures = 0;
+
+        bool grow()
+        {
+            int capacity = fCapacity * 2;
+            Zone* zones = static_cast<Zone*>(::malloc(sizeof(Zone) * size_t(capacity)));
+            if (!zones) return false;
+            for (int z = 0; z < fZoneCount; z++) zones[z] = fZones[z];
+            if (fZones != fFixed) ::free(fZones);
+            fZones = zones;
+            fCapacity = capacity;
+            return true;
+        }
 
     public:
+        tiered_memory_manager() = default;
+        tiered_memory_manager(const tiered_memory_manager&) = delete;
+        tiered_memory_manager& operator=(const tiered_memory_manager&) = delete;
+        virtual ~tiered_memory_manager()
+        {
+            if (fZones != fFixed) ::free(fZones);
+        }
+
         // zones of min..max bytes go to this tier while it keeps 'reserve'
         // bytes available; tiers are tried in the order they were added
         bool addTier(memory_tier& tier, size_t min = 0, size_t max = SIZE_MAX, size_t reserve = 0)
@@ -154,7 +200,10 @@ class tiered_memory_manager : public dsp_memory_manager {
 
         void* allocate(size_t size) override
         {
-            if (fZoneCount >= MAX_ZONES) return nullptr;
+            if (fZoneCount >= fCapacity && !grow()) {
+                fFailures++;
+                return nullptr;
+            }
             for (int i = 0; i < fTierCount; i++) {
                 Tier& t = fTiers[i];
                 if (size < t.fMin || size > t.fMax) continue;
@@ -168,6 +217,7 @@ class tiered_memory_manager : public dsp_memory_manager {
                     return ptr;
                 }
             }
+            fFailures++;
             return nullptr;
         }
 
@@ -176,12 +226,16 @@ class tiered_memory_manager : public dsp_memory_manager {
             if (!ptr) return;
             for (int z = 0; z < fZoneCount; z++) {
                 if (fZones[z].fPtr != ptr) continue;
-                Tier& t = fTiers[fZones[z].fTier];
-                t.fTier->free(ptr);
+                fTiers[fZones[z].fTier].fTier->free(ptr);
                 fZones[z] = fZones[--fZoneCount];
                 return;
             }
+            assert(!"tiered_memory_manager::destroy(): not allocated by this manager");
         }
+
+        // allocations that found no memory since the start or clearFailures()
+        int failures() const { return fFailures; }
+        void clearFailures() { fFailures = 0; }
 
         // the tier of an allocated zone (its index in the order added), -1 if this manager did not allocate it
         int tierOf(const void* ptr) const

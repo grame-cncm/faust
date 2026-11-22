@@ -39,15 +39,19 @@
 // program reads many places of a buffer per sample; reading in order (a
 // long loop, a granular buffer) is cheap.
 //
-// The arena is freed as a whole: call teensy_memory::reset() after the
-// program's destroy(). Usage (teensy.cpp does this with -mem):
+// The arena empties itself when the program's zones are freed. Usage:
 //
-//   teensy_memory::begin();                  // once: sets mydsp::fManager
+//   mydsp::fManager = &teensy_memory::manager();
 //   mydsp::classInit(AUDIO_SAMPLE_RATE_EXACT);
 //   mydsp* dsp = mydsp::create();
+//   if (teensy_memory::manager().failures()) { ... }   // no memory for a zone
+//   dsp->instanceInit(AUDIO_SAMPLE_RATE_EXACT);       // with -mem init() is empty
 //   ...
 //   mydsp::destroy(dsp);
-//   teensy_memory::reset();
+//   mydsp::classDestroy();
+//
+// FAUST_TEENSY_ARENA 0 leaves the arena out (zones up to
+// FAUST_TEENSY_RAM2_MAX then go to the heap).
 
 #ifndef __teensy_memory__
 #define __teensy_memory__
@@ -57,8 +61,8 @@
 
 #include "faust/dsp/tiered-memory-manager.h"
 
-// zones the manager tracks at a time (8 bytes each): a large reverb can
-// have ~200, more than tiered_memory_manager's default 128
+// zones the manager tracks before its table grows (8 bytes each): a large
+// reverb can have ~200, more than tiered_memory_manager's default 128
 #ifndef FAUST_TEENSY_ZONES
 #define FAUST_TEENSY_ZONES 256
 #endif
@@ -95,6 +99,7 @@ namespace teensy_memory {
         void free(void* ptr) override { extmem_free(ptr); }
     };
 
+#if FAUST_TEENSY_ARENA > 0
     // the arena in DTCM: zero initialized static data is in RAM1 on a Teensy 4
     inline memory_arena& arena()
     {
@@ -102,6 +107,7 @@ namespace teensy_memory {
         static memory_arena a(buffer, sizeof(buffer));
         return a;
     }
+#endif
 
     inline tiered_memory_manager<4, FAUST_TEENSY_ZONES>& manager()
     {
@@ -111,16 +117,15 @@ namespace teensy_memory {
         static bool ready = false;
         if (!ready) {
             m.addTier(heap, 0, FAUST_TEENSY_SMALL - 1);
+#if FAUST_TEENSY_ARENA > 0
             m.addTier(arena(), FAUST_TEENSY_SMALL, FAUST_TEENSY_ARENA_MAX);
+#endif
             m.addTier(heap, FAUST_TEENSY_SMALL, FAUST_TEENSY_RAM2_MAX, FAUST_TEENSY_HEAP_RESERVE);
             m.addTier(psram);
             ready = true;
         }
         return m;
     }
-
-    // after the program's destroy(): the arena is empty again
-    inline void reset() { arena().reset(); }
 
 } // namespace teensy_memory
 
