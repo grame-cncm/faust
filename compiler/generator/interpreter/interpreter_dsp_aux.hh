@@ -521,14 +521,35 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
    protected:
     bool                                      fInitialized;
     bool                                      fTraceOutput;
+    bool                                      fFailed;
     int                                       fCycle;
     interpreter_dsp_factory_aux<REAL, TRACE>* fFactory;
     FBCExecutor<REAL>*                        fFBCExecutor;
+
+    /*
+     An error raised by the interpreted code (a faustassert, or a check of the trace modes):
+     - the trace modes (FAUST_INTERP_TRACE, used by interp-tracer) stop at the first error
+     - otherwise the instance goes in a failed state instead of exiting, so that the host (a plugin
+       in a DAW, a live coding environment...) keeps running: the next calls do nothing and
+       compute() outputs silence
+    */
+    void handleError(faustexception& e)
+    {
+        std::cerr << e.Message();
+        if (TRACE > 0) {
+            exit(1);
+        }
+        if (!fFailed) {
+            std::cerr << "Interpreter: the DSP is disabled after this error, it outputs silence" << std::endl;
+        }
+        fFailed = true;
+    }
 
    public:
     interpreter_dsp_aux()
         : fInitialized(false),
           fTraceOutput(false),
+          fFailed(false),
           fCycle(0),
           fFactory(nullptr),
           fFBCExecutor(nullptr)
@@ -539,6 +560,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
     {
         fFactory     = factory;
         fInitialized = false;
+        fFailed      = false;
         fCycle       = 0;
         fTraceOutput = getenv("FAUST_INTERP_OUTPUT") != NULL;
         // Done before createFBCExecutor that may compile blocks...
@@ -576,12 +598,15 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
             std::cout << "classInit " << sample_rate << std::endl;
         }
 
+        if (fFailed) {
+            return;
+        }
+
         try {
             // Execute static init instructions
             fFBCExecutor->executeBlock(fFactory->fStaticInitBlock);
         } catch (faustexception& e) {
-            std::cerr << e.Message();
-            exit(1);
+            handleError(e);
         }
     }
 
@@ -595,12 +620,15 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         // Store sample_rate in 'fSampleRate' variable at correct offset in fIntHeap
         fFBCExecutor->setIntValue(fFactory->fSROffset, sample_rate);
 
+        if (fFailed) {
+            return;
+        }
+
         try {
             // Execute state init instructions
             fFBCExecutor->executeBlock(fFactory->fInitBlock);
         } catch (faustexception& e) {
-            std::cerr << e.Message();
-            exit(1);
+            handleError(e);
         }
     }
 
@@ -611,14 +639,17 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
             std::cout << "instanceResetUserInterface " << std::endl;
         }
 
+        if (fFailed) {
+            return;
+        }
+
         try {
             // Execute reset UI instructions
             fFBCExecutor->executeBlock(fFactory->fResetUIBlock);
             // Before compute, so that the Interp/[LLVM|MIR] compilers keep the default sound too
             fFBCExecutor->setDefaultSoundfiles(getInterpreterDefaultSound());
         } catch (faustexception& e) {
-            std::cerr << e.Message();
-            exit(1);
+            handleError(e);
         }
     }
 
@@ -629,12 +660,15 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
             std::cout << "instanceClear " << std::endl;
         }
 
+        if (fFailed) {
+            return;
+        }
+
         try {
             // Execute clear instructions
             fFBCExecutor->executeBlock(fFactory->fClearBlock);
         } catch (faustexception& e) {
-            std::cerr << e.Message();
-            exit(1);
+            handleError(e);
         }
     }
 
@@ -673,11 +707,23 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
     virtual void buildUserInterface(UIInterface* glue)
     {
+        if (fFailed) {
+            return;
+        }
+
         try {
             fFBCExecutor->executeBuildUserInterface(fFactory->fUserInterfaceBlock, glue);
         } catch (faustexception& e) {
-            std::cerr << e.Message();
-            exit(1);
+            handleError(e);
+        }
+    }
+
+    // The buffers have the REAL type of the interpreter (see compute)
+    void clearOutputs(int count, FAUSTFLOAT** outputs_aux)
+    {
+        REAL** outputs = reinterpret_cast<REAL**>(outputs_aux);
+        for (int chan = 0; chan < fFactory->fNumOutputs; chan++) {
+            memset(outputs[chan], 0, sizeof(REAL) * count);
         }
     }
 
@@ -711,6 +757,11 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
     {
         if (count == 0) {
             return;  // Beware: compiled loop does not work with an index of 0
+        }
+
+        if (fFailed) {
+            clearOutputs(count, outputs_aux);
+            return;
         }
 
         if (TRACE > 0 && !fInitialized) {
@@ -754,6 +805,12 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
                 fFBCExecutor->updateOutputControls();
 
             } catch (faustexception& e) {
+                if (TRACE == 0) {
+                    // No dump files in the current directory of the host, see handleError
+                    handleError(e);
+                    clearOutputs(count, outputs_aux);
+                    return;
+                }
                 std::cerr << e.Message();
                 std::vector<FBCBlockInstruction<REAL>*> blocks = {
                     fFactory->fStaticInitBlock, fFactory->fInitBlock,
