@@ -117,12 +117,14 @@ inline bool irmErrorBounds(Tree sig, Tree x, Tree p, IrmErrorBounds& b)
 /**
  * The error form applies : a real slow smoother in single precision, in the C and C++
  * generators, whose compute function runs the block code before its samples (not under -ec
- * or -os) ; not under -ls, whose emission reads the smoother's own past
+ * or -os, nor under -sch, whose tasks do not see the block's variables) ; not under -ls, whose
+ * emission reads the smoother's own past
  */
 inline bool irmErrorFormApplies(Tree sig, Tree x, Tree p)
 {
     const int vr = std::max(getCertifiedSigType(x)->variability(), getCertifiedSigType(p)->variability());
-    if (gGlobal->gFloatSize != 1 || gGlobal->gExtControl || gGlobal->gOneSample || gGlobal->gLoopSplit || vr == kSamp ||
+    if (gGlobal->gFloatSize != 1 || gGlobal->gExtControl || gGlobal->gOneSample || gGlobal->gSchedulerSwitch ||
+        gGlobal->gLoopSplit || vr == kSamp ||
         getCertifiedSigType(sig)->nature() != kReal || getCertifiedSigType(x)->nature() != kReal) {
         return false;
     }
