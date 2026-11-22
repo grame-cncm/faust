@@ -51,6 +51,7 @@ enum class IrmForm {
     kWeighted,        ///< (1 - c) * x + c * y', 1 - c and (1 - c) * x at their rates
     kFromX,           ///< x + c * (y' - x)
     kFromState,       ///< y' + w * (x - y'), w the weight 1 - c (read as it is when c is 1 - w)
+    kError,           ///< x + e, e = c * (e' + (x' - x)), the jump of a slow x once per block (irmErrorForm.hh)
     kWeightedInput,   ///< u + c * y', the operands u and c
     kFromStateWeight  ///< y' + w * (x - y'), the operands x and w
 };

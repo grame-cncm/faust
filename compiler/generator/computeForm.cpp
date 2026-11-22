@@ -21,6 +21,7 @@
 #include "global.hh"
 #include "xtended.hh"
 #include "definitionIndex.hh"
+#include "irmErrorForm.hh"
 #include "irm_weight.hh"
 #include "mixForm.hh"
 #include "sigtransform.hh"
@@ -65,14 +66,19 @@ class Translation : public TransformAlgebra {
         return itv::mixFromB(ic) ? MixForm::kFromB : MixForm::kFromA;
     }
 
-    /// IRM(x; p) : the weighted sum when the source wrote the pole, and for a pole written
-    /// 1 - w with a slow target and pole unless the node reaches a decision ; otherwise
-    /// the interpolation from x when p may be below 1/2, from the state when not
+    /// IRM(x; p) : in single precision, a slow smoother written by its error, which reaches
+    /// its target, even where the node reaches a decision (irmErrorForm.hh) ; the weighted
+    /// sum when the source wrote the pole, and for a pole written 1 - w with a slow target
+    /// and pole unless the node reaches a decision ; otherwise the interpolation from x when
+    /// p may be below 1/2, from the state when not
     IrmForm irmForm(Tree sig, Tree x, Tree p) const
     {
         Tree       w    = irmInputWeight(p);
         const int  vr   = std::max(getCertifiedSigType(x)->variability(), getCertifiedSigType(p)->variability());
         const bool real = getCertifiedSigType(sig)->nature() == kReal;
+        if (irmErrorFormApplies(sig, x, p)) {
+            return IrmForm::kError;
+        }
         if (real && (!w || (vr != kSamp && !reachesDecision(sig)))) {
             return IrmForm::kWeighted;
         }

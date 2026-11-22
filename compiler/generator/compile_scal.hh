@@ -279,6 +279,7 @@ class ScalarCompiler : public Compiler {
     bool        isSigSimpleRec(Tree sig);
     std::string generateRecProj(Tree sig, Tree exp, int i);
     std::string generateIRM(Tree sig, Tree x, Tree p, IrmForm form);
+    std::string generateIRMError(Tree sig, Tree x, Tree p);
 
 
     std::string generateBpf(Tree sig);

@@ -253,6 +253,7 @@ class InstructionsCompiler : public virtual Garbageable {
     std::string        delayLineName(Tree exp, int mxd, const char* prefix, ValueInst*& immediate);
     void               flushPendingDelayWrites();
     ValueInst*         generateIRM(Tree sig, Tree x, Tree p, IrmForm form);
+    ValueInst*         generateIRMError(Tree sig, Tree x, Tree p);
 
     ValueInst*         generateBpf(Tree sig);
     ValueInst*         generateBpfTable(Tree sig, Tree x, const struct BpfTable& tb);

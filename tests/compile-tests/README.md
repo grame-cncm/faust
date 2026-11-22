@@ -326,6 +326,23 @@ LES-TABLES-DU-PROGRAMME in faust-migration.
 python3 tests/compile-tests/tables-read-by-generators.py --faust build/bin/faust
 ```
 
+### Smoothers of a control written by their error
+
+`smoother-error-form.py` compiles `si.smoo` of a slider, alone and feeding a
+comparison (a node that reaches a decision), and `si.smooth(ba.tau2pole(0.1))`
+of the same slider, in cpp (scalar and `-vec`) and ocpp (scalar ; its `-vec` goes
+through `-ls`, which keeps the weighted sum), single and double. The
+slider goes from 0 to 4000, 4001 and 1000, each value held 4 s at 48 kHz. In
+single precision, compute() must add the jump of the target to the error
+before its loop, and the output must equal the target exactly over the last
+second of each value, never below 0 ; in double precision, the code is the
+weighted sum and the output within 1e-8 of the target. The weighted sum in
+single precision stops 0.06 short of 4000 (`irmErrorForm.hh`).
+
+```sh
+python3 tests/compile-tests/smoother-error-form.py --faust build/bin/faust
+```
+
 ### Labels named after a math primitive
 
 `primitive-labels.py` is the regression test of issue #323: a string named

@@ -51,6 +51,7 @@
 #include "signalVisitor.hh"
 #include "sigprint.hh"
 #include "compile.hh"
+#include "irmErrorForm.hh"
 #include "irm_weight.hh"
 #include "bpf_table.hh"
 #include "sigtyperules.hh"
@@ -2893,6 +2894,10 @@ ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& iir)
  *   normal form wrote it 1 - w (irmInputWeight) with a target and a pole slower than the
  *   sample, unless the node reaches a decision. One product and one sum per sample for a
  *   slow target ; for p in [1/2, 1], 1 - p is exact and the static gain is 1.
+ * - In single precision, the same smoothers written by their error e = y - x (C, C++) :
+ *   the jump of x added to the error once per block, e = p * e' and y = x + e per sample,
+ *   one product and one sum as well ; the output reaches x, where the weighted sum stops
+ *   up to ulp(x) / (2 (1 - p)) short of it (irmErrorForm.hh).
  * - The interpolation from the state, y' + w * (x - y'), w exact (the state of a TPT
  *   filter, s + 2g (x - s)) : for a pole written 1 - w at the sample rate, or when the
  *   node reaches a decision (decisionCone.hh, with the discontinuities) : its fixed point is
@@ -2908,6 +2913,9 @@ ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& iir)
  */
 ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p, IrmForm form)
 {
+    if (form == IrmForm::kError) {
+        return generateIRMError(sig, x, p);
+    }
     int mxd = fOccMarkup->retrieve(sig)->getMaxDelay();
     faustassert(mxd >= 1);
     BasicTyped* ctype;
@@ -2959,6 +2967,79 @@ ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p, IrmForm f
         }
         ValueInst* d = IB::genBinopInst(kSub, vx, prev);
         code         = IB::genBinopInst(kAdd, lineRead(vname, mxd, 1), IB::genBinopInst(kMul, vw, d));
+    }
+    return writeIIRLine(sig, code, ctype, vname, mxd);
+}
+
+/**
+ * IRM(x; p) written by its error (irmErrorForm.hh). The error e = y - x and the previous x are
+ * fields of their own. Once per block, where x is constant : e = e + (x' - x), x' = x, and an
+ * error that x + e no longer moves, or below the smallest normal float, set to 0. Per sample,
+ * e = p * e in a local copy of the field, loaded before the loop and stored after it (the
+ * stores of the loop to the lines of the program would otherwise reload the field at every
+ * sample), and y = x + e, bounded on a side the certificate does not cover for this form. The
+ * node does not read its own past : it has a line only when a delay reads it.
+ */
+ValueInst* InstructionsCompiler::generateIRMError(Tree sig, Tree x, Tree p)
+{
+    IrmErrorBounds b;
+    irmErrorBounds(sig, x, p, b);
+    BasicTyped*  rtype = IB::genBasicTyped(itfloat());
+    const string ename = subst("f$0", gGlobal->getFreshID("IRMe"));
+    const string xname = subst("f$0", gGlobal->getFreshID("IRMx"));
+    const string lname = ename + "Loop";
+    auto         real  = [](double v) { return IB::genRealNumInst(itfloat(), v); };
+    for (const string& n : {ename, xname}) {
+        pushDeclare(IB::genDecStructVar(n, rtype));
+        pushClearMethod(IB::genStoreStructVar(n, real(0.0)));
+    }
+    ValueInst* vx   = compoundOperand(x);
+    ValueInst* jump = IB::genBinopInst(kSub, IB::genLoadStructVar(xname), vx);
+    pushComputeBlockMethod(IB::genStoreStructVar(ename, IB::genBinopInst(kAdd, IB::genLoadStructVar(ename), jump)));
+    pushComputeBlockMethod(IB::genStoreStructVar(xname, vx));
+    const double tiny    = std::numeric_limits<float>::min();
+    ValueInst*   settled = IB::genBinopInst(kEQ, IB::genBinopInst(kAdd, vx, IB::genLoadStructVar(ename)), vx);
+    ValueInst*   above   = IB::genBinopInst(kGT, IB::genLoadStructVar(ename), real(-tiny));
+    ValueInst*   below   = IB::genBinopInst(kLT, IB::genLoadStructVar(ename), real(tiny));
+    ValueInst*   flush   = IB::genBinopInst(kOR, settled, IB::genBinopInst(kAND, above, below));
+    pushComputeBlockMethod(
+        IB::genStoreStructVar(ename, IB::genSelect2Inst(flush, real(0.0), IB::genLoadStructVar(ename))));
+    ValueInst* vp  = compoundOperand(p);
+    ValueInst* ccs = getConditionCode(sig);
+    if (gGlobal->gVectorSwitch) {
+        // around each loop of the vector code
+        pushPreComputeDSPMethod(IB::genDecStackVar(lname, rtype, IB::genLoadStructVar(ename)));
+        pushPostComputeDSPMethod(IB::genStoreStructVar(ename, IB::genLoadStackVar(lname)));
+    } else {
+        // before and after the sample loop (the pre and post code of a scalar loop are in its body)
+        pushComputeBlockMethod(IB::genDecStackVar(lname, rtype, IB::genLoadStructVar(ename)));
+        fContainer->pushPostComputeBlockMethod(IB::genStoreStructVar(ename, IB::genLoadStackVar(lname)));
+    }
+    pushComputeDSPMethod(
+        IB::genControlInst(ccs, IB::genStoreStackVar(lname, IB::genBinopInst(kMul, vp, IB::genLoadStackVar(lname)))));
+    ValueInst* code = IB::genBinopInst(kAdd, vx, IB::genLoadStackVar(lname));
+    if (b.clampLo || b.clampHi) {
+        const string t = subst("f$0", gGlobal->getFreshID("Temp"));
+        pushComputeDSPMethod(IB::genDecStackVar(t, rtype, code));
+        ValueInst* v = IB::genLoadStackVar(t);
+        if (b.clampHi) {
+            v = IB::genSelect2Inst(IB::genBinopInst(kGT, IB::genLoadStackVar(t), real(b.hi)), real(b.hi), v);
+        }
+        if (b.clampLo) {
+            v = IB::genSelect2Inst(IB::genBinopInst(kLT, IB::genLoadStackVar(t), real(b.lo)), real(b.lo), v);
+        }
+        code = v;
+    }
+    const int mxd = fOccMarkup->retrieve(sig)->getMaxDelay();
+    if (mxd == 0) {
+        return generateCacheCode(sig, code);
+    }
+    BasicTyped* ctype;
+    string      vname;
+    if (getVectorNameProperty(sig, vname)) {
+        ctype = genFloatType(getCertifiedSigType(sig));
+    } else {
+        getTypedNames(getCertifiedSigType(sig), "IRM", ctype, vname);
     }
     return writeIIRLine(sig, code, ctype, vname, mxd);
 }

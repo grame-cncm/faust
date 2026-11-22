@@ -47,6 +47,7 @@
 #include "sumLanes.hh"
 #include "decisionCone.hh"
 #include "shareSums.hh"
+#include "irmErrorForm.hh"
 #include "irm_weight.hh"
 #include "bpf_table.hh"
 #include "dlcodegen.hh"
@@ -3024,9 +3025,11 @@ class LoopSplitEmitter {
                 Operand dif = bodyOp("($0 - $1)", {sx, prev}, false);
                 Operand m   = bodyOp("($0 * $1)", {sp, dif}, false);
                 o           = bodyOp("($0 + $1)", {prev, m}, false);
-            } else if (irmf == IrmForm::kWeighted) {
+            } else if (irmf == IrmForm::kWeighted || irmf == IrmForm::kError) {
                 // 1 - p from p, as generateIRM, even when the pole is written 1 - w : for p
-                // in [1/2, 1], 1 - p is exact and the static gain exactly 1
+                // in [1/2, 1], 1 - p is exact and the static gain exactly 1. The error form
+                // needs the code of the block (irmErrorForm.hh), which this emission does not
+                // give a node : its weighted sum
                 wslow      = slowLeaf(ip, sp);
                 Operand sw = wslow ? leafOperand(subst("($0 - $1)", realLiteral(1.0), sp.code))
                                    : bodyOp("($0 - $1)", {leafOperand(realLiteral(1.0)), sp}, false);
@@ -7140,13 +7143,17 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
  * IRM(x; p) = y, y = mix(p, x, y'), as InstructionsCompiler::generateIRM : the weighted sum
  * (1 - p) * x + p * y', 1 - p from p rounded, when the source wrote the pole (si.smooth) and
  * for a pole written 1 - w with a slow target and pole, unless the node reaches a decision ;
- * otherwise the interpolation from the state y' + w * (x - y') (a TPT state). The value is
+ * in single precision, a slow smoother written by its error (irmErrorForm.hh) ; otherwise
+ * the interpolation from the state y' + w * (x - y') (a TPT state). The value is
  * stored in the node's line, read back at delay 1. In the forms written out by the
  * computation form (lowerComposites.hh), (1 - p) * x and w are operands of the node : only
  * under -fx are they computed here.
  */
 string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p, IrmForm form)
 {
+    if (form == IrmForm::kError) {
+        return generateIRMError(sig, x, p);
+    }
     Type         ty = getCertifiedSigType(sig);
     Occurrences* o  = fOccMarkup->retrieve(sig);
     faustassert(o);
@@ -7189,6 +7196,52 @@ string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p, IrmForm form)
             }
         }
         code = subst("($0 + $1 * ($2 - $0))", prev, sw, sx);
+    }
+    return generateDelayVec(sig, code, ctype, vname, o->getMaxDelay(), o->getDelayCount());
+}
+
+/**
+ * IRM(x; p) written by its error, as InstructionsCompiler::generateIRMError (irmErrorForm.hh) :
+ * the error and the previous x fields of their own, the jump of x added once per block, the
+ * error in a local copy during the loop, y = x + e bounded on a side the certificate does not
+ * cover for this form ; a line only when a delay reads the node.
+ */
+string ScalarCompiler::generateIRMError(Tree sig, Tree x, Tree p)
+{
+    Type         ty = getCertifiedSigType(sig);
+    Occurrences* o  = fOccMarkup->retrieve(sig);
+    faustassert(o);
+    std::string vname, ctype;
+    getTypedNames(ty, "IRM", ctype, vname);
+    IrmErrorBounds b;
+    irmErrorBounds(sig, x, p, b);
+    const std::string ename = subst("f$0", getFreshID("IRMe"));
+    const std::string xname = subst("f$0", getFreshID("IRMx"));
+    const std::string lname = ename + "Loop";
+    const std::string zero  = realLiteral(0.0);
+    for (const std::string& n : {ename, xname}) {
+        fClass->addDeclCode(subst("$0 \t$1;", ctype, n));
+        fClass->addClearCode(subst("$0 = $1;", n, zero));
+    }
+    const std::string sx   = compoundOperand(x);
+    const std::string tiny = realLiteral(std::numeric_limits<float>::min());
+    fClass->addZone2(subst("$0 = $0 + ($1 - $2);", ename, xname, sx));
+    fClass->addZone2(subst("$0 = $1;", xname, sx));
+    fClass->addZone2(subst("if ((($0 + $1) == $0) || (($1 > -$2) && ($1 < $2))) $1 = $3;", sx, ename, tiny, zero));
+    const std::string sp = compoundOperand(p);
+    // before and after the sample loops
+    fClass->addZone2(subst("$0 \t$1 = $2;", ctype, lname, ename));
+    fClass->addZone3Post(subst("$0 = $1;", ename, lname));
+    fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1 * $0;", lname, sp)));
+    std::string code = subst("($0 + $1)", sx, lname);
+    if (b.clampLo || b.clampHi) {
+        const std::string t = subst("f$0", getFreshID("Temp"));
+        fClass->addExecCode(Statement("", subst("$0 $1 = $2;", ctype, t, code)));
+        const std::string hi = b.clampHi ? subst("(($0 > $1) ? $1 : $0)", t, realLiteral(b.hi)) : t;
+        code = b.clampLo ? subst("(($0 < $1) ? $1 : $2)", t, realLiteral(b.lo), hi) : hi;
+    }
+    if (o->getMaxDelay() == 0) {
+        return generateCacheCode(sig, code);
     }
     return generateDelayVec(sig, code, ctype, vname, o->getMaxDelay(), o->getDelayCount());
 }
