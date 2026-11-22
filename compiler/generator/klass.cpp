@@ -1059,6 +1059,8 @@ void Klass::println(int n, ostream& fout)
         fout << "#define FAUST_ACTIVES " << fNumActives;
         tab(n + 1, fout);
         fout << "#define FAUST_PASSIVES " << fNumPassives;
+        tab(n + 1, fout);
+        fout << "#define FAUST_SOUNDFILES " << fNumSoundfiles;
         printlines(n + 1, fUIMacro, fout);
         tab(n, fout);
         fout << "#endif" << endl;

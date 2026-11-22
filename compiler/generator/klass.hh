@@ -56,8 +56,9 @@ class Klass {
     std::string fSuperKlassName;
     int         fNumInputs;
     int         fNumOutputs;
-    int         fNumActives;   ///< number of active controls in the UI (sliders, buttons, etc.)
-    int         fNumPassives;  ///< number of passive widgets in the UI (bargraphs, etc.)
+    int         fNumActives;     ///< number of active controls in the UI (sliders, buttons, etc.)
+    int         fNumPassives;    ///< number of passive widgets in the UI (bargraphs, etc.)
+    int         fNumSoundfiles;  ///< number of soundfiles in the UI (also counted in fNumActives)
 
     std::set<std::string> fIncludeFileSet;
     std::set<std::string> fLibrarySet;
@@ -109,6 +110,7 @@ class Klass {
           fNumOutputs(numOutputs),
           fNumActives(0),
           fNumPassives(0),
+          fNumSoundfiles(0),
           fTopLoop(new Loop(0, "count")),
           fVec(__vec)
     {
@@ -180,6 +182,7 @@ class Klass {
 
     void incUIActiveCount() { fNumActives++; }
     void incUIPassiveCount() { fNumPassives++; }
+    void incUISoundfileCount() { fNumSoundfiles++; }
 
     void addSharedDecl(const std::string& str) { fSharedDecl.push_back(str); }
     void addFirstPrivateDecl(const std::string& str) { fFirstPrivateDecl.push_back(str); }

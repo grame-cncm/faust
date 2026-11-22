@@ -334,6 +334,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 
     } else if (isSigSoundfile(sig, path)) {
         fClass->incUIActiveCount();
+        fClass->incUISoundfileCount();
         fClass->addUICode(subst(
             "ui_interface->addSoundfile(\"$0\", \"$1\", &$2);", checkNullLabel(varname, label),
             ((url == "") ? prepareURL(label).c_str() : url.c_str()), tree2str(varname)));

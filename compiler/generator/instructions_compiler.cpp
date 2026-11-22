@@ -2945,6 +2945,7 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
 
     } else if (isSigSoundfile(sig, path)) {
         fContainer->incUIActiveCount();
+        fContainer->incUISoundfileCount();
         pushUserInterfaceMethod(IB::genAddSoundfileInst(checkNullLabel(varname, label),
                                                         ((url == "") ? prepareURL(label) : url),
                                                         tree2str(varname)));

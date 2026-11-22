@@ -153,6 +153,9 @@ int main(int argc, char* argv[])
         putchar('\n');
     }
     
+    // Soundfiles are also counted in FAUST_ACTIVES (but not listed by FAUST_LIST_ACTIVES)
+    printf("Number of soundfiles: %d\n", FAUST_SOUNDFILES);
+    
     return 0;
 }
 

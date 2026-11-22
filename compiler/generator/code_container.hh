@@ -71,8 +71,9 @@ class CodeContainer : public virtual Garbageable {
     int fNumInputs;
     int fNumOutputs;
 
-    int fNumActives;   ///< number of active controls in the UI (sliders, buttons, etc.)
-    int fNumPassives;  ///< number of passive widgets in the UI (bargraphs, etc.)
+    int fNumActives;     ///< number of active controls in the UI (sliders, buttons, etc.)
+    int fNumPassives;    ///< number of passive widgets in the UI (bargraphs, etc.)
+    int fNumSoundfiles;  ///< number of soundfiles in the UI (also counted in fNumActives)
 
     int  fSubContainerType;
     bool fGeneratedSR;
@@ -788,6 +789,7 @@ class CodeContainer : public virtual Garbageable {
 
     void incUIActiveCount() { fNumActives++; }
     void incUIPassiveCount() { fNumPassives++; }
+    void incUISoundfileCount() { fNumSoundfiles++; }
 
     virtual CodeContainer* createScalarContainer(const std::string& name,
                                                  int                sub_container_type) = 0;

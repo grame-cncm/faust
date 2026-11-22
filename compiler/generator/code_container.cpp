@@ -69,6 +69,7 @@ CodeContainer::CodeContainer()
       fNumOutputs(-1),
       fNumActives(0),
       fNumPassives(0),
+      fNumSoundfiles(0),
       fSubContainerType(kInt),
       fGeneratedSR(false),
       fExtGlobalDeclarationInstructions(IB::genBlockInst()),
@@ -881,6 +882,8 @@ void CodeContainer::printMacros(ostream& fout, int n)
             fout << "#define FAUST_ACTIVES " << fNumActives;
             tab(n + 1, fout);
             fout << "#define FAUST_PASSIVES " << fNumPassives;
+            tab(n + 1, fout);
+            fout << "#define FAUST_SOUNDFILES " << fNumSoundfiles;
             tab(n, fout);
             printlines(n + 1, fUIMacro, fout);
             tab(n, fout);

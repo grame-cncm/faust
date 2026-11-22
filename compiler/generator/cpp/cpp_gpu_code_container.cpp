@@ -1906,6 +1906,8 @@ void CPPCUDACodeContainer::produceClass()
         *fOut << "#define FAUST_ACTIVES " << fNumActives;
         tab(n + 1, *fOut);
         *fOut << "#define FAUST_PASSIVES " << fNumPassives;
+        tab(n + 1, *fOut);
+        *fOut << "#define FAUST_SOUNDFILES " << fNumSoundfiles;
         printlines(n + 1, fUIMacro, *fOut);
         tab(n, *fOut);
         *fOut << "#endif";

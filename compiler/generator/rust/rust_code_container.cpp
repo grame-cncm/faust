@@ -424,6 +424,8 @@ void RustCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "pub const FAUST_PASSIVES: usize = " << fNumPassives << ";";
     tab(n, *fOut);
+    *fOut << "pub const FAUST_SOUNDFILES: usize = " << fNumSoundfiles << ";";
+    tab(n, *fOut);
 
     tab(n, *fOut);
     *fOut << "impl " << fKlassName << " {";
