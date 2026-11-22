@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <type_traits>
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -52,10 +53,8 @@
 #endif
 
 /*
- The soundfile structure to be used by the DSP code. Soundfile has a MAX_SOUNDFILE_PARTS parts 
- (even a single soundfile or an empty soundfile). 
- The fLength, fOffset and fSR fields are filled accordingly by repeating the actual parts if needed.
- The fBuffers contains fChannels non-interleaved arrays of samples.
+ The soundfile structure to be used by the DSP code.
+ The fBuffers contains fChannels non-interleaved arrays of samples, the parts are concatenated in them.
  
  It has to be 'packed' to that the LLVM backend can correctly access it.
 
@@ -63,6 +62,17 @@
     - p is the current part number [0..MAX_SOUNDFILE_PARTS-1] (must be proved by the type system)
     - i is the current position in the part. It will be constrained between [0..length]
     - idx(p,i) = fOffset[p] + max(0, min(i, fLength[p]));
+
+ Parts: a soundfile always has MAX_SOUNDFILE_PARTS parts, whatever the number of files actually
+ loaded (fParts: one, several or none). The part number is proved to be in [0..MAX_SOUNDFILE_PARTS-1]
+ by the type system, but it is NOT checked against fParts at runtime: the DSP code directly reads
+ fLength[p], fSR[p] and fOffset[p]. Any code filling a Soundfile has to respect this contract:
+    - fLength, fSR and fOffset have MAX_SOUNDFILE_PARTS entries
+    - every part is valid: the parts [fParts..MAX_SOUNDFILE_PARTS-1], which have no file, refer to a
+      silent region of fBuffers (BUFFER_SIZE frames at SAMPLE_RATE)
+ Otherwise a part number >= fParts (a part selector with a larger range than the number of files,
+ a missing file...) reads uninitialized memory. SoundfileReader::createSoundfile and
+ createSoundfileFromParts (for audio data decoded by the client) respect this contract.
 
  Channels: the DSP code reads channel 'c' as 'c % fChannels', so a soundfile can be read with
  more channels than it actually has (for instance a stereo file read with 4 outputs gives
@@ -171,6 +181,74 @@ struct Soundfile {
     typedef std::vector<std::string> Directories;
     
 } POST_PACKED_STRUCTURE;
+
+/*
+ A part of a soundfile created with createSoundfileFromParts: the non-interleaved channels of
+ audio data decoded by the client (from files, memory, the audio files of a host...).
+ */
+template <typename REAL>
+struct SoundfilePartReal {
+    std::vector<const REAL*> fChannels;  // the channels of the part, each one has fLength frames
+    int fLength;                         // the length of the part in frames
+    int fSampleRate;                     // the sample rate of the part
+};
+
+using SoundfilePart = SoundfilePartReal<float>;
+
+/*
+ Creates a soundfile from audio data decoded by the client, respecting the contract of the Soundfile
+ structure: the data of 'parts' is copied (the caller keeps its buffers), the soundfile has the max
+ number of channels of all parts (a part with less channels has silent extra channels, like with
+ SoundfileReader), and the parts [parts.size()..MAX_SOUNDFILE_PARTS-1] are silent. A part without
+ channels or frames is silent too. The soundfile is to be deleted with 'delete'.
+ */
+template <typename REAL>
+Soundfile* createSoundfileFromParts(const std::vector<SoundfilePartReal<REAL>>& parts)
+{
+    static_assert(std::is_same<REAL, float>::value || std::is_same<REAL, double>::value,
+                  "a soundfile contains float or double samples");
+    
+    int num_parts = std::min<int>(int(parts.size()), MAX_SOUNDFILE_PARTS);
+    int cur_chan = 1;  // At least one channel
+    int total_length = 0;
+    
+    for (int part = 0; part < num_parts; part++) {
+        if (parts[part].fLength > 0 && !parts[part].fChannels.empty()) {
+            cur_chan = std::max<int>(cur_chan, int(parts[part].fChannels.size()));
+            total_length += parts[part].fLength;
+        }
+    }
+    
+    // A single silent region for all the parts without data (the buffers are allocated zeroed)
+    int silent_offset = total_length;
+    total_length += BUFFER_SIZE;
+    
+    Soundfile* soundfile = new Soundfile(cur_chan, total_length, num_parts, std::is_same<REAL, double>::value);
+    REAL** buffers = static_cast<REAL**>(soundfile->fBuffers);
+    int offset = 0;
+    
+    for (int part = 0; part < MAX_SOUNDFILE_PARTS; part++) {
+        bool has_data = (part < num_parts) && (parts[part].fLength > 0) && !parts[part].fChannels.empty();
+        if (has_data) {
+            const SoundfilePartReal<REAL>& src = parts[part];
+            for (int chan = 0; chan < int(src.fChannels.size()); chan++) {
+                if (src.fChannels[chan]) {
+                    memcpy(&buffers[chan][offset], src.fChannels[chan], sizeof(REAL) * src.fLength);
+                }
+            }
+            soundfile->fLength[part] = src.fLength;
+            soundfile->fSR[part] = src.fSampleRate;
+            soundfile->fOffset[part] = offset;
+            offset += src.fLength;
+        } else {
+            soundfile->fLength[part] = BUFFER_SIZE;
+            soundfile->fSR[part] = SAMPLE_RATE;
+            soundfile->fOffset[part] = silent_offset;
+        }
+    }
+    
+    return soundfile;
+}
 
 /*
  The generic soundfile reader.
