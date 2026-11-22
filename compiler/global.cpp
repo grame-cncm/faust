@@ -28,6 +28,13 @@
 #include <xmmintrin.h>
 #endif
 
+// callFunWithStackSize uses pthreads: include them here rather than rely on a
+// standard library header that happens to pull them in (libc++ outside Apple's
+// SDK does not).
+#if !defined(EMCC) && !defined(_WIN32)
+#include <pthread.h>
+#endif
+
 #include "propagate.hh"
 #include "absprim.hh"
 #include "acosprim.hh"

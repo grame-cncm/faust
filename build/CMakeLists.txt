@@ -202,15 +202,23 @@ endif()
 # compiler dependent settings
 
 if (NONDETERMINISM_LINT)
-    if(APPLE)
-        set (PLUGIN_EXT "dylib")
-    else()
-        set (PLUGIN_EXT "so")
+    # A clang plugin is loaded by the clang that compiles faust, so it must be
+    # built against that clang's own LLVM and Clang packages: look for them
+    # under the compiler's prefix (e.g. /opt/local/libexec/llvm-23 for MacPorts,
+    # /usr/lib/llvm-19 on Debian), which find_package does not search by default.
+    if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        message (FATAL_ERROR "NONDETERMINISM_LINT needs an LLVM clang++ (got ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER})")
     endif()
-
-    set (EXTRA_CXX_FLAGS "-fplugin=node-matcher-plugin/NodeMatcherPlugin.${PLUGIN_EXT} -fplugin-arg-NodeMatcherPlugin-${CMAKE_CURRENT_SOURCE_DIR}/lint.query")
-    # Add NodeMatcherPlugin as a submodule
+    get_filename_component (LINT_CLANG_BINDIR ${CMAKE_CXX_COMPILER} DIRECTORY)
+    get_filename_component (LINT_CLANG_PREFIX ${LINT_CLANG_BINDIR} DIRECTORY)
+    list (APPEND CMAKE_PREFIX_PATH ${LINT_CLANG_PREFIX})
     add_subdirectory(../node-matcher-plugin node-matcher-plugin)
+    # Only the targets built from the compiler sources are linted (they depend
+    # on NodeMatcherPlugin below); the path is absolute because each target
+    # compiles from its own build directory.
+    set (NONDETERMINISM_LINT_FLAGS
+        "-fplugin=$<TARGET_FILE:NodeMatcherPlugin>"
+        "-fplugin-arg-NodeMatcherPlugin-${CMAKE_CURRENT_SOURCE_DIR}/lint.query")
 endif()
 
 if (MSVC)
@@ -230,8 +238,8 @@ set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DSIGS_EXPORT_HEADER=<faust/export.h
 if (MSVC)
 else()
     #set(CMAKE_CXX_FLAGS_DEBUG "-g -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
-    set(CMAKE_CXX_FLAGS_DEBUG "${EXTRA_CXX_FLAGS} -g -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
-    set(CMAKE_CXX_FLAGS_RELEASE "${EXTRA_CXX_FLAGS} -O3 -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual")
+    set(CMAKE_CXX_FLAGS_DEBUG "-g -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual")
 endif()
 
 ####################################
@@ -252,6 +260,7 @@ if (INCLUDE_EXECUTABLE)
     add_executable(faust ${SRC} ${HH})
     if (NONDETERMINISM_LINT)
         add_dependencies(faust NodeMatcherPlugin)
+        target_compile_options(faust PRIVATE ${NONDETERMINISM_LINT_FLAGS})
     endif()
     add_dependencies(faust gitversion)
     target_include_directories (faust PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
@@ -272,6 +281,7 @@ if (INCLUDE_STATIC)
     add_library(staticlib STATIC ${SRC} ${HH})
     if (NONDETERMINISM_LINT)
         add_dependencies(staticlib NodeMatcherPlugin)
+        target_compile_options(staticlib PRIVATE ${NONDETERMINISM_LINT_FLAGS})
     endif()
     target_compile_definitions (staticlib PRIVATE ${FAUST_DEFINITIONS})
     if (INCLUDE_LLVM)
@@ -317,6 +327,7 @@ if (INCLUDE_DYNAMIC)
     add_library(dynamiclib SHARED ${SRC} ${HH})
     if (NONDETERMINISM_LINT)
         add_dependencies(dynamiclib NodeMatcherPlugin)
+        target_compile_options(dynamiclib PRIVATE ${NONDETERMINISM_LINT_FLAGS})
     endif()
     target_compile_definitions (dynamiclib PRIVATE ${FAUST_DEFINITIONS})
     if (INCLUDE_LLVM)
