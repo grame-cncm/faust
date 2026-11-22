@@ -387,11 +387,10 @@ class CInstVisitor : public TextInstVisitor {
         *fOut << ")";
     }
 
-    // TODO : does not work, put this code in a function
+    // Helper defined by the container (memcpy based), valid for any expression
     virtual void visit(BitcastInst* inst)
     {
-        std::string type = fTypeManager->generateType(inst->fType);
-        *fOut << "*((" << type << "*(&";
+        *fOut << ((gGlobal->gFloatSize == 2) ? "faust_bitcast_d(" : "faust_bitcast_f(");
         inst->fInst->accept(this);
         *fOut << ")";
     }

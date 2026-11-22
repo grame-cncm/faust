@@ -103,6 +103,16 @@ in the sample loop, with the cpp, c and ocpp backends:
 python3 tests/compile-tests/hoist-negation.py --faust build/bin/faust
 ```
 
+### -ftz 2 in the C and C++ backends
+
+`ftz2-bitcast.py` checks that `-ftz 2` (exponent test through a bitcast of the
+recursive value) generates code that compiles with the cpp and c backends, in
+single and double precision:
+
+```sh
+python3 tests/compile-tests/ftz2-bitcast.py --faust build/bin/faust
+```
+
 ### Java backend execution
 
 `java-math.py` generates Java, compiles it with `javac`, and executes it with

@@ -501,8 +501,8 @@ class CPPInstVisitor : public TextInstVisitor {
 
     virtual void visit(BitcastInst* inst)
     {
-        std::string type = fTypeManager->generateType(inst->fType);
-        *fOut << "*reinterpret_cast<" << type << "*>(&";
+        // Helper defined by the container (memcpy based), valid for any expression
+        *fOut << ((gGlobal->gFloatSize == 2) ? "faust_bitcast_d(" : "faust_bitcast_f(");
         inst->fInst->accept(this);
         *fOut << ")";
     }

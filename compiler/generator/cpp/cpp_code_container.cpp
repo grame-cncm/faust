@@ -326,6 +326,18 @@ void CPPCodeContainer::produceClass()
              "int)b); }"
           << endl;
     *fOut << "#endif" << endl;
+    // -ftz 2 tests the exponent bits of a real value through a bitcast to integer;
+    // memcpy keeps it strict-aliasing safe and valid for rvalue operands.
+    if (gGlobal->gFTZMode == 2) {
+        const char* suffix = (gGlobal->gFloatSize == 2) ? "d" : "f";
+        const char* itype  = (gGlobal->gFloatSize == 2) ? "int64_t" : "int";
+        *fOut << "#include <string.h>" << endl;
+        *fOut << "#ifndef FAUST_BITCAST_" << suffix << endl;
+        *fOut << "#define FAUST_BITCAST_" << suffix << endl;
+        *fOut << "inline " << itype << " faust_bitcast_" << suffix << "(" << ifloat()
+              << " x) { " << itype << " r; memcpy(&r, &x, sizeof r); return r; }" << endl;
+        *fOut << "#endif" << endl;
+    }
     tab(n, *fOut);
 
     if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
