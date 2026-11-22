@@ -604,7 +604,10 @@ struct UIGlueTemplateReal : public UIInterface
     }
     // -- soundfiles
     
-    void addSoundfile(const char* label, const char* url, Soundfile** sf_zone) {}
+    void addSoundfile(const char* label, const char* url, Soundfile** sf_zone)
+    {
+        fGlue->addSoundfile(fGlue->uiInterface, label, url, sf_zone);
+    }
     
     // -- passive widgets
     
