@@ -28,6 +28,13 @@
 
 typedef std::map<std::string, Soundfile*> soundTable;
 
+// The silent soundfile used when the UI does not set a soundfile (like dynamic_defaultsound in the LLVM backend)
+inline Soundfile* getInterpreterDefaultSound()
+{
+    static Soundfile* defaultsound = new Soundfile();
+    return defaultsound;
+}
+
 /*
  * The base class for Interpreter and mixed Interpreter/Compiler.
  */
@@ -42,6 +49,18 @@ class FBCExecutor {
     virtual void executeBuildUserInterface(FIRUserInterfaceBlockInstruction<REAL>* block,
                                            UIInterface*                            glue) {};
     virtual void executeBlock(FBCBlockInstruction<REAL>* block) {};
+
+    // Sets 'defaultsound' in the soundfiles that the UI did not set, like JSONUIDecoder::resetUserInterface
+    // does for the LLVM backend. Otherwise the code reads an empty soundfile (the client may keep a zone
+    // empty until it has loaded a file, and the 'addSoundfile' of the UI may even do nothing).
+    void setDefaultSoundfiles(Soundfile* defaultsound)
+    {
+        for (auto& it : fSoundTable) {
+            if (it.second == nullptr) {
+                it.second = defaultsound;
+            }
+        }
+    }
 
     // Possibly compile (when using LLVM or MIR)
     virtual void compileBlock(FBCBlockInstruction<REAL>* block) {}

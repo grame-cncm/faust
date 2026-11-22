@@ -614,6 +614,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         try {
             // Execute reset UI instructions
             fFBCExecutor->executeBlock(fFactory->fResetUIBlock);
+            // Before compute, so that the Interp/[LLVM|MIR] compilers keep the default sound too
+            fFBCExecutor->setDefaultSoundfiles(getInterpreterDefaultSound());
         } catch (faustexception& e) {
             std::cerr << e.Message();
             exit(1);
