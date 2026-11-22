@@ -327,6 +327,18 @@ if (INCLUDE_DYNAMIC)
     target_include_directories (dynamiclib PRIVATE ${FAUST_INC} ${LLVM_INCLUDE_DIRS})
     # set (FAUST_LIBS /usr/local/lib/libmir.a ${FAUST_LIBS})
     target_link_libraries (dynamiclib PRIVATE ${FAUST_LIBS} ${WASMTIME_LIB})
+    # On ELF platforms the symbols of the static archives linked into
+    # libfaust.so (a static LLVM, libwasmtime.a, static system libraries) would
+    # otherwise be exported and interpose with another copy of the same
+    # library loaded in the host process, e.g. Mesa's llvmpipe linking the
+    # system libLLVM.so: the globals and static destructors of the two LLVMs
+    # get mixed and the process aborts at exit (issue #1410). The public API
+    # comes from libfaust's own objects (LIBFAUST_API), never from an archive,
+    # so hiding every archive symbol is safe. Mach-O (two-level namespace) and
+    # PE are not affected; wasm-ld has no such option.
+    if (UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
+        set_property(TARGET dynamiclib APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--exclude-libs,ALL")
+    endif()
     if (WIN32 OR MSYS)
         enable_language(RC)
         set_target_properties(dynamiclib PROPERTIES

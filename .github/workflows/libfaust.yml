@@ -107,6 +107,22 @@ jobs:
           echo "::error::$lib depends on a shared LLVM"
           exit 1
         fi
+        # The static LLVM stays private to libfaust.so (-Wl,--exclude-libs,ALL):
+        # its exported symbols would interpose with another LLVM loaded in the
+        # host (Mesa's llvmpipe links libLLVM.so), and the globals and static
+        # destructors of the two copies get mixed (issue #1410). Without the
+        # flag, tens of thousands of LLVM symbols are exported, data included;
+        # with it, only a few dozen functions that libfaust's own objects
+        # instantiate from LLVM headers.
+        nm -D --defined-only "$lib" > exported-symbols.txt
+        llvm_all=$(grep -c llvm exported-symbols.txt || true)
+        llvm_data=$(awk '$2 ~ /^[BDRu]$/ && $3 ~ /llvm/' exported-symbols.txt | wc -l)
+        echo "exported LLVM symbols: $llvm_all, data: $llvm_data"
+        if [ "$llvm_data" -ne 0 ] || [ "$llvm_all" -gt 500 ]; then
+          echo "::error::$lib exports the symbols of its static LLVM"
+          awk '$3 ~ /llvm/' exported-symbols.txt | head -20
+          exit 1
+        fi
         c++ -std=c++17 -O1 -Iarchitecture .github/llvm/libfaust-smoke.cpp -o libfaust-smoke \
           -Lbuild/lib -lfaust -Wl,-rpath,"$PWD/build/lib"
         ./libfaust-smoke run
