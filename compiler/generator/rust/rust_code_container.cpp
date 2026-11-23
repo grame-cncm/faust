@@ -378,9 +378,14 @@ void RustCodeContainer::produceClass()
         // the dsp struct
         mergeSubContainers();
     } else {
-        // Initialize fStaticVarNames by collecting static vars from global declarations.
+        // Initialize fStaticVarNames by collecting static vars from global declarations, those
+        // of the program and those of the generator containers, where a table is declared with
+        // the class of its generator (generateSubContainers prints them)
         CollectStaticVarsVisitor collectStaticVarsVisitor{};
         generateGlobalDeclarations(&collectStaticVarsVisitor);
+        for (const auto& it : fSubContainers) {
+            it->generateGlobalDeclarations(&collectStaticVarsVisitor);
+        }
         fStaticVarNames = collectStaticVarsVisitor.getStaticVarNames();
         fCodeProducer.setVarsRequiringGuards(toUnorderedSet(fStaticVarNames));
     }
