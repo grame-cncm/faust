@@ -201,14 +201,27 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         return index_reg;
     }
 
+    // An int value used as a memory index. MIR's 32-bit operations (ADDS, SUBS, ANDS...) leave the upper half of
+    // their 64-bit register undefined, while a memory operand reads the whole register: the index is sign-extended
+    // from its low 32 bits first.
+    MIR_reg_t popIndex()
+    {
+        MIR_reg_t index = createVar(getInt64Ty(), "index");
+        MIR_append_insn(fContext, fCompute,
+                        MIR_new_insn(fContext, MIR_EXT32, MIR_new_reg_op(fContext, index),
+                                     MIR_new_reg_op(fContext, popValue())));
+        return index;
+    }
+
     MIR_reg_t createAddOffsetReg(int index)
     {
-        // Add offset
+        // Add offset, in 64 bits to a sign-extended index
         MIR_reg_t index_reg = createIndexReg(index);
+        MIR_reg_t value_reg = popIndex();
         MIR_append_insn(fContext, fCompute,
-                        MIR_new_insn(fContext, MIR_ADDS, MIR_new_reg_op(fContext, index_reg),
+                        MIR_new_insn(fContext, MIR_ADD, MIR_new_reg_op(fContext, index_reg),
                                      MIR_new_reg_op(fContext, index_reg),
-                                     MIR_new_reg_op(fContext, popValue())));
+                                     MIR_new_reg_op(fContext, value_reg)));
         return index_reg;
     }
 
@@ -300,7 +313,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
             fContext, fCompute,
             MIR_new_insn(
                 fContext, typedReal(MIR_FMOV, MIR_DMOV), MIR_new_reg_op(fContext, load_res),
-                MIR_new_mem_op(fContext, getRealTy(), 0, load_res_ptr, popValue(), sizeof(REAL))));
+                MIR_new_mem_op(fContext, getRealTy(), 0, load_res_ptr, popIndex(), sizeof(REAL))));
         pushValue(load_res);
     }
 
@@ -316,12 +329,15 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                                      MIR_new_mem_op(fContext, getInt64Ty(), 0, fMIROutputs,
                                                     index_reg, sizeof(int64_t))));
 
-        // Store the value
+        // Store the value: the sample index is on top of the stack, the value below it (popped in this order, in
+        // separate statements: the order of evaluation of function arguments is unspecified)
+        MIR_reg_t sample_reg = popIndex();
+        MIR_reg_t value_reg  = popValue();
         MIR_append_insn(fContext, fCompute,
                         MIR_new_insn(fContext, typedReal(MIR_FMOV, MIR_DMOV),
-                                     MIR_new_mem_op(fContext, getRealTy(), 0, store_res_ptr,
-                                                    popValue(), sizeof(REAL)),
-                                     MIR_new_reg_op(fContext, popValue())));
+                                     MIR_new_mem_op(fContext, getRealTy(), 0, store_res_ptr, sample_reg,
+                                                    sizeof(REAL)),
+                                     MIR_new_reg_op(fContext, value_reg)));
     }
 
     MIR_reg_t genLoadSoundFile(const std::string& sf_name)
