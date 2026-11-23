@@ -127,3 +127,32 @@ ValueInst* xtendedCodegen::generateFun(CodeContainer* container, const string& f
     }
     return container->pushFunction(fun_name, rtype, atypes, args);
 }
+
+ValueInst* xtendedCodegen::generateMinMaxNumber(CodeContainer* container, const string& fun_name,
+                                                const Values& args, ::Type result,
+                                                ConstTypes types)
+{
+    ValueInst* r = generateFun(container, fun_name, args, result, types);
+    if (result->nature() != kReal) {
+        return r;
+    }
+    // an operand may be NaN when it is real and its interval is empty or may be invalid :
+    // the rule of the intervals under minMaxNumber() (validity.hh, minMaxInvalid)
+    auto mayBeNaN = [&](size_t i) {
+        const interval itv = types[i]->getInterval();
+        return types[i]->nature() == kReal && (itv.isEmpty() || itv.mayBeInvalid());
+    };
+    BasicCloneVisitor cloner;
+    ValueInst*        a = *args.begin();
+    ValueInst*        b = *std::next(args.begin(), 1);
+    // b NaN : a ; then a NaN : b (NaN when both are)
+    if (mayBeNaN(1)) {
+        r = IB::genSelect2Inst(IB::genEqual(b->clone(&cloner), b->clone(&cloner)), r,
+                               promote2real(types[0]->nature(), a->clone(&cloner)));
+    }
+    if (mayBeNaN(0)) {
+        r = IB::genSelect2Inst(IB::genEqual(a->clone(&cloner), a->clone(&cloner)), r,
+                               promote2real(types[1]->nature(), b->clone(&cloner)));
+    }
+    return r;
+}

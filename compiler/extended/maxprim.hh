@@ -98,7 +98,7 @@ class MaxPrim : public xtendedCodegen {
         */
 
         // C and C++ : the form of maximumNumber (minimumNumber) the interval proves enough
-        // (LES-NAN-DU-MAX-ET-DU-MIN) ; the other backends keep their max, until theirs
+        // (LES-NAN-DU-MAX-ET-DU-MIN) ; the other backends, their max guarded against a NaN operand
         const bool ieee = (result->nature() == kReal) &&
                           ((gGlobal->gOutputLang == "cpp") || (gGlobal->gOutputLang == "c")) &&
                           (gGlobal->gFloatSize >= 1) && (gGlobal->gFloatSize <= 3);
@@ -115,7 +115,7 @@ class MaxPrim : public xtendedCodegen {
             return container->pushFunction(minMaxHelper(true, form), itfloat(), atypes, cargs);
         }
         std::string fun_name = (result->nature() == kInt) ? "max_i" : subst("max_$0", isuffix());
-        return generateFun(container, fun_name, args, result, types);
+        return generateMinMaxNumber(container, fun_name, args, result, types);
     }
 
     // max_i => generated name renaming is done here

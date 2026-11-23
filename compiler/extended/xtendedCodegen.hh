@@ -189,6 +189,15 @@ class xtendedCodegen : public xtended {
 
     ValueInst* generateFun(CodeContainer* container, const std::string& fun_name,
                            const Values& args, ::Type rtype, ConstTypes types);
+
+    // The real max and min of the FIR backends other than C and C++ : their own max and min
+    // (max_f, min_f...), which may return a NaN operand (wasm's f32.max, Julia's max, Java's
+    // Math.max...), guarded by a NaN test of each real operand the interval does not prove
+    // not NaN, which then gives the other operand. A NaN operand thus gives the other one, as
+    // maximumNumber and minimumNumber, the rule of the intervals under minMaxNumber(). The
+    // sign of a tie of zeros stays the one of the backend's max and min
+    ValueInst* generateMinMaxNumber(CodeContainer* container, const std::string& fun_name,
+                                    const Values& args, ::Type rtype, ConstTypes types);
 };
 
 // Casting operations

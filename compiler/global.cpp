@@ -2251,9 +2251,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
     // the intervals describe the program : float-carried bounds at its precision
     itv::programPrecision() = gFloatSize;
-    // and its min and max : maximumNumber and minimumNumber in the C and C++ generators, where
-    // a NaN operand gives the other one ; the other backends may return a NaN operand
-    itv::minMaxNumber() = (gOutputLang == "c" || gOutputLang == "cpp" || gOutputLang == "ocpp");
+    // and its min and max : a NaN operand gives the other one, in the C and C++ generators
+    // (maximumNumber and minimumNumber) and in the other FIR backends (their max and min guarded
+    // by a NaN test, generateMinMaxNumber) ; vhdl and sdf3 do not generate them this way
+    itv::minMaxNumber() = (gOutputLang != "vhdl" && gOutputLang != "sdf3");
 
     if (gFloatSize == 4 && gOutputLang != "cpp" && gOutputLang != "ocpp" && gOutputLang != "c" &&
         gOutputLang != "fir") {
