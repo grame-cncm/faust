@@ -36,7 +36,7 @@ int main(int argc, const char* argv[])
    
     // print general informations
     try {
-        printHeader(new ysfx_dsp<FAUSTFLOAT>(argv[1]), nbsamples);
+        printHeader(new ysfx_dsp<FAUSTFLOAT>(argv[1]), nbsamples/2);  // two runs of nbsamples/4 (-part 30000)
     
         runDSP(new ysfx_dsp<FAUSTFLOAT>(argv[1]), argv[0], linenum, nbsamples/4);
         runDSP(new ysfx_dsp<FAUSTFLOAT>(argv[1]), argv[0], linenum, nbsamples/4, false, true);

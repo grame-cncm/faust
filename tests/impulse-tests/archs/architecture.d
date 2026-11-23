@@ -436,7 +436,8 @@ void main(string[] args)
     int nbsamples = 60_000;
     
     // print general informations
-    printHeader(fileText, new mydsp(), nbsamples);
+    // the header announces the frames written : two runs of nbsamples/4 (-part 30000)
+    printHeader(fileText, new mydsp(), nbsamples/2);
     
     // linenum is incremented in runDSP and runPolyDSP
     runDSP(fileText, new mydsp(), args[0], linenum, nbsamples/4);

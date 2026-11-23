@@ -53,9 +53,9 @@ ir/$(outdir)/control.ir : dsp/control.dsp | ir/$(outdir)
 	@echo "Can only be tested in scalar mode"
 	$(FAUST) -lang dlang -double -i -A ../../architecture -a archs/architecture.d dsp/control.dsp -o dsp/control.d
 	cd dsp/ && dub run --single control.d -- ../$@
-	$(COMPARE) $@ reference/$(notdir $@) $(precision) && (rm -f dsp/control.d; true)
+	$(COMPARE) $@ reference/$(notdir $@) $(precision) -part 30000 && (rm -f dsp/control.d; true)
 
 ir/$(outdir)/%.ir: reference/%.ir | ir/$(outdir)
 	$(FAUST) -lang dlang $(FAUSTOPTIONS) -i -A ../../architecture -a archs/architecture.d dsp/$*.dsp -o dsp/$*.d
 	cd dsp/ && dub run --single $*.d -- ../$@
-	$(COMPARE) $@ reference/$(notdir $@) $(precision) && (rm -f dsp/$*.d; true)
+	$(COMPARE) $@ reference/$(notdir $@) $(precision) -part 30000 && (rm -f dsp/$*.d; true)

@@ -35,7 +35,8 @@ int main(int argc, const char* argv[])
     int nbsamples = 60000;
    
     // print general informations
-    printHeader(new cmajor_cpp_dsp(), nbsamples);
+    // the header announces the frames written : two runs of nbsamples/4 (-part 30000)
+    printHeader(new cmajor_cpp_dsp(), nbsamples/2);
     
     runDSP(new cmajor_cpp_dsp(), argv[0], linenum, nbsamples/4);
     runDSP(new cmajor_cpp_dsp(), argv[0], linenum, nbsamples/4, false, true);

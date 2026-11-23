@@ -66,4 +66,4 @@ ir/rust/it/subcontainer1.ir:
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir | ir/$(outdir)
 	$(FAUST) -lang rust $(FAUSTOPTIONS) dsp/$*.dsp -o archs/rust/src/bin/$*.rs
 	cd archs/rust/ && cargo run $(CARGOOPTIONS) --bin $* ../../$@
-	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
+	$(COMPARE) $@ reference/$(notdir $@) $(precision) -part 15000 || (rm -f $@; false)

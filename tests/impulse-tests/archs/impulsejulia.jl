@@ -159,7 +159,8 @@ main!() = begin
     init!(dsp, samplerate)
     control_ui::ControlUI = ControlUI(dsp)
     buildUserInterface!(dsp, control_ui)
-    printHeader(dsp, nbsamples)
+    # the header announces the frames written : one run of nbsamples/4 (-part 15000)
+    printHeader(dsp, Int32(nbsamples/4))
     runDSP!(dsp, control_ui, Int32(nbsamples/4))
 end
 

@@ -67,4 +67,4 @@ ir/$(outdir)/%.jl: dsp/%.dsp | ir/$(outdir)
 
 ir/$(outdir)/%.ir: ir/$(outdir)/%.jl reference/%.ir
 	julia  $< > $@ || (rm -f $@; false)
-	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
+	$(COMPARE) $@ reference/$(notdir $@) $(precision) -part 15000 || (rm -f $@; false)

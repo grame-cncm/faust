@@ -350,7 +350,8 @@ fn main() {
     load_test_soundfiles(&mut dsp);
     dsp.init(SAMPLE_RATE);
 
-    print_header(&dsp, num_total_samples, &mut output_file);
+    // the header announces the frames written : the first block, 15000 of 60000 (-part 15000)
+    print_header(&dsp, block_size, &mut output_file);
 
     run_dsp(dsp, block_size, 0, &mut output_file);
 }

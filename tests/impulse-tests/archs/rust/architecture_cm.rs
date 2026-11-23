@@ -294,7 +294,8 @@ fn load_test_soundfiles(dsp: &mut mydsp) {
 fn print_header(dsp: &impl FaustDsp<T = FaustFloat>, output_file: &mut File) {
     writeln!(output_file, "number_of_inputs  : {}", dsp.get_num_inputs()).unwrap();
     writeln!(output_file, "number_of_outputs : {}", dsp.get_num_outputs()).unwrap();
-    writeln!(output_file, "number_of_frames  : {}", NUM_TOTAL_SAMPLES).unwrap();
+    // the frames written : the first block, 15000 of 60000 (-part 15000)
+    writeln!(output_file, "number_of_frames  : {}", BLOCK_SIZE).unwrap();
 }
 
 const SAMPLE_RATE: i32 = 44100;

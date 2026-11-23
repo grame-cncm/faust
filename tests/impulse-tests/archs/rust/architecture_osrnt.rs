@@ -371,7 +371,8 @@ fn main() {
         .expect("ERROR: Output file name expected.");
     let mut output_file = File::create(output_file_name).expect("Cannot create output file");
 
-    print_header(new_dsp(), num_total_samples, &mut output_file);
+    // the header announces the frames written : the first block, 15000 of 60000 (-part 15000)
+    print_header(new_dsp(), block_size, &mut output_file);
 
     run_dsp(new_dsp(), block_size, 0, &mut output_file);
 }

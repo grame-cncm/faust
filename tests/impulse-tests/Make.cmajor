@@ -71,4 +71,4 @@ ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir | ir/$(outdir)
 	cmaj generate --target=cpp cmajordsp.cmajorpatch --output=cmajordsp.h
 	$(CXX) $(GCCOPTIONS) archs/$(arch) -o impulsecmajor
 	./impulsecmajor > $@
-	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
+	$(COMPARE) $@ reference/$(notdir $@) $(precision) -part 30000 || (rm -f $@; false)
