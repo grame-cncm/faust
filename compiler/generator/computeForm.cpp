@@ -204,16 +204,17 @@ void ComputeForm::lower(LaneOrder order, bool families)
             composeImage(fImage, memo);
             endTiming("gatherSums");
         }
-        // the sums of products factored, then the dense sums factored by coefficient and
-        // their common sub-sums shared (-noshs)
-        startTiming("factorSums");
-        fProgram = factorSums(fProgram, &memo);
-        composeImage(fImage, memo);
-        endTiming("factorSums");
+        // the dense sums factored by coefficient and their common sub-sums shared, then the
+        // sums of products factored : a term read only by the sub-sum the sharing extracted
+        // is no longer read twice (-noshs)
         startTiming("shareSums");
         fProgram = shareSums(fProgram, &memo);
         composeImage(fImage, memo);
         endTiming("shareSums");
+        startTiming("factorSums");
+        fProgram = factorSums(fProgram, &memo);
+        composeImage(fImage, memo);
+        endTiming("factorSums");
     }
     if (gGlobal->gExactWeights) {
         // (1 + w) * y written w * y + y, a small w read exactly, not through 1 + w rounded
