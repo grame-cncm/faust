@@ -874,6 +874,35 @@ expected:
       `lfboost`, `lowcut`, `osci`, `parametric_eq`, `phaser_flanger`,
       `spectral_tilt`, `thru_zero_flanger`, `virtual_analog_oscillators`
       and `zita_rev1` (65 responses).
+  - `table2` in `cpp/double/mapp`: diverges from line 189 (output 1,
+    23.56 where the reference has 17.36), the same with `9115873e3`,
+    `78ee9c17f` and the installed 2.94.1 (observed 2026-11-23, Apple
+    clang 21.0.0). The cause is `-mapp` itself, not the C++ compiler:
+    - `fmod(x, y)` becomes `x - y * float(int(x / y))`
+      (`fmodprim.hh`), exact only when the quotient is. The normal form
+      then distributes the division over a sum : `rw2` reads
+      `fmod(2 + x, 7)`, emitted as
+      `2 - 7 * int(0.2857142857142857 + 0.14285714285714285 * x) + x`.
+      At sample 189, `x` is 19 : the sum is 2.9999999999999996, the
+      quotient 2 instead of 3, the index 7 instead of 0, clamped to 6, and
+      the table is read one cell off. On integers the error is a whole
+      `y`, not an ulp. Measured on 980 030 inputs (multiples of `y` and
+      their neighbours, accumulations of 0.1, random values) :
+      `fmod(x, y)` gives 2754 results out of `[0, |y|)` or of the wrong
+      sign ; `fmod(2 + x, 7)`, `fmod(1 + x, 7)` and `fmod(x - 3, 10)`
+      give 3054, of which 2229 are wrong on integers.
+    - `remainder(x, y)` becomes `x - y * float(int(0.5 + x / y))`
+      (`remainderprim.hh`) : `int` truncates towards zero, so the
+      quotient is wrong whenever `0.5 + x / y` is negative, and ties are
+      not rounded to even : `remainder(-5, 3)` gives -2 (1),
+      `remainder(-2.3, 1)` -1.3 (-0.3), `remainder(-7, 2)` -1 (1),
+      `remainder(10, 4)` -2 (2). No program of the suite reads it.
+
+    A correction tried for `fmod` (the quotient corrected by one from the
+    sign and the magnitude of `x - y * q`, a few comparisons and two
+    selects) brought both counts to zero, but was not kept : `-mapp`
+    stays an approximation whose `fmod` and `remainder` may be off by a
+    whole `y`, and must not compute a table index or a delay.
 
 A program that is already broken cannot witness a second breakage: an
 innocuity test run over an already-failing case has no power there, while
