@@ -172,6 +172,8 @@ class xtendedCodegen : public xtended {
     // the helpers, in C and C++ : written once, before the classes, when a real max or min
     // was generated (fNeedMinMaxHelpers, cleared once written)
     static bool fNeedMinMaxHelpers;
+    // the fmod helpers, written with the min and max helpers when a real fmod was generated
+    static bool fNeedFmodHelpers;
     // byRef : the comparisons return a reference under clang, as the std::max cpp wrote (C++ only)
     static void printMinMaxHelpers(std::ostream& out, bool byRef = false);
 

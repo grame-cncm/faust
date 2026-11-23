@@ -42,9 +42,26 @@ int xtendedCodegen::zeroLiteral(ValueInst* v)
 }
 
 bool xtendedCodegen::fNeedMinMaxHelpers = false;
+bool xtendedCodegen::fNeedFmodHelpers   = false;
 
 void xtendedCodegen::printMinMaxHelpers(std::ostream& out, bool byRef)
 {
+    if (fNeedFmodHelpers) {
+        fNeedFmodHelpers = false;
+        out << "#ifndef FAUST_FMOD\n";
+        out << "#define FAUST_FMOD\n";
+        out << "#include <math.h>\n";
+        out << "/* The real fmod of Faust : fmod, without the call when a is in [0, 2 * w) : a itself below w,\n"
+               "   a - w from w on, exact (Sterbenz : w <= a <= 2 * w). Every other operand, NaN and\n"
+               "   infinities included, goes to fmod. */\n";
+        const char* types[]    = {"float", "double", "long double"};
+        const char* suffixes[] = {"f", "", "l"};
+        for (int i = 0; i < 3; i++) {
+            const string t = types[i], x = suffixes[i];
+            out << "static inline " << t << " faustfmod" << x << "(" << t << " a, " << t << " w) { if (a >= 0) { if (a < w) return a; if (a < 2 * w) return a - w; } return fmod" << x << "(a, w); }\n";
+        }
+        out << "#endif\n";
+    }
     if (!fNeedMinMaxHelpers) {
         return;
     }

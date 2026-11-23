@@ -63,6 +63,17 @@ class FmodPrim : public xtendedCodegen {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
+        // C and C++ : fmod without its call for a in [0, 2 * w), exactly (faustfmod, written
+        // with the min and max helpers) ; the other backends keep their fmod
+        if ((result->nature() == kReal) && ((gGlobal->gOutputLang == "cpp") || (gGlobal->gOutputLang == "c")) &&
+            (gGlobal->gFloatSize >= 1) && (gGlobal->gFloatSize <= 3)) {
+            Values cargs;
+            cargs.push_back(promote2real(types[0]->nature(), *args.begin()));
+            cargs.push_back(promote2real(types[1]->nature(), *std::next(args.begin(), 1)));
+            std::vector<Typed::VarType> atypes = {itfloat(), itfloat()};
+            fNeedFmodHelpers                   = true;
+            return container->pushFunction(subst("faustfmod$0", isuffix()), itfloat(), atypes, cargs);
+        }
         return generateFun(container, subst("fmod$0", isuffix()), args, result, types);
     }
 
@@ -72,6 +83,10 @@ class FmodPrim : public xtendedCodegen {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
+        if ((gGlobal->gFloatSize >= 1) && (gGlobal->gFloatSize <= 3)) {
+            fNeedFmodHelpers = true;
+            return subst("faustfmod$2($0,$1)", args[0], args[1], isuffix());
+        }
         return subst("fmod$2($0,$1)", args[0], args[1], isuffix());
     }
 
