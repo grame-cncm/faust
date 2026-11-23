@@ -32,6 +32,7 @@
 #include "shareSums.hh"
 #include "slowPrefixes.hh"
 #include "lowerComposites.hh"
+#include "narrowIntegers.hh"
 #include "sigtyperules.hh"
 #include "timing.hh"
 #include "typedAttributes.hh"
@@ -147,6 +148,15 @@ void ComputeForm::lowerCompounds()
     fProgram = lowerComposites(fProgram, &memo);
     composeImage(fImage, memo);
     endTiming("lowerComposites");
+    if (gGlobal->gIntNarrowing) {
+        // the conversions to int of reals computed from integers, written in integers : the
+        // same values (narrowIntegers.hh, -noin)
+        memo.clear();
+        startTiming("narrowIntegers");
+        fProgram = narrowIntegers(fProgram, &memo);
+        composeImage(fImage, memo);
+        endTiming("narrowIntegers");
+    }
 }
 
 void ComputeForm::cutSlowPrefixes()

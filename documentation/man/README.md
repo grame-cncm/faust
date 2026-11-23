@@ -204,6 +204,8 @@ Code generation options:
 
   **-noxw**       **--no-exact-weights**          keep the products (1 + w) * y of the normal form (by default, a small w is written w * y + y, read exactly).
 
+  **-noin**       **--no-integer-narrowing**      keep the conversions to int of the reals computed from integers (by default, int(min(x, float(n))) is written min(int(x), n), exactly).
+
   **-mcs** \<n>    **--min-certified-seconds** \<n> refuse a program certified for less than n seconds at 48000 Hz (default 10, 0 accepts any duration).
 
   **-nocert**     **--no-certification**          accept, with a warning, a delay whose lower bound may be negative and a soundfile part beyond its range, held within their range at run time, and a program certified for too short a time.

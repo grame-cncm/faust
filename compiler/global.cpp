@@ -594,6 +594,7 @@ void global::reset()
     gMathApprox           = false;
     gShareSums            = true;
     gExactWeights         = true;
+    gIntNarrowing         = true;
     gReciprocals          = true;
     gGuardedTemps         = true;
     gMinCertifiedSeconds  = 10;
@@ -991,6 +992,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gExactWeights) {
         dst << "-xw ";
+    }
+    if (gIntNarrowing) {
+        dst << "-in ";
     }
     if (gReciprocals) {
         dst << "-rcp ";
@@ -1834,6 +1838,14 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-noxw", "--no-exact-weights")) {
             gExactWeights = false;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-in", "--integer-narrowing")) {
+            gIntNarrowing = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-noin", "--no-integer-narrowing")) {
+            gIntNarrowing = false;
             i += 1;
 
         } else if (isCmd(argv[i], "-rcp", "--reciprocals")) {
@@ -2943,6 +2955,10 @@ string global::printHelp()
     sstr << tab
          << "-noxw       --no-exact-weights          keep the products (1 + w) * y of the "
             "normal form (by default, a small w is written w * y + y, read exactly)."
+         << endl;
+    sstr << tab
+         << "-noin       --no-integer-narrowing      keep the conversions to int of the reals computed from "
+            "integers (by default, int(min(x, float(n))) is written min(int(x), n), exactly)."
          << endl;
     sstr << tab
          << "-norcp      --no-reciprocals            keep the divisions (by default, outside the cone of the "
