@@ -22,7 +22,12 @@
 #ifndef _JSFX_INSTRUCTIONS_H
 #define _JSFX_INSTRUCTIONS_H
 
+#include <cmath>
+#include <cstdlib>
+#include <iomanip>
+#include <limits>
 #include <regex>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 
@@ -32,6 +37,27 @@
 inline std::string inlineInt32(double fnum)
 {
     return std::to_string(int((fnum > 2147483648.) ? (fnum - 4294967296.) : fnum));
+}
+
+// A real in fixed notation, the only one EEL2 reads (it has no exponent) : the 16 decimals
+// written so far, and more when they do not give back the value. A small constant such as
+// 2.3e-11, which the normal form makes by folding a scale into the coefficients of a filter,
+// otherwise keeps 5 or 6 significant digits.
+inline std::string inlineReal(double fnum)
+{
+    std::ostringstream out;
+    if (!std::isfinite(fnum)) {
+        out << std::fixed << fnum;
+        return out.str();
+    }
+    for (int decimals = std::numeric_limits<double>::digits10 + 1; decimals <= 1100; decimals++) {
+        out.str("");
+        out << std::fixed << std::setprecision(decimals) << fnum;
+        if (std::strtod(out.str().c_str(), nullptr) == fnum) {
+            break;
+        }
+    }
+    return out.str();
 }
 
 inline bool strfind(const std::string& str, const std::string& substr)
@@ -110,14 +136,14 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     virtual void visit(FloatArrayNumInst* inst)
     {
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << fCurArray << "[" << i << "] = " << std::fixed << inst->fNumTable[i] << ";\n";
+            *fOut << fCurArray << "[" << i << "] = " << inlineReal(inst->fNumTable[i]) << ";\n";
         }
     }
 
     virtual void visit(DoubleArrayNumInst* inst)
     {
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << fCurArray << "[" << i << "] = " << std::fixed << inst->fNumTable[i] << ";\n";
+            *fOut << fCurArray << "[" << i << "] = " << inlineReal(inst->fNumTable[i]) << ";\n";
         }
     }
 };
@@ -899,9 +925,9 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     virtual void visit(Int64NumInst* inst) { *fOut << inlineInt32(inst->fNum); }
 
-    virtual void visit(FloatNumInst* inst) { *fOut << std::fixed << inst->fNum; }
+    virtual void visit(FloatNumInst* inst) { *fOut << inlineReal(inst->fNum); }
 
-    virtual void visit(DoubleNumInst* inst) { *fOut << std::fixed << inst->fNum; }
+    virtual void visit(DoubleNumInst* inst) { *fOut << inlineReal(inst->fNum); }
 
     virtual void visit(Int32ArrayNumInst* inst)
     {
@@ -917,7 +943,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << std::fixed << inst->fNumTable[i];
+            *fOut << sep << inlineReal(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << ']';
@@ -927,7 +953,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << std::fixed << inst->fNumTable[i];
+            *fOut << sep << inlineReal(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << ']';
