@@ -23,6 +23,7 @@
 
 #include <cstdlib>
 #include "Text.hh"
+#include "computeSignals.hh"
 #include "global.hh"
 #include "property.hh"
 #include "signalVisitor.hh"
@@ -216,14 +217,15 @@ void SignalVisitor::visit(Tree sig)
         return;
     }
 
-    // the compound operations
-    else if (isSigFrac(sig, x) || isSigCfrac(sig, x) || isSigTpt(sig, x) || isSigNeg(sig, x)) {
+    // the compound operations, and the nodes of the computation form that carry their decision
+    // (CfFrac, CfMix, CfPhase, CfIRM : computeSignals.hh), whose data child is no signal
+    else if (isFracNode(sig, x) || isSigCfrac(sig, x) || isSigTpt(sig, x) || isSigNeg(sig, x)) {
         self(x);
         return;
-    } else if (isSigMix(sig, c, x, y)) {
+    } else if (isMixNode(sig, c, x, y)) {
         self(c), self(x), self(y);
         return;
-    } else if (isSigPhase(sig, x, y) || isSigIRM(sig, x, y)) {
+    } else if (isPhaseNode(sig, x, y) || isIrmNode(sig, x, y)) {
         self(x), self(y);
         return;
     } else if (isSigBpf(sig)) {
