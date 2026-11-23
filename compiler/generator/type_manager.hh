@@ -235,10 +235,14 @@ class CStringTypeManager : public StringTypeManager {
         } else if (basic_typed) {
             return fTypeDirectTable[basic_typed->fType] + " " + name;
         } else if (named_typed) {
-            // A pointer to a named object (a generator) is that name and the pointer, in any class
+            // A pointer to a named object (a generator) is that name and the pointer, in any class.
+            // Where an object is reached by reference and its pointer written as nothing
+            // (kObj_ptr empty : Java, C#), it is the name alone : their fPtrRef is the mark of an
+            // array ("[]"), not of a pointer
             BasicTyped* named_basic = dynamic_cast<BasicTyped*>(named_typed->fType);
             if (named_basic && named_basic->fType == Typed::kObj_ptr) {
-                return named_typed->fName + fPtrRef + " " + name;
+                const bool byReference = fTypeDirectTable[Typed::kObj_ptr].empty();
+                return named_typed->fName + (byReference ? "" : fPtrRef) + " " + name;
             }
             return named_typed->fName + generateType(named_typed->fType) + " " + name;
         } else if (array_typed) {
