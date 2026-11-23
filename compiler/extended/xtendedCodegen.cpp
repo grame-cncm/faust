@@ -43,9 +43,26 @@ int xtendedCodegen::zeroLiteral(ValueInst* v)
 
 bool xtendedCodegen::fNeedMinMaxHelpers = false;
 bool xtendedCodegen::fNeedFmodHelpers   = false;
+bool xtendedCodegen::fNeedMemoHelpers   = false;
 
 void xtendedCodegen::printMinMaxHelpers(std::ostream& out, bool byRef)
 {
+    if (fNeedMemoHelpers) {
+        fNeedMemoHelpers = false;
+        out << "#ifndef FAUST_MEMO\n";
+        out << "#define FAUST_MEMO\n";
+        out << "#include <string.h>\n";
+        out << "/* An argument changed since the previous call : compared bit for bit, so that -0 and +0\n"
+               "   differ and a NaN is never the same. */\n";
+        const char* types[]    = {"float", "double", "long double"};
+        const char* suffixes[] = {"f", "", "l"};
+        for (int i = 0; i < 3; i++) {
+            const string t = types[i], x = suffixes[i];
+            out << "static inline int faustdiff" << x << "(" << t << " a, " << t << " b) { return memcmp(&a, &b, sizeof(a)) != 0; }\n";
+        }
+        out << "static inline int faustdiffi(int a, int b) { return a != b; }\n";
+        out << "#endif\n";
+    }
     if (fNeedFmodHelpers) {
         fNeedFmodHelpers = false;
         out << "#ifndef FAUST_FMOD\n";

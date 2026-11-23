@@ -7612,11 +7612,59 @@ string ScalarCompiler::generateXtended(Tree sig)
         types.push_back(getCertifiedSigType(sig->branch(i)));
     }
 
+    if (isSettlingCall(sig) && !gGlobal->gLoopSplit && !gGlobal->gVectorSwitch && (gGlobal->gFloatSize >= 1) &&
+        (gGlobal->gFloatSize <= 3)) {
+        return generateMemoCall(sig, p, args, types);
+    }
+
     if (p->needCache()) {
         return generateCacheCode(sig, p->generateCode(fClass, args, types));
     } else {
         return p->generateCode(fClass, args, types);
     }
+}
+
+/**
+ * A costly call whose arguments settle (isSettlingCall, computeForm.hh) : its arguments that are not
+ * constants in temporaries, the last ones and the value in fields, called again only when an argument changed,
+ * compared bit for bit (faustdiff), or before the first call after instanceClear. The same value
+ * as the call, f being a pure function of its arguments (InstructionsCompiler::generateMemoCall).
+ */
+std::string ScalarCompiler::generateMemoCall(Tree sig, xtendedCodegen* p, std::vector<std::string>& args,
+                                             std::vector<Type>& types)
+{
+    const std::string k      = getFreshID("Memo");
+    const std::string ok     = subst("i$0Ok", k);
+    const std::string val    = subst("f$0V", k);
+    const std::string suffix = (gGlobal->gFloatSize == 1) ? "f" : (gGlobal->gFloatSize == 3) ? "l" : "";
+    fClass->addDeclCode(subst("int \t$0;", ok));
+    fClass->addClearCode(subst("$0 = 0;", ok));
+    fClass->addDeclCode(subst("$0 \t$1;", ifloat(), val));
+    fClass->addClearCode(subst("$0 = 0;", val));
+    std::string              cond = subst("($0 == 0)", ok);
+    std::string              stores;
+    std::vector<std::string> targs;
+    for (size_t i = 0; i < args.size(); i++) {
+        if (types[i]->variability() == kKonst) {
+            // a constant : passed as it is, never compared
+            targs.push_back(args[i]);
+            continue;
+        }
+        const bool        isInt = types[i]->nature() == kInt;
+        const std::string ctype = isInt ? "int" : ifloat();
+        const std::string last  = subst("$0$1A$2", isInt ? "i" : "f", k, T(int(i)));
+        const std::string temp  = subst("$0$1", isInt ? "i" : "f", getFreshID("Temp"));
+        fClass->addDeclCode(subst("$0 \t$1;", ctype, last));
+        fClass->addClearCode(subst("$0 = 0;", last));
+        fClass->addExecCode(Statement("", subst("$0 \t$1 = $2;", ctype, temp, args[i])));
+        cond += subst(" | $0($1, $2)", isInt ? "faustdiffi" : "faustdiff" + suffix, temp, last);
+        stores += subst("$0 = $1; ", last, temp);
+        targs.push_back(temp);
+    }
+    xtendedCodegen::fNeedMemoHelpers = true;
+    fClass->addExecCode(Statement(getConditionCode(sig), subst("if ($0) { $1$2 = $3; $4 = 1; }", cond, stores, val,
+                                                               p->generateCode(fClass, targs, types), ok)));
+    return generateCacheCode(sig, val);
 }
 
 /*****************************************************************************

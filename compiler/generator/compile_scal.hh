@@ -46,6 +46,8 @@
  */
 ///////////////////////////////////////////////////////////////////////
 
+class xtendedCodegen;
+
 class ScalarCompiler : public Compiler {
     friend class LoopSplitEmitter;  // -ls experimental loop-split emission
 
@@ -280,6 +282,7 @@ class ScalarCompiler : public Compiler {
     std::string generateRecProj(Tree sig, Tree exp, int i);
     std::string generateIRM(Tree sig, Tree x, Tree p, IrmForm form);
     std::string generateIRMError(Tree sig, Tree x, Tree p);
+    std::string generateMemoCall(Tree sig, xtendedCodegen* p, std::vector<std::string>& args, std::vector<Type>& types);
 
 
     std::string generateBpf(Tree sig);

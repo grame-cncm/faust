@@ -2718,12 +2718,75 @@ ValueInst* InstructionsCompiler::generateXtended(Tree sig)
         types.push_back(getCertifiedSigType(sig->branch(i)));
     }
 
+    if (isSettlingCall(sig) && ((gGlobal->gOutputLang == "cpp") || (gGlobal->gOutputLang == "c")) &&
+        !gGlobal->gVectorSwitch && !gGlobal->gSchedulerSwitch && !gGlobal->gOpenMPSwitch &&
+        (gGlobal->gFloatSize >= 1) && (gGlobal->gFloatSize <= 3)) {
+        return generateMemoCall(sig, p, args, types);
+    }
+
     ValueInst* res = p->generateCode(fContainer, args, getCertifiedSigType(sig), types);
     if (p->needCache()) {
         return generateCacheCode(sig, res);
     } else {
         return res;
     }
+}
+
+/**
+ * A costly call whose arguments settle (isSettlingCall, computeForm.hh), in C and C++ : its arguments
+ * that are not constants in temporaries, the last ones and the value in fields, called again only when an argument
+ * changed, compared bit for bit (faustdiff), or before the first call after instanceClear :
+ *
+ *   fTemp = x ;
+ *   if (iMemoOk == 0 || faustdiff(fTemp, fMemoA)) { fMemoA = fTemp ; fMemoV = f(fTemp) ; iMemoOk = 1 ; }
+ *
+ * The same value as the call, f being a pure function of its arguments.
+ */
+ValueInst* InstructionsCompiler::generateMemoCall(Tree sig, xtendedCodegen* p, Values& args,
+                                                  vector<::Type>& types)
+{
+    const string k    = gGlobal->getFreshID("Memo");
+    const string ok   = subst("i$0Ok", k);
+    const string val  = subst("f$0V", k);
+    BasicTyped*  rtyp = genFloatType(getCertifiedSigType(sig));
+    pushDeclare(IB::genDecStructVar(ok, IB::genBasicTyped(Typed::kInt32)));
+    pushClearMethod(IB::genStoreStructVar(ok, IB::genInt32NumInst(0)));
+    pushDeclare(IB::genDecStructVar(val, rtyp));
+    pushClearMethod(IB::genStoreStructVar(val, IB::genTypedZero(rtyp)));
+    const string suffix = (gGlobal->gFloatSize == 1) ? "f" : (gGlobal->gFloatSize == 3) ? "l" : "";
+    ValueInst*   cond   = IB::genBinopInst(kEQ, IB::genLoadStructVar(ok), IB::genInt32NumInst(0));
+    BlockInst*   block  = IB::genBlockInst();
+    Values       targs;
+    size_t       i = 0;
+    for (ValueInst* a : args) {
+        if (types[i]->variability() == kKonst) {
+            // a constant : passed as it is, never compared
+            targs.push_back(a);
+            i++;
+            continue;
+        }
+        const bool   isInt = types[i]->nature() == kInt;
+        BasicTyped*  atyp  = isInt ? IB::genBasicTyped(Typed::kInt32) : genFloatType(types[i]);
+        const string last  = subst("$0$1A$2", isInt ? "i" : "f", k, T(int(i)));
+        const string temp  = subst("$0$1", isInt ? "i" : "f", gGlobal->getFreshID("Temp"));
+        pushDeclare(IB::genDecStructVar(last, atyp));
+        pushClearMethod(IB::genStoreStructVar(last, IB::genTypedZero(atyp)));
+        pushComputeDSPMethod(IB::genDecStackVar(temp, atyp, a));
+        std::vector<Typed::VarType> dtypes = {atyp->getType(), atyp->getType()};
+        Values                      dargs;
+        dargs.push_back(IB::genLoadStackVar(temp));
+        dargs.push_back(IB::genLoadStructVar(last));
+        ValueInst* diff = fContainer->pushFunction(isInt ? "faustdiffi" : "faustdiff" + suffix, Typed::kInt32, dtypes, dargs);
+        cond = IB::genBinopInst(kOR, cond, diff);
+        block->pushBackInst(IB::genStoreStructVar(last, IB::genLoadStackVar(temp)));
+        targs.push_back(IB::genLoadStackVar(temp));
+        i++;
+    }
+    xtendedCodegen::fNeedMemoHelpers = true;
+    block->pushBackInst(IB::genStoreStructVar(val, p->generateCode(fContainer, targs, getCertifiedSigType(sig), types)));
+    block->pushBackInst(IB::genStoreStructVar(ok, IB::genInt32NumInst(1)));
+    pushComputeDSPMethod(IB::genControlInst(getConditionCode(sig), IB::genIfInst(cond, block)));
+    return generateCacheCode(sig, IB::genLoadStructVar(val));
 }
 
 /*****************************************************************************

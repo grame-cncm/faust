@@ -44,6 +44,8 @@
 
 #define _DNF_ 1
 
+class xtendedCodegen;
+
 class InstructionsCompiler : public virtual Garbageable {
    protected:
     CodeContainer* fContainer;
@@ -254,6 +256,7 @@ class InstructionsCompiler : public virtual Garbageable {
     void               flushPendingDelayWrites();
     ValueInst*         generateIRM(Tree sig, Tree x, Tree p, IrmForm form);
     ValueInst*         generateIRMError(Tree sig, Tree x, Tree p);
+    ValueInst*         generateMemoCall(Tree sig, xtendedCodegen* p, Values& args, std::vector<::Type>& types);
 
     ValueInst*         generateBpf(Tree sig);
     ValueInst*         generateBpfTable(Tree sig, Tree x, const struct BpfTable& tb);

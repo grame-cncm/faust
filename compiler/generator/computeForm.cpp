@@ -12,6 +12,8 @@
 
 #include "computeForm.hh"
 
+#include <cstdlib>
+#include <iostream>
 #include <unordered_set>
 
 #include "code_container.hh"
@@ -250,6 +252,109 @@ void ComputeForm::lower(LaneOrder order, bool families)
     if (gGlobal->gLateTaps) {
         // the late term of a filter added last (-nolt)
         markLateTaps(fProgram);
+    }
+    if (gGlobal->gCallMemo) {
+        // the costly calls whose arguments settle, called again only when one changed (-nocm)
+        markSettlingCalls(fProgram);
+    }
+}
+
+namespace {
+
+/// t settles : it depends only on values slower than the sample, and on smoothers of a slow target
+/// and pole (an IRM), which reach their target and then stay constant
+bool settles(Tree t, std::unordered_map<Tree, bool>& memo)
+{
+    auto it = memo.find(t);
+    if (it != memo.end()) {
+        return it->second;
+    }
+    memo[t]     = false;  // a cycle does not settle
+    bool    r   = false;
+    Type    ty  = t->getType() ? getCertifiedSigType(t) : nullptr;
+    Tree    x, p, d;
+    IrmForm f;
+    int     i;
+    Tree    g;
+    if (ty && ty->variability() <= kBlock) {
+        r = true;
+    } else if (isSigIRM(t, x, p) || isCfIrm(t, x, p, f)) {
+        r = getCertifiedSigType(x)->variability() <= kBlock && getCertifiedSigType(p)->variability() <= kBlock;
+    } else if (isProj(t, &i, g) || isSigInput(t, &i) || isRec(t, x, p)) {
+        r = false;
+    } else if (isSigDelay(t, x, d)) {
+        r = settles(x, memo) && settles(d, memo);
+    } else if (t->arity() > 0 && ty) {
+        r = true;
+        for (Tree b : t->branches()) {
+            int  op;
+            Tree a, c;
+            if (b->getType() == nullptr && !isNum(b)) {
+                continue;  // the opcode of a binary operation, a label
+            }
+            if (!isNum(b) && !settles(b, memo)) {
+                r = false;
+                break;
+            }
+            (void)op, (void)a, (void)c;
+        }
+    }
+    memo[t] = r;
+    return r;
+}
+
+}  // namespace
+
+static Tree settlingCallKey()
+{
+    static Tree key = tree(symbol("SETTLINGCALL"));
+    return key;
+}
+
+bool isSettlingCall(Tree t)
+{
+    Tree v;
+    return getProperty(t, settlingCallKey(), v);
+}
+
+void ComputeForm::markSettlingCalls(Tree L)
+{
+    // the costly calls computed at the sample rate, and those whose arguments settle, marked ;
+    // FAUST_TRACE_MEMO prints their counts
+    const std::unordered_set<xtended*> costly = {gGlobal->gPowPrim,  gGlobal->gExpPrim,  gGlobal->gExp10Prim,
+                                                 gGlobal->gLogPrim,  gGlobal->gLog10Prim, gGlobal->gSinPrim,
+                                                 gGlobal->gCosPrim,  gGlobal->gTanPrim,  gGlobal->gAtanPrim,
+                                                 gGlobal->gAtan2Prim, gGlobal->gAsinPrim, gGlobal->gAcosPrim};
+    std::unordered_map<Tree, bool> memo;
+    std::unordered_set<Tree>       seen;
+    std::vector<Tree>              work{L};
+    int                            samp = 0, settling = 0;
+    while (!work.empty()) {
+        Tree t = work.back();
+        work.pop_back();
+        if (!seen.insert(t).second) {
+            continue;
+        }
+        Tree var, body;
+        if (isRec(t, var, body)) {
+            if (body != nullptr) work.push_back(body);
+            continue;
+        }
+        for (Tree b : t->branches()) work.push_back(b);
+        xtended* p = (xtended*)sigXtendedData(t);
+        if (p && costly.count(p) && t->getType() && getCertifiedSigType(t)->variability() == kSamp) {
+            samp++;
+            bool all = true;
+            for (Tree b : t->branches()) all = all && (isNum(b) || settles(b, memo));
+            if (all && getCertifiedSigType(t)->nature() == kReal) {
+                Tree key = settlingCallKey();
+                setProperty(t, key, key);
+                settling++;
+            }
+        }
+    }
+    if (getenv("FAUST_TRACE_MEMO")) {
+        std::cerr << "MEMO-TRACE costly-samp " << samp << " settling " << settling << std::endl;
     }
 }
 

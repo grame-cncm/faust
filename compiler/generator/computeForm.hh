@@ -60,4 +60,11 @@ class ComputeForm {
     void                           lower(LaneOrder order, bool families);
     void                           lowerCompounds();
     void                           cutSlowPrefixes();
+    static void                    markSettlingCalls(Tree L);
 };
+
+/// t is a costly call at the sample rate (pow, exp, log, sin...) whose arguments settle : they depend
+/// only on values slower than the sample and on smoothers of a slow target and pole, which reach their
+/// target and then stay constant. Its emission calls it again only when an argument changed since the
+/// previous sample (-nocm) : the same values, without the calls while the arguments stay constant
+bool isSettlingCall(Tree t);

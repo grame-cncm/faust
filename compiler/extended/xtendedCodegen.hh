@@ -174,6 +174,8 @@ class xtendedCodegen : public xtended {
     static bool fNeedMinMaxHelpers;
     // the fmod helpers, written with the min and max helpers when a real fmod was generated
     static bool fNeedFmodHelpers;
+    // the comparison of the arguments of a memoized call (faustdiff), written with them
+    static bool fNeedMemoHelpers;
     // byRef : the comparisons return a reference under clang, as the std::max cpp wrote (C++ only)
     static void printMinMaxHelpers(std::ostream& out, bool byRef = false);
 

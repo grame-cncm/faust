@@ -595,6 +595,7 @@ void global::reset()
     gShareSums            = true;
     gExactWeights         = true;
     gIntNarrowing         = true;
+    gCallMemo             = true;
     gReciprocals          = true;
     gGuardedTemps         = true;
     gMinCertifiedSeconds  = 10;
@@ -995,6 +996,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gIntNarrowing) {
         dst << "-in ";
+    }
+    if (gCallMemo) {
+        dst << "-cm ";
     }
     if (gReciprocals) {
         dst << "-rcp ";
@@ -1846,6 +1850,14 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-noin", "--no-integer-narrowing")) {
             gIntNarrowing = false;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-cm", "--call-memo")) {
+            gCallMemo = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-nocm", "--no-call-memo")) {
+            gCallMemo = false;
             i += 1;
 
         } else if (isCmd(argv[i], "-rcp", "--reciprocals")) {
@@ -2960,6 +2972,10 @@ string global::printHelp()
     sstr << tab
          << "-noin       --no-integer-narrowing      keep the conversions to int of the reals computed from "
             "integers (by default, int(min(x, float(n))) is written min(int(x), n), exactly)."
+         << endl;
+    sstr << tab
+         << "-nocm       --no-call-memo              call a costly function at every sample (by default, in C and C++, "
+            "a call whose arguments settle, as a smoothed control, is made again only when an argument changed)."
          << endl;
     sstr << tab
          << "-norcp      --no-reciprocals            keep the divisions (by default, outside the cone of the "
