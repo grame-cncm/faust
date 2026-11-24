@@ -539,6 +539,13 @@ ValueInst* InstructionsCompiler::CS(Tree sig)
                 code = IB::genLoadStackVar(vname);
             }
             fInCone = false;
+        } else if (fInCone && !inCone(sig)) {
+            // an operand of the cone that is not in it (a number, a slow value) : its statements
+            // where they would be without the regime (a number read with a delay writes its line
+            // at every sample)
+            fInCone = false;
+            code    = generateCode(sig);
+            fInCone = true;
         } else {
             code = generateCode(sig);
         }
@@ -563,7 +570,13 @@ bool InstructionsCompiler::inCone(Tree sig)
     }
     fConeMemo[sig] = false;  // a cycle is not in the cone
     bool r = false;
-    if (sig->getType() && getCertifiedSigType(sig)->variability() == kSamp &&
+    Tree         ix, iy;
+    IrmForm      iform;
+    Occurrences* occ = fOccMarkup->retrieve(sig);
+    // a node read with a delay writes its line at every sample : not in the cone (a smoother
+    // excepted, whose copied line is shifted at every sample)
+    bool delayed = occ != nullptr && occ->getMaxDelay() > 0 && !isCfIrm(sig, ix, iy, iform) && !isSigIRM(sig, ix, iy);
+    if (!delayed && sig->getType() && getCertifiedSigType(sig)->variability() == kSamp &&
         dynamic_cast<NullValueInst*>(getConditionCode(sig))) {
         auto operand = [&](Tree b) {
             return isNum(b) || (b->getType() && getCertifiedSigType(b)->variability() <= kBlock) || inCone(b);
