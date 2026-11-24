@@ -596,7 +596,7 @@ void global::reset()
     gExactWeights         = true;
     gIntNarrowing         = true;
     gCallMemo             = true;
-    gSettledRegime        = false;
+    gSettledRegime        = true;
     gReciprocals          = true;
     gGuardedTemps         = true;
     gMinCertifiedSeconds  = 10;
@@ -2990,8 +2990,8 @@ string global::printHelp()
             "a call whose arguments settle, as a smoothed control, is made again only when an argument changed)."
          << endl;
     sstr << tab
-         << "-st        --settled-regime            in C and C++, the computations that depend only on smoothed controls "
-            "made once per block, while every smoother has reached its target."
+         << "-nost       --no-settled-regime         compute at every sample what depends only on smoothed controls (by "
+            "default, in C, C++ and ocpp, it is computed once per block while every smoother has reached its target)."
          << endl;
     sstr << tab
          << "-norcp      --no-reciprocals            keep the divisions (by default, outside the cone of the "
