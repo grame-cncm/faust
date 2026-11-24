@@ -206,7 +206,7 @@ Code generation options:
 
   **-noin**       **--no-integer-narrowing**      keep the conversions to int of the reals computed from integers (by default, int(min(x, float(n))) is written min(int(x), n), exactly).
 
-  **-nocm**       **--no-call-memo**              call a costly function at every sample (by default, in C and C++, a call whose arguments settle, as a smoothed control, is made again only when an argument changed).
+  **-nomc**       **--no-call-memo**              call a costly function at every sample (by default, in C and C++, a call whose arguments settle, as a smoothed control, is made again only when an argument changed).
 
   **-mcs** \<n>    **--min-certified-seconds** \<n> refuse a program certified for less than n seconds at 48000 Hz (default 10, 0 accepts any duration).
 

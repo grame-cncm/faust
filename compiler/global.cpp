@@ -998,7 +998,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
         dst << "-in ";
     }
     if (gCallMemo) {
-        dst << "-cm ";
+        dst << "-mc ";
     }
     if (gReciprocals) {
         dst << "-rcp ";
@@ -1852,11 +1852,11 @@ bool global::processCmdline(int argc, const char* argv[])
             gIntNarrowing = false;
             i += 1;
 
-        } else if (isCmd(argv[i], "-cm", "--call-memo")) {
+        } else if (isCmd(argv[i], "-mc", "--call-memo")) {
             gCallMemo = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-nocm", "--no-call-memo")) {
+        } else if (isCmd(argv[i], "-nomc", "--no-call-memo")) {
             gCallMemo = false;
             i += 1;
 
@@ -2974,7 +2974,7 @@ string global::printHelp()
             "integers (by default, int(min(x, float(n))) is written min(int(x), n), exactly)."
          << endl;
     sstr << tab
-         << "-nocm       --no-call-memo              call a costly function at every sample (by default, in C and C++, "
+         << "-nomc       --no-call-memo              call a costly function at every sample (by default, in C and C++, "
             "a call whose arguments settle, as a smoothed control, is made again only when an argument changed)."
          << endl;
     sstr << tab

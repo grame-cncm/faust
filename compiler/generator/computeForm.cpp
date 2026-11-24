@@ -255,7 +255,7 @@ void ComputeForm::lower(LaneOrder order, bool families)
         markLateTaps(fProgram);
     }
     if (gGlobal->gCallMemo) {
-        // the costly calls whose arguments settle, called again only when one changed (-nocm)
+        // the costly calls whose arguments settle, called again only when one changed (-nomc)
         markSettlingCalls(fProgram);
     }
 }
