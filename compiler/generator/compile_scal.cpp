@@ -4890,6 +4890,7 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
     // contextor recursivness(0);
     L = prepare(L);  // optimize, share and annotate expression
     censusAdjacentReads(L);
+    censusProjectionReads(fFamRoot != nullptr ? fFamRoot : L);
     fMainCompilePhase = true;
 
     for (int i = 0; i < fClass->inputs(); i++) {
@@ -7118,6 +7119,17 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
     //     getConditionCode(def));
     // }
 
+    Tree w;
+    int  k;
+    if (foldedProjection(sig, w, k)) {
+        // read only delayed, in the ring of w (generateDelayAccess) : nothing to emit, the
+        // value w@k spelled out without its index variable
+        std::string wtype, wpname;
+        getTypedNames(getCertifiedSigType(w), "Veeec", wtype, wpname);
+        int N = pow2limit(fOccMarkup->retrieve(w)->getMaxDelay() + 1);
+        return subst("$0[faust_wrap_sub(IOTA, $1)&$2]", ensureVectorNameProperty(wpname, w), T(k), T(N - 1));
+    }
+
     Type ty = getCertifiedSigType(sig);
     getTypedNames(ty, "Riiic", ctype, pname);
     string vecname = ensureVectorNameProperty(pname, sig);
@@ -7728,6 +7740,71 @@ void ScalarCompiler::censusAdjacentReads(Tree L)
 }
 
 /**
+ * The projections read other than by a constant, unconditional delay d >= 1 (foldedProjection) :
+ * every parent of a projection is visited once, over every root the emitter compiles
+ */
+void ScalarCompiler::censusProjectionReads(Tree Lx)
+{
+    std::set<Tree>            seen;
+    std::function<void(Tree)> walkT = [&](Tree t) {
+        if (!seen.insert(t).second) {
+            return;
+        }
+        Tree x, y, var, body;
+        int  d;
+        bool constRead = isSigDelay(t, x, y) && isSigInt(y, &d) && d >= 1 && getConditionCode(t).empty();
+        for (int k = 0; k < t->arity(); k++) {
+            int  j;
+            Tree g;
+            if (isProj(t->branch(k), &j, g) && !(constRead && k == 0)) {
+                fProjOtherReads.insert(t->branch(k));
+            }
+        }
+        if (isRec(t, var, body)) {
+            if (body != nullptr) {
+                walkT(body);
+            }
+            return;
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            walkT(t->branch(k));
+        }
+    };
+    walkT(Lx);
+}
+
+/**
+ * P = proj(i, rec) defined by w@k, k constant, read only at constant delays d >= 1 : P@d is
+ * w@(k + d), which the ring of w still holds when k + d < N, the size of the ring (the cells
+ * of the ring are the N last values of w, the current one included once written, so a delay
+ * between 1 and N - 1 never reads the cell written this sample). Not under -fam (a group of an
+ * automaton is read in its arrays), -ls or -vec
+ */
+bool ScalarCompiler::foldedProjection(Tree P, Tree& w, int& k)
+{
+    int  i;
+    Tree r, var, le, kd;
+    if (gGlobal->gLoopSplit || gGlobal->gVectorSwitch || !isProj(P, &i, r) || !isRec(r, var, le) ||
+        fFamGroup.count(r) || fProjOtherReads.count(P) || !getConditionCode(P).empty()) {
+        return false;
+    }
+    Occurrences* occ = fOccMarkup->retrieve(P);
+    if (occ == nullptr || occ->hasOutDelayOccurrences() || occ->getMaxDelay() < 1) {
+        return false;
+    }
+    Tree def = nth(le, i);
+    if (!isSigDelay(def, w, kd) || !isSigInt(kd, &k) || k < 1 || !getConditionCode(def).empty()) {
+        return false;
+    }
+    DelayType dw = analyzeDelayType(w);
+    if (dw != DelayType::kMaskRingDelay && dw != DelayType::kSelectRingDelay) {
+        return false;
+    }
+    Occurrences* ow = fOccMarkup->retrieve(w);
+    return ow != nullptr && k + occ->getMaxDelay() <= pow2limit(ow->getMaxDelay() + 1) - 1;
+}
+
+/**
  * Adjacent-pair collapse, refresh side : at the end of every loop body the
  * carried scalars shift, HIGHEST delay first in the EMITTED text (a chain
  * d+2, d+1 must move before its source is overwritten -- and postcode is
@@ -8057,6 +8134,15 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
     // string    code = CS(exp);  // ensure exp is compiled to have a vector name
     std::string ctype, pname;
     getTypedNames(getCertifiedSigType(sig), "Veeec", ctype, pname);
+    Tree w;
+    int  dc, k;
+    if (isSigInt(delay, &dc) && foldedProjection(exp, w, k)) {
+        // P@dc with P = w@k : w@(k + dc), in the ring of w (foldedProjection)
+        string wname = ensureVectorNameProperty(pname, w);
+        int    N     = pow2limit(fOccMarkup->retrieve(w)->getMaxDelay() + 1);
+        string idx   = subst("faust_wrap_sub(IOTA, $0)&$1", T(k + dc), T(N - 1));
+        return generateCacheCode(sig, subst("$0[$1]", wname, generateIotaCache(idx, true)));
+    }
     string    vecname = ensureVectorNameProperty(pname, exp);
     int       mxd     = fOccMarkup->retrieve(exp)->getMaxDelay();
     DelayType dt      = analyzeDelayType(exp);
@@ -8419,8 +8505,11 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             fMaxIota++;
             // std::cerr << "MaxIota increased" << std::endl;
 
-            // declare and init
+            // declare and init ; a cache line after each ring : rings of a power of 2 bytes
+            // declared one after the other write their cells IOTA&(N-1) at addresses equal
+            // modulo 4 KB, all in the same set of the L1 cache
             fClass->addDeclCode(subst("$0 \t$1[$2]; // Ring Delay", ctype, vname, T(N)));
+            fClass->addDeclCode(subst("char \t$0Pad[64];", vname));
             fClass->addClearCode(subst("for (int i = 0; i < $1; i++) { $0[i] = 0; }", vname, T(N)));
 
             // execute (the write index is pure IOTA : always head-safe)

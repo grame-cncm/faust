@@ -164,6 +164,12 @@ class ScalarCompiler : public Compiler {
     std::vector<AdjLow>                      fAdjLows;
     void censusAdjacentReads(Tree L);
     void emitAdjacentUpdates();
+    // a projection defined by w@k and read only at constant delays d >= 1 reads w@(k + d) in
+    // the ring of w, without a line of its own ; censusAdjacentReads records the projections
+    // read any other way (at delay 0, by a variable or conditional delay, by a FIR or an IIR)
+    std::set<Tree, treeorder> fProjOtherReads;
+    void                      censusProjectionReads(Tree Lx);
+    bool                      foldedProjection(Tree P, Tree& w, int& k);
     std::map<Tree, int, treeorder>                fScheduleOrder;
 
     // -fam (LES-FAMILLES-DE-LA-FORME-DE-CALCUL, compile_fam.cpp) : the sum families, each
