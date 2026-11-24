@@ -1948,8 +1948,17 @@ string ScalarCompiler::CS(Tree sig)
                   << "::" << sig << "\t: generateCode( " << ppsig(sig, 10) << " )" << std::endl;
 #endif
         if (fSettled && !fClass->fConeMode && inCone(sig)) {
+            // a root of the cone read outside it : its value in a temporary declared before the
+            // loop, written by the cone, which the settled loop reads as a constant
             fClass->fConeMode = true;
             code              = generateCode(sig);
+            static const std::regex simple(R"(^\s*[A-Za-z_][A-Za-z0-9_]*\s*$|^\s*[-+0-9.eEf]+\s*$)");
+            if (!std::regex_match(code, simple)) {
+                std::string ctype, vname;
+                getTypedNames(getCertifiedSigType(sig), "Temp", ctype, vname);
+                fClass->addExecCode(Statement("", subst("$0 \t$1 = $2;", ctype, vname, code)));
+                code = vname;
+            }
             fClass->fConeMode = false;
         } else if (fClass->fConeMode && !inCone(sig)) {
             fClass->fConeMode = false;
