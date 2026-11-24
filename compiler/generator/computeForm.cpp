@@ -26,6 +26,7 @@
 #include "irmErrorForm.hh"
 #include "irm_weight.hh"
 #include "mixForm.hh"
+#include "ppsig.hh"
 #include "sigtransform.hh"
 #include "exactWeights.hh"
 #include "factorSums.hh"
@@ -282,13 +283,27 @@ bool settles(Tree t, std::unordered_map<Tree, bool>& memo)
         r = getCertifiedSigType(x)->variability() <= kBlock && getCertifiedSigType(p)->variability() <= kBlock;
     } else if (isProj(t, &i, g) || isSigInput(t, &i) || isRec(t, x, p)) {
         r = false;
+    } else if (tvec V; isSigIIR(t, V)) {
+        r = false;  // a recursion, even of a constant input and constant coefficients
     } else if (isSigDelay(t, x, d)) {
         r = settles(x, memo) && settles(d, memo);
     } else if (t->arity() > 0 && ty) {
         r = true;
         for (Tree b : t->branches()) {
-            int  op;
-            Tree a, c;
+            if (isSigInput(b, &i)) {
+                r = false;  // an input, which may be left without a type here
+                break;
+            }
+            if (isList(b)) {
+                // the arguments of a foreign function, a list without a type : each must settle
+                for (Tree l = b; r && isList(l); l = tl(l)) {
+                    r = isNum(hd(l)) || settles(hd(l), memo);
+                }
+                if (!r) {
+                    break;
+                }
+                continue;
+            }
             if (b->getType() == nullptr && !isNum(b)) {
                 continue;  // the opcode of a binary operation, a label
             }
@@ -296,7 +311,6 @@ bool settles(Tree t, std::unordered_map<Tree, bool>& memo)
                 r = false;
                 break;
             }
-            (void)op, (void)a, (void)c;
         }
     }
     memo[t] = r;
@@ -356,6 +370,94 @@ void ComputeForm::markSettlingCalls(Tree L)
     if (getenv("FAUST_TRACE_MEMO")) {
         std::cerr << "MEMO-TRACE costly-samp " << samp << " settling " << settling << std::endl;
     }
+    if (getenv("FAUST_TRACE_SETTLE")) {
+        censusSettlingCone(L, costly);
+    }
+}
+
+void ComputeForm::censusSettlingCone(Tree L, const std::unordered_set<xtended*>& costly)
+{
+    // the census of the regime where every smoother of a slow target and pole has reached it :
+    // the operations computed at the sample rate, those of the cone that then stays constant
+    // (settles), the smoothers, the costly calls, the frontier (the values of the cone read
+    // outside it) and the delays inside the cone
+    std::unordered_map<Tree, bool> memo, viaIrm;
+    std::unordered_set<Tree>       seen, frontier;
+    std::vector<Tree>              work{L};
+    int ops = 0, cone = 0, irms = 0, costlyOps = 0, costlyCone = 0, delays = 0, coneIrm = 0, costlyIrm = 0;
+    // a node of the cone reaches a smoother ; the others settle only through delays of slow values
+    std::function<bool(Tree)> reachesIrm = [&](Tree t) {
+        auto it = viaIrm.find(t);
+        if (it != viaIrm.end()) {
+            return it->second;
+        }
+        viaIrm[t] = false;
+        Tree    x, p;
+        IrmForm f;
+        bool    r = isSigIRM(t, x, p) || isCfIrm(t, x, p, f);
+        if (!r && t->getType() && getCertifiedSigType(t)->variability() == kSamp) {
+            for (Tree b : t->branches()) {
+                if (b->getType() && reachesIrm(b)) {
+                    r = true;
+                    break;
+                }
+            }
+        }
+        viaIrm[t] = r;
+        return r;
+    };
+    auto isOp = [](Tree t) {
+        int  i;
+        Tree g;
+        return t->arity() > 0 && t->getType() && getCertifiedSigType(t)->variability() == kSamp && !isProj(t, &i, g) &&
+               !isSigInput(t, &i);
+    };
+    while (!work.empty()) {
+        Tree t = work.back();
+        work.pop_back();
+        if (!seen.insert(t).second) {
+            continue;
+        }
+        Tree var, body;
+        if (isRec(t, var, body)) {
+            if (body != nullptr) work.push_back(body);
+            continue;
+        }
+        for (Tree b : t->branches()) work.push_back(b);
+        if (!isOp(t)) {
+            continue;
+        }
+        Tree     x, p, d;
+        IrmForm  f;
+        xtended* xt   = (xtended*)sigXtendedData(t);
+        bool     c    = settles(t, memo);
+        bool     cost = xt && costly.count(xt);
+        bool     irm  = isSigIRM(t, x, p) || isCfIrm(t, x, p, f);
+        ops++;
+        costlyOps += cost;
+        if (c) {
+            cone++;
+            costlyCone += cost;
+            if (std::string(getenv("FAUST_TRACE_SETTLE")) == "2") {
+                std::cerr << "SETTLE-NODE " << ppsig(t, 3) << std::endl;
+            }
+            if (reachesIrm(t)) {
+                coneIrm++;
+                costlyIrm += cost;
+            }
+            irms += irm;
+            delays += isSigDelay(t, x, d);
+        } else {
+            for (Tree b : t->branches()) {
+                if (b->getType() && isOp(b) && settles(b, memo)) {
+                    frontier.insert(b);
+                }
+            }
+        }
+    }
+    std::cerr << "SETTLE-TRACE samp-ops " << ops << " cone " << cone << " irm " << irms << " costly " << costlyOps
+              << " costly-cone " << costlyCone << " frontier " << frontier.size() << " cone-delays " << delays
+              << " cone-irm " << coneIrm << " costly-irm " << costlyIrm << std::endl;
 }
 
 Tree ComputeForm::translate(Tree t)

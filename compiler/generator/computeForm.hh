@@ -13,6 +13,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <unordered_set>
 
 #include "signals.hh"
 #include "sumLanes.hh"
@@ -61,6 +62,7 @@ class ComputeForm {
     void                           lowerCompounds();
     void                           cutSlowPrefixes();
     static void                    markSettlingCalls(Tree L);
+    static void                    censusSettlingCone(Tree L, const std::unordered_set<class xtended*>& costly);
 };
 
 /// t is a costly call at the sample rate (pow, exp, log, sin...) whose arguments settle : they depend
