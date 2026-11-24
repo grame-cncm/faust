@@ -207,6 +207,7 @@ Code generation options:
   **-noin**       **--no-integer-narrowing**      keep the conversions to int of the reals computed from integers (by default, int(min(x, float(n))) is written min(int(x), n), exactly).
 
   **-nomc**       **--no-call-memo**              call a costly function at every sample (by default, in C and C++, a call whose arguments settle, as a smoothed control, is made again only when an argument changed).
+  **-st**         **--settled-regime**            in C and C++, the computations that depend only on smoothed controls made once per block, while every smoother has reached its target.
 
   **-mcs** \<n>    **--min-certified-seconds** \<n> refuse a program certified for less than n seconds at 48000 Hz (default 10, 0 accepts any duration).
 

@@ -177,6 +177,13 @@ class CodeLoop : public virtual Garbageable {
 
     ForLoopInst* generateScalarLoop(const std::string& counter, bool loop_var_in_bytes = false);
 
+    // The settled regime (InstructionsCompiler::finishSettledRegime) : the statement of the loop
+    // that computes the cone while a smoother moves, and the flag of a settled block. The scalar
+    // loop is then emitted twice : a settled block runs the loop without that statement
+    StatementInst* fSettledGuard = nullptr;
+    std::string    fSettledFlag;
+    StatementInst* generateScalarLoops(const std::string& counter);
+
     // For SYFALA : loop with a fixed size (known at compile time)
     ForLoopInst* generateFixedScalarLoop();
 

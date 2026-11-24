@@ -19,6 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
+#include <algorithm>
 #include <list>
 #include <map>
 #include <set>
@@ -56,6 +57,26 @@ ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_i
 
     BasicCloneVisitor cloner;
     return static_cast<ForLoopInst*>(loop->clone(&cloner));
+}
+
+StatementInst* CodeLoop::generateScalarLoops(const string& counter)
+{
+    ForLoopInst* loop = generateScalarLoop(counter);
+    if (fSettledGuard == nullptr) {
+        return loop;
+    }
+    // the same loop without the guarded cone, for a settled block
+    auto it = std::find(fPreInst->fCode.begin(), fPreInst->fCode.end(), fSettledGuard);
+    faustassert(it != fPreInst->fCode.end());
+    it                   = fPreInst->fCode.erase(it);
+    ForLoopInst* settled = generateScalarLoop(counter);
+    fPreInst->fCode.insert(it, fSettledGuard);
+    BlockInst* then_block = IB::genBlockInst();
+    then_block->pushBackInst(settled);
+    BlockInst* else_block = IB::genBlockInst();
+    else_block->pushBackInst(loop);
+    return IB::genIfInst(IB::genNotEqual(IB::genLoadStackVar(fSettledFlag), IB::genInt32NumInst(0)), then_block,
+                         else_block);
 }
 
 ForLoopInst* CodeLoop::generateFixedScalarLoop()

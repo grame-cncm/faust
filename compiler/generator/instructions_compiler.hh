@@ -74,6 +74,21 @@ class InstructionsCompiler : public virtual Garbageable {
     std::set<Tree>    fUnstoredRecMembers;
     std::vector<Tree> fPendingDelayWrites;
 
+    // The settled regime (-st, LE-REGIME-FIGE) : the cone of the smoothers, the computations at the
+    // sample rate that depend only on slow values and on smoothers of a slow target and pole, is
+    // compiled in a block of its own, run once before the loop ; the loop runs it again at every
+    // sample only while a smoother moves (finishSettledRegime)
+    bool                           fSettled     = false;    ///< the regime applies to this compilation
+    bool                           fInCone      = false;    ///< a node of the cone is being compiled
+    BlockInst*                     fConeBlock   = nullptr;  ///< the cone, run once before the loop
+    BlockInst*                     fConeUpdates = nullptr;  ///< the smoothers written by their error, updated in place
+    ValueInst*                     fConeMoving  = nullptr;  ///< 1 while a smoother of the cone moves
+    std::unordered_map<Tree, bool> fConeMemo;
+    bool                           inCone(Tree sig);
+    StatementInst*                 pushConeMethod(StatementInst* inst);
+    void                           addConeTest(ValueInst* now, ValueInst* before, Typed::VarType type);
+    void                           finishSettledRegime();
+
     // Ensure IOTA base fixed delays are computed once
     std::map<int, std::string> fIOTATable;
 
@@ -194,7 +209,7 @@ class InstructionsCompiler : public virtual Garbageable {
     }
     StatementInst* pushComputeDSPMethod(StatementInst* inst)
     {
-        return fContainer->pushComputeDSPMethod(inst);
+        return fInCone ? pushConeMethod(inst) : fContainer->pushComputeDSPMethod(inst);
     }
     StatementInst* pushPostComputeDSPMethod(StatementInst* inst)
     {

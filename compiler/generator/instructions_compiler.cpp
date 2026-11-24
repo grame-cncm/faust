@@ -526,11 +526,165 @@ ValueInst* InstructionsCompiler::CS(Tree sig)
     ValueInst* code;
 
     if (!getCompiledExpression(sig, code)) {
-        code = generateCode(sig);
+        if (fSettled && !fInCone && inCone(sig)) {
+            // a root of the cone read outside it : its value in a temporary declared before the
+            // loop, written by the cone (the settled regime, finishSettledRegime)
+            fInCone = true;
+            code    = generateCode(sig);
+            if (!dynamic_cast<LoadVarInst*>(code) && !dynamic_cast<NumValueInst*>(code)) {
+                BasicTyped* ctype;
+                string      vname;
+                getTypedNames(getCertifiedSigType(sig), "Temp", ctype, vname);
+                pushComputeDSPMethod(IB::genDecStackVar(vname, ctype, code));
+                code = IB::genLoadStackVar(vname);
+            }
+            fInCone = false;
+        } else {
+            code = generateCode(sig);
+        }
         setCompiledExpression(sig, code);
     }
 
     return code;
+}
+
+/**
+ * The cone of the settled regime (LE-REGIME-FIGE) : a node computed at the sample rate, without a
+ * condition, by a stateless operation whose operands are numbers, slow values or nodes of the cone,
+ * or a smoother of a slow target and pole (an IRM) whose line is copied (its delay below
+ * gMaxCopyDelay) : a line that is not written while the block is settled stays exact only when its
+ * cells are shifted at every sample. A delay, a recursion, an input, a table write are not in it.
+ */
+bool InstructionsCompiler::inCone(Tree sig)
+{
+    auto it = fConeMemo.find(sig);
+    if (it != fConeMemo.end()) {
+        return it->second;
+    }
+    fConeMemo[sig] = false;  // a cycle is not in the cone
+    bool r = false;
+    if (sig->getType() && getCertifiedSigType(sig)->variability() == kSamp &&
+        dynamic_cast<NullValueInst*>(getConditionCode(sig))) {
+        auto operand = [&](Tree b) {
+            return isNum(b) || (b->getType() && getCertifiedSigType(b)->variability() <= kBlock) || inCone(b);
+        };
+        Tree    x, y, z, ff, largs;
+        int     op;
+        IrmForm f;
+        MixForm mf;
+        bool    approx;
+        if (isCfIrm(sig, x, y, f) || isSigIRM(sig, x, y)) {
+            Occurrences* o = fOccMarkup->retrieve(sig);
+            r = getCertifiedSigType(x)->variability() <= kBlock && getCertifiedSigType(y)->variability() <= kBlock &&
+                o != nullptr && o->getMaxDelay() < gGlobal->gMaxCopyDelay;
+        } else if (tvec V; isSigSum(sig, V) || isSigProd(sig, V)) {
+            r = true;
+            for (Tree v : V) {
+                r = r && operand(v);
+            }
+        } else if (tvec T, R; isSigBpf(sig, x, T, R)) {
+            r = operand(x);
+        } else if (isSigBinOp(sig, &op, x, y)) {
+            r = operand(x) && operand(y);
+        } else if (isSigSelect2(sig, x, y, z) || isCfMix(sig, x, y, z, mf) || isSigMix(sig, x, y, z)) {
+            r = operand(x) && operand(y) && operand(z);
+        } else if (isSigIntCast(sig, x) || isSigFloatCast(sig, x) || isCfFrac(sig, x, approx) || isSigNeg(sig, x) ||
+                   isSigFrac(sig, x) || isSigCfrac(sig, x)) {
+            r = operand(x);
+        } else if (isSigFFun(sig, ff, largs)) {
+            r = true;
+            for (Tree l = largs; r && isList(l); l = tl(l)) {
+                r = operand(hd(l));
+            }
+        } else if (sigXtendedData(sig) != nullptr) {
+            r = true;
+            for (Tree b : sig->branches()) {
+                r = r && operand(b);
+            }
+        } else if (getenv("FAUST_TRACE_CONE")) {
+            bool all = true;
+            for (Tree b : sig->branches()) {
+                all = all && (b->getType() == nullptr || operand(b));
+            }
+            if (all) {
+                std::cerr << "CONE-UNKNOWN " << sig->node() << " : " << ppsig(sig, 2) << std::endl;
+            }
+        }
+    }
+    fConeMemo[sig] = r;
+    return r;
+}
+
+/**
+ * A statement of the cone : in the cone's block ; a temporary of the cone is declared before the
+ * loop, where the cone and the loop read it, and written by the cone
+ */
+StatementInst* InstructionsCompiler::pushConeMethod(StatementInst* inst)
+{
+    DeclareVarInst* d = dynamic_cast<DeclareVarInst*>(inst);
+    if (d && (d->getAccess() & Address::kStack)) {
+        pushComputeBlockMethod(IB::genDecStackVar(d->getName(), d->fType));
+        if (d->fValue) {
+            fConeBlock->pushBackInst(IB::genStoreStackVar(d->getName(), d->fValue));
+        }
+        return inst;
+    }
+    fConeBlock->pushBackInst(inst);
+    return inst;
+}
+
+/**
+ * A smoother of the cone moves while its state now differs, bit for bit, from its state before
+ */
+void InstructionsCompiler::addConeTest(ValueInst* now, ValueInst* before, Typed::VarType type)
+{
+    const string suffix = (gGlobal->gFloatSize == 1) ? "f" : (gGlobal->gFloatSize == 3) ? "l" : "";
+    std::vector<Typed::VarType> dtypes = {type, type};
+    Values                      dargs;
+    dargs.push_back(now);
+    dargs.push_back(before);
+    ValueInst* diff = fContainer->pushFunction("faustdiff" + suffix, Typed::kInt32, dtypes, dargs);
+    xtendedCodegen::fNeedMemoHelpers = true;
+    fConeMoving                      = fConeMoving ? IB::genOr(fConeMoving, diff) : diff;
+}
+
+/**
+ * The settled regime, once every output is compiled. Before the loop, after the code of the block,
+ * the cone is run once : it reads only slow values and the past states of its smoothers, and
+ * writes their current states (the sample 0 of the loop computes the same values again). The block
+ * is settled when every smoother is at a fixed point of its update, its current state equal to
+ * its past one bit for bit, and a smoother written by its error when its update leaves it as it
+ * is. The loop runs the updates and the cone at every sample only when the block is not settled.
+ */
+void InstructionsCompiler::finishSettledRegime()
+{
+    if (!fSettled || fConeBlock->fCode.empty()) {
+        return;
+    }
+    BasicCloneVisitor cloner;
+    pushComputeBlockMethod(static_cast<StatementInst*>(fConeBlock->clone(&cloner)));
+    ValueInst* moving = fConeMoving ? fConeMoving : IB::genInt32NumInst(1);
+    pushComputeBlockMethod(IB::genDecStackVar("iSettled", Typed::kInt32, IB::genEqual(moving, IB::genInt32NumInst(0))));
+    if (getenv("FAUST_SETTLED_COUNT")) {
+        // the number of settled blocks, for the tests of the regime
+        pushDeclare(IB::genDecStructVar("iSettledBlocks", IB::genBasicTyped(Typed::kInt32)));
+        pushClearMethod(IB::genStoreStructVar("iSettledBlocks", IB::genInt32NumInst(0)));
+        pushComputeBlockMethod(IB::genStoreStructVar(
+            "iSettledBlocks", IB::genAdd(IB::genLoadStructVar("iSettledBlocks"), IB::genLoadStackVar("iSettled"))));
+    }
+    BlockInst* loop = IB::genBlockInst();
+    for (StatementInst* s : fConeUpdates->fCode) {
+        loop->pushBackInst(s);
+    }
+    for (StatementInst* s : fConeBlock->fCode) {
+        loop->pushBackInst(s);
+    }
+    StatementInst* guard =
+        IB::genIfInst(IB::genEqual(IB::genLoadStackVar("iSettled"), IB::genInt32NumInst(0)), loop);
+    fContainer->pushPreComputeDSPMethod(guard);
+    // a settled block runs the same loop without the cone (CodeLoop::generateScalarLoops)
+    fContainer->getCurLoop()->fSettledGuard = guard;
+    fContainer->getCurLoop()->fSettledFlag  = "iSettled";
 }
 
 CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree sig)
@@ -596,6 +750,16 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     gGlobal->initTypeSizeMap();
 
     L = prepare(L);  // Optimize, share and annotate expression
+
+    // the settled regime : C and C++, one scalar loop, real numbers in float, double or quad
+    fSettled = gGlobal->gSettledRegime && ((gGlobal->gOutputLang == "cpp") || (gGlobal->gOutputLang == "c")) &&
+               !gGlobal->gVectorSwitch && !gGlobal->gSchedulerSwitch && !gGlobal->gOpenMPSwitch &&
+               !gGlobal->gOneSample && !gGlobal->gOneSampleIO && (gGlobal->gFloatSize >= 1) &&
+               (gGlobal->gFloatSize <= 3);
+    if (fSettled) {
+        fConeBlock   = IB::genBlockInst();
+        fConeUpdates = IB::genBlockInst();
+    }
 
     // Compile inputs when gInPlace (force caching for in-place transformations)
     if (gGlobal->gInPlace) {
@@ -744,6 +908,8 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         return_string = return_string + "])";
         pushPostComputeDSPMethod(IB::genRetInst(IB::genLoadStackVar(return_string)));
     }
+
+    finishSettledRegime();
 
     Tree ui = fUITree.prepareUserInterfaceTree();
     generateUserInterfaceTree(ui, true);
@@ -3031,7 +3197,13 @@ ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p, IrmForm f
         ValueInst* d = IB::genBinopInst(kSub, vx, prev);
         code         = IB::genBinopInst(kAdd, lineRead(vname, mxd, 1), IB::genBinopInst(kMul, vw, d));
     }
-    return writeIIRLine(sig, code, ctype, vname, mxd);
+    ValueInst* res = writeIIRLine(sig, code, ctype, vname, mxd);
+    if (fInCone) {
+        // the settled regime : the state just written against the past one (a copied line)
+        addConeTest(IB::genLoadArrayStructVar(vname, IB::genInt32NumInst(0)),
+                    IB::genLoadArrayStructVar(vname, IB::genInt32NumInst(1)), ctype->getType());
+    }
+    return res;
 }
 
 /**
@@ -3078,8 +3250,18 @@ ValueInst* InstructionsCompiler::generateIRMError(Tree sig, Tree x, Tree p)
         pushComputeBlockMethod(IB::genDecStackVar(lname, rtype, IB::genLoadStructVar(ename)));
         fContainer->pushPostComputeBlockMethod(IB::genStoreStructVar(ename, IB::genLoadStackVar(lname)));
     }
-    pushComputeDSPMethod(
-        IB::genControlInst(ccs, IB::genStoreStackVar(lname, IB::genBinopInst(kMul, vp, IB::genLoadStackVar(lname)))));
+    if (fInCone) {
+        // the settled regime : the update in place runs in the loop only, and the error is settled
+        // when the update leaves it as it is
+        BasicCloneVisitor cloner;
+        fConeUpdates->pushBackInst(
+            IB::genStoreStackVar(lname, IB::genBinopInst(kMul, vp, IB::genLoadStackVar(lname))));
+        addConeTest(IB::genBinopInst(kMul, vp->clone(&cloner), IB::genLoadStackVar(lname)), IB::genLoadStackVar(lname),
+                    rtype->getType());
+    } else {
+        pushComputeDSPMethod(IB::genControlInst(
+            ccs, IB::genStoreStackVar(lname, IB::genBinopInst(kMul, vp, IB::genLoadStackVar(lname)))));
+    }
     ValueInst* code = IB::genBinopInst(kAdd, vx, IB::genLoadStackVar(lname));
     if (b.clampLo || b.clampHi) {
         const string t = subst("f$0", gGlobal->getFreshID("Temp"));

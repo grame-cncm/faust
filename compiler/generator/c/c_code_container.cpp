@@ -857,7 +857,8 @@ void CScalarCodeContainer::generateComputeAux(int n)
     generateComputeBlock(fCodeProducer);
 
     // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+    // twice under the settled regime (CodeLoop::generateScalarLoops)
+    StatementInst* loop = fCurLoop->generateScalarLoops(fFullCount);
     loop->accept(fCodeProducer);
 
     /*

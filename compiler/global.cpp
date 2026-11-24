@@ -596,6 +596,7 @@ void global::reset()
     gExactWeights         = true;
     gIntNarrowing         = true;
     gCallMemo             = true;
+    gSettledRegime        = false;
     gReciprocals          = true;
     gGuardedTemps         = true;
     gMinCertifiedSeconds  = 10;
@@ -999,6 +1000,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gCallMemo) {
         dst << "-mc ";
+    }
+    if (gSettledRegime) {
+        dst << "-st ";
     }
     if (gReciprocals) {
         dst << "-rcp ";
@@ -1858,6 +1862,14 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-nomc", "--no-call-memo")) {
             gCallMemo = false;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-st", "--settled-regime")) {
+            gSettledRegime = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-nost", "--no-settled-regime")) {
+            gSettledRegime = false;
             i += 1;
 
         } else if (isCmd(argv[i], "-rcp", "--reciprocals")) {
@@ -2976,6 +2988,10 @@ string global::printHelp()
     sstr << tab
          << "-nomc       --no-call-memo              call a costly function at every sample (by default, in C and C++, "
             "a call whose arguments settle, as a smoothed control, is made again only when an argument changed)."
+         << endl;
+    sstr << tab
+         << "-st        --settled-regime            in C and C++, the computations that depend only on smoothed controls "
+            "made once per block, while every smoother has reached its target."
          << endl;
     sstr << tab
          << "-norcp      --no-reciprocals            keep the divisions (by default, outside the cone of the "
