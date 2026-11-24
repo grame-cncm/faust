@@ -26,6 +26,11 @@
  * sample-rate terms t0, ..., tm in 4 partial sums added as a balanced tree, each partial
  * sum in chains of 4 terms themselves added as a balanced tree.
  *
+ * A long FIR, FIR(x; c0, ..., cn), real, at the sample rate, with at least 8 taps of nonzero
+ * coefficient, that no IIR reads as its input (the emission may fuse it into the IIR), is
+ * the sum of its taps c_k * x@k, laid out the same way : the code generators would compute
+ * it as one chain of n multiply-adds.
+ *
  * A sum first takes in its nested sums (step 3f.1 of the computation form) : a term that
  * is a real sum at the sample rate, or its negation, that no other signal reads, is
  * replaced by its terms, at its place, when the sum thus gathered has at least 8

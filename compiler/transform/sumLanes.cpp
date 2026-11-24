@@ -599,11 +599,40 @@ Tree gatherAndLay(Tree L, const LaneOrder* order, std::unordered_map<Tree, Tree>
             }
         }
     }
+    // the FIRs an IIR reads as its input : the emission may fuse them into it (markLateTaps)
+    std::unordered_set<Tree> iirInputs;
+    for (Tree t : nodes) {
+        tvec V;
+        if (isSigIIR(t, V) && isSigFIR(V[0])) {
+            iirInputs.insert(V[0]);
+        }
+    }
     // a gathered sum -> its terms with their rates
     std::unordered_map<Tree, std::vector<std::pair<Tree, int>>> gathered;
     std::unordered_map<Tree, Tree>                              memo;
     auto rule = [&](Tree orig, Tree rebuilt) -> Tree {
         tvec ot, rt;
+        tvec of, rf;
+        if (order != nullptr && isSigFIR(orig, of) && isSigFIR(rebuilt, rf) && exact.nature(orig) == kReal &&
+            exact.variability(orig) == kSamp && cone.count(orig) == 0 && iirInputs.count(orig) == 0) {
+            // a long FIR, FIR(x; c0, ..., cn) : the sum of its taps c_k * x@k, in partial sums
+            tvec taps;
+            for (size_t k = 1; k < rf.size(); k++) {
+                if (isZero(rf[k])) {
+                    continue;
+                }
+                Tree d = rf[0];
+                if (k > 1) {
+                    Tree amount = sigInt(int(k - 1));
+                    d           = sigDelay(rf[0], amount);
+                }
+                taps.push_back(sigMul(rf[k], d));
+            }
+            if (taps.size() >= size_t(2 * kLanes)) {
+                return laneSum(taps, 0, *order);
+            }
+            return rebuilt;
+        }
         if (!isSigSum(orig, ot) || !isSigSum(rebuilt, rt) || ot.size() != rt.size() ||
             exact.nature(orig) != kReal || cone.count(orig) != 0) {
             return rebuilt;
