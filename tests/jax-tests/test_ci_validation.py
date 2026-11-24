@@ -202,9 +202,11 @@ def test_exp10_table_initialization():
     """Test that exp10 in tables and carry maps to np.power(10.0, ...) in numpy mode."""
     print("\nTesting exp10 table initialization mapping...")
 
+    # pow(10, k) becomes exp10(k) under -exp10 only for a real k : a power of integers
+    # (k an integer) is a product, its inverse for k < 0 (c393a4ab5)
     dsp_code = """
 import("stdfaust.lib");
-process = rdtable(10, pow(10, +(1)~_), 0);
+process = rdtable(10, pow(10, float(+(1)~_)), 0);
 """
 
     with tempfile.NamedTemporaryFile(mode='w', suffix='.dsp', delete=False) as f:

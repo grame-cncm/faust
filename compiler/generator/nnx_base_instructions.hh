@@ -1124,7 +1124,10 @@ class NNXBaseInstVisitor : public TextInstVisitor {
 
     virtual void visit(Select2Inst* inst)
     {
-        *fOut << "jnp.where(";
+        // numpy in the initialization code, as the other functions : a jnp.where there makes a
+        // JAX array of a numpy value (a table filled in a loop, the power of integers of a
+        // possibly negative exponent written as a select2), which fails under jit
+        *fOut << (fUseNumpy ? "np" : "jnp") << ".where(";
         visitCond(inst->fCond);
         *fOut << ", ";
         inst->fThen->accept(this);
