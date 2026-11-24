@@ -221,8 +221,22 @@ class Klass {
     void addZone4(const std::string& str) { fZone4Code.push_back(str); }
 
     void addPreCode(const Statement& stmt) { fTopLoop->addPreCode(stmt); }
-    void addExecCode(const Statement& stmt) { fTopLoop->addExecCode(stmt); }
+    void addExecCode(const Statement& stmt);
     void addPostCode(const Statement& stmt) { fTopLoop->addPostCode(stmt); }
+
+    // The settled regime (-st, LE-REGIME-FIGE) : while fConeMode, the statements of the loop go to
+    // the cone, a temporary declared before the loop ; while fConeUpdateMode, to the updates of the
+    // smoothers' states, which a settled block never runs. The cone runs once before the loop (after
+    // fConeHead), the block is settled when no test (each 1 while its smoother moves) holds, and the
+    // loop is printed twice : without the cone, and with the updates and the cone at its head
+    bool                   fConeMode       = false;
+    bool                   fConeUpdateMode = false;
+    std::list<Statement>   fConeCode;
+    std::list<Statement>   fConeUpdates;
+    std::list<std::string> fConeHead;
+    std::list<std::string> fConeTests;
+    bool                   coneMentions(const std::string& vname) const;
+    void                   printSettledLoops(int n, std::ostream& fout);
 
     virtual void println(int n, std::ostream& fout);
 

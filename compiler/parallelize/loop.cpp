@@ -310,15 +310,18 @@ void Loop::printParLoopln(int n, ostream& fout)
  * @param n number of tabs of indentation
  * @param fout output stream
  */
-void Loop::printoneln(int n, ostream& fout)
+void Loop::printoneln(int n, ostream& fout, const list<Statement>* head)
 {
-    if (fPreCode.size() + fExecCode.size() + fPostCode.size() > 0) {
+    if (fPreCode.size() + fExecCode.size() + fPostCode.size() + (head ? head->size() : 0) > 0) {
         tab(n, fout);
         fout << "for (int i=0; i<" << fSize << "; i++) {";
         if (fPreCode.size() > 0) {
             tab(n + 1, fout);
             fout << "// pre processing";
             printlines(n + 1, fPreCode, fout);
+        }
+        if (head) {
+            printlines(n + 1, const_cast<list<Statement>&>(*head), fout);
         }
         printlines(n + 1, fExecCode, fout);
         if (fPostCode.size() > 0) {

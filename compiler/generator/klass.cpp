@@ -37,6 +37,7 @@
 #include <iostream>
 #include <list>
 #include <map>
+#include <regex>
 #include <sstream>
 #include <string>
 
@@ -716,6 +717,102 @@ void Klass::printLoopGraphScalar(int n, ostream& fout)
 }
 
 /**
+ * A statement of the loop, or of the cone while a node of the cone is compiled (the settled
+ * regime) : a temporary of the cone is declared before the loop, where the cone and the loop read
+ * it, and written by the cone
+ */
+void Klass::addExecCode(const Statement& stmt)
+{
+    if (!fConeMode) {
+        fTopLoop->addExecCode(stmt);
+        return;
+    }
+    if (fConeUpdateMode) {
+        fConeUpdates.push_back(stmt);
+        return;
+    }
+    static const std::regex decl(R"(^\s*([A-Za-z_][A-Za-z0-9_]*)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$)");
+    std::smatch             m;
+    const std::string&      code = stmt.code();
+    if (std::regex_match(code, m, decl)) {
+        addZone3(subst("$0 \t$1;", m[1].str(), m[2].str()));
+        fConeCode.push_back(Statement(stmt.condition(), subst("$0 = $1", m[2].str(), m[3].str())));
+        return;
+    }
+    fConeCode.push_back(stmt);
+}
+
+/**
+ * The cone of the settled regime mentions vname (a whole word)
+ */
+bool Klass::coneMentions(const std::string& vname) const
+{
+    const std::regex w("\\b" + vname + "\\b");
+    for (const auto& st : fConeCode) {
+        if (std::regex_search(st.code(), w)) {
+            return true;
+        }
+    }
+    for (const auto& st : fConeUpdates) {
+        if (std::regex_search(st.code(), w)) {
+            return true;
+        }
+    }
+    for (const auto& l : fConeHead) {
+        if (std::regex_search(l, w)) {
+            return true;
+        }
+    }
+    for (const auto& l : fConeTests) {
+        if (std::regex_search(l, w)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * The scalar loop under the settled regime (InstructionsCompiler::finishSettledRegime, in C and
+ * C++) : the cone once, the test of every smoother, then the loop without the cone for a settled
+ * block, or with the updates of the smoothers and the cone at the head of its body
+ */
+void Klass::printSettledLoops(int n, ostream& fout)
+{
+    if (fConeCode.empty() && fConeUpdates.empty()) {
+        printLoopGraphScalar(n, fout);
+        return;
+    }
+    for (const auto& l : fConeHead) {
+        tab(n, fout);
+        fout << l;
+    }
+    for (const auto& st : fConeCode) {
+        tab(n, fout);
+        fout << st.code();
+    }
+    std::string moving;
+    for (const auto& t : fConeTests) {
+        moving += (moving.empty() ? "" : " | ") + t;
+    }
+    tab(n, fout);
+    fout << "int iSettled = " << (moving.empty() ? "0" : "!(" + moving + ")") << ";";
+    if (getenv("FAUST_SETTLED_COUNT")) {
+        tab(n, fout);
+        fout << "iSettledBlocks += iSettled;";
+    }
+    tab(n, fout);
+    fout << "if (iSettled) {";
+    fTopLoop->printoneln(n + 1, fout);
+    tab(n, fout);
+    fout << "} else {";
+    std::list<Statement> head = fConeUpdates;
+    head.insert(head.end(), fConeCode.begin(), fConeCode.end());
+    fTopLoop->printoneln(n + 1, fout, &head);
+    tab(n, fout);
+    fout << "}";
+}
+
+/**
  * returns true if all the loops are non recursive
  */
 static bool nonRecursiveLevel(const lset& L)
@@ -1392,7 +1489,7 @@ void Klass::printComputeMethodScalarBlock(int n, ostream& fout)
         // index pinned to 0 : the zone-3 rebases fold to plain pointers
         fout << "const int index = 0; (void)index; // flat: single-loop scalar";
         printlines(n + 2, fZone3Code, fout);
-        printLoopGraphScalar(n + 2, fout);
+        printSettledLoops(n + 2, fout);
         printlines(n + 2, fZone3Post, fout);
         printlines(n + 2, fZone4Code, fout);
         tab(n + 1, fout);
@@ -1413,7 +1510,7 @@ void Klass::printComputeMethodScalarBlock(int n, ostream& fout)
     tab(n + 3, fout);
     fout << "int count = faustmini(" << gGlobal->gVecSize << ", fullcount-index);";
     printlines(n + 3, fZone3Code, fout);
-    printLoopGraphScalar(n + 3, fout);
+    printSettledLoops(n + 3, fout);
     printlines(n + 3, fZone3Post, fout);
     tab(n + 2, fout);
     fout << "}";
@@ -1969,6 +2066,9 @@ static void replaceAll(std::string& s, const std::string& from, const std::strin
 
 bool Klass::scalarizeSingleDelay(const std::string& vname)
 {
+    if (coneMentions(vname)) {
+        return false;  // the settled regime : the cone, printed apart, keeps the vector
+    }
     // the structural pieces exactly as generateDelayLine wrote them
     const std::string declTail = vname + "[2];";
     const std::string loadLine = vname + "[1] = " + vname + "State;";

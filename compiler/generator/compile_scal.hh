@@ -170,6 +170,11 @@ class ScalarCompiler : public Compiler {
     std::set<Tree, treeorder> fProjOtherReads;
     void                      censusProjectionReads(Tree Lx);
     bool                      foldedProjection(Tree P, Tree& w, int& k);
+    // the settled regime (-st, LE-REGIME-FIGE) : the nodes of the cone are compiled with the cone
+    // mode of the class (Klass::addExecCode), the updates of their smoothers apart
+    bool                           fSettled = false;
+    std::unordered_map<Tree, bool> fConeMemo;
+    bool                           inCone(Tree sig);
     std::map<Tree, int, treeorder>                fScheduleOrder;
 
     // -fam (LES-FAMILLES-DE-LA-FORME-DE-CALCUL, compile_fam.cpp) : the sum families, each

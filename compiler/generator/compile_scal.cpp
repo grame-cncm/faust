@@ -1947,7 +1947,17 @@ string ScalarCompiler::CS(Tree sig)
                   << step << " [order: " << fScheduleOrder[sig] << "] "
                   << "::" << sig << "\t: generateCode( " << ppsig(sig, 10) << " )" << std::endl;
 #endif
-        code = generateCode(sig);
+        if (fSettled && !fClass->fConeMode && inCone(sig)) {
+            fClass->fConeMode = true;
+            code              = generateCode(sig);
+            fClass->fConeMode = false;
+        } else if (fClass->fConeMode && !inCone(sig)) {
+            fClass->fConeMode = false;
+            code              = generateCode(sig);
+            fClass->fConeMode = true;
+        } else {
+            code = generateCode(sig);
+        }
         setCompiledExpression(sig, code);
 
 #ifdef TRACE
@@ -4891,6 +4901,15 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
     L = prepare(L);  // optimize, share and annotate expression
     censusAdjacentReads(L);
     censusProjectionReads(fFamRoot != nullptr ? fFamRoot : L);
+    // the settled regime : one scalar loop, real numbers in float, double or quad
+    fSettled = gGlobal->gSettledRegime && !gGlobal->gVectorSwitch && !gGlobal->gLoopSplit &&
+               !gGlobal->gSchedulerSwitch && !gGlobal->gOpenMPSwitch && (gGlobal->gFloatSize >= 1) &&
+               (gGlobal->gFloatSize <= 3);
+    if (fSettled && getenv("FAUST_SETTLED_COUNT")) {
+        // the number of settled blocks, for the tests of the regime
+        fClass->addDeclCode("int \tiSettledBlocks;");
+        fClass->addClearCode("iSettledBlocks = 0;");
+    }
     fMainCompilePhase = true;
 
     for (int i = 0; i < fClass->inputs(); i++) {
@@ -7161,6 +7180,72 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
  * computation form (lowerComposites.hh), (1 - p) * x and w are operands of the node : only
  * under -fx are they computed here.
  */
+/**
+ * The cone of the settled regime in ocpp, as InstructionsCompiler::inCone : a node at the sample rate,
+ * without a condition, outside the families, by a stateless operation whose operands are numbers, slow
+ * values or nodes of the cone ; a node read with a delay writes its line at every sample and is not in
+ * it ; a smoother of a slow target and pole is, when only its own update reads its past (in a scalar or
+ * in a vector of two, its write moves to the head of the loop) or, written by its error, without a line
+ */
+bool ScalarCompiler::inCone(Tree sig)
+{
+    auto it = fConeMemo.find(sig);
+    if (it != fConeMemo.end()) {
+        return it->second;
+    }
+    fConeMemo[sig] = false;  // a cycle is not in the cone
+    bool         r = false;
+    Occurrences* o = fOccMarkup->retrieve(sig);
+    Tree         x, y, z, ff, largs;
+    int          op;
+    IrmForm      f;
+    MixForm      mf;
+    bool         approx;
+    const bool   irm = isCfIrm(sig, x, y, f) || isSigIRM(sig, x, y);
+    if (o != nullptr && sig->getType() && getCertifiedSigType(sig)->variability() == kSamp &&
+        getConditionCode(sig).empty() && !fFamPrivate.count(sig) && (irm || o->getMaxDelay() == 0)) {
+        auto operand = [&](Tree b) {
+            return isNum(b) || (b->getType() && getCertifiedSigType(b)->variability() <= kBlock) || inCone(b);
+        };
+        if (irm) {
+            bool slow = getCertifiedSigType(x)->variability() <= kBlock && getCertifiedSigType(y)->variability() <= kBlock;
+            if (isCfIrm(sig, x, y, f) && f == IrmForm::kError) {
+                r = slow && o->getMaxDelay() == 0;
+            } else {
+                DelayType dt = analyzeDelayType(sig);
+                r = slow && o->getMaxDelay() == 1 && o->getDelayCount() == 1 &&
+                    (dt == DelayType::kMonoDelay || dt == DelayType::kSingleDelay);
+            }
+        } else if (tvec V; isSigSum(sig, V) || isSigProd(sig, V)) {
+            r = true;
+            for (Tree v : V) {
+                r = r && operand(v);
+            }
+        } else if (tvec T, R; isSigBpf(sig, x, T, R)) {
+            r = operand(x);
+        } else if (isSigBinOp(sig, &op, x, y)) {
+            r = operand(x) && operand(y);
+        } else if (isSigSelect2(sig, x, y, z) || isCfMix(sig, x, y, z, mf) || isSigMix(sig, x, y, z)) {
+            r = operand(x) && operand(y) && operand(z);
+        } else if (isSigIntCast(sig, x) || isSigFloatCast(sig, x) || isCfFrac(sig, x, approx) || isSigNeg(sig, x) ||
+                   isSigFrac(sig, x) || isSigCfrac(sig, x)) {
+            r = operand(x);
+        } else if (isSigFFun(sig, ff, largs)) {
+            r = true;
+            for (Tree l = largs; r && isList(l); l = tl(l)) {
+                r = operand(hd(l));
+            }
+        } else if (sigXtendedData(sig) != nullptr) {
+            r = true;
+            for (Tree b : sig->branches()) {
+                r = r && operand(b);
+            }
+        }
+    }
+    fConeMemo[sig] = r;
+    return r;
+}
+
 string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p, IrmForm form)
 {
     if (form == IrmForm::kError) {
@@ -7209,6 +7294,22 @@ string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p, IrmForm form)
         }
         code = subst("($0 + $1 * ($2 - $0))", prev, sw, sx);
     }
+    if (fClass->fConeMode) {
+        // the settled regime : the update of the state at the head of a moving loop only ; before the
+        // loop, the current value is the past one (a vector of two), and the block settles when the
+        // update leaves the state as it is
+        const std::string suffix = (gGlobal->gFloatSize == 1) ? "f" : (gGlobal->gFloatSize == 3) ? "l" : "";
+        fClass->fConeTests.push_back(subst("faustdiff$0($1, $2)", suffix, code, prev));
+        xtendedCodegen::fNeedMemoHelpers = true;
+        fClass->fConeUpdateMode = true;
+        std::string r           = generateDelayVec(sig, code, ctype, vname, o->getMaxDelay(), o->getDelayCount());
+        fClass->fConeUpdateMode = false;
+        std::string line;
+        if (analyzeDelayType(sig) == DelayType::kSingleDelay && getVectorNameProperty(sig, line)) {
+            fClass->fConeHead.push_back(subst("$0[0] = $0[1];", line));
+        }
+        return r;
+    }
     return generateDelayVec(sig, code, ctype, vname, o->getMaxDelay(), o->getDelayCount());
 }
 
@@ -7244,7 +7345,16 @@ string ScalarCompiler::generateIRMError(Tree sig, Tree x, Tree p)
     // before and after the sample loops
     fClass->addZone2(subst("$0 \t$1 = $2;", ctype, lname, ename));
     fClass->addZone3Post(subst("$0 = $1;", ename, lname));
-    fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1 * $0;", lname, sp)));
+    if (fClass->fConeMode) {
+        // the settled regime : the update in place in a moving loop only, settled when it leaves the
+        // error as it is
+        const std::string suffix = (gGlobal->gFloatSize == 1) ? "f" : (gGlobal->gFloatSize == 3) ? "l" : "";
+        fClass->fConeTests.push_back(subst("faustdiff$0($1 * $2, $2)", suffix, sp, lname));
+        xtendedCodegen::fNeedMemoHelpers = true;
+        fClass->fConeUpdates.push_back(Statement("", subst("$0 = $1 * $0;", lname, sp)));
+    } else {
+        fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1 * $0;", lname, sp)));
+    }
     std::string code = subst("($0 + $1)", sx, lname);
     if (b.clampLo || b.clampHi) {
         const std::string t = subst("f$0", getFreshID("Temp"));

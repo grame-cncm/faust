@@ -78,7 +78,7 @@ struct Loop {
     void println(int n, std::ostream& fout);         ///< print the loop
     void printParLoopln(int n, std::ostream& fout);  ///< print the loop with a #pragma omp loop
 
-    void printoneln(int n, std::ostream& fout);  ///< print the loop in scalar mode
+    void printoneln(int n, std::ostream& fout, const std::list<Statement>* head = nullptr);  ///< print the loop in scalar mode, head statements first
 
     void absorb(Loop* l);  ///< absorb a loop inside this one
     // new method

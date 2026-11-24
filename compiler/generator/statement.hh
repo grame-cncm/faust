@@ -40,8 +40,8 @@ class Statement {
 
     bool               hasCondition() { return fHasCondition; }
     bool               hasCondition(const std::string& cond) { return (fCondition == cond); }
-    const std::string& condition() { return fCondition; }
-    const std::string& code() { return fCode; }
+    const std::string& condition() const { return fCondition; }
+    const std::string& code() const { return fCode; }
 };
 
 #endif  // STATEMENT_H
