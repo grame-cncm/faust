@@ -27,15 +27,22 @@
 // Routes struct variables to params[""] (UI parameters) or state[""]; every
 // other variable is a bare local. kStaticStruct are actually merged in the
 // main DSP.
+inline bool nnxIsUIParam(NamedAddress* named)
+{
+    if (!(named->isStruct() || named->isStaticStruct())) {
+        return false;
+    }
+    const std::string& name = named->fName;
+    return (name.find("fButton") == 0) || (name.find("fCheckbox") == 0) ||
+           (name.find("fVslider") == 0) || (name.find("fHslider") == 0) ||
+           (name.find("fEntry") == 0) || (name.find("fVbargraph") == 0) ||
+           (name.find("fHbargraph") == 0);
+}
+
 inline void nnxEmitNamedAddress(std::ostream* out, NamedAddress* named)
 {
     if (named->isStruct() || named->isStaticStruct()) {
-        const std::string& name = named->fName;
-        bool isUIParam          = (name.find("fButton") == 0) || (name.find("fCheckbox") == 0) ||
-                         (name.find("fVslider") == 0) || (name.find("fHslider") == 0) ||
-                         (name.find("fEntry") == 0) || (name.find("fVbargraph") == 0) ||
-                         (name.find("fHbargraph") == 0);
-        *out << (isUIParam ? "params[\"" : "state[\"") << name << "\"]";
+        *out << (nnxIsUIParam(named) ? "params[\"" : "state[\"") << named->fName << "\"]";
     } else {
         *out << named->fName;
     }
@@ -60,6 +67,22 @@ class NNXInstVisitor : public NNXBaseInstVisitor {
     using NNXBaseInstVisitor::NNXBaseInstVisitor;
 
     void visit(NamedAddress* named) override { nnxEmitNamedAddress(fOut, named); }
+
+    // A UI parameter is read as its array : params holds nnx.Param objects, which take the
+    // arithmetic and the jnp functions but no comparison (a button or a checkbox read as 0 or
+    // 1 under -rui is params["fCheckbox0"] > 0.0). asarray is the identity on an array, and
+    // differentiable. A store (a bargraph) keeps params[""]
+    void visit(LoadVarInst* inst) override
+    {
+        NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
+        if (named && nnxIsUIParam(named)) {
+            *fOut << (fUseNumpy ? "np" : "jnp") << ".asarray(";
+            nnxEmitNamedAddress(fOut, named);
+            *fOut << ")";
+            return;
+        }
+        NNXBaseInstVisitor::visit(inst);
+    }
 };
 
 #endif
