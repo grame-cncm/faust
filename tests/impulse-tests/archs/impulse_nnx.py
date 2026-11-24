@@ -412,7 +412,7 @@ def main(args, N_SAMPLES, OFFSET, print_header=True, block_size=1):
 	if print_header:
 		print(f"number_of_inputs  : {model.num_inputs}")
 		print(f"number_of_outputs : {model.num_outputs}")
-		print(f"number_of_frames  : {N_SAMPLES*4}")
+		print(f"number_of_frames  : {N_SAMPLES*2}")
 
 	# print the samples
 	for i, frame in enumerate(output_audio):
@@ -437,11 +437,11 @@ if __name__ == '__main__':
 
 	# Reference files (see archs/impulsearch.cpp) contain FOUR sub-runs of
 	# `duration` frames each: mono, mono with randomized compute() splits,
-	# polyphonic with 4 voices, and polyphonic with 1 voice. The header must
-	# claim the full 4*duration count because filesCompare requires equal
-	# header counts; it then stops gracefully at EOF, comparing only the
-	# sub-runs emitted here (the Julia, Rust, and D harnesses follow the same
-	# convention). This harness emits the first two sub-runs — the poly runs
+	# polyphonic with 4 voices, and polyphonic with 1 voice. The header
+	# announces the frames written here, 2*duration, and the Makefile compares
+	# them with -part 30000 : filesCompare refuses a file shorter than the
+	# count it announces (the Julia, Rust, Cmajor, JSFX and D harnesses do the
+	# same). This harness emits the first two sub-runs — the poly runs
 	# exercise the C++ mydsp_poly wrapper, which has no JAX equivalent
 	# (polyphony is done with jax.vmap instead, see architecture/jax/README.md).
 	# The second sub-run uses 64-sample blocks so that, like the C++

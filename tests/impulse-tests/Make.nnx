@@ -103,7 +103,7 @@ ir/$(outdir)/nnx_%.py: dsp/%.dsp | ir/$(outdir)
 
 ir/$(outdir)/%.ir: ir/$(outdir)/nnx_%.py reference/%.ir
 	python3  $< > $@
-	$(COMPARE) $@ reference/$(notdir $@) $(precision)
+	$(COMPARE) $@ reference/$(notdir $@) $(precision) -part 30000
 
 # Run target without comparison
 ir/$(outdir)/%.run: ir/$(outdir)/nnx_%.py
