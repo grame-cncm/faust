@@ -7222,7 +7222,14 @@ bool ScalarCompiler::inCone(Tree sig)
                 r = r && operand(v);
             }
         } else if (tvec T, R; isSigBpf(sig, x, T, R)) {
+            // the thresholds and the regions are signals too
             r = operand(x);
+            for (Tree v : T) {
+                r = r && operand(v);
+            }
+            for (Tree v : R) {
+                r = r && operand(v);
+            }
         } else if (isSigBinOp(sig, &op, x, y)) {
             r = operand(x) && operand(y);
         } else if (isSigSelect2(sig, x, y, z) || isCfMix(sig, x, y, z, mf) || isSigMix(sig, x, y, z)) {
