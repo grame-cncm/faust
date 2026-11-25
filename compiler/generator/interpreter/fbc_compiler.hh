@@ -32,6 +32,8 @@
 #include "fbc_template_compiler.hh"
 #elif INTERP_FPB_BUILD
 #include "fbc_fpb_compiler.hh"
+#elif INTERP_YDSP_BUILD
+#include "fbc_ydsp_compiler.hh"
 #endif
 
 // FBC compiler
@@ -91,6 +93,14 @@ class FBCCompiler : public FBCInterpreter<REAL, 0> {
                 (*fCompiledBlocks)[block] = fpb;
             } else {
                 delete fpb;
+            }
+#elif INTERP_YDSP_BUILD
+            // Run with interp/YDSP compiler (fbc_ydsp_compiler.hh). As with FPB, a block it does not compile
+            // (nullptr) stays interpreted.
+            FBCExecuteFun<REAL>* ydsp =
+                createFBCYdspCompiler<REAL>(block, this->fSoundTable, this->fFactory->fCountOffset);
+            if (ydsp) {
+                (*fCompiledBlocks)[block] = ydsp;
             }
 #endif
 #else

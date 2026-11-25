@@ -22,7 +22,10 @@
 #ifndef _FBC_MIR_COMPILER_H
 #define _FBC_MIR_COMPILER_H
 
+#include <cstdlib>
+#include <cstring>
 #include <map>
+#include <set>
 #include <string>
 
 #include "fbc_executor.hh"
@@ -69,6 +72,140 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
     MIR_reg_t fMIRInputs;
     MIR_reg_t fMIROutputs;
     MIR_reg_t fMIRSoundTable;
+
+    /*
+     Promotion of heap cells to registers: a heap cell that the DSP
+     block only accesses with a constant offset, outside every region it accesses with a computed index (the
+     indexed instructions carry the region size in fOffset2), lives in a register for the whole DSP block: loaded
+     at entry, stored back at exit if the block writes it. Nothing else runs on the heaps during the DSP block, so
+     the results do not change (x1.37 on geometric mean over 12 DSPs, see tests/interp-tests/interp-ydsp).
+     On by default (FAUST_INTERP_MIR_PROMOTE=0 turns it off). See makeNonLeaf for the MIR defect it reaches.
+    */
+    bool                     fPromote = true;
+    std::map<int, MIR_reg_t> fRealCells, fIntCells;
+    std::set<int>            fRealStored, fIntStored;
+
+    struct Accesses {
+        std::set<int>                    realCells, intCells;
+        std::vector<std::pair<int, int>> realRegions, intRegions;  // [base, base + size)
+    };
+
+    static bool inRegions(int off, const std::vector<std::pair<int, int>>& regions)
+    {
+        for (auto& r : regions) {
+            if (off >= r.first && off < r.first + r.second) return true;
+        }
+        return false;
+    }
+
+    // The heap accesses of a block and of the blocks it owns (kLoop, kSelect*, kIf; kCondBranch's branch is the
+    // loop body it jumps back to). An indexed access whose index is the kInt32Value just before it is a cell.
+    static void collectAccesses(FBCBlockInstruction<REAL>* block, Accesses& acc)
+    {
+        if (!block) return;
+        FBCBasicInstruction<REAL>* prev = nullptr;
+        for (FBCBasicInstruction<REAL>* ins : block->fInstructions) {
+            int o1 = ins->fOffset1, o2 = ins->fOffset2;
+            switch (ins->fOpcode) {
+                case FBCInstruction::kLoadReal:
+                case FBCInstruction::kStoreReal:
+                    acc.realCells.insert(o1);
+                    break;
+                case FBCInstruction::kLoadInt:
+                case FBCInstruction::kStoreInt:
+                    acc.intCells.insert(o1);
+                    break;
+                case FBCInstruction::kBlockShiftReal:
+                    for (int i = o2; i <= o1; i++) acc.realCells.insert(i);
+                    break;
+                case FBCInstruction::kBlockShiftInt:
+                    for (int i = o2; i <= o1; i++) acc.intCells.insert(i);
+                    break;
+                case FBCInstruction::kLoadIndexedReal:
+                case FBCInstruction::kStoreIndexedReal:
+                case FBCInstruction::kLoadIndexedInt:
+                case FBCInstruction::kStoreIndexedInt: {
+                    bool real = ins->fOpcode == FBCInstruction::kLoadIndexedReal ||
+                                ins->fOpcode == FBCInstruction::kStoreIndexedReal;
+                    if (prev && prev->fOpcode == FBCInstruction::kInt32Value) {
+                        (real ? acc.realCells : acc.intCells).insert(o1 + prev->fIntValue);
+                    } else {
+                        (real ? acc.realRegions : acc.intRegions).push_back({o1, o2});
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+            if (ins->fOpcode == FBCInstruction::kLoop || ins->fOpcode == FBCInstruction::kSelectReal ||
+                ins->fOpcode == FBCInstruction::kSelectInt || ins->fOpcode == FBCInstruction::kIf) {
+                collectAccesses(ins->fBranch1, acc);
+                collectAccesses(ins->fBranch2, acc);
+            }
+            prev = ins;
+        }
+    }
+
+    void promoteCells(FBCBlockInstruction<REAL>* block)
+    {
+        Accesses acc;
+        collectAccesses(block, acc);
+        for (int off : acc.realCells) {
+            if (off < 0 || inRegions(off, acc.realRegions)) continue;
+            MIR_reg_t cell = createVar(getRealTy(), "cell_real");
+            MIR_append_insn(fContext, fCompute,
+                            MIR_new_insn(fContext, typedReal(MIR_FMOV, MIR_DMOV), MIR_new_reg_op(fContext, cell),
+                                         MIR_new_mem_op(fContext, getRealTy(), 0, fMIRRealHeap,
+                                                        createIndexReg(off), sizeof(REAL))));
+            fRealCells[off] = cell;
+        }
+        for (int off : acc.intCells) {
+            if (off < 0 || inRegions(off, acc.intRegions)) continue;
+            MIR_reg_t cell = createVar(getInt64Ty(), "cell_i64");
+            MIR_append_insn(fContext, fCompute,
+                            MIR_new_insn(fContext, MIR_MOV, MIR_new_reg_op(fContext, cell),
+                                         MIR_new_mem_op(fContext, MIR_T_I32, 0, fMIRIntHeap, createIndexReg(off),
+                                                        sizeof(int))));
+            fIntCells[off] = cell;
+        }
+    }
+
+    // MIR's AArch64 code generator can allocate lr (x30), a call-used register, and skips the prologue and
+    // epilogue of a leaf function that saves no register and uses no stack: a leaf function that uses lr then
+    // returns to the address left in it. Promotion keeps more values live and reaches lr in leaf blocks (the
+    // impulse test stereoecho.dsp with -dlt 0, with MIR 99c65079 and dc2c763f). A call to an empty function makes
+    // the block a non-leaf function, whose prologue saves lr: one call per compute(). It is made at the end of the
+    // block, after the promoted cells are stored back, so that no value has to survive it (a value live across a
+    // call needs a callee-saved register, and the promoted cells would not all get one).
+    void makeNonLeaf()
+    {
+        if (fFunProto.find("mir_nop_proto") == fFunProto.end()) {
+            fFunProto["mir_nop_proto"] = MIR_new_proto_arr(fContext, "mir_nop_proto", 0, NULL, 0, NULL);
+        }
+        MIR_item_t proto = fFunProto["mir_nop_proto"];
+        MIR_item_t fun   = MIR_new_import(fContext, "mir_nop");
+        MIR_append_insn(fContext, fCompute,
+                        MIR_new_call_insn(fContext, 2, MIR_new_ref_op(fContext, proto),
+                                          MIR_new_ref_op(fContext, fun)));
+    }
+
+    void storePromotedCells()
+    {
+        for (int off : fRealStored) {
+            MIR_append_insn(fContext, fCompute,
+                            MIR_new_insn(fContext, typedReal(MIR_FMOV, MIR_DMOV),
+                                         MIR_new_mem_op(fContext, getRealTy(), 0, fMIRRealHeap,
+                                                        createIndexReg(off), sizeof(REAL)),
+                                         MIR_new_reg_op(fContext, fRealCells[off])));
+        }
+        for (int off : fIntStored) {
+            MIR_append_insn(fContext, fCompute,
+                            MIR_new_insn(fContext, MIR_MOV,
+                                         MIR_new_mem_op(fContext, MIR_T_I32, 0, fMIRIntHeap, createIndexReg(off),
+                                                        sizeof(int)),
+                                         MIR_new_reg_op(fContext, fIntCells[off])));
+        }
+    }
 
     // Global variable for all soundfiles
     Soundfile** fSoundArrayTable;
@@ -227,6 +364,15 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
 
     void pushLoadIntArray(int index)
     {
+        auto cell = fIntCells.find(index);
+        if (cell != fIntCells.end()) {
+            MIR_reg_t load_res = createVar(getInt64Ty(), "load_i64");
+            MIR_append_insn(fContext, fCompute,
+                            MIR_new_insn(fContext, MIR_MOV, MIR_new_reg_op(fContext, load_res),
+                                         MIR_new_reg_op(fContext, cell->second)));
+            pushValue(load_res);
+            return;
+        }
         // Load index in a local
         pushLoadIntArrayImp(createIndexReg(index));
     }
@@ -245,6 +391,16 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
 
     void pushLoadRealArray(int index)
     {
+        auto cell = fRealCells.find(index);
+        if (cell != fRealCells.end()) {
+            MIR_reg_t load_res = createVar(getRealTy(), "load_real");
+            MIR_append_insn(fContext, fCompute,
+                            MIR_new_insn(fContext, typedReal(MIR_FMOV, MIR_DMOV),
+                                         MIR_new_reg_op(fContext, load_res),
+                                         MIR_new_reg_op(fContext, cell->second)));
+            pushValue(load_res);
+            return;
+        }
         // Load index in a local
         pushLoadRealArrayImp(createIndexReg(index));
     }
@@ -264,6 +420,17 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
 
     void pushStoreIntArray(int index)
     {
+        auto cell = fIntCells.find(index);
+        if (cell != fIntCells.end()) {
+            // MIR's 32-bit operations (ADDS, SUBS...) leave the upper half of their 64-bit register undefined, and
+            // the int values are used as 64-bit indexes. Storing to the int heap and loading back sign-extends
+            // the value: EXT32 does the same for the register of a promoted cell.
+            MIR_append_insn(fContext, fCompute,
+                            MIR_new_insn(fContext, MIR_EXT32, MIR_new_reg_op(fContext, cell->second),
+                                         MIR_new_reg_op(fContext, popValue())));
+            fIntStored.insert(index);
+            return;
+        }
         // Load index in a local
         pushStoreIntArrayImp(createIndexReg(index));
     }
@@ -280,6 +447,15 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
 
     void pushStoreRealArray(int index)
     {
+        auto cell = fRealCells.find(index);
+        if (cell != fRealCells.end()) {
+            MIR_append_insn(fContext, fCompute,
+                            MIR_new_insn(fContext, typedReal(MIR_FMOV, MIR_DMOV),
+                                         MIR_new_reg_op(fContext, cell->second),
+                                         MIR_new_reg_op(fContext, popValue())));
+            fRealStored.insert(index);
+            return;
+        }
         // Load index in a local
         pushStoreRealArrayImp(createIndexReg(index));
     }
@@ -479,6 +655,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
     }
 
     // Integer version
+    static void mir_nop() {}
     static int mir_abs(int val) { return std::abs(val); }
 
     static int mir_min_i(int val1, int val2) { return std::min(val1, val2); }
@@ -530,6 +707,13 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         while ((it != block->fInstructions.end()) && !end) {
             //(*it)->write(&std::cout);
             // MIR_output(fContext, stderr);
+
+            // With promotion, an indexed access whose index is the kInt32Value just before it is a cell access
+            // (the same rule as collectAccesses), so that it reads or writes the cell's register.
+            int const_index = 0;
+            bool has_const_index = fPromote && it != block->fInstructions.begin() &&
+                                   (*(it - 1))->fOpcode == FBCInstruction::kInt32Value;
+            if (has_const_index) const_index = (*(it - 1))->fIntValue;
 
             switch ((*it)->fOpcode) {
                 // Numbers
@@ -589,24 +773,48 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                 // Indexed memory load/store: constant values are added at generation time by
                 // CreateBinOp...
                 case FBCInstruction::kLoadIndexedReal: {
+                    if (has_const_index) {
+                        popValue();
+                        pushLoadRealArray((*it)->fOffset1 + const_index);
+                        it++;
+                        break;
+                    }
                     pushLoadRealArrayImp(createAddOffsetReg((*it)->fOffset1));
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kLoadIndexedInt: {
+                    if (has_const_index) {
+                        popValue();
+                        pushLoadIntArray((*it)->fOffset1 + const_index);
+                        it++;
+                        break;
+                    }
                     pushLoadIntArrayImp(createAddOffsetReg((*it)->fOffset1));
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kStoreIndexedReal: {
+                    if (has_const_index) {
+                        popValue();
+                        pushStoreRealArray((*it)->fOffset1 + const_index);
+                        it++;
+                        break;
+                    }
                     pushStoreRealArrayImp(createAddOffsetReg((*it)->fOffset1));
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kStoreIndexedInt: {
+                    if (has_const_index) {
+                        popValue();
+                        pushStoreIntArray((*it)->fOffset1 + const_index);
+                        it++;
+                        break;
+                    }
                     pushStoreIntArrayImp(createAddOffsetReg((*it)->fOffset1));
                     it++;
                     break;
@@ -1066,6 +1274,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         : FBCExecuteFun<REAL>(fbc_block, sound_table)
     {
         // Math functions
+        gMathLib["mir_nop"] = (void*)mir_nop;
         gMathLib["mir_abs"] = (void*)mir_abs;
 
         gMathLib["mir_min_i"] = (void*)mir_min_i;
@@ -1133,8 +1342,15 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         fMIRSoundTable = MIR_reg(fContext, "sound_table", fCompute->u.func);
 
         // Compile compute body
+        const char* promote = std::getenv("FAUST_INTERP_MIR_PROMOTE");
+        fPromote            = !(promote && std::strcmp(promote, "0") == 0);
+        if (fPromote) promoteCells(fbc_block);
         MIR_label_t entry_block = MIR_new_label(fContext);
         CompileBlock(fbc_block, entry_block);
+        if (fPromote) {
+            storePromotedCells();
+            makeNonLeaf();
+        }
 
         // Add return
         MIR_append_insn(fContext, fCompute, MIR_new_ret_insn(fContext, 0));

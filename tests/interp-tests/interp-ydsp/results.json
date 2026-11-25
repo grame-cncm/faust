@@ -1,0 +1,980 @@
+{
+  "env": {
+    "cpu": "Apple M5",
+    "os": "Darwin 25.6.0 arm64",
+    "cxx": "Apple clang version 21.0.0 (clang-2100.4.1.1)",
+    "faust": "FAUST Version 2.95.3 / Source commit: 0b21bae83",
+    "libfaust": {
+      "interp": "13cc2e3f9",
+      "fpb": "13cc2e3f9",
+      "mir": "13cc2e3f9",
+      "ydsp": "13cc2e3f9"
+    },
+    "yup": "4792e50 2026-11-20",
+    "sr": "48000",
+    "bs": "128",
+    "seconds": "1"
+  },
+  "results": [
+    {
+      "name": "compressor",
+      "ns": {
+        "interp": 106.311,
+        "fpb": 36.72,
+        "mir": 14.763,
+        "mir+promo": 13.508,
+        "ydsp-mem": 14.884,
+        "ydsp": 10.182,
+        "ydsp-strict": 15.709,
+        "cpp": 7.035
+      },
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          560,
+          1.1920928955078125e-07
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 33 steps (41 before fusion, 7 fused pairs), 5 real and 1 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 672 bytes of machine code (179 IR instructions, 196 before optimisation, 18 blocks), 0 real and 0 int heap cells promoted, 1.20 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 848 bytes of machine code (155 IR instructions, 223 before optimisation, 18 blocks), 21 real and 3 int heap cells promoted, 0.44 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 888 bytes of machine code (155 IR instructions, 223 before optimisation, 18 blocks), 21 real and 3 int heap cells promoted, 0.45 ms, strict libm (float32 transcendentals in float64)"
+      },
+      "ydsp_bytes": 848,
+      "ydsp_ms": 0.44,
+      "ydsp_compiled": true
+    },
+    {
+      "name": "crybaby",
+      "ns": {
+        "interp": 43.608,
+        "fpb": 19.75,
+        "mir": 8.759,
+        "mir+promo": 4.61,
+        "ydsp-mem": 9.067,
+        "ydsp": 4.088,
+        "ydsp-strict": 4.113,
+        "cpp": 4.695
+      },
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 37 steps (53 before fusion, 10 fused pairs), 6 real and 1 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 648 bytes of machine code (225 IR instructions, 272 before optimisation, 9 blocks), 0 real and 0 int heap cells promoted, 0.29 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 680 bytes of machine code (200 IR instructions, 314 before optimisation, 9 blocks), 32 real and 3 int heap cells promoted, 0.38 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 680 bytes of machine code (200 IR instructions, 314 before optimisation, 9 blocks), 32 real and 3 int heap cells promoted, 0.33 ms, strict libm (float32 transcendentals in float64)"
+      },
+      "ydsp_bytes": 680,
+      "ydsp_ms": 0.38,
+      "ydsp_compiled": true
+    },
+    {
+      "name": "echo",
+      "ns": {
+        "interp": 11.635,
+        "fpb": 5.219,
+        "mir": 4.096,
+        "mir+promo": 1.756,
+        "ydsp-mem": 4.255,
+        "ydsp": 4.605,
+        "ydsp-strict": 4.619,
+        "cpp": 2.855
+      },
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 6 steps (7 before fusion, 1 fused pairs), 2 real and 0 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 184 bytes of machine code (35 IR instructions, 35 before optimisation, 3 blocks), 0 real and 0 int heap cells promoted, 0.15 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 160 bytes of machine code (29 IR instructions, 42 before optimisation, 3 blocks), 1 real and 4 int heap cells promoted, 0.14 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 160 bytes of machine code (29 IR instructions, 42 before optimisation, 3 blocks), 1 real and 4 int heap cells promoted, 0.14 ms, strict libm (float32 transcendentals in float64)"
+      },
+      "ydsp_bytes": 160,
+      "ydsp_ms": 0.14,
+      "ydsp_compiled": true
+    },
+    {
+      "name": "flanger",
+      "ns": {
+        "interp": 125.317,
+        "fpb": 50.876,
+        "mir": 17.825,
+        "mir+promo": 10.734,
+        "ydsp-mem": 11.531,
+        "ydsp": 4.793,
+        "ydsp-strict": 4.847,
+        "cpp": 4.52
+      },
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 65 steps (72 before fusion, 5 fused pairs), 6 real and 5 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 1312 bytes of machine code (321 IR instructions, 351 before optimisation, 15 blocks), 0 real and 0 int heap cells promoted, 0.43 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 1152 bytes of machine code (265 IR instructions, 384 before optimisation, 15 blocks), 27 real and 8 int heap cells promoted, 0.85 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 1152 bytes of machine code (265 IR instructions, 384 before optimisation, 15 blocks), 27 real and 8 int heap cells promoted, 0.84 ms, strict libm (float32 transcendentals in float64)"
+      },
+      "ydsp_bytes": 1152,
+      "ydsp_ms": 0.85,
+      "ydsp_compiled": true
+    },
+    {
+      "name": "freeverb",
+      "ns": {
+        "interp": 266.546,
+        "fpb": 78.207,
+        "mir": 113.355,
+        "mir+promo": 50.474,
+        "ydsp-mem": 37.67,
+        "ydsp": 24.73,
+        "ydsp-strict": 24.721,
+        "cpp": 19.553
+      },
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 113 steps (177 before fusion, 45 fused pairs), 7 real and 0 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 5268 bytes of machine code (993 IR instructions, 1193 before optimisation, 3 blocks), 0 real and 0 int heap cells promoted, 1.06 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 5516 bytes of machine code (784 IR instructions, 1298 before optimisation, 3 blocks), 96 real and 27 int heap cells promoted, 1.58 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 5516 bytes of machine code (784 IR instructions, 1298 before optimisation, 3 blocks), 96 real and 27 int heap cells promoted, 1.55 ms, strict libm (float32 transcendentals in float64)"
+      },
+      "ydsp_bytes": 5516,
+      "ydsp_ms": 1.58,
+      "ydsp_compiled": true
+    },
+    {
+      "name": "moog_vcf",
+      "ns": {
+        "interp": 283.73,
+        "fpb": 139.535,
+        "mir": 42.874,
+        "mir+promo": 47.161,
+        "ydsp-mem": 54.598,
+        "ydsp": 29.282,
+        "ydsp-strict": 37.54,
+        "cpp": 18.073
+      },
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 162 steps (201 before fusion, 31 fused pairs), 22 real and 0 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 2576 bytes of machine code (886 IR instructions, 977 before optimisation, 15 blocks), 0 real and 0 int heap cells promoted, 0.98 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 3104 bytes of machine code (651 IR instructions, 1007 before optimisation, 15 blocks), 87 real and 5 int heap cells promoted, 1.30 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 3168 bytes of machine code (651 IR instructions, 1007 before optimisation, 15 blocks), 87 real and 5 int heap cells promoted, 1.34 ms, strict libm (float32 transcendentals in float64)"
+      },
+      "ydsp_bytes": 3104,
+      "ydsp_ms": 1.3,
+      "ydsp_compiled": true
+    },
+    {
+      "name": "osc",
+      "ns": {
+        "interp": 25.416,
+        "fpb": 12.884,
+        "mir": 4.599,
+        "mir+promo": 3.161,
+        "ydsp-mem": 5.712,
+        "ydsp": 2.419,
+        "ydsp-strict": 2.415,
+        "cpp": 3.551
+      },
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 28 steps (31 before fusion, 2 fused pairs), 4 real and 4 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 488 bytes of machine code (97 IR instructions, 121 before optimisation, 9 blocks), 0 real and 0 int heap cells promoted, 0.22 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 464 bytes of machine code (95 IR instructions, 149 before optimisation, 9 blocks), 6 real and 12 int heap cells promoted, 0.24 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 464 bytes of machine code (95 IR instructions, 149 before optimisation, 9 blocks), 6 real and 12 int heap cells promoted, 0.25 ms, strict libm (float32 transcendentals in float64)"
+      },
+      "ydsp_bytes": 464,
+      "ydsp_ms": 0.24,
+      "ydsp_compiled": true
+    },
+    {
+      "name": "parametric_eq",
+      "ns": {
+        "interp": 233.585,
+        "fpb": 107.094,
+        "mir": 36.027,
+        "mir+promo": 22.687,
+        "ydsp-mem": 58.073,
+        "ydsp": 26.054,
+        "ydsp-strict": 23.995,
+        "cpp": 18.249
+      },
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          39997,
+          4.887580871582031e-06
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 81 steps (98 before fusion, 10 fused pairs), 8 real and 0 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 1568 bytes of machine code (562 IR instructions, 644 before optimisation, 9 blocks), 0 real and 0 int heap cells promoted, 0.61 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 2216 bytes of machine code (438 IR instructions, 709 before optimisation, 9 blocks), 79 real and 3 int heap cells promoted, 0.94 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 2264 bytes of machine code (438 IR instructions, 709 before optimisation, 9 blocks), 79 real and 3 int heap cells promoted, 0.89 ms, strict libm (float32 transcendentals in float64)"
+      },
+      "ydsp_bytes": 2216,
+      "ydsp_ms": 0.94,
+      "ydsp_compiled": true
+    },
+    {
+      "name": "phaser2",
+      "ns": {
+        "interp": 623.692,
+        "fpb": 317.189,
+        "mir": 222.07,
+        "mir+promo": 222.341,
+        "ydsp-mem": 249.57,
+        "ydsp": 160.917,
+        "ydsp-strict": 327.961,
+        "cpp": 59.923
+      },
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          55461,
+          1.862645149230957e-07
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 270 steps (321 before fusion, 42 fused pairs), 12 real and 4 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 4128 bytes of machine code (1388 IR instructions, 1503 before optimisation, 21 blocks), 0 real and 0 int heap cells promoted, 1.35 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 5320 bytes of machine code (1047 IR instructions, 1589 before optimisation, 21 blocks), 132 real and 13 int heap cells promoted, 2.47 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 5696 bytes of machine code (1047 IR instructions, 1589 before optimisation, 21 blocks), 132 real and 13 int heap cells promoted, 2.66 ms, strict libm (float32 transcendentals in float64)"
+      },
+      "ydsp_bytes": 5320,
+      "ydsp_ms": 2.47,
+      "ydsp_compiled": true
+    },
+    {
+      "name": "virtual_analog_oscillator",
+      "ns": {
+        "interp": 1319.191,
+        "fpb": 862.402,
+        "mir": 310.4,
+        "mir+promo": 339.533,
+        "ydsp-mem": 238.002,
+        "ydsp": 163.023,
+        "ydsp-strict": 224.392,
+        "cpp": 39.634
+      },
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          2819,
+          4.3213367462158203e-07
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 951 steps (1085 before fusion, 118 fused pairs), 369 real and 5 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 20640 bytes of machine code (4309 IR instructions, 4615 before optimisation, 129 blocks), 0 real and 0 int heap cells promoted, 6.77 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 21464 bytes of machine code (3282 IR instructions, 4774 before optimisation, 129 blocks), 303 real and 59 int heap cells promoted, 30.19 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 22952 bytes of machine code (3282 IR instructions, 4774 before optimisation, 129 blocks), 303 real and 59 int heap cells promoted, 29.87 ms, strict libm (float32 transcendentals in float64)"
+      },
+      "ydsp_bytes": 21464,
+      "ydsp_ms": 30.19,
+      "ydsp_compiled": true
+    },
+    {
+      "name": "vocoder",
+      "ns": {
+        "interp": 1878.962,
+        "fpb": 362.27,
+        "mir": 122.808,
+        "mir+promo": 111.035,
+        "ydsp-mem": 150.438,
+        "ydsp": 102.015,
+        "ydsp-strict": 101.976,
+        "cpp": 93.782
+      },
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 583 steps (1003 before fusion, 337 fused pairs), 39 real and 4 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 13128 bytes of machine code (5149 IR instructions, 6201 before optimisation, 105 blocks), 0 real and 0 int heap cells promoted, 4.00 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 17072 bytes of machine code (3555 IR instructions, 6311 before optimisation, 105 blocks), 527 real and 12 int heap cells promoted, 24.18 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 17072 bytes of machine code (3555 IR instructions, 6311 before optimisation, 105 blocks), 527 real and 12 int heap cells promoted, 24.49 ms, strict libm (float32 transcendentals in float64)"
+      },
+      "ydsp_bytes": 17072,
+      "ydsp_ms": 24.18,
+      "ydsp_compiled": true
+    },
+    {
+      "name": "zita_rev1",
+      "ns": {
+        "interp": 676.543,
+        "fpb": 190.946,
+        "mir": 98.249,
+        "mir+promo": 58.025,
+        "ydsp-mem": 88.119,
+        "ydsp": 44.131,
+        "ydsp-strict": 44.401,
+        "cpp": 29.907
+      },
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 297 steps (430 before fusion, 107 fused pairs), 12 real and 0 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 11160 bytes of machine code (2070 IR instructions, 2386 before optimisation, 27 blocks), 0 real and 0 int heap cells promoted, 2.32 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 10864 bytes of machine code (1555 IR instructions, 2559 before optimisation, 27 blocks), 230 real and 28 int heap cells promoted, 4.91 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 10864 bytes of machine code (1555 IR instructions, 2559 before optimisation, 27 blocks), 230 real and 28 int heap cells promoted, 4.83 ms, strict libm (float32 transcendentals in float64)"
+      },
+      "ydsp_bytes": 10864,
+      "ydsp_ms": 4.91,
+      "ydsp_compiled": true
+    }
+  ],
+  "double": [
+    {
+      "name": "osc",
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 21 steps (24 before fusion, 2 fused pairs), 3 real and 3 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 488 bytes of machine code (85 IR instructions, 104 before optimisation, 6 blocks), 0 real and 0 int heap cells promoted, 1.26 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 448 bytes of machine code (80 IR instructions, 123 before optimisation, 6 blocks), 10 real and 4 int heap cells promoted, 0.42 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 448 bytes of machine code (80 IR instructions, 123 before optimisation, 6 blocks), 10 real and 4 int heap cells promoted, 0.34 ms, strict libm (float32 transcendentals in float64)"
+      }
+    },
+    {
+      "name": "freeverb",
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 113 steps (177 before fusion, 45 fused pairs), 7 real and 0 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 5280 bytes of machine code (993 IR instructions, 1193 before optimisation, 3 blocks), 0 real and 0 int heap cells promoted, 1.12 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 5528 bytes of machine code (784 IR instructions, 1298 before optimisation, 3 blocks), 96 real and 27 int heap cells promoted, 1.58 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 5528 bytes of machine code (784 IR instructions, 1298 before optimisation, 3 blocks), 96 real and 27 int heap cells promoted, 1.55 ms, strict libm (float32 transcendentals in float64)"
+      }
+    },
+    {
+      "name": "zita_rev1",
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 297 steps (430 before fusion, 107 fused pairs), 12 real and 0 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 11200 bytes of machine code (2070 IR instructions, 2386 before optimisation, 27 blocks), 0 real and 0 int heap cells promoted, 2.22 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 10904 bytes of machine code (1555 IR instructions, 2559 before optimisation, 27 blocks), 230 real and 28 int heap cells promoted, 4.87 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 10904 bytes of machine code (1555 IR instructions, 2559 before optimisation, 27 blocks), 230 real and 28 int heap cells promoted, 4.81 ms, strict libm (float32 transcendentals in float64)"
+      }
+    },
+    {
+      "name": "vocoder",
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 575 steps (993 before fusion, 336 fused pairs), 39 real and 1 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 13024 bytes of machine code (5123 IR instructions, 6167 before optimisation, 102 blocks), 0 real and 0 int heap cells promoted, 3.87 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 17280 bytes of machine code (3547 IR instructions, 6286 before optimisation, 102 blocks), 540 real and 4 int heap cells promoted, 22.72 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 17280 bytes of machine code (3547 IR instructions, 6286 before optimisation, 102 blocks), 540 real and 4 int heap cells promoted, 23.10 ms, strict libm (float32 transcendentals in float64)"
+      }
+    }
+  ],
+  "multi": [
+    {
+      "name": "osc",
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 28 steps (31 before fusion, 2 fused pairs), 4 real and 4 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 488 bytes of machine code (97 IR instructions, 121 before optimisation, 9 blocks), 0 real and 0 int heap cells promoted, 0.23 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 464 bytes of machine code (95 IR instructions, 149 before optimisation, 9 blocks), 6 real and 12 int heap cells promoted, 0.25 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 464 bytes of machine code (95 IR instructions, 149 before optimisation, 9 blocks), 6 real and 12 int heap cells promoted, 0.28 ms, strict libm (float32 transcendentals in float64)"
+      }
+    },
+    {
+      "name": "zita_rev1",
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 297 steps (430 before fusion, 107 fused pairs), 12 real and 0 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 11160 bytes of machine code (2070 IR instructions, 2386 before optimisation, 27 blocks), 0 real and 0 int heap cells promoted, 2.17 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 10864 bytes of machine code (1555 IR instructions, 2559 before optimisation, 27 blocks), 230 real and 28 int heap cells promoted, 4.94 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 10864 bytes of machine code (1555 IR instructions, 2559 before optimisation, 27 blocks), 230 real and 28 int heap cells promoted, 5.05 ms, strict libm (float32 transcendentals in float64)"
+      }
+    },
+    {
+      "name": "vocoder",
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block compiled to 583 steps (1003 before fusion, 337 fused pairs), 39 real and 4 int temporaries, 0 saved values, tail dispatch",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 13128 bytes of machine code (5149 IR instructions, 6201 before optimisation, 105 blocks), 0 real and 0 int heap cells promoted, 3.98 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 17072 bytes of machine code (3555 IR instructions, 6311 before optimisation, 105 blocks), 527 real and 12 int heap cells promoted, 24.38 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 17072 bytes of machine code (3555 IR instructions, 6311 before optimisation, 105 blocks), 527 real and 12 int heap cells promoted, 24.64 ms, strict libm (float32 transcendentals in float64)"
+      }
+    }
+  ],
+  "vec": [
+    {
+      "name": "osc",
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block not compiled (FBC instruction kLoop), the interpreter runs it",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block not compiled (an int heap access with a computed index), the interpreter runs it",
+        "ydsp": "interp-ydsp: DSP block not compiled (an int heap access with a computed index), the interpreter runs it",
+        "ydsp-strict": "interp-ydsp: DSP block not compiled (an int heap access with a computed index), the interpreter runs it"
+      }
+    },
+    {
+      "name": "freeverb",
+      "diff": {
+        "fpb": [
+          0,
+          0.0
+        ],
+        "mir": [
+          0,
+          0.0
+        ],
+        "mir+promo": [
+          0,
+          0.0
+        ],
+        "ydsp-mem": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ],
+        "ydsp-strict": [
+          0,
+          0.0
+        ]
+      },
+      "trace": {
+        "interp": "",
+        "fpb": "interp-fpb: DSP block not compiled (FBC instruction kLoop), the interpreter runs it",
+        "mir": "",
+        "mir+promo": "",
+        "ydsp-mem": "interp-ydsp: DSP block compiled to 14796 bytes of machine code (2858 IR instructions, 2858 before optimisation, 217 blocks), 0 real and 0 int heap cells promoted, 2.50 ms",
+        "ydsp": "interp-ydsp: DSP block compiled to 13732 bytes of machine code (2142 IR instructions, 3156 before optimisation, 217 blocks), 5 real and 182 int heap cells promoted, 10.32 ms",
+        "ydsp-strict": "interp-ydsp: DSP block compiled to 13732 bytes of machine code (2142 IR instructions, 3156 before optimisation, 217 blocks), 5 real and 182 int heap cells promoted, 10.43 ms, strict libm (float32 transcendentals in float64)"
+      }
+    }
+  ]
+}

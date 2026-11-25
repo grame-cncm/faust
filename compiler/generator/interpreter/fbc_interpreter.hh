@@ -57,6 +57,7 @@ static inline int wrapMultInt(int a, int b)
 // #define INTERP_LLVM_BUILD 1
 // #define INTERP_TEMPLATE_BUILD 1
 // #define INTERP_FPB_BUILD 1
+// #define INTERP_YDSP_BUILD 1
 
 /*
  Interpreter using 'computed goto' technique:

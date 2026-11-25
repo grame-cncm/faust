@@ -1,0 +1,2236 @@
+{
+  "env": {
+    "cpu": "Apple M5",
+    "os": "Darwin 25.6.0 arm64",
+    "faust": "FAUST Version 2.95.3 / Source commit: 0b21bae83",
+    "load": [
+      6.28271484375,
+      7.52294921875,
+      5.318359375
+    ],
+    "seconds": "0.5"
+  },
+  "corpus": [
+    "tests/impulse-tests/dsp"
+  ],
+  "results": [
+    {
+      "dsp": "tests/impulse-tests/dsp/APF.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 164 bytes of machine code (44 IR instructions, 73 before optimisation, 3 blocks), 7 real and 2 int heap cells promoted, 0.34 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 164,
+      "ydsp_ms": 0.34,
+      "ns": {
+        "interp": 18.619,
+        "mir": 4.269,
+        "ydsp": 4.778
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/BPF.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 152 bytes of machine code (40 IR instructions, 65 before optimisation, 3 blocks), 7 real and 2 int heap cells promoted, 0.22 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 152,
+      "ydsp_ms": 0.22,
+      "ns": {
+        "interp": 16.212,
+        "mir": 4.384,
+        "ydsp": 4.668
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/HPF.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 172 bytes of machine code (46 IR instructions, 76 before optimisation, 3 blocks), 8 real and 2 int heap cells promoted, 0.33 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 172,
+      "ydsp_ms": 0.33,
+      "ns": {
+        "interp": 16.193,
+        "mir": 4.941,
+        "ydsp": 4.687
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/LPF.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 176 bytes of machine code (45 IR instructions, 72 before optimisation, 3 blocks), 7 real and 2 int heap cells promoted, 0.31 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 176,
+      "ydsp_ms": 0.31,
+      "ns": {
+        "interp": 19.051,
+        "mir": 4.645,
+        "ydsp": 4.708
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/UITester.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 844 bytes of machine code (134 IR instructions, 212 before optimisation, 3 blocks), 34 real and 2 int heap cells promoted, 0.51 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 844,
+      "ydsp_ms": 0.51,
+      "ns": {
+        "interp": 93.492,
+        "mir": 9.428,
+        "ydsp": 9.284
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/bandfilter.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 176 bytes of machine code (49 IR instructions, 79 before optimisation, 3 blocks), 9 real and 2 int heap cells promoted, 0.24 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 176,
+      "ydsp_ms": 0.24,
+      "ns": {
+        "interp": 16.997,
+        "mir": 4.165,
+        "ydsp": 4.017
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/bargraph.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 172 bytes of machine code (38 IR instructions, 62 before optimisation, 3 blocks), 10 real and 2 int heap cells promoted, 0.18 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 172,
+      "ydsp_ms": 0.18,
+      "ns": {
+        "interp": 22.354,
+        "mir": 2.657,
+        "ydsp": 2.004
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/bells.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 38344 bytes of machine code (5620 IR instructions, 9437 before optimisation, 3 blocks), 863 real and 113 int heap cells promoted, 50.08 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 38344,
+      "ydsp_ms": 50.08,
+      "ns": {
+        "interp": 2496.176,
+        "mir": 709.442,
+        "ydsp": 492.289
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/bs.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 160 bytes of machine code (39 IR instructions, 63 before optimisation, 9 blocks), 5 real and 2 int heap cells promoted, 0.32 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 160,
+      "ydsp_ms": 0.32,
+      "ns": {
+        "interp": 13.444,
+        "mir": 1.085,
+        "ydsp": 0.902
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/capture.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 388 bytes of machine code (77 IR instructions, 125 before optimisation, 3 blocks), 7 real and 8 int heap cells promoted, 0.23 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 388,
+      "ydsp_ms": 0.23,
+      "ns": {
+        "interp": 21.388,
+        "mir": 1.82,
+        "ydsp": 2.304
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/carre_volterra.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 1928 bytes of machine code (322 IR instructions, 516 before optimisation, 3 blocks), 51 real and 9 int heap cells promoted, 0.99 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 1928,
+      "ydsp_ms": 0.99,
+      "ns": {
+        "interp": 171.643,
+        "mir": 39.602,
+        "ydsp": 34.621
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/comb_bug_exp.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 984 bytes of machine code (264 IR instructions, 402 before optimisation, 9 blocks), 34 real and 11 int heap cells promoted, 0.48 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 984,
+      "ydsp_ms": 0.48,
+      "ns": {
+        "interp": 68.723,
+        "mir": 8.22,
+        "ydsp": 4.437
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/comb_delay1.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 684 bytes of machine code (121 IR instructions, 157 before optimisation, 3 blocks), 6 real and 3 int heap cells promoted, 0.32 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 684,
+      "ydsp_ms": 0.32,
+      "ns": {
+        "interp": 32.315,
+        "mir": 6.082,
+        "ydsp": 4.298
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/comb_delay2.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 420 bytes of machine code (79 IR instructions, 114 before optimisation, 3 blocks), 6 real and 3 int heap cells promoted, 0.24 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 420,
+      "ydsp_ms": 0.24,
+      "ns": {
+        "interp": 30.093,
+        "mir": 5.272,
+        "ydsp": 3.63
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/constant.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 292 bytes of machine code (84 IR instructions, 120 before optimisation, 14 blocks), 5 real and 6 int heap cells promoted, 0.26 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 292,
+      "ydsp_ms": 0.26,
+      "ns": {
+        "interp": 18.736,
+        "mir": 2.334,
+        "ydsp": 2.273
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/cubic_distortion.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 20952 bytes of machine code (3593 IR instructions, 5955 before optimisation, 9 blocks), 763 real and 5 int heap cells promoted, 20.75 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 20952,
+      "ydsp_ms": 20.75,
+      "ns": {
+        "interp": 1660.192,
+        "mir": 353.004,
+        "ydsp": 290.726
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/dbmeter.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 1624 bytes of machine code (297 IR instructions, 414 before optimisation, 3 blocks), 33 real and 10 int heap cells promoted, 0.55 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 1624,
+      "ydsp_ms": 0.55,
+      "ns": {
+        "interp": 89.398,
+        "mir": 25.68,
+        "ydsp": 17.785
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/delays.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 376 bytes of machine code (84 IR instructions, 132 before optimisation, 3 blocks), 6 real and 6 int heap cells promoted, 0.27 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 376,
+      "ydsp_ms": 0.27,
+      "ns": {
+        "interp": 32.559,
+        "mir": 2.646,
+        "ydsp": 2.483
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/echo.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 160 bytes of machine code (29 IR instructions, 42 before optimisation, 3 blocks), 1 real and 4 int heap cells promoted, 0.17 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 160,
+      "ydsp_ms": 0.17,
+      "ns": {
+        "interp": 12.962,
+        "mir": 1.212,
+        "ydsp": 1.006
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/echo_bug.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 352 bytes of machine code (83 IR instructions, 108 before optimisation, 3 blocks), 5 real and 4 int heap cells promoted, 0.24 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 352,
+      "ydsp_ms": 0.24,
+      "ns": {
+        "interp": 27.097,
+        "mir": 3.856,
+        "ydsp": 1.835
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/freeverb.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 4636 bytes of machine code (883 IR instructions, 1374 before optimisation, 3 blocks), 88 real and 3 int heap cells promoted, 2.00 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 4636,
+      "ydsp_ms": 2.0,
+      "ns": {
+        "interp": 352.354,
+        "mir": 44.394,
+        "ydsp": 19.27
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/ftz_bounded_rec.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 416 bytes of machine code (80 IR instructions, 125 before optimisation, 9 blocks), 6 real and 5 int heap cells promoted, 0.28 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 416,
+      "ydsp_ms": 0.28,
+      "ns": {
+        "interp": 22.304,
+        "mir": 2.377,
+        "ydsp": 1.927
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/gate_compressor.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 25648 bytes of machine code (4446 IR instructions, 7271 before optimisation, 72 blocks), 877 real and 28 int heap cells promoted, 40.79 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 25648,
+      "ydsp_ms": 40.79,
+      "ns": {
+        "interp": 1689.185,
+        "mir": 385.626,
+        "ydsp": 319.114
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/grain3.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 1016 bytes of machine code (154 IR instructions, 233 before optimisation, 9 blocks), 13 real and 9 int heap cells promoted, 0.49 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 1016,
+      "ydsp_ms": 0.49,
+      "ns": {
+        "interp": 43.117,
+        "mir": 7.272,
+        "ydsp": 5.348
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/harpe.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 4908 bytes of machine code (983 IR instructions, 1470 before optimisation, 3 blocks), 64 real and 38 int heap cells promoted, 2.06 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 4908,
+      "ydsp_ms": 2.06,
+      "ns": {
+        "interp": 264.85,
+        "mir": 25.184,
+        "ydsp": 22.366
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/highShelf.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 180 bytes of machine code (50 IR instructions, 80 before optimisation, 3 blocks), 10 real and 2 int heap cells promoted, 0.21 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 180,
+      "ydsp_ms": 0.21,
+      "ns": {
+        "interp": 13.52,
+        "mir": 3.836,
+        "ydsp": 3.907
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/karplus.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 372 bytes of machine code (101 IR instructions, 154 before optimisation, 3 blocks), 11 real and 6 int heap cells promoted, 0.27 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 372,
+      "ydsp_ms": 0.27,
+      "ns": {
+        "interp": 23.308,
+        "mir": 5.016,
+        "ydsp": 2.115
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/karplus32.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 7776 bytes of machine code (1075 IR instructions, 1692 before optimisation, 3 blocks), 138 real and 37 int heap cells promoted, 2.30 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 7776,
+      "ydsp_ms": 2.3,
+      "ns": {
+        "interp": 315.081,
+        "mir": 63.805,
+        "ydsp": 35.679
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/lfboost.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 176 bytes of machine code (48 IR instructions, 78 before optimisation, 3 blocks), 9 real and 2 int heap cells promoted, 0.19 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 176,
+      "ydsp_ms": 0.19,
+      "ns": {
+        "interp": 13.387,
+        "mir": 3.881,
+        "ydsp": 3.87
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/logical.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 480 bytes of machine code (92 IR instructions, 114 before optimisation, 12 blocks), 0 real and 2 int heap cells promoted, 0.25 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 480,
+      "ydsp_ms": 0.25,
+      "ns": {
+        "interp": 46.846,
+        "mir": 4.583,
+        "ydsp": 3.046
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/long_convolution.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 1820 bytes of machine code (433 IR instructions, 514 before optimisation, 3 blocks), 6 real and 3 int heap cells promoted, 0.72 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 1820,
+      "ydsp_ms": 0.72,
+      "ns": {
+        "interp": 159.518,
+        "mir": 17.679,
+        "ydsp": 9.515
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/lowShelf.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 180 bytes of machine code (50 IR instructions, 80 before optimisation, 3 blocks), 10 real and 2 int heap cells promoted, 0.20 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 180,
+      "ydsp_ms": 0.2,
+      "ns": {
+        "interp": 14.402,
+        "mir": 3.833,
+        "ydsp": 3.888
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/lowboost.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 176 bytes of machine code (48 IR instructions, 78 before optimisation, 3 blocks), 9 real and 2 int heap cells promoted, 0.19 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 176,
+      "ydsp_ms": 0.19,
+      "ns": {
+        "interp": 13.288,
+        "mir": 3.898,
+        "ydsp": 3.871
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/lowcut.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 176 bytes of machine code (48 IR instructions, 78 before optimisation, 3 blocks), 9 real and 2 int heap cells promoted, 0.19 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 176,
+      "ydsp_ms": 0.19,
+      "ns": {
+        "interp": 13.195,
+        "mir": 3.856,
+        "ydsp": 3.881
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/math.dsp",
+      "status": "crash",
+      "why": "mir exit -6"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/math_simp.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 988 bytes of machine code (190 IR instructions, 300 before optimisation, 3 blocks), 20 real and 2 int heap cells promoted, 0.37 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 988,
+      "ydsp_ms": 0.37,
+      "ns": {
+        "interp": 75.984,
+        "mir": 9.375,
+        "ydsp": 7.899
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/matrix.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 1472 bytes of machine code (312 IR instructions, 460 before optimisation, 3 blocks), 72 real and 2 int heap cells promoted, 0.57 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 1472,
+      "ydsp_ms": 0.57,
+      "ns": {
+        "interp": 101.209,
+        "mir": 9.561,
+        "ydsp": 10.037
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/midi_tester.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 64 bytes of machine code (11 IR instructions, 17 before optimisation, 3 blocks), 1 real and 2 int heap cells promoted, 0.15 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 64,
+      "ydsp_ms": 0.15,
+      "ns": {
+        "interp": 4.561,
+        "mir": 0.958,
+        "ydsp": 0.722
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/mixer.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 2928 bytes of machine code (551 IR instructions, 838 before optimisation, 3 blocks), 100 real and 2 int heap cells promoted, 1.03 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 2928,
+      "ydsp_ms": 1.03,
+      "ns": {
+        "interp": 161.589,
+        "mir": 32.731,
+        "ydsp": 27.383
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/modulations.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 15120 bytes of machine code (2015 IR instructions, 3411 before optimisation, 79 blocks), 284 real and 33 int heap cells promoted, 9.85 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 15120,
+      "ydsp_ms": 9.85,
+      "ns": {
+        "interp": 2376.058,
+        "mir": 228.519,
+        "ydsp": 103.929
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/multibandfilter.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 1988 bytes of machine code (400 IR instructions, 646 before optimisation, 3 blocks), 90 real and 2 int heap cells promoted, 0.73 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 1988,
+      "ydsp_ms": 0.73,
+      "ns": {
+        "interp": 144.434,
+        "mir": 17.852,
+        "ydsp": 18.106
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/noise.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 112 bytes of machine code (22 IR instructions, 37 before optimisation, 3 blocks), 1 real and 4 int heap cells promoted, 0.16 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 112,
+      "ydsp_ms": 0.16,
+      "ns": {
+        "interp": 7.313,
+        "mir": 1.549,
+        "ydsp": 1.573
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/noiseabs.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 116 bytes of machine code (22 IR instructions, 36 before optimisation, 3 blocks), 0 real and 4 int heap cells promoted, 0.15 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 116,
+      "ydsp_ms": 0.15,
+      "ns": {
+        "interp": 7.508,
+        "mir": 1.523,
+        "ydsp": 1.501
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/noisemetadata.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 112 bytes of machine code (22 IR instructions, 37 before optimisation, 3 blocks), 1 real and 4 int heap cells promoted, 0.16 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 112,
+      "ydsp_ms": 0.16,
+      "ns": {
+        "interp": 7.307,
+        "mir": 1.552,
+        "ydsp": 1.575
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/norm1.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 680 bytes of machine code (109 IR instructions, 182 before optimisation, 3 blocks), 31 real and 2 int heap cells promoted, 0.26 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 680,
+      "ydsp_ms": 0.26,
+      "ns": {
+        "interp": 61.228,
+        "mir": 8.901,
+        "ydsp": 8.792
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/norm2.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 480 bytes of machine code (51 IR instructions, 81 before optimisation, 3 blocks), 7 real and 2 int heap cells promoted, 0.22 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 480,
+      "ydsp_ms": 0.22,
+      "ns": {
+        "interp": 41.563,
+        "mir": 4.845,
+        "ydsp": 7.554
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/norm3.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 704 bytes of machine code (143 IR instructions, 201 before optimisation, 3 blocks), 9 real and 6 int heap cells promoted, 0.59 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 704,
+      "ydsp_ms": 0.59,
+      "ns": {
+        "interp": 53.035,
+        "mir": 5.941,
+        "ydsp": 4.985
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/notch.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 160 bytes of machine code (43 IR instructions, 71 before optimisation, 3 blocks), 7 real and 2 int heap cells promoted, 0.21 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 160,
+      "ydsp_ms": 0.21,
+      "ns": {
+        "interp": 14.129,
+        "mir": 3.68,
+        "ydsp": 3.675
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/osc.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 268 bytes of machine code (47 IR instructions, 75 before optimisation, 3 blocks), 6 real and 2 int heap cells promoted, 0.19 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 268,
+      "ydsp_ms": 0.19,
+      "ns": {
+        "interp": 13.332,
+        "mir": 3.03,
+        "ydsp": 3.621
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/osc_enable.dsp",
+      "status": "crash",
+      "why": "mir exit -6"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/osci.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 384 bytes of machine code (71 IR instructions, 107 before optimisation, 3 blocks), 8 real and 3 int heap cells promoted, 0.23 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 384,
+      "ydsp_ms": 0.23,
+      "ns": {
+        "interp": 23.478,
+        "mir": 3.729,
+        "ydsp": 3.847
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/panpot.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 108 bytes of machine code (22 IR instructions, 33 before optimisation, 3 blocks), 3 real and 2 int heap cells promoted, 0.18 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 108,
+      "ydsp_ms": 0.18,
+      "ns": {
+        "interp": 8.514,
+        "mir": 1.045,
+        "ydsp": 0.762
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/par_fir_32.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 1104 bytes of machine code (270 IR instructions, 312 before optimisation, 3 blocks), 1 real and 3 int heap cells promoted, 0.38 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 1104,
+      "ydsp_ms": 0.38,
+      "ns": {
+        "interp": 103.18,
+        "mir": 8.966,
+        "ydsp": 5.98
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/parametric_eq.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 32536 bytes of machine code (5631 IR instructions, 9269 before optimisation, 45 blocks), 1150 real and 16 int heap cells promoted, 60.37 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 32536,
+      "ydsp_ms": 60.37,
+      "ns": {
+        "interp": 2714.187,
+        "mir": 526.311,
+        "ydsp": 439.335
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/parseint.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 284 bytes of machine code (40 IR instructions, 76 before optimisation, 3 blocks), 0 real and 2 int heap cells promoted, 0.23 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 284,
+      "ydsp_ms": 0.23,
+      "ns": {
+        "interp": 58.795,
+        "mir": 4.014,
+        "ydsp": 3.496
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/peakNotch.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 176 bytes of machine code (49 IR instructions, 79 before optimisation, 3 blocks), 9 real and 2 int heap cells promoted, 0.36 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 176,
+      "ydsp_ms": 0.36,
+      "ns": {
+        "interp": 18.909,
+        "mir": 4.314,
+        "ydsp": 4.53
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/peakingEQ.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 176 bytes of machine code (49 IR instructions, 79 before optimisation, 3 blocks), 9 real and 2 int heap cells promoted, 0.21 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 176,
+      "ydsp_ms": 0.21,
+      "ns": {
+        "interp": 19.023,
+        "mir": 4.294,
+        "ydsp": 3.867
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/phaser_flanger.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 31616 bytes of machine code (4638 IR instructions, 7633 before optimisation, 60 blocks), 919 real and 20 int heap cells promoted, 44.78 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 31616,
+      "ydsp_ms": 44.78,
+      "ns": {
+        "interp": 2192.631,
+        "mir": 416.781,
+        "ydsp": 346.571
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/phasor.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 400 bytes of machine code (79 IR instructions, 116 before optimisation, 6 blocks), 6 real and 8 int heap cells promoted, 0.27 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 400,
+      "ydsp_ms": 0.27,
+      "ns": {
+        "interp": 24.445,
+        "mir": 3.495,
+        "ydsp": 3.516
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/pitch_shifter.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 584 bytes of machine code (118 IR instructions, 171 before optimisation, 3 blocks), 10 real and 5 int heap cells promoted, 0.33 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 584,
+      "ydsp_ms": 0.33,
+      "ns": {
+        "interp": 41.512,
+        "mir": 5.175,
+        "ydsp": 5.42
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/pow.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 768 bytes of machine code (92 IR instructions, 134 before optimisation, 3 blocks), 5 real and 4 int heap cells promoted, 0.31 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 768,
+      "ydsp_ms": 0.31,
+      "ns": {
+        "interp": 66.401,
+        "mir": 19.497,
+        "ydsp": 16.851
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/pow_float_int.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 76 bytes of machine code (14 IR instructions, 22 before optimisation, 3 blocks), 2 real and 2 int heap cells promoted, 0.16 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 76,
+      "ydsp_ms": 0.16,
+      "ns": {
+        "interp": 6.671,
+        "mir": 1.011,
+        "ydsp": 0.879
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/pow_int_float.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 76 bytes of machine code (14 IR instructions, 22 before optimisation, 3 blocks), 2 real and 2 int heap cells promoted, 0.15 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 76,
+      "ydsp_ms": 0.15,
+      "ns": {
+        "interp": 6.578,
+        "mir": 1.051,
+        "ydsp": 0.857
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/precision.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 148 bytes of machine code (19 IR instructions, 28 before optimisation, 3 blocks), 0 real and 3 int heap cells promoted, 0.16 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 148,
+      "ydsp_ms": 0.16,
+      "ns": {
+        "interp": 9.259,
+        "mir": 3.504,
+        "ydsp": 3.5
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/prefix.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 352 bytes of machine code (108 IR instructions, 151 before optimisation, 3 blocks), 18 real and 2 int heap cells promoted, 0.27 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 352,
+      "ydsp_ms": 0.27,
+      "ns": {
+        "interp": 29.287,
+        "mir": 1.898,
+        "ydsp": 1.544
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/priority.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 736 bytes of machine code (117 IR instructions, 201 before optimisation, 3 blocks), 4 real and 20 int heap cells promoted, 0.31 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 736,
+      "ydsp_ms": 0.31,
+      "ns": {
+        "interp": 35.34,
+        "mir": 4.496,
+        "ydsp": 4.219
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/priority1.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 7728 bytes of machine code (1189 IR instructions, 1722 before optimisation, 3 blocks), 86 real and 2 int heap cells promoted, 3.01 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 7728,
+      "ydsp_ms": 3.01,
+      "ns": {
+        "interp": 574.886,
+        "mir": 164.937,
+        "ydsp": 50.532
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/quadecho.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 384 bytes of machine code (68 IR instructions, 105 before optimisation, 3 blocks), 1 real and 4 int heap cells promoted, 0.21 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 384,
+      "ydsp_ms": 0.21,
+      "ns": {
+        "interp": 34.13,
+        "mir": 2.352,
+        "ydsp": 2.136
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/reverb_designer.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 63064 bytes of machine code (9814 IR instructions, 17439 before optimisation, 3 blocks), 1411 real and 22 int heap cells promoted, 210.91 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 63064,
+      "ydsp_ms": 210.91,
+      "ns": {
+        "interp": 4115.707,
+        "mir": 1765.357,
+        "ydsp": 866.913
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/reverb_tester.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 492 bytes of machine code (132 IR instructions, 199 before optimisation, 3 blocks), 17 real and 5 int heap cells promoted, 0.32 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 492,
+      "ydsp_ms": 0.32,
+      "ns": {
+        "interp": 31.592,
+        "mir": 3.469,
+        "ydsp": 3.508
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/select2.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block not compiled (an int heap access with a computed index), the interpreter runs it",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": false,
+      "ns": {
+        "interp": 12.717,
+        "mir": 3.566,
+        "ydsp": 23.593
+      },
+      "status": "ydsp not compiled",
+      "why": "interp-ydsp: DSP block not compiled (an int heap access with a computed index), the interpreter runs it"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/smoothdelay.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 996 bytes of machine code (183 IR instructions, 302 before optimisation, 21 blocks), 19 real and 5 int heap cells promoted, 0.44 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 996,
+      "ydsp_ms": 0.44,
+      "ns": {
+        "interp": 55.518,
+        "mir": 5.008,
+        "ydsp": 5.448
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/sound.dsp",
+      "status": "crash",
+      "why": "mir exit -6"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/spat.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 480 bytes of machine code (142 IR instructions, 243 before optimisation, 3 blocks), 25 real and 2 int heap cells promoted, 0.34 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 480,
+      "ydsp_ms": 0.34,
+      "ns": {
+        "interp": 33.872,
+        "mir": 3.296,
+        "ydsp": 3.419
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/spectral_level.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 41128 bytes of machine code (7033 IR instructions, 11695 before optimisation, 3 blocks), 1515 real and 2 int heap cells promoted, 86.82 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 41128,
+      "ydsp_ms": 86.82,
+      "ns": {
+        "interp": 3395.992,
+        "mir": 628.389,
+        "ydsp": 524.542
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/spectral_tilt.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 25520 bytes of machine code (4447 IR instructions, 7298 before optimisation, 45 blocks), 920 real and 16 int heap cells promoted, 37.46 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 25520,
+      "ydsp_ms": 37.46,
+      "ns": {
+        "interp": 2103.082,
+        "mir": 440.069,
+        "ydsp": 348.15
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/stereoecho.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 232 bytes of machine code (42 IR instructions, 63 before optimisation, 3 blocks), 1 real and 4 int heap cells promoted, 0.20 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 232,
+      "ydsp_ms": 0.2,
+      "ns": {
+        "interp": 19.407,
+        "mir": 1.429,
+        "ydsp": 1.259
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/subcontainer1.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 164 bytes of machine code (23 IR instructions, 37 before optimisation, 3 blocks), 0 real and 4 int heap cells promoted, 0.16 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 164,
+      "ydsp_ms": 0.16,
+      "ns": {
+        "interp": 8.231,
+        "mir": 1.586,
+        "ydsp": 1.009
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/switcher.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 136 bytes of machine code (24 IR instructions, 38 before optimisation, 3 blocks), 2 real and 2 int heap cells promoted, 0.15 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 136,
+      "ydsp_ms": 0.15,
+      "ns": {
+        "interp": 14.846,
+        "mir": 1.285,
+        "ydsp": 0.829
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/table.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 220 bytes of machine code (38 IR instructions, 59 before optimisation, 3 blocks), 4 real and 2 int heap cells promoted, 0.18 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 220,
+      "ydsp_ms": 0.18,
+      "ns": {
+        "interp": 12.665,
+        "mir": 2.965,
+        "ydsp": 3.48
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/table1.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 272 bytes of machine code (35 IR instructions, 57 before optimisation, 3 blocks), 0 real and 6 int heap cells promoted, 0.19 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 272,
+      "ydsp_ms": 0.19,
+      "ns": {
+        "interp": 15.588,
+        "mir": 3.437,
+        "ydsp": 3.435
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/table2.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block not compiled (an int heap access with a computed index), the interpreter runs it",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": false,
+      "ns": {
+        "interp": 88.942,
+        "mir": 31.277,
+        "ydsp": 111.192
+      },
+      "status": "ydsp not compiled",
+      "why": "interp-ydsp: DSP block not compiled (an int heap access with a computed index), the interpreter runs it"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/tapiir.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 2708 bytes of machine code (406 IR instructions, 642 before optimisation, 3 blocks), 86 real and 9 int heap cells promoted, 0.76 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 2708,
+      "ydsp_ms": 0.76,
+      "ns": {
+        "interp": 115.667,
+        "mir": 9.447,
+        "ydsp": 11.527
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/tester.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 972 bytes of machine code (173 IR instructions, 271 before optimisation, 3 blocks), 26 real and 5 int heap cells promoted, 0.36 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 972,
+      "ydsp_ms": 0.36,
+      "ns": {
+        "interp": 49.028,
+        "mir": 5.407,
+        "ydsp": 4.131
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/tester2.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 1016 bytes of machine code (188 IR instructions, 303 before optimisation, 15 blocks), 22 real and 7 int heap cells promoted, 0.42 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 1016,
+      "ydsp_ms": 0.42,
+      "ns": {
+        "interp": 40.256,
+        "mir": 4.563,
+        "ydsp": 3.699
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/tf_exp.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 1100 bytes of machine code (270 IR instructions, 457 before optimisation, 3 blocks), 45 real and 4 int heap cells promoted, 0.81 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 1100,
+      "ydsp_ms": 0.81,
+      "ns": {
+        "interp": 114.437,
+        "mir": 9.255,
+        "ydsp": 13.385
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/thru_zero_flanger.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 1664 bytes of machine code (298 IR instructions, 434 before optimisation, 3 blocks), 28 real and 10 int heap cells promoted, 1.07 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 1664,
+      "ydsp_ms": 1.07,
+      "ns": {
+        "interp": 140.227,
+        "mir": 12.523,
+        "ydsp": 8.455
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/vcf_wah_pedals.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 27496 bytes of machine code (4806 IR instructions, 7856 before optimisation, 63 blocks), 937 real and 20 int heap cells promoted, 47.96 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 27496,
+      "ydsp_ms": 47.96,
+      "ns": {
+        "interp": 2243.012,
+        "mir": 416.377,
+        "ydsp": 340.672
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/virtual_analog_oscillators.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 36120 bytes of machine code (5395 IR instructions, 8693 before optimisation, 42 blocks), 1003 real and 25 int heap cells promoted, 70.13 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 36120,
+      "ydsp_ms": 70.13,
+      "ns": {
+        "interp": 2651.939,
+        "mir": 468.7,
+        "ydsp": 361.751
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/vocal_impulse_train.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 308 bytes of machine code (97 IR instructions, 157 before optimisation, 3 blocks), 18 real and 2 int heap cells promoted, 0.26 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 308,
+      "ydsp_ms": 0.26,
+      "ns": {
+        "interp": 22.292,
+        "mir": 3.525,
+        "ydsp": 3.656
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/volume.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 116 bytes of machine code (25 IR instructions, 41 before optimisation, 3 blocks), 3 real and 2 int heap cells promoted, 0.15 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 116,
+      "ydsp_ms": 0.15,
+      "ns": {
+        "interp": 8.072,
+        "mir": 1.771,
+        "ydsp": 2.299
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/vumeter.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 360 bytes of machine code (69 IR instructions, 104 before optimisation, 3 blocks), 9 real and 2 int heap cells promoted, 0.39 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 360,
+      "ydsp_ms": 0.39,
+      "ns": {
+        "interp": 24.469,
+        "mir": 5.866,
+        "ydsp": 3.489
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/waveform1.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 148 bytes of machine code (19 IR instructions, 28 before optimisation, 3 blocks), 0 real and 3 int heap cells promoted, 0.19 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 148,
+      "ydsp_ms": 0.19,
+      "ns": {
+        "interp": 9.811,
+        "mir": 3.384,
+        "ydsp": 3.453
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/waveform2.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block not compiled (an int heap access with a computed index), the interpreter runs it",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": false,
+      "ns": {
+        "interp": 8.439,
+        "mir": 3.52,
+        "ydsp": 14.823
+      },
+      "status": "ydsp not compiled",
+      "why": "interp-ydsp: DSP block not compiled (an int heap access with a computed index), the interpreter runs it"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/waveform3.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 144 bytes of machine code (20 IR instructions, 33 before optimisation, 3 blocks), 0 real and 4 int heap cells promoted, 0.17 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 144,
+      "ydsp_ms": 0.17,
+      "ns": {
+        "interp": 8.211,
+        "mir": 3.45,
+        "ydsp": 3.714
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/waveform4.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block not compiled (an int heap access with a computed index), the interpreter runs it",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": false,
+      "ns": {
+        "interp": 10.485,
+        "mir": 3.418,
+        "ydsp": 16.443
+      },
+      "status": "ydsp not compiled",
+      "why": "interp-ydsp: DSP block not compiled (an int heap access with a computed index), the interpreter runs it"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/waveform5.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 96 bytes of machine code (16 IR instructions, 25 before optimisation, 3 blocks), 1 real and 3 int heap cells promoted, 0.15 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 96,
+      "ydsp_ms": 0.15,
+      "ns": {
+        "interp": 7.67,
+        "mir": 1.005,
+        "ydsp": 0.753
+      },
+      "status": "ok"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/waveform6.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block not compiled (an int heap access with a computed index), the interpreter runs it",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": false,
+      "ns": {
+        "interp": 18.79,
+        "mir": 3.958,
+        "ydsp": 21.012
+      },
+      "status": "ydsp not compiled",
+      "why": "interp-ydsp: DSP block not compiled (an int heap access with a computed index), the interpreter runs it"
+    },
+    {
+      "dsp": "tests/impulse-tests/dsp/zita_rev1.dsp",
+      "ydsp_trace": "interp-ydsp: DSP block compiled to 8716 bytes of machine code (1200 IR instructions, 1996 before optimisation, 3 blocks), 167 real and 20 int heap cells promoted, 3.32 ms",
+      "diff": {
+        "mir": [
+          0,
+          0.0
+        ],
+        "ydsp": [
+          0,
+          0.0
+        ]
+      },
+      "ydsp_compiled": true,
+      "ydsp_bytes": 8716,
+      "ydsp_ms": 3.32,
+      "ns": {
+        "interp": 482.91,
+        "mir": 76.787,
+        "ydsp": 62.236
+      },
+      "status": "ok"
+    }
+  ]
+}
