@@ -943,7 +943,7 @@ void Klass::println(int n, ostream& fout)
          << "return " << fNumOutputs << "; }";
 
     tab(n + 1, fout);
-    fout << "static void classInit(int sample_rate) {";
+    fout << "static void classInit(int" << (fStaticInitCode.empty() ? "" : " sample_rate") << ") {";
     printlines(n + 2, fStaticInitCode, fout);
     tab(n + 1, fout);
     fout << "}";

@@ -547,7 +547,7 @@ void CPPCodeContainer::produceClass()
     tab(n + 1, *fOut);
     if (gGlobal->gInlineTable) {
         // Empty classInit
-        *fOut << "static void classInit(int sample_rate) {}";
+        *fOut << "static void classInit(int) {}";
         tab(n + 1, *fOut);
         // To be used in instanceInit
         tab(n + 1, *fOut);
@@ -560,7 +560,9 @@ void CPPCodeContainer::produceClass()
         back(1, *fOut);
         *fOut << "}";
     } else {
-        *fOut << "static void classInit(int sample_rate) {";
+        const bool empty = fStaticInitInstructions->fCode.empty()
+                           && fPostStaticInitInstructions->fCode.empty();
+        *fOut << "static void classInit(int" << (empty ? "" : " sample_rate") << ") {";
         tab(n + 2, *fOut);
         fCodeProducer->Tab(n + 2);
         generateStaticInit(fCodeProducer);
