@@ -503,9 +503,25 @@ class sr_sampler : public decorator_dsp {
         std::vector<FILTER> fOutputLowPass;
     
         inline int getFactor() { return this->fOutputLowPass[0].getFactor(); }
+
+        void clearFilters()
+        {
+            for (auto& filter : fInputLowPass) {
+                filter = FILTER();
+            }
+            for (auto& filter : fOutputLowPass) {
+                filter = FILTER();
+            }
+        }
     
     public:
     
+        virtual void instanceClear()
+        {
+            fDSP->instanceClear();
+            clearFilters();
+        }
+
         sr_sampler(::dsp* dsp):decorator_dsp(dsp)
         {
             for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
@@ -529,11 +545,13 @@ class dsp_down_sampler : public sr_sampler<FILTER> {
         virtual void init(int sample_rate)
         {
             this->fDSP->init(sample_rate / this->getFactor());
+            this->clearFilters();
         }
     
         virtual void instanceInit(int sample_rate)
         {
             this->fDSP->instanceInit(sample_rate / this->getFactor());
+            this->clearFilters();
         }
     
         virtual void instanceConstants(int sample_rate)
@@ -599,11 +617,13 @@ class dsp_up_sampler : public sr_sampler<FILTER> {
         virtual void init(int sample_rate)
         {
             this->fDSP->init(sample_rate * this->getFactor());
+            this->clearFilters();
         }
     
         virtual void instanceInit(int sample_rate)
         {
             this->fDSP->instanceInit(sample_rate * this->getFactor());
+            this->clearFilters();
         }
     
         virtual void instanceConstants(int sample_rate)
