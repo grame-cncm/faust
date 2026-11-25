@@ -61,13 +61,24 @@ filesCompare: $(SRCDIR)/filesCompare.cpp
 	$(MAKE) filesCompare
 
 #########################################################################
+# The node wrapper reads 'DSP.wasm', 'DSP.json' and 'mydsprc' in its own directory : only
+# these file names take the name of the program ($1), the wrapper being $2. Its identifiers
+# (faust.mydsp, FaustDSP, startDSP...) are left as they are, since a program name such as
+# fmod-precedence is not a valid JavaScript identifier.
+wrapper = sed -e "s/'DSP\.wasm'/'$1.wasm'/; s/'DSP\.json'/'$1.json'/; s/'mydsprc'/'$1rc'/" $2
+
+# node runs in the directory of the program, in a subshell, so that the output and the
+# removal of a failed one use the path seen from here.
+runnode = (cd $(dir $1) && node --expose-wasm $(notdir $1)) > $2 || (rm -f $2; false)
+
+#########################################################################
 # rules for wasm
 ir/$(wasmdir)/%.ir: ir/$(wasmdir)/%.js reference/%.ir
-	cd $(dir $<) && node --expose-wasm $(notdir $<) > $(notdir $@) || (rm -f $@; false)
+	$(call runnode,$<,$@)
 	$(COMPARE) $@ reference/$(notdir $@) -1 -part || (rm -f $@; false)
-	
+
 ir/$(wasmdir)/%.js : ir/$(wasmdir)/%.wasm
-	cat $(wasmarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
+	$(call wrapper,$(basename $(notdir $<)),$(wasmarch)) > $@.tmp
 	mv $@.tmp $@
 	
 ir/$(wasmdir)/%.wasm : dsp/%.dsp | ir/$(wasmdir)
@@ -85,11 +96,11 @@ ir/$(wasmdir)/osc_enable.wasm : dsp/osc_enable.dsp | ir/$(wasmdir)
 #########################################################################
 # rules for wast
 ir/$(wastdir)/%.ir: ir/$(wastdir)/%.js reference/%.ir
-	cd $(dir $<) && node --expose-wasm $(notdir $<) > $(notdir $@) || (rm -f $@; false)
+	$(call runnode,$<,$@)
 	$(COMPARE) $@ reference/$(notdir $@) -1 -part || (rm -f $@; false)
 
 ir/$(wastdir)/%.js : ir/$(wastdir)/%.wast
-	cat $(wastarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
+	$(call wrapper,$(basename $(notdir $<)),$(wastarch)) > $@.tmp
 	mv $@.tmp $@
 
 ir/$(wastdir)/%.wast : dsp/%.dsp | ir/$(wastdir)

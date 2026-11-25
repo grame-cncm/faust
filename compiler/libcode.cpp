@@ -862,8 +862,8 @@ static void compileWAST(Tree signals, int numInputs, int numOutputs, ostream* ou
 
     // FIR is generated with internal real instead of FAUSTFLOAT (see IB::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
-    // the 'i' variable used in the scalar loop moves by bytes instead of frames
-    gGlobal->gLoopVarInBytes = true;
+    // scalar loops count bytes; vector loops count frames
+    gGlobal->gLoopVarInBytes = !gGlobal->gVectorSwitch;
     gGlobal->gWaveformInDSP  = true;  // waveform are allocated in the DSP and not as global data
     gGlobal->gMachinePtrSize = 4;     // WASM is currently 32 bits
     // pow(x,y) with y a small integer is expanded in multiplications (the 'faustpower' functions,
@@ -905,8 +905,8 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, ostream* ou
 
     // FIR is generated with internal real instead of FAUSTFLOAT (see IB::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
-    // the 'i' variable used in the scalar loop moves by bytes instead of frames
-    gGlobal->gLoopVarInBytes = true;
+    // scalar loops count bytes; vector loops count frames
+    gGlobal->gLoopVarInBytes = !gGlobal->gVectorSwitch;
     gGlobal->gWaveformInDSP  = true;  // waveform are allocated in the DSP and not as global data
     gGlobal->gMachinePtrSize = 4;     // WASM is currently 32 bits
     // pow(x,y) with y a small integer is expanded in multiplications (the 'faustpower' functions,
