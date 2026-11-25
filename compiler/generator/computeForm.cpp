@@ -335,10 +335,11 @@ void ComputeForm::markSettlingCalls(Tree L)
 {
     // the costly calls computed at the sample rate, and those whose arguments settle, marked ;
     // FAUST_TRACE_MEMO prints their counts
-    const std::unordered_set<xtended*> costly = {gGlobal->gPowPrim,  gGlobal->gExpPrim,  gGlobal->gExp10Prim,
-                                                 gGlobal->gLogPrim,  gGlobal->gLog10Prim, gGlobal->gSinPrim,
-                                                 gGlobal->gCosPrim,  gGlobal->gTanPrim,  gGlobal->gAtanPrim,
-                                                 gGlobal->gAtan2Prim, gGlobal->gAsinPrim, gGlobal->gAcosPrim};
+    const std::unordered_set<xtended*> costly = {
+        gGlobal->gPowPrim,   gGlobal->gExpPrim,   gGlobal->gExp10Prim, gGlobal->gLogPrim,  gGlobal->gLog10Prim,
+        gGlobal->gSinPrim,   gGlobal->gCosPrim,   gGlobal->gTanPrim,   gGlobal->gAtanPrim, gGlobal->gAtan2Prim,
+        gGlobal->gAsinPrim,  gGlobal->gAcosPrim,  gGlobal->gSinhPrim,  gGlobal->gCoshPrim, gGlobal->gTanhPrim,
+        gGlobal->gAsinhPrim, gGlobal->gAcoshPrim, gGlobal->gAtanhPrim};
     std::unordered_map<Tree, bool> memo;
     std::unordered_set<Tree>       seen;
     std::vector<Tree>              work{L};
