@@ -702,7 +702,10 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(FunCallInst* inst)
     {
         if (inst->fName == "fmodf" || inst->fName == "fmod") {
+            // Preserve function-call precedence when lowering to Rust's % operator.
+            *fOut << "(";
             IB::genRem(inst->fArgs.front(), inst->fArgs.back())->accept(this);
+            *fOut << ")";
         } else if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
             generateFunCall(inst, fMathLibTable[inst->fName]);
         } else {
