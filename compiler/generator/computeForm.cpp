@@ -61,10 +61,10 @@ class Translation : public TransformAlgebra {
 
     /// mix(c, a, b) : from the weight when c is written 1 - t (mixForm.hh), from b when c
     /// may be near 1, from a otherwise
-    static MixForm mixForm(Tree c)
+    static MixForm mixForm(Tree c, Tree a, Tree b)
     {
         const itv::interval ic = getCertifiedSigType(c)->getInterval();
-        if (Tree t; mixFromWeight(c, ic, t)) {
+        if (Tree t; mixFromWeight(c, a, b, [](Tree x) { return getCertifiedSigType(x)->getInterval(); }, t)) {
             return MixForm::kFromWeight;
         }
         return itv::mixFromB(ic) ? MixForm::kFromB : MixForm::kFromA;
@@ -102,7 +102,7 @@ class Translation : public TransformAlgebra {
             return o(cfPhase(c[0].out, c[1].out, phaseByReciprocal(p)));
         }
         if (isSigMix(sig, w, a, b)) {
-            return o(cfMix(c[0].out, c[1].out, c[2].out, mixForm(w)));
+            return o(cfMix(c[0].out, c[1].out, c[2].out, mixForm(w, a, b)));
         }
         if (isSigIRM(sig, x, p)) {
             return o(cfIrm(c[0].out, c[1].out, irmForm(sig, x, p)));

@@ -209,15 +209,17 @@ V SignalDispatch<V>::binaryOp(int op, const V& x, const V& y) const
 //
 // They live outside every signature -- an xtended attaches itself to an ordinary symbol
 // through user data -- so they are dispatched by NAME, which is the Faust primitive name
-// and therefore part of the language rather than of any one build. The 22 names below
-// are the complete set registered by the compiler.
+// and therefore part of the language rather than of any one build. The 28 names below
+// are the complete set registered by the compiler ; the six hyperbolic functions have no
+// word in the language, the compiler reaches them through the declaration of the C function.
 //--------------------------------------------------------------------------------------
 template <typename V>
 V SignalDispatch<V>::xtendedOp(xtended* p, const std::vector<V>& c) const
 {
     enum class XOp {
         Abs, Acos, Asin, Atan, Atan2, Ceil, Cos, Exp, Exp10, Floor, Fmod, Log, Log10,
-        Max, Min, Pow, Remainder, Rint, Round, Sin, Sqrt, Tan
+        Max, Min, Pow, Remainder, Rint, Round, Sin, Sqrt, Tan,
+        Sinh, Cosh, Tanh, Asinh, Acosh, Atanh
     };
     static const std::unordered_map<std::string, XOp> kTable = {
         {"abs", XOp::Abs},         {"acos", XOp::Acos},   {"asin", XOp::Asin},
@@ -228,6 +230,8 @@ V SignalDispatch<V>::xtendedOp(xtended* p, const std::vector<V>& c) const
         {"pow", XOp::Pow},         {"remainder", XOp::Remainder},
         {"rint", XOp::Rint},       {"round", XOp::Round}, {"sin", XOp::Sin},
         {"sqrt", XOp::Sqrt},       {"tan", XOp::Tan},
+        {"sinh", XOp::Sinh},       {"cosh", XOp::Cosh},   {"tanh", XOp::Tanh},
+        {"asinh", XOp::Asinh},     {"acosh", XOp::Acosh}, {"atanh", XOp::Atanh},
     };
 
     auto it = kTable.find(p->sname());
@@ -257,6 +261,12 @@ V SignalDispatch<V>::xtendedOp(xtended* p, const std::vector<V>& c) const
         case XOp::Sin: return this->Sin(c[0]);
         case XOp::Sqrt: return this->Sqrt(c[0]);
         case XOp::Tan: return this->Tan(c[0]);
+        case XOp::Sinh: return this->Sinh(c[0]);
+        case XOp::Cosh: return this->Cosh(c[0]);
+        case XOp::Tanh: return this->Tanh(c[0]);
+        case XOp::Asinh: return this->Asinh(c[0]);
+        case XOp::Acosh: return this->Acosh(c[0]);
+        case XOp::Atanh: return this->Atanh(c[0]);
     }
     return unreachable("xtendedOp");
 }

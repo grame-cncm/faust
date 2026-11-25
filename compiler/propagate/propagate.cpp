@@ -386,6 +386,40 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
 // Collect the leaf numbers of tree l into vector v.
 // return true if l is a number or a parallel tree of numbers.
+/**
+ * The primitive that a foreign function declares, or nullptr.
+ *
+ * The six hyperbolic functions have no word in the language : a program reaches them by
+ * declaring the C function, as maths.lib does :
+ *
+ *     tanh = ffunction(float tanhf|tanh|tanhl (float), <math.h>, "");
+ *
+ * Such a declaration is the primitive, and not a function the compiler knows nothing of,
+ * exactly when the call that the primitive emits is the call that the declaration asks for :
+ * the name declared for the precision of the compilation is the name of the primitive with
+ * the suffix of this precision (tanhf in single precision), the header is the one of the C
+ * library, no library is to be linked, and the function takes one real and gives a real.
+ * Any other declaration stays a foreign function.
+ */
+static xtended* hyperbolicPrimitive(Tree ff)
+{
+    if (ffarity(ff) != 1 || ffrestype(ff) != kReal || ffargtype(ff, 0) != kReal) {
+        return nullptr;
+    }
+    const string incfile = ffincfile(ff);
+    if ((incfile != "<math.h>" && incfile != "<cmath>") || string(fflibfile(ff)) != "\"\"") {
+        return nullptr;
+    }
+    const string funname = ffname(ff);
+    for (xtended* xt : {gGlobal->gSinhPrim, gGlobal->gCoshPrim, gGlobal->gTanhPrim,
+                        gGlobal->gAsinhPrim, gGlobal->gAcoshPrim, gGlobal->gAtanhPrim}) {
+        if (funname == xt->sname() + isuffix()) {
+            return xt;
+        }
+    }
+    return nullptr;
+}
+
 static bool isIntTree(Tree l, vector<int>& v)
 {
     int    n;
@@ -568,6 +602,9 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
     else if (isBoxFFun(box, ff)) {
         faustassert(int(lsig.size()) == ffarity(ff));
+        if (xtended* xt = hyperbolicPrimitive(ff)) {
+            return makeList(xt->computeSigOutput(lsig));
+        }
         return makeList(sigFFun(ff, listConvert(lsig)));
     }
 

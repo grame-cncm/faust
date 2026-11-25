@@ -59,3 +59,20 @@ inline bool mixFromWeight(Tree c, const itv::interval& ic, Tree& t)
     if (!mixComplementOf(c, t)) return false;
     return itv::mixFromB(ic) || ic.isEmpty() || !ic.isBounded();
 }
+
+/// The same, and when b lies between 0 and a with a weight t that is not negative : b and
+/// t (a - b) have then the same sign and their sum cancels nothing, whatever the weight,
+/// where a + c (b - a) loses the digits of a result small before a (1 - (1 - x) (1 - y),
+/// x and y small). intervalOf gives the interval of a signal.
+template <typename IntervalOf>
+inline bool mixFromWeight(Tree c, Tree a, Tree b, IntervalOf&& intervalOf, Tree& t)
+{
+    if (!mixComplementOf(c, t)) return false;
+    const itv::interval ic = intervalOf(c);
+    if (itv::mixFromB(ic) || ic.isEmpty() || !ic.isBounded()) return true;
+    const itv::interval it = intervalOf(t);
+    const itv::interval ia = intervalOf(a);
+    const itv::interval ib = intervalOf(b);
+    if (it.isEmpty() || ia.isEmpty() || ib.isEmpty() || it.lo() < 0) return false;
+    return (ib.lo() >= 0 && ib.hi() <= ia.lo()) || (ib.hi() <= 0 && ib.lo() >= ia.hi());
+}

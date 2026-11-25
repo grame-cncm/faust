@@ -78,6 +78,12 @@ class CPPInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sinf"]       = true;
         gFunctionSymbolTable["sqrtf"]      = true;
         gFunctionSymbolTable["tanf"]       = true;
+        gFunctionSymbolTable["sinhf"]      = true;
+        gFunctionSymbolTable["coshf"]      = true;
+        gFunctionSymbolTable["tanhf"]      = true;
+        gFunctionSymbolTable["asinhf"]     = true;
+        gFunctionSymbolTable["acoshf"]     = true;
+        gFunctionSymbolTable["atanhf"]     = true;
 
         // Double version
         gFunctionSymbolTable["fabs"]      = true;
@@ -101,6 +107,12 @@ class CPPInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sin"]       = true;
         gFunctionSymbolTable["sqrt"]      = true;
         gFunctionSymbolTable["tan"]       = true;
+        gFunctionSymbolTable["sinh"]      = true;
+        gFunctionSymbolTable["cosh"]      = true;
+        gFunctionSymbolTable["tanh"]      = true;
+        gFunctionSymbolTable["asinh"]     = true;
+        gFunctionSymbolTable["acosh"]     = true;
+        gFunctionSymbolTable["atanh"]     = true;
 
         // Quad version
         gFunctionSymbolTable["fabsl"]      = true;
@@ -124,6 +136,12 @@ class CPPInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sinl"]       = true;
         gFunctionSymbolTable["sqrtl"]      = true;
         gFunctionSymbolTable["tanl"]       = true;
+        gFunctionSymbolTable["sinhl"]      = true;
+        gFunctionSymbolTable["coshl"]      = true;
+        gFunctionSymbolTable["tanhl"]      = true;
+        gFunctionSymbolTable["asinhl"]     = true;
+        gFunctionSymbolTable["acoshl"]     = true;
+        gFunctionSymbolTable["atanhl"]     = true;
 
         // Fx version
         gFunctionSymbolTable["fabsfx"]      = true;
@@ -178,6 +196,12 @@ class CPPInstVisitor : public TextInstVisitor {
         fPolyMathLibTable["sinf"]       = "std::sin";
         fPolyMathLibTable["sqrtf"]      = "std::sqrt";
         fPolyMathLibTable["tanf"]       = "std::tan";
+        fPolyMathLibTable["sinhf"]      = "std::sinh";
+        fPolyMathLibTable["coshf"]      = "std::cosh";
+        fPolyMathLibTable["tanhf"]      = "std::tanh";
+        fPolyMathLibTable["asinhf"]     = "std::asinh";
+        fPolyMathLibTable["acoshf"]     = "std::acosh";
+        fPolyMathLibTable["atanhf"]     = "std::atanh";
 
         fPolyMathLibTable["isnanf"] = "std::isnan";
         fPolyMathLibTable["isinff"] = "std::isinf";
@@ -208,6 +232,12 @@ class CPPInstVisitor : public TextInstVisitor {
         fPolyMathLibTable["sin"]       = "std::sin";
         fPolyMathLibTable["sqrt"]      = "std::sqrt";
         fPolyMathLibTable["tan"]       = "std::tan";
+        fPolyMathLibTable["sinh"]      = "std::sinh";
+        fPolyMathLibTable["cosh"]      = "std::cosh";
+        fPolyMathLibTable["tanh"]      = "std::tanh";
+        fPolyMathLibTable["asinh"]     = "std::asinh";
+        fPolyMathLibTable["acosh"]     = "std::acosh";
+        fPolyMathLibTable["atanh"]     = "std::atanh";
 
         fPolyMathLibTable["isnan"] = "std::isnan";
         fPolyMathLibTable["isinf"] = "std::isinf";
@@ -238,6 +268,12 @@ class CPPInstVisitor : public TextInstVisitor {
         fPolyMathLibTable["sinl"]       = "std::sin";
         fPolyMathLibTable["sqrtl"]      = "std::sqrt";
         fPolyMathLibTable["tanl"]       = "std::tan";
+        fPolyMathLibTable["sinhl"]      = "std::sinh";
+        fPolyMathLibTable["coshl"]      = "std::cosh";
+        fPolyMathLibTable["tanhl"]      = "std::tanh";
+        fPolyMathLibTable["asinhl"]     = "std::asinh";
+        fPolyMathLibTable["acoshl"]     = "std::acosh";
+        fPolyMathLibTable["atanhl"]     = "std::atanh";
 
         fPolyMathLibTable["isnanl"] = "std::isnan";
         fPolyMathLibTable["isinfl"] = "std::isinf";

@@ -79,6 +79,12 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sinf"]       = true;
         gFunctionSymbolTable["sqrtf"]      = true;
         gFunctionSymbolTable["tanf"]       = true;
+        gFunctionSymbolTable["sinhf"]      = true;
+        gFunctionSymbolTable["coshf"]      = true;
+        gFunctionSymbolTable["tanhf"]      = true;
+        gFunctionSymbolTable["asinhf"]     = true;
+        gFunctionSymbolTable["acoshf"]     = true;
+        gFunctionSymbolTable["atanhf"]     = true;
 
         // Double version
         gFunctionSymbolTable["fabs"]      = true;
@@ -102,6 +108,12 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sin"]       = true;
         gFunctionSymbolTable["sqrt"]      = true;
         gFunctionSymbolTable["tan"]       = true;
+        gFunctionSymbolTable["sinh"]      = true;
+        gFunctionSymbolTable["cosh"]      = true;
+        gFunctionSymbolTable["tanh"]      = true;
+        gFunctionSymbolTable["asinh"]     = true;
+        gFunctionSymbolTable["acosh"]     = true;
+        gFunctionSymbolTable["atanh"]     = true;
 
         // Quad version
         gFunctionSymbolTable["fabsl"]      = true;
@@ -125,6 +137,12 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sinl"]       = true;
         gFunctionSymbolTable["sqrtl"]      = true;
         gFunctionSymbolTable["tanl"]       = true;
+        gFunctionSymbolTable["sinhl"]      = true;
+        gFunctionSymbolTable["coshl"]      = true;
+        gFunctionSymbolTable["tanhl"]      = true;
+        gFunctionSymbolTable["asinhl"]     = true;
+        gFunctionSymbolTable["acoshl"]     = true;
+        gFunctionSymbolTable["atanhl"]     = true;
 
         // Fx version
         gFunctionSymbolTable["fabsfx"]      = true;

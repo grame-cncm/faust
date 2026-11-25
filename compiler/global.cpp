@@ -31,11 +31,15 @@
 #include "propagate.hh"
 #include "absprim.hh"
 #include "acosprim.hh"
+#include "acoshprim.hh"
+#include "asinhprim.hh"
 #include "asinprim.hh"
 #include "atan2prim.hh"
+#include "atanhprim.hh"
 #include "atanprim.hh"
 #include "binop.hh"
 #include "ceilprim.hh"
+#include "coshprim.hh"
 #include "cosprim.hh"
 #include "enrobage.hh"
 #include "exepath.hh"
@@ -56,9 +60,11 @@
 #include "rintprim.hh"
 #include "roundprim.hh"
 #include "sigs-config.hh"
+#include "sinhprim.hh"
 #include "sinprim.hh"
 #include "sourcereader.hh"
 #include "sqrtprim.hh"
+#include "tanhprim.hh"
 #include "tanprim.hh"
 #include "timing.hh"
 #include "tlib.hh"
@@ -314,6 +320,14 @@ global::global()
     gAtanPrim      = new AtanPrim();
     gAtan2Prim     = new Atan2Prim();
     gAsinPrim      = new AsinPrim();
+    // the hyperbolic functions : primitives without a word in the language, reached through
+    // the declaration of the C function as a foreign function (propagate.cpp)
+    gSinhPrim      = new SinhPrim();
+    gCoshPrim      = new CoshPrim();
+    gTanhPrim      = new TanhPrim();
+    gAsinhPrim     = new AsinhPrim();
+    gAcoshPrim     = new AcoshPrim();
+    gAtanhPrim     = new AtanhPrim();
 
     BOXIDENT         = symbol("BoxIdent");
     BOXCUT           = symbol("BoxCut");

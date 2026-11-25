@@ -1616,7 +1616,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         // a mix computed from the weight t of its complement c = 1 - t (mixForm.hh) : the
         // interval of that computation
         if (Tree mc, ma, mb, t; isSigMix(sig, mc, ma, mb) && c.size() == 3 &&
-                                mixFromWeight(mc, itv::toItv(c[0], fT), t)) {
+                                mixFromWeight(mc, ma, mb, [&](Tree x) { return itv::toItv(ev.eval(x), fT); }, t)) {
             const AffItv at = ev.eval(t);
             AffItv       r  = itv::hullDrift(itv::fromItv(fItv.MixOfComplement(itv::toItv(at, fT), itv::toItv(c[1], fT),
                                                                          itv::toItv(c[2], fT))),

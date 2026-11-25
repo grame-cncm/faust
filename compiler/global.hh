@@ -554,6 +554,13 @@ struct global {
     xtended*& gAtanPrim = sigs::g.gAtanPrim;
     xtended*& gAtan2Prim = sigs::g.gAtan2Prim;
     xtended*& gAsinPrim = sigs::g.gAsinPrim;
+    // The hyperbolic functions : no word of the language names them
+    xtended* gSinhPrim;
+    xtended* gCoshPrim;
+    xtended* gTanhPrim;
+    xtended* gAsinhPrim;
+    xtended* gAcoshPrim;
+    xtended* gAtanhPrim;
 
     // Signals
     Sym BOXIDENT;
