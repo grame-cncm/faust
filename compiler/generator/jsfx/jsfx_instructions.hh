@@ -299,6 +299,9 @@ class JSFXInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["coshf"]  = false;
         gFunctionSymbolTable["sinhf"]  = false;
         gFunctionSymbolTable["tanhf"]  = false;
+        gFunctionSymbolTable["isnanf"]    = false;
+        gFunctionSymbolTable["isinff"]    = false;
+        gFunctionSymbolTable["copysignf"] = false;
 
         // Double version
         gFunctionSymbolTable["fabs"]      = true;
@@ -329,6 +332,9 @@ class JSFXInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["cosh"]  = false;
         gFunctionSymbolTable["sinh"]  = false;
         gFunctionSymbolTable["tanh"]  = false;
+        gFunctionSymbolTable["isnan"]    = false;
+        gFunctionSymbolTable["isinf"]    = false;
+        gFunctionSymbolTable["copysign"] = false;
 
         // Quad version
         gFunctionSymbolTable["fabsl"]      = false;
@@ -359,6 +365,9 @@ class JSFXInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["coshl"]  = false;
         gFunctionSymbolTable["sinhl"]  = false;
         gFunctionSymbolTable["tanhl"]  = false;
+        gFunctionSymbolTable["isnanl"]    = false;
+        gFunctionSymbolTable["isinfl"]    = false;
+        gFunctionSymbolTable["copysignl"] = false;
 
         // Polymath mapping int version
         gPolyMathLibTable["abs"]   = "abs";
@@ -400,12 +409,10 @@ class JSFXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinhf"]      = "sinh";
         gPolyMathLibTable["tanhf"]      = "tanh";
 
-        // Not available in JSFX yet
-        /*
-        gPolyMathLibTable["isnanf"]     = "isnan";
-        gPolyMathLibTable["isinff"]     = "isinf";
-        gPolyMathLibTable["copysignf"]  = "copysign";
-        */
+        // Not native in JSFX, defined in the generated code
+        gPolyMathLibTable["isnanf"]    = "isnan";
+        gPolyMathLibTable["isinff"]    = "isinf";
+        gPolyMathLibTable["copysignf"] = "copysign";
 
         // Polymath mapping double version
         gPolyMathLibTable["max_"] = "max";
@@ -442,12 +449,10 @@ class JSFXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinh"]      = "sinh";
         gPolyMathLibTable["tanh"]      = "tanh";
 
-        // Not available in JSFX yet
-        /*
-        gPolyMathLibTable["isnan"]     = "isnan";
-        gPolyMathLibTable["isinf"]     = "isinf";
-        gPolyMathLibTable["copysign"]  = "copysign";
-        */
+        // Not native in JSFX, defined in the generated code
+        gPolyMathLibTable["isnan"]    = "isnan";
+        gPolyMathLibTable["isinf"]    = "isinf";
+        gPolyMathLibTable["copysign"] = "copysign";
     }
 
     virtual ~JSFXInstVisitor() {}

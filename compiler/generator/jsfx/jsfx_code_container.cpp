@@ -256,6 +256,19 @@ void JSFXCodeContainer::produceClass()
           << "function atanh(x) local(a) ( \n"
           << " a = abs(x); \n"
           << " sign(x) * 0.5 * log((1 + a) / (1 - a)); \n"
+          << ");\n"
+          // NaN tests built on '>=' only: a NaN operand makes it false on every EEL2 target,
+          // while '===' and '!==' answer differently (fcmp on aarch64, ucomisd on x86_64) and
+          // '<', '<=' and '==' (|x - y| < epsilon) answer true. EEL2 flushes to 0 every value
+          // it stores whose exponent is minimal or maximal (denormals, -0, inf and NaN): no
+          // variable holds an inf or a NaN, so these functions see one only when it is computed
+          // in their argument, and store nothing themselves.
+          << "function isnan(x) (x >= x ? 0 : 1); \n"
+          // inf - inf is a NaN, x - x is 0 for any finite x
+          << "function isinf(x) (x >= x ? ((x - x) >= (x - x) ? 0 : 1) : 0); \n"
+          // The sign of y, -0 included (1 / -0 is -inf); a NaN y counts as positive
+          << "function copysign(x, y) ( \n"
+          << " (y >= y && (y < 0 || 1 / y < 0)) ? -abs(x) : abs(x); \n"
           << ");\n";
 
     *fOut << "/* \n"
