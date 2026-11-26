@@ -4,7 +4,7 @@ faust2svg $@
 
 for d in $@; do
     for f in ${d%.*}-svg/*.svg; do
-        inkscape -e ${f%.svg}.png -d 300 $f
+        inkscape --export-type=png --export-dpi=300 --export-filename=${f%.svg}.png $f
         rm $f
     done
     mv ${d%.*}-svg ${d%.*}-png
