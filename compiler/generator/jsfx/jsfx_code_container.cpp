@@ -184,6 +184,23 @@ void JSFXCodeContainer::produceClass()
              " y >= 4294967296 ? y - 4294967296 : y; \n"
              "); \n"
 
+             // The C division of two integers: the quotient truncated toward zero (the real
+             // quotient of two 32-bit integers is exact enough for floor and ceil to see an
+             // integer quotient as one), -2147483648 / -1 wrapping, and 0 for a null divisor
+             "function div32(x, y) local(q) ( \n"
+             " x = int32(x); \n"
+             " y = int32(y); \n"
+             " y == 0 ? 0 : (q = x / y; int32(q < 0 ? ceil(q) : floor(q));); \n"
+             "); \n"
+
+             // The C remainder of two integers, with the sign of the dividend: EEL2's '%'
+             // computes it on the absolute values
+             "function rem32(x, y) ( \n"
+             " x = int32(x); \n"
+             " y = int32(y); \n"
+             " x < 0 ? -(x % y) : x % y; \n"
+             "); \n"
+
              "function ftoi32(x) ( \n"
              " x <= -1 ? ((min(max(-2147483648, x), -1)|0) + 4294967296;) : (min(max(0, x), "
              "4294967295)|0;); \n"

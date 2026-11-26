@@ -1,0 +1,113 @@
+//----------------------------------------------------------
+// name: "int_rem_sign"
+//
+// Code generated with Faust 2.94.1 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -xw -in -mc -st -rcp -gt -sl -lt -fam -fam-split 24 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
+#ifndef FAUST_INT_SHIFT
+#define FAUST_INT_SHIFT
+inline int faust_wrap_shl(int a, int k) { return int((unsigned int)a << (k & 31)); }
+inline int faust_wrap_shr(int a, int k) { return a >> (k & 31); }
+inline int faust_wrap_ushr(int a, int k) { return int((unsigned int)a >> (k & 31)); }
+inline int faust_wrap_abs(int a) { return (a < 0) ? int(0u - (unsigned int)a) : a; }
+#endif
+#ifndef FAUST_FLOAT_BITS
+#define FAUST_FLOAT_BITS
+#include <cstdint>
+#include <cstring>
+inline int faust_float_bits(float x) { int i; std::memcpy(&i, &x, sizeof(i)); return i; }
+inline int64_t faust_double_bits(double x) { int64_t i; std::memcpy(&i, &x, sizeof(i)); return i; }
+#endif
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	int 	iVeeec0State; // Single Delay
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -xw -in -mc -st -rcp -gt -sl -lt -fam -fam-split 24 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "int_rem_sign.dsp");
+		m->declare("name", "int_rem_sign");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 5; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+		iVeeec0State = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("int_rem_sign");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int 	iVeeec0;
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+		FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+		FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+		FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+		// schedule: ss=0 nodes=32 cycles=22 fill=36% peak=7 isoadj=5 packs4=1 aluMII=8 memMII=0 recMII=0 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
+		iVeeec0 = iVeeec0State;
+		for (int i=0; i<count; i++) {
+			iVeeec0 = faust_wrap_add(1, iVeeec0);
+			int 	iTemp0 = faust_wrap_add(-51, iVeeec0); // step: 5
+			int 	iTemp1 = faust_wrap_sub(51, iVeeec0); // step: 13
+			int 	iTemp2 = (-4 + (faust_wrap_add(-1, iVeeec0) % 9)); // step: 24
+			int 	iTemp3 = abs((((iTemp2 == 0)) ? 5 : iTemp2)); // step: 28
+			output0[i] = (FAUSTFLOAT)(float(+(iTemp0 % 7)));  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)(float(+(iTemp0 % -7)));  // Zone Exec Code
+			output2[i] = (FAUSTFLOAT)(float(+(iTemp1 % 7)));  // Zone Exec Code
+			output3[i] = (FAUSTFLOAT)(float(+(iTemp1 % -7)));  // Zone Exec Code
+			output4[i] = (FAUSTFLOAT)(float(+(iTemp0 % (((iTemp3 == 0)) ? 1 : iTemp3))));  // Zone Exec Code
+		}
+		iVeeec0State = iVeeec0;
+	}
+};
+
+
