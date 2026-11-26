@@ -119,19 +119,19 @@ void htmlpage::print(std::ostream& out, string s) const
 	out << "  <head>" << endl;
     
 #ifdef LOADSCRIPTS
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/jquery-1.7.1.min.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/jquerysvg/jquery.svg.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/jquerysvg/jquery.svgdom.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_proto.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_jquery_svg_backend.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_mobile.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_inits.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_load_external_file.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_objects.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_builder.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_interact.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_server_communication.js\"></script>" << endl;
-	out << "    <link rel=\"stylesheet\" type=\"text/css\" href=\"http://www.mikesolomon.org/faust/svg/faust_css.css\"></link>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"js/svg/jquery-1.7.1.min.js\"></script>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"js/svg/jquerysvg/jquery.svg.js\"></script>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"js/svg/jquerysvg/jquery.svgdom.js\"></script>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"js/svg/faust_proto.js\"></script>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"js/svg/faust_jquery_svg_backend.js\"></script>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"js/svg/faust_mobile.js\"></script>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"js/svg/faust_ui_inits.js\"></script>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"js/svg/faust_load_external_file.js\"></script>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"js/svg/faust_ui_objects.js\"></script>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"js/svg/faust_ui_builder.js\"></script>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"js/svg/faust_ui_interact.js\"></script>" << endl;
+	out << "    <script type=\"text/javascript\" src=\"js/svg/faust_server_communication.js\"></script>" << endl;
+	out << "    <link rel=\"stylesheet\" type=\"text/css\" href=\"js/svg/faust_css.css\"></link>" << endl;
 #else
 	out << "<style type=\"text/css\">" << endl;
         for (unsigned int i = 0; i < stylesheet_len; i++) { out << stylesheet[i]; } out << endl;
