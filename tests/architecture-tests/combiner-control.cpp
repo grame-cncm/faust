@@ -1,4 +1,4 @@
-// Run: make -f Makefile.combiner-control check -k -j2
+// Run: make check-combiner-control
 #include <iostream>
 #include <memory>
 #include "faust/dsp/dsp-tools.h"
