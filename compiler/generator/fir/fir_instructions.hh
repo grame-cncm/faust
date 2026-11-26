@@ -59,6 +59,13 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual ~FIRInstVisitor() {}
 
+    // Called by cleanupCodeGenerators (global.cpp) between compilations, as for the other
+    // backends. The FIR function table is a per-instance member, so there is nothing to clear;
+    // without this definition the call would name the inherited Garbageable::cleanup(), which
+    // deletes every Tree and Symbol of the session (tlib::init's symbols included) and crashes
+    // the compiler at its first symbol lookup.
+    static void cleanup() {}
+
     virtual std::string generateType(Typed* type)
     {
         BasicTyped*  basic_typed  = dynamic_cast<BasicTyped*>(type);
