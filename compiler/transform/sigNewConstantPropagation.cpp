@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "global.hh"
+#include "normalize.hh"
 #include "sigNewConstantPropagation.hh"
 #include "signals.hh"
 #include "sigtransform.hh"
@@ -65,6 +66,13 @@ class ConstantPropagationAlgebra final : public TransformAlgebra {
                  FixPointEvaluator<XSig>& ev) const override
     {
         XSig r = TransformAlgebra::combine(orig, c, ev);
+        // A delay amount (or a delayed signal) that just became a constant
+        // is back in the normal form's reach -- (x@0) -> x, (x@n)@m -> x@(n+m).
+        // The backends expect no nested delay and no x@0.
+        Tree x, d;
+        if (r.out != orig && isSigDelay(r.out, x, d)) {
+            return o(normalizeDelayTerm(x, d));
+        }
         return o(numericFrame(r.out));
     }
 
