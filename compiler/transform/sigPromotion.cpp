@@ -1406,6 +1406,98 @@ Tree signalPowerNaturePromote(Tree sig)
     return signalTransform(sig, A);
 }
 
+//-------------------------The powers of integers as their products-------------------------
+// pow(x, k) of two integers is the product of k factors wrapping on 32 bits, as the folding
+// of a constant power (powprim.hh, computeSigOutput) and the signal interpreter
+// (PowPrim::compute) compute it. The code computed it with helpers in C and C++, and with the
+// real power of the libm converted to int elsewhere, which saturates (wasm, Rust, Java) or is
+// undefined beyond the integers : pow(10, k) gave 2147483647 at k = 10 where the constant
+// pow(10, 10) folds to 1410065408 (issue #1421). The power is now written, for every backend,
+// after the last simplification of the normal form (which would gather the products back
+// into powers), as its products by squaring : integer products, which wrap in every backend,
+// and selects on the bits of the exponent. No backend computes a power of integers itself.
+//----------------------------------------------------------------------------------------
+
+namespace {
+
+// the product of two integers wrapped on 32 bits, folded when both are constants
+static Tree wrappedMul(Tree a, Tree b)
+{
+    int x, y;
+    if (isSigInt(a, &x) && isSigInt(b, &y)) {
+        return sigInt(int(int32_t(uint32_t(x) * uint32_t(y))));
+    }
+    if (isSigInt(a, &x) && x == 1) {
+        return b;
+    }
+    if (isSigInt(b, &y) && y == 1) {
+        return a;
+    }
+    return sigBinOp(kMul, a, b);
+}
+
+// x^k for k >= 0 : a constant k multiplies the squares of x for the bits it sets ; a
+// variable k, proven >= 0 by its sign (signalPowerNaturePromote), selects them by its bits,
+// the 31 low ones, or as many as its interval i needs when it is valid and does not move
+static Tree squaringPower(Tree x, Tree k, const interval& i)
+{
+    int c;
+    if (isSigInt(k, &c)) {
+        faustassert(c >= 0);
+        Tree p = sigInt(1);
+        Tree s = x;
+        for (unsigned int e = unsigned(c); e != 0; e >>= 1) {
+            if (e & 1) {
+                p = wrappedMul(p, s);
+            }
+            if (e > 1) {
+                s = wrappedMul(s, s);
+            }
+        }
+        return p;
+    }
+    int bits = 31;
+    if (i.isValid() && !i.hiMoves() && i.hi() >= 0 && i.hi() < 2147483648.0) {
+        bits = 0;
+        for (int64_t h = int64_t(i.hi()); h != 0; h >>= 1) {
+            bits++;
+        }
+    }
+    Tree one = sigInt(1);
+    Tree p   = one;
+    Tree s   = x;
+    for (int b = 0; b < bits; b++) {
+        Tree bit = sigBinOp(kAND, (b == 0) ? k : sigBinOp(kARsh, k, sigInt(b)), one);
+        p        = sigSelect2(bit, p, wrappedMul(p, s));
+        if (b < bits - 1) {
+            s = wrappedMul(s, s);
+        }
+    }
+    return p;
+}
+
+class IntegerPowerAlgebra final : public TransformAlgebra {
+   public:
+    XSig xtdApp(Tree orig, xtended* p, const std::vector<XSig>& c) const override
+    {
+        int k;
+        if (p == gGlobal->gPowPrim && c.size() == 2 && typeOf(c[0])->nature() == kInt &&
+            typeOf(c[1])->nature() == kInt && (!isSigInt(c[1].out, &k) || k >= 0)) {
+            return o(squaringPower(c[0].out, c[1].out, sigInterval(c[1].orig)));
+        }
+        return TransformAlgebra::xtdApp(orig, p, c);
+    }
+};
+
+}  // namespace
+
+Tree signalIntegerPowerPromote(Tree sig)
+{
+    certifySignalsTyped(sig);
+    IntegerPowerAlgebra A;
+    return signalTransform(sig, A);
+}
+
 Tree signalFTZPromote(Tree sig)
 {
     // Check that the root tree is properly type annotated

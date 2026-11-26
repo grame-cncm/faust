@@ -1,0 +1,277 @@
+//----------------------------------------------------------
+// name: "int_power"
+//
+// Code generated with Faust 2.94.1 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -xw -in -mc -st -rcp -gt -sl -lt -fam -fam-split 24 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
+#ifndef FAUST_INT_SHIFT
+#define FAUST_INT_SHIFT
+inline int faust_wrap_shl(int a, int k) { return int((unsigned int)a << (k & 31)); }
+inline int faust_wrap_shr(int a, int k) { return a >> (k & 31); }
+inline int faust_wrap_ushr(int a, int k) { return int((unsigned int)a >> (k & 31)); }
+inline int faust_wrap_abs(int a) { return (a < 0) ? int(0u - (unsigned int)a) : a; }
+#endif
+#ifndef FAUST_FLOAT_BITS
+#define FAUST_FLOAT_BITS
+#include <cstdint>
+#include <cstring>
+inline int faust_float_bits(float x) { int i; std::memcpy(&i, &x, sizeof(i)); return i; }
+inline int64_t faust_double_bits(double x) { int64_t i; std::memcpy(&i, &x, sizeof(i)); return i; }
+#endif
+#ifndef FAUST_FMOD
+#define FAUST_FMOD
+#include <math.h>
+/* The real fmod of Faust : fmod, without the call when a is in [0, 2 * w) : a itself below w,
+   a - w from w on, exact (Sterbenz : w <= a <= 2 * w). Every other operand, NaN and
+   infinities included, goes to fmod. */
+static inline float faustfmodf(float a, float w) { if (a >= 0) { if (a < w) return a; if (a < 2 * w) return a - w; } return fmodf(a, w); }
+static inline double faustfmod(double a, double w) { if (a >= 0) { if (a < w) return a; if (a < 2 * w) return a - w; } return fmod(a, w); }
+static inline long double faustfmodl(long double a, long double w) { if (a >= 0) { if (a < w) return a; if (a < 2 * w) return a - w; } return fmodl(a, w); }
+#endif
+#ifndef FAUST_MINMAX
+#define FAUST_MINMAX
+#include <math.h>
+/* The real max and min of Faust : maximumNumber and minimumNumber of IEEE 754-2019 (a NaN
+   operand gives the other one, -0 < +0). The compiler writes the cheapest of these forms
+   that has this value, from what the interval of the program proves :
+   faustmax, the comparison, where a tie of zeros gives its first operand ; faustmaxk, the
+   first operand not NaN and no tie of zeros, in the form each compiler compiles best ;
+   faustmaxn, any operands. On arm64, fmax and fmin are fmaxnm and fminnm, this value
+   for any operands in one instruction : every form is written with them. */
+#if defined(__aarch64__)
+static inline float faustmaxf(float a, float b) { return fmaxf(a, b); }
+static inline float faustminf(float a, float b) { return fminf(a, b); }
+static inline float faustmaxkf(float a, float b) { return fmaxf(a, b); }
+static inline float faustminkf(float a, float b) { return fminf(a, b); }
+static inline float faustmaxnf(float a, float b) { return fmaxf(a, b); }
+static inline float faustminnf(float a, float b) { return fminf(a, b); }
+#elif defined(__clang__)
+static inline float faustmaxf(float a, float b) { return (a < b) ? b : a; }
+static inline float faustminf(float a, float b) { return (b < a) ? b : a; }
+static inline float faustmaxkf(float a, float b) { return fmaxf(a, b); }
+static inline float faustminkf(float a, float b) { return fminf(a, b); }
+#else
+static inline float faustmaxf(float a, float b) { return (a < b) ? b : a; }
+static inline float faustminf(float a, float b) { return (b < a) ? b : a; }
+static inline float faustmaxkf(float a, float b) { return (a < b) ? b : a; }
+static inline float faustminkf(float a, float b) { return (b < a) ? b : a; }
+#endif
+#if !defined(__aarch64__)
+static inline float faustmaxnf(float a, float b) { return (a < b || a != a) ? b : (b < a) ? a : ((a == b && signbit(a)) ? b : a); }
+static inline float faustminnf(float a, float b) { return (b < a || a != a) ? b : (a < b) ? a : ((a == b && !signbit(a)) ? b : a); }
+#endif
+#if defined(__aarch64__)
+static inline double faustmax(double a, double b) { return fmax(a, b); }
+static inline double faustmin(double a, double b) { return fmin(a, b); }
+static inline double faustmaxk(double a, double b) { return fmax(a, b); }
+static inline double faustmink(double a, double b) { return fmin(a, b); }
+static inline double faustmaxn(double a, double b) { return fmax(a, b); }
+static inline double faustminn(double a, double b) { return fmin(a, b); }
+#elif defined(__clang__)
+static inline double faustmax(double a, double b) { return (a < b) ? b : a; }
+static inline double faustmin(double a, double b) { return (b < a) ? b : a; }
+static inline double faustmaxk(double a, double b) { return fmax(a, b); }
+static inline double faustmink(double a, double b) { return fmin(a, b); }
+#else
+static inline double faustmax(double a, double b) { return (a < b) ? b : a; }
+static inline double faustmin(double a, double b) { return (b < a) ? b : a; }
+static inline double faustmaxk(double a, double b) { return (a < b) ? b : a; }
+static inline double faustmink(double a, double b) { return (b < a) ? b : a; }
+#endif
+#if !defined(__aarch64__)
+static inline double faustmaxn(double a, double b) { return (a < b || a != a) ? b : (b < a) ? a : ((a == b && signbit(a)) ? b : a); }
+static inline double faustminn(double a, double b) { return (b < a || a != a) ? b : (a < b) ? a : ((a == b && !signbit(a)) ? b : a); }
+#endif
+#if defined(__aarch64__)
+static inline long double faustmaxl(long double a, long double b) { return fmaxl(a, b); }
+static inline long double faustminl(long double a, long double b) { return fminl(a, b); }
+static inline long double faustmaxkl(long double a, long double b) { return fmaxl(a, b); }
+static inline long double faustminkl(long double a, long double b) { return fminl(a, b); }
+static inline long double faustmaxnl(long double a, long double b) { return fmaxl(a, b); }
+static inline long double faustminnl(long double a, long double b) { return fminl(a, b); }
+#elif defined(__clang__)
+static inline long double faustmaxl(long double a, long double b) { return (a < b) ? b : a; }
+static inline long double faustminl(long double a, long double b) { return (b < a) ? b : a; }
+static inline long double faustmaxkl(long double a, long double b) { return fmaxl(a, b); }
+static inline long double faustminkl(long double a, long double b) { return fminl(a, b); }
+#else
+static inline long double faustmaxl(long double a, long double b) { return (a < b) ? b : a; }
+static inline long double faustminl(long double a, long double b) { return (b < a) ? b : a; }
+static inline long double faustmaxkl(long double a, long double b) { return (a < b) ? b : a; }
+static inline long double faustminkl(long double a, long double b) { return (b < a) ? b : a; }
+#endif
+#if !defined(__aarch64__)
+static inline long double faustmaxnl(long double a, long double b) { return (a < b || a != a) ? b : (b < a) ? a : ((a == b && signbit(a)) ? b : a); }
+static inline long double faustminnl(long double a, long double b) { return (b < a || a != a) ? b : (a < b) ? a : ((a == b && !signbit(a)) ? b : a); }
+#endif
+#endif
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	class SIG0 {
+	  private:
+		int fSampleRate;
+		static int 	iWave0[15];
+		int 	idxiWave0;
+	  public:
+		int getNumInputs() { return 0; }
+		int getNumOutputs() { return 1; }
+		void init(int sample_rate) {
+			fSampleRate = sample_rate;
+			idxiWave0 = 0;
+		}
+		void fill(int count, int output[]) {
+			int fullcount = count;
+			for (int index = 0; index < fullcount; index += 32) {
+				int count = faustmini(32, fullcount-index);
+				for (int i=0; i<count; i++) {
+					output[i] = iWave0[idxiWave0];
+					// post processing
+					idxiWave0 = (idxiWave0 + 1) % 15;
+				}
+				output += 32;
+			}
+		}
+	};
+
+
+	int 	iVeeec0State; // Single Delay
+	static int 	itbl0[15];
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -xw -in -mc -st -rcp -gt -sl -lt -fam -fam-split 24 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "int_power.dsp");
+		m->declare("name", "int_power");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 11; }
+	static void classInit(int sample_rate) {
+		SIG0 sig0;
+		sig0.init(sample_rate);
+		sig0.fill(15,itbl0);
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+		iVeeec0State = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("int_power");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int 	iVeeec0;
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+		FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+		FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+		FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+		FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
+		FAUSTFLOAT* output6 = &output[6][index]; // Zone 3
+		FAUSTFLOAT* output7 = &output[7][index]; // Zone 3
+		FAUSTFLOAT* output8 = &output[8][index]; // Zone 3
+		FAUSTFLOAT* output9 = &output[9][index]; // Zone 3
+		FAUSTFLOAT* output10 = &output[10][index]; // Zone 3
+		// schedule: ss=0 nodes=163 cycles=112 fill=36% peak=27 isoadj=15 packs4=2 aluMII=41 memMII=0 recMII=0 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
+		iVeeec0 = iVeeec0State;
+		for (int i=0; i<count; i++) {
+			iVeeec0 = faust_wrap_add(1, iVeeec0);
+			int 	iTemp0 = faust_wrap_add(-1, iVeeec0); // step: 12
+			int 	iTemp1 = faustmaxi(0, (iTemp0 % 71)); // step: 14
+			int 	iTemp2 = itbl0[faustmaxi(0, faustmini(int(+faustfmodf((0.009009009f * float(+iTemp0)),15.0f)), 14))]; // step: 57
+			int 	iTemp3 = (((iTemp1 & 1)) ? iTemp2 : 1); // step: 58
+			int 	iTemp4 = faust_wrap_mul(iTemp2, iTemp2); // step: 59
+			int 	iTemp5 = ((((iTemp1 >> 1) & 1)) ? faust_wrap_mul(iTemp3, iTemp4) : iTemp3); // step: 61
+			int 	iTemp6 = faust_wrap_mul(iTemp4, iTemp4); // step: 62
+			int 	iTemp7 = ((((iTemp1 >> 2) & 1)) ? faust_wrap_mul(iTemp5, iTemp6) : iTemp5); // step: 64
+			int 	iTemp8 = faust_wrap_mul(iTemp6, iTemp6); // step: 65
+			int 	iTemp9 = ((((iTemp1 >> 3) & 1)) ? faust_wrap_mul(iTemp7, iTemp8) : iTemp7); // step: 67
+			int 	iTemp10 = faust_wrap_mul(iTemp8, iTemp8); // step: 68
+			int 	iTemp11 = ((((iTemp1 >> 4) & 1)) ? faust_wrap_mul(iTemp9, iTemp10) : iTemp9); // step: 70
+			int 	iTemp12 = faust_wrap_mul(iTemp10, iTemp10); // step: 71
+			int 	iTemp13 = ((((iTemp1 >> 5) & 1)) ? faust_wrap_mul(iTemp11, iTemp12) : iTemp11); // step: 73
+			int 	iTemp14 = faust_wrap_mul(iTemp12, iTemp12); // step: 74
+			int 	iTemp15 = ((((iTemp1 >> 6) & 1)) ? faust_wrap_mul(iTemp13, iTemp14) : iTemp13); // step: 76
+			int 	iTemp16 = faust_wrap_mul(iTemp2, iTemp4); // step: 85
+			int 	iTemp17 = faust_wrap_mul(faust_wrap_mul(iTemp2, iTemp6), iTemp8); // step: 93
+			int 	iTemp18 = (iTemp0 % 111); // step: 105
+			int 	iTemp19 = (-40 + iTemp18); // step: 106
+			int 	iTemp20 = (iTemp19 < 0); // step: 107
+			int 	iTemp21 = faustmaxi(iTemp19, 0); // step: 108
+			int 	iTemp22 = (((iTemp21 & 1)) ? iTemp2 : 1); // step: 122
+			int 	iTemp23 = ((((iTemp21 >> 1) & 1)) ? faust_wrap_mul(iTemp22, iTemp4) : iTemp22); // step: 124
+			int 	iTemp24 = ((((iTemp21 >> 2) & 1)) ? faust_wrap_mul(iTemp23, iTemp6) : iTemp23); // step: 126
+			int 	iTemp25 = ((((iTemp21 >> 3) & 1)) ? faust_wrap_mul(iTemp24, iTemp8) : iTemp24); // step: 128
+			int 	iTemp26 = ((((iTemp21 >> 4) & 1)) ? faust_wrap_mul(iTemp25, iTemp10) : iTemp25); // step: 130
+			int 	iTemp27 = ((((iTemp21 >> 5) & 1)) ? faust_wrap_mul(iTemp26, iTemp12) : iTemp26); // step: 132
+			int 	iTemp28 = faustmaxi((39 - iTemp18), 0); // step: 140
+			int 	iTemp29 = (((iTemp28 & 1)) ? iTemp2 : 1); // step: 156
+			int 	iTemp30 = ((((iTemp28 >> 1) & 1)) ? faust_wrap_mul(iTemp29, iTemp4) : iTemp29); // step: 158
+			int 	iTemp31 = ((((iTemp28 >> 2) & 1)) ? faust_wrap_mul(iTemp30, iTemp6) : iTemp30); // step: 160
+			int 	iTemp32 = ((((iTemp28 >> 3) & 1)) ? faust_wrap_mul(iTemp31, iTemp8) : iTemp31); // step: 162
+			int 	iTemp33 = ((((iTemp28 >> 4) & 1)) ? faust_wrap_mul(iTemp32, iTemp10) : iTemp32); // step: 164
+			int 	iTemp34 = ((((iTemp28 >> 5) & 1)) ? faust_wrap_mul(iTemp33, iTemp12) : iTemp33); // step: 166
+			int 	iTemp35 = ((((iTemp28 >> 6) & 1)) ? faust_wrap_mul(iTemp34, iTemp14) : iTemp34); // step: 168
+			output0[i] = (FAUSTFLOAT)((3.0517578e-05f * float(+(iTemp15 >> 16))));  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)((1.5258789e-05f * float(+(iTemp15 & 65535))));  // Zone Exec Code
+			output2[i] = (FAUSTFLOAT)((3.0517578e-05f * float(+(iTemp16 >> 16))));  // Zone Exec Code
+			output3[i] = (FAUSTFLOAT)((1.5258789e-05f * float(+(iTemp16 & 65535))));  // Zone Exec Code
+			output4[i] = (FAUSTFLOAT)((3.0517578e-05f * float(+(iTemp17 >> 16))));  // Zone Exec Code
+			output5[i] = (FAUSTFLOAT)((1.5258789e-05f * float(+(iTemp17 & 65535))));  // Zone Exec Code
+			output6[i] = (FAUSTFLOAT)(0.6565857f);  // Zone Exec Code
+			output7[i] = (FAUSTFLOAT)(0.890625f);  // Zone Exec Code
+			output8[i] = (FAUSTFLOAT)(-1.0f);  // Zone Exec Code
+			output9[i] = (FAUSTFLOAT)(0.0f);  // Zone Exec Code
+			output10[i] = (FAUSTFLOAT)(faustmaxkf(-1.0f, faustminkf(1.0f, (4.656613e-10f * ((iTemp20) ? (1.0f / float(+((iTemp20) ? faust_wrap_mul(iTemp2, ((((iTemp28 >> 7) & 1)) ? faust_wrap_mul(iTemp35, faust_wrap_mul(iTemp14, iTemp14)) : iTemp35)) : 1))) : float(+((((iTemp21 >> 6) & 1)) ? faust_wrap_mul(iTemp27, iTemp14) : iTemp27)))))));  // Zone Exec Code
+		}
+		iVeeec0State = iVeeec0;
+	}
+};
+
+
+int 	mydsp::SIG0::iWave0[15] = {0,1,-1,2,-2,3,-3,7,25,46340,46341,-46341,65536,69999,-70000};
+int 	mydsp::itbl0[15];

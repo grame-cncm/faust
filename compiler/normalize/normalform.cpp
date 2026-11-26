@@ -677,6 +677,18 @@ static Tree simplifyToNormalFormAux(Tree LS)
         endTiming("L4 typeAnnotation");
     }
 
+    // The powers of integers wrap on 32 bits, folded or computed : every backend gets their
+    // products, once no simplification follows (issue #1421)
+    {
+        startTiming("Integer powers as products");
+        Tree L4p = signalIntegerPowerPromote(L4);
+        endTiming("Integer powers as products");
+        if (L4p != L4) {
+            L4 = L4p;
+            typeAnnotation(L4, gGlobal->gLocalCausalityCheck, false);
+        }
+    }
+
     if (gGlobal->gEtaHarvest) {
         startTiming("normalizeFixpoint");
         L4 = normalizeFixpoint(L4);

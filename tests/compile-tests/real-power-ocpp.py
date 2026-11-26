@@ -9,8 +9,9 @@ the power by the 2 ulps of the libm only, and the libm pow stays.
 
 1. The code : for x real, in single and double precision, pow(x, k) is faustpower<k> for k
    from 2 to 8, written with an integer or a real exponent, and for the product x * x * x ;
-   pow (powf) for k = 9 ; neither for k = 0 and 1 (folded). The power of integers keeps
-   faustpower<k> for every k (the product wrapped on 32 bits).
+   pow (powf) for k = 9 ; neither for k = 0 and 1 (folded). The power of integers is its
+   products by squaring, wrapped on 32 bits, written by the normal form for every backend
+   (signalIntegerPowerPromote) : neither faustpower nor pow.
 2. The values, ocpp against cpp and against the exact power : x^2 and x^3 equal to those of
    cpp bit for bit ; x^k, k from 2 to 8, within k ulps of the exact power rounded to the
    program's precision (the widening of the interval model) ; NaN, +-inf and +-0 give the
@@ -118,8 +119,10 @@ def check_code(args, work):
         dsp = work / "int.dsp"
         dsp.write_text("process = int(_ * 100) <: pow(_, 20);\n")
         code = compute_code(faust(args, dsp, "ocpp", prec))
-        ok = re.search(r"faustpower<20>\(int\(", code) is not None
-        print(f"{'ok  ' if ok else 'FAIL'} code {prec:6s} integers     pow(int, 20) is faustpower<20>")
+        # x^20 = x^16 * x^4 : the squares x^2, x^4, x^8, x^16 and one product
+        ok = (re.search(r"faustpower<", code) is None and re.search(r"\bpow[fl]?\(", code) is None
+              and len(re.findall(r"\*|faust_wrap_mul\(", code)) >= 5)
+        print(f"{'ok  ' if ok else 'FAIL'} code {prec:6s} integers     pow(int, 20) is its products")
         if not ok:
             fails.append(f"code {prec} integers")
     return fails

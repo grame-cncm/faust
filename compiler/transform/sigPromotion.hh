@@ -107,5 +107,9 @@ Tree signalFTZPromote(Tree sig);
 // The nature of a power of integers, decided once : a pow(x, k) of integers whose exponent
 // is not proven >= 0 by its sign becomes the real power of integers
 Tree signalPowerNaturePromote(Tree sig);
+// The powers of integers written as their products by squaring, wrapping on 32 bits, for
+// every backend : after the last simplification of the normal form, which would gather the
+// products back into powers
+Tree signalIntegerPowerPromote(Tree sig);
 
 #endif

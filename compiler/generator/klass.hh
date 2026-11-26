@@ -52,7 +52,6 @@ class Klass {
     // power def but we want the code to be generated only once
     static bool fNeedPowerDef;
     static bool fNeedApproxRoundDef;  ///< -mapp : faust_floor_approx, faust_ceil_approx
-    static bool fNeedIntPowerDef;     ///< faust_ipow, an integer power of variable exponent
 
     Klass*      fParentKlass;  ///< Klass in which this Klass is embedded, void if toplevel Klass
     std::string fKlassName;
@@ -162,7 +161,6 @@ class Klass {
 
     void rememberNeedPowerDef() { fNeedPowerDef = true; }
     void rememberNeedApproxRoundDef() { fNeedApproxRoundDef = true; }
-    void rememberNeedIntPowerDef() { fNeedIntPowerDef = true; }
 
     void collectIncludeFile(std::set<std::string>& S);
 
