@@ -74,6 +74,19 @@ shift
 done
 
 #-------------------------------------------------------------------
+# locates the NDK: versioned SDK layout ($ANDROID_HOME/ndk/<version>) first, legacy ndk-bundle otherwise
+
+NDK_BUILD="$ANDROID_HOME/ndk-bundle/ndk-build"
+if [ -d "$ANDROID_HOME/ndk" ] ; then
+    for d in $(ls -1 "$ANDROID_HOME/ndk" | sort -Vr) ; do
+        if [ -x "$ANDROID_HOME/ndk/$d/ndk-build" ] ; then
+            NDK_BUILD="$ANDROID_HOME/ndk/$d/ndk-build"
+            break
+        fi
+    done
+fi
+
+#-------------------------------------------------------------------
 # compiles the *.dsp files
 
 for p in $FILES; do
@@ -103,7 +116,7 @@ for p in $FILES; do
     # They are moved to the working directory for compilation then deleted
     cp -r "$FAUSTLIB/unity/Android/$ANDROID_MK" "Android.mk"
     cp -r "$FAUSTLIB/unity/Android/Application.mk" "Application.mk"
-    $ANDROID_HOME/ndk-bundle/ndk-build NDK_PROJECT_PATH=. NDK_APPLICATION_MK=Application.mk FILE=$NAME > /dev/null || (echo "$f : C++ to armeabi-v7a and x86 library compilations failed in faust2androidunity"; exit 1)
+    "$NDK_BUILD" NDK_PROJECT_PATH=. NDK_APPLICATION_MK=Application.mk FILE=$NAME > /dev/null || (echo "$f : C++ to armeabi-v7a and x86 library compilations failed in faust2androidunity"; exit 1)
     rm -rf "Android.mk"
     rm -rf "Application.mk"
     rm -rf "obj"
