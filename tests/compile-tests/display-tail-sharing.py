@@ -62,7 +62,14 @@ int main() {
 }
 """
 
-SIN = re.compile(r"\bsin[fl]?\s*\(")
+# A sine is called under the name of the libm or under the name of an inline version
+# (faustsin<N>f, in single precision). The inline versions are defined before the class,
+# and their definitions hold calls of their own : the calls are counted in the class.
+SIN = re.compile(r"\b(?:sin[fl]?|faustsin\d+f)\s*\(")
+
+
+def sin_calls(code):
+    return len(SIN.findall(code[code.index("class mydsp"):]))
 
 
 def main():
@@ -92,7 +99,7 @@ def main():
                     print(f"FAIL [{lang} {precision}]: faust failed: {r.stderr.strip()}")
                     failures += 1
                     continue
-                calls = len(SIN.findall((work / "generated.cpp").read_text()))
+                calls = sin_calls((work / "generated.cpp").read_text())
                 if calls != DEPTH:
                     print(f"FAIL [{lang} {precision}]: {calls} calls of sin, expected {DEPTH}")
                     failures += 1

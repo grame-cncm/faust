@@ -610,6 +610,7 @@ void global::reset()
     gExactWeights         = true;
     gIntNarrowing         = true;
     gCallMemo             = true;
+    gInlineMath           = true;
     gSettledRegime        = true;
     gReciprocals          = true;
     gGuardedTemps         = true;
@@ -1014,6 +1015,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gCallMemo) {
         dst << "-mc ";
+    }
+    if (gInlineMath) {
+        dst << "-im ";
     }
     if (gSettledRegime) {
         dst << "-st ";
@@ -1876,6 +1880,14 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-nomc", "--no-call-memo")) {
             gCallMemo = false;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-im", "--inline-math")) {
+            gInlineMath = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-noim", "--no-inline-math")) {
+            gInlineMath = false;
             i += 1;
 
         } else if (isCmd(argv[i], "-st", "--settled-regime")) {
@@ -3002,6 +3014,10 @@ string global::printHelp()
     sstr << tab
          << "-nomc       --no-call-memo              call a costly function at every sample (by default, in C and C++, "
             "a call whose arguments settle, as a smoothed control, is made again only when an argument changed)."
+         << endl;
+    sstr << tab
+         << "-noim       --no-inline-math            call the libm for every mathematical function (by default, in C and C++, "
+            "single precision, sin and tanh are written without a call where the interval of the argument allows)."
          << endl;
     sstr << tab
          << "-nost       --no-settled-regime         compute at every sample what depends only on smoothed controls (by "

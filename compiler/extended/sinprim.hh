@@ -65,6 +65,10 @@ class SinPrim : public xtendedCodegen {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
+        // the version without a call that the interval of the argument allows (xtendedCodegen.hh)
+        if (ValueInst* v = generateInlineMath(container, "sin", args, types)) {
+            return v;
+        }
         return generateFun(container, subst("sin$0", isuffix()), args, result, types);
     }
 
@@ -74,6 +78,10 @@ class SinPrim : public xtendedCodegen {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
+        const std::string v = inlineMathFunction("sin", types);
+        if (!v.empty()) {
+            return subst("$1($0)", args[0], v);
+        }
         return subst("sin$1($0)", args[0], isuffix());
     }
 

@@ -406,6 +406,7 @@ struct global {
     bool gShareSums;   // the dense sums factored and their common sub-sums shared (default, -noshs)
     bool gExactWeights;  // -xw option, (1 + w) * y written w * y + y, w read exactly
     bool gCallMemo;      // the costly calls whose arguments settle, called again only when one changed (default, -nomc)
+    bool gInlineMath;    // the mathematical functions written without a call where the interval of the argument allows (default, -noim)
     bool gSettledRegime; // the cone of the smoothers computed once per block when they have all settled (default, -nost)
     bool gIntNarrowing;  // the conversions to int of reals computed from integers, written in integers (default, -noin)
     bool gReciprocals;   // the divisions by a slow or shared divisor by its reciprocal (default, -norcp)

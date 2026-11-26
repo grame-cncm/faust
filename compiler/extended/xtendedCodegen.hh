@@ -179,6 +179,31 @@ class xtendedCodegen : public xtended {
     // byRef : the comparisons return a reference under clang, as the std::max cpp wrote (C++ only)
     static void printMinMaxHelpers(std::ostream& out, bool byRef = false);
 
+    // The inline versions of the mathematical functions (LES-FONCTIONS-MATHEMATIQUES-EN-LIGNE) : a
+    // function of the libm written without a call, in C and C++, single precision. A version has a
+    // domain, and conforms on it to the 2 ulps that the intervals grant to the result of the
+    // function ; the compiler takes the first version of the catalogue whose domain holds the
+    // certified interval of the argument, and the call of the libm when there is none. The versions
+    // of a function are listed from the cheapest to the most expensive
+    enum InlineMath {
+        kInlineSin17,  // sin, |x| <= 2^17
+        kInlineTanh,   // tanh, every float
+        kInlineMathCount
+    };
+    // the rule of choice : the version of the function fun (sin, tanh...) for an argument of this
+    // type, -1 when the call stays. Only the permanent bounds of the interval count. It reads the
+    // options and the type and nothing else : a node has the same version wherever it is computed
+    static int inlineMathVersion(const std::string& fun, ConstTypes types);
+    // the name of the function of a version, which is then written before the classes
+    // (fNeedInlineMath, cleared once written) ; the empty string when the call stays
+    static std::string inlineMathFunction(const std::string& fun, ConstTypes types);
+    static bool        fNeedInlineMath[kInlineMathCount];
+    // the call of the version in the FIR backends, nullptr when the call of the libm stays
+    static ValueInst* generateInlineMath(CodeContainer* container, const std::string& fun, const Values& args,
+                                         ConstTypes types);
+    // the texts of the versions that were generated, written with the helpers of the min and max
+    static void printInlineMath(std::ostream& out);
+
     virtual std::string fname(int type) { return sname() + isuffix(); }
 
     // FIR backends
