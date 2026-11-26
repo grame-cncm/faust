@@ -1,0 +1,188 @@
+//----------------------------------------------------------
+// name: "int_add_wrap"
+//
+// Code generated with Faust 2.94.1 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -xw -in -mc -st -rcp -gt -sl -lt -fam -fam-split 24 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
+#ifndef FAUST_INT_SHIFT
+#define FAUST_INT_SHIFT
+inline int faust_wrap_shl(int a, int k) { return int((unsigned int)a << (k & 31)); }
+inline int faust_wrap_shr(int a, int k) { return a >> (k & 31); }
+inline int faust_wrap_ushr(int a, int k) { return int((unsigned int)a >> (k & 31)); }
+inline int faust_wrap_abs(int a) { return (a < 0) ? int(0u - (unsigned int)a) : a; }
+#endif
+#ifndef FAUST_FLOAT_BITS
+#define FAUST_FLOAT_BITS
+#include <cstdint>
+#include <cstring>
+inline int faust_float_bits(float x) { int i; std::memcpy(&i, &x, sizeof(i)); return i; }
+inline int64_t faust_double_bits(double x) { int64_t i; std::memcpy(&i, &x, sizeof(i)); return i; }
+#endif
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	class SIG0 {
+	  private:
+		int fSampleRate;
+		static int 	iWave0[5];
+		int 	idxiWave0;
+	  public:
+		int getNumInputs() { return 0; }
+		int getNumOutputs() { return 1; }
+		void init(int sample_rate) {
+			fSampleRate = sample_rate;
+			idxiWave0 = 0;
+		}
+		void fill(int count, int output[]) {
+			int fullcount = count;
+			for (int index = 0; index < fullcount; index += 32) {
+				int count = faustmini(32, fullcount-index);
+				for (int i=0; i<count; i++) {
+					output[i] = iWave0[idxiWave0];
+					// post processing
+					idxiWave0 = (idxiWave0 + 1) % 5;
+				}
+				output += 32;
+			}
+		}
+	};
+
+
+	class SIG1 {
+	  private:
+		int fSampleRate;
+		static int 	iWave1[5];
+		int 	idxiWave1;
+	  public:
+		int getNumInputs() { return 0; }
+		int getNumOutputs() { return 1; }
+		void init(int sample_rate) {
+			fSampleRate = sample_rate;
+			idxiWave1 = 0;
+		}
+		void fill(int count, int output[]) {
+			int fullcount = count;
+			for (int index = 0; index < fullcount; index += 32) {
+				int count = faustmini(32, fullcount-index);
+				for (int i=0; i<count; i++) {
+					output[i] = iWave1[idxiWave1];
+					// post processing
+					idxiWave1 = (idxiWave1 + 1) % 5;
+				}
+				output += 32;
+			}
+		}
+	};
+
+
+	int 	iVeeec0State; // Single Delay
+	static int 	itbl0[5];
+	static int 	itbl1[5];
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -xw -in -mc -st -rcp -gt -sl -lt -fam -fam-split 24 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "int_add_wrap.dsp");
+		m->declare("name", "int_add_wrap");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 8; }
+	static void classInit(int sample_rate) {
+		SIG0 sig0;
+		sig0.init(sample_rate);
+		sig0.fill(5,itbl0);
+		SIG1 sig1;
+		sig1.init(sample_rate);
+		sig1.fill(5,itbl1);
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+		iVeeec0State = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("int_add_wrap");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int 	iVeeec0;
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+		FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+		FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+		FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+		FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
+		FAUSTFLOAT* output6 = &output[6][index]; // Zone 3
+		FAUSTFLOAT* output7 = &output[7][index]; // Zone 3
+		// schedule: ss=0 nodes=51 cycles=37 fill=34% peak=11 isoadj=5 packs4=1 aluMII=13 memMII=0 recMII=0 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
+		iVeeec0 = iVeeec0State;
+		for (int i=0; i<count; i++) {
+			iVeeec0 = faust_wrap_add(1, iVeeec0);
+			int 	iTemp0 = faust_wrap_add(-1, iVeeec0); // step: 9
+			int 	iTemp1 = itbl0[faustmaxi(0, faustmini((iTemp0 % 5), 4))]; // step: 19
+			int 	iTemp2 = itbl1[faustmaxi(0, faustmini(((iTemp0 >> 2) % 5), 4))]; // step: 31
+			int 	iTemp3 = faust_wrap_add(iTemp1, iTemp2); // step: 32
+			int 	iTemp4 = faust_wrap_sub(iTemp1, iTemp2); // step: 42
+			int 	iTemp5 = faust_wrap_add(faust_wrap_add((-1 - iTemp1), iVeeec0), iTemp2); // step: 50
+			int 	iTemp6 = faust_wrap_add(faust_wrap_add((-1 - iTemp2), iVeeec0), iTemp1); // step: 57
+			output0[i] = (FAUSTFLOAT)((3.0517578e-05f * float(+(iTemp3 >> 16))));  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)((1.5258789e-05f * float(+(iTemp3 & 65535))));  // Zone Exec Code
+			output2[i] = (FAUSTFLOAT)((3.0517578e-05f * float(+(iTemp4 >> 16))));  // Zone Exec Code
+			output3[i] = (FAUSTFLOAT)((1.5258789e-05f * float(+(iTemp4 & 65535))));  // Zone Exec Code
+			output4[i] = (FAUSTFLOAT)((3.0517578e-05f * float(+(iTemp5 >> 16))));  // Zone Exec Code
+			output5[i] = (FAUSTFLOAT)((1.5258789e-05f * float(+(iTemp5 & 65535))));  // Zone Exec Code
+			output6[i] = (FAUSTFLOAT)((3.0517578e-05f * float(+(iTemp6 >> 16))));  // Zone Exec Code
+			output7[i] = (FAUSTFLOAT)((1.5258789e-05f * float(+(iTemp6 & 65535))));  // Zone Exec Code
+		}
+		iVeeec0State = iVeeec0;
+	}
+};
+
+
+int 	mydsp::SIG0::iWave0[5] = {-2147483000,-1500000000,2147483000,1500000000,7};
+int 	mydsp::itbl0[5];
+int 	mydsp::SIG1::iWave1[5] = {-1000000000,-700000000,1000000000,700000000,-3};
+int 	mydsp::itbl1[5];

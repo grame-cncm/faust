@@ -167,12 +167,17 @@ void JSFXCodeContainer::produceClass()
              " x < 0 ? x + 4294967296 : x; \n"
              "); \n"
 
+             // The sum and the difference, signed (int32) or not (uint32) operands alike, brought
+             // back to [0, 4294967296), which int32 then reads as signed: a sum below
+             // -2147483648 wraps up as one above 2147483647 wraps down
              "function add32(x, y) ( \n"
-             " (x += y) >= 4294967296 ? x - 4294967296 : x; \n"
+             " x += y; \n"
+             " x >= 4294967296 ? x - 4294967296 : (x < 0 ? x + 4294967296 : x); \n"
              "); \n"
 
              "function sub32(x, y) ( \n"
-             " (x -= y) < 0 ? x + 4294967296 : x; \n"
+             " x -= y; \n"
+             " x >= 4294967296 ? x - 4294967296 : (x < 0 ? x + 4294967296 : x); \n"
              "); \n"
 
              "function mul32(x, y) local(a, b) ( \n"
