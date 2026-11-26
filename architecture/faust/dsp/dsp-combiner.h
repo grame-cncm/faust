@@ -157,6 +157,12 @@ class dsp_binary_combiner : public ::dsp {
             fDSP2->metadata(m);
         }
 
+        virtual void control()
+        {
+            fDSP1->control();
+            fDSP2->control();
+        }
+
 };
 
 /**

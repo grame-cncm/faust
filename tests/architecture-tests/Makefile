@@ -11,3 +11,13 @@ check-sr-adapter-reset:
 	  echo "Sample-rate adapter reset ($$precision)"; \
 	  "$$tmp/test" || status=1; \
 	done; exit $$status
+
+.PHONY: check-combiner-control
+check-combiner-control:
+	@set -eu; status=0; tmp=$$(mktemp -d); trap 'rm -rf "$$tmp"' EXIT; \
+	for precision in float double; do \
+	  $(CXX) $(CXXFLAGS) -std=c++11 -ffp-contract=off -DFAUSTFLOAT=$$precision \
+	    -I"$(ARCH)" combiner-control.cpp -o "$$tmp/test"; \
+	  echo "DSP combiner control ($$precision)"; \
+	  "$$tmp/test" || status=1; \
+	done; exit $$status
