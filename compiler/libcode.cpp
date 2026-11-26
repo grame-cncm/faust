@@ -229,7 +229,10 @@ static bool openOutfile()
     } else if (gGlobal->gOutputFile != "") {
         gOutpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile)
                                                : gGlobal->gOutputFile;
-        unique_ptr<ofstream> fdst = unique_ptr<ofstream>(new ofstream(gOutpath.c_str()));
+        // binary: generated code is rewritten with seekp/tellp (back() in Text.cpp), and text
+        // mode breaks those offsets on Windows (CRLF translation, libstdc++).
+        unique_ptr<ofstream> fdst =
+            unique_ptr<ofstream>(new ofstream(gOutpath.c_str(), ios::out | ios::binary));
         if (!fdst->is_open()) {
             stringstream error;
             error << "ERROR : file '" << gOutpath << "' cannot be opened\n";
