@@ -2882,6 +2882,10 @@ string global::printHelp()
     sstr << tab << "-svg       --svg                        print block-diagram to a svg file."
          << endl;
     sstr << tab
+         << "                                        the files go into the <name>-svg/ "
+            "directory beside the .dsp source (or in the -O directory)."
+         << endl;
+    sstr << tab
          << "-sd        --simplify-diagrams          try to further simplify diagrams before "
             "drawing."
          << endl;
