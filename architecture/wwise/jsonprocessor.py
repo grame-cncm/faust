@@ -7,7 +7,7 @@ import sys
 import os
 import shutil
 import json
-from utils import ensure_valid_plugin_name
+from utils import ensure_valid_plugin_name, get_installation_location
 
 def process_json_configuration(cfg) -> None :
     """
@@ -23,6 +23,8 @@ def process_json_configuration(cfg) -> None :
         - author
         - description
         - wwise template directory
+        - build location
+        - installation location
 
     Args:
         cfg (Config): The configuration object to update.
@@ -70,7 +72,15 @@ def process_json_configuration(cfg) -> None :
             cfg.plugin_type = "source"
             cfg.plugin_suffix = "Source"
             cfg.wwise_plugin_interface = None       # reset the plugin_interface to None
-        
+
+        # Determine plugin interface (in-place or out-of-place) in case of effect plugin
+        if (cfg.plugin_type == "effect" and cfg.num_inputs!=cfg.num_outputs):
+            print("[Warning]: Misalignment between amount of input and output requested channels by the Faust program will change the plugin type from in-place to out-of-place.")
+            print(f"\tWwise FX plugins require the same amount of input/output channels. In this case {cfg.num_inputs} != {cfg.num_outputs}")
+            if (cfg.wwise_plugin_interface == "in-place"):
+                cfg.wwise_plugin_interface = "out-of-place"
+                print("\tDefaulting effect plugin interface from \'in-place\' to \'out-of-place\'.")
+                
         #Set the wwise_template_dir, the directory where the wwise template files are stored 
         cfg.wwise_template_dir = os.path.join(cfg.faust_dsp_dir, "wwise", "scaffolding."+cfg.patch_version, cfg.plugin_type) 
         if (cfg.plugin_type == "effect"):
@@ -97,7 +107,10 @@ def process_json_configuration(cfg) -> None :
             if isinstance(item, dict) and 'description' in item:
                 cfg.description = item['description']
                 break
-                    
+        
+        cfg.build_location = os.path.join(cfg.output_dir, cfg.plugin_name)
+        cfg.install_location = get_installation_location(cfg)
+    
     except json.JSONDecodeError as e:
         print(f"Error {cfg.ERR_JSON_PARSE}: Failed to parse JSON: {e}")
         sys.exit(cfg.ERR_JSON_PARSE)
