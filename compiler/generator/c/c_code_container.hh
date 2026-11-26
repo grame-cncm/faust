@@ -45,6 +45,9 @@ class CCodeContainer : public virtual CodeContainer {
     virtual void produceClass();
     void         produceMetadata(int tabs);
     void         produceInit(int tabs);
+    // Definitions of the helpers the generated code calls: faust_wrap_add/sub/mul
+    // (Int32 arithmetic), faust_float_bits/faust_double_bits (-ftz 2)
+    void printArithmeticHelpers(int n);
 
     virtual void produceInternal();
 

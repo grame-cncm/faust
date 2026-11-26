@@ -433,6 +433,17 @@ void CodeContainer::processFIR(void)
     // Type used in several methods using 'sample_rate' parameter
     gGlobal->setVarType("sample_rate", Typed::kInt32);
 
+    // -mem3: iControl/fControl and iZone/fZone are function parameters written
+    // directly in the backend prototypes, so no declaration gives them a type.
+    // Passes that type expressions (like integer wrapping in the C and C++
+    // backends) look them up.
+    if (gGlobal->gMemoryManager == 3) {
+        gGlobal->setVarType("iControl", Typed::kInt32_ptr);
+        gGlobal->setVarType("fControl", Typed::getPtrFromType(itfloat()));
+        gGlobal->setVarType("iZone", Typed::kInt32_ptr);
+        gGlobal->setVarType("fZone", Typed::getPtrFromType(itfloat()));
+    }
+
     // ==========================================================================================
     // FIR to FIR passes that are generic for all backends, depending of the compilation options
     // ==========================================================================================

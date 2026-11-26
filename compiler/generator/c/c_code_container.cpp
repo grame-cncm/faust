@@ -219,27 +219,8 @@ void CCodeContainer::produceInternal()
     *fOut << "}" << endl;
 }
 
-void CCodeContainer::produceClass()
+void CCodeContainer::printArithmeticHelpers(int n)
 {
-    int n = 0;
-
-    tab(n, *fOut);
-    *fOut << "#ifdef __cplusplus" << endl;
-    *fOut << "extern \"C\" {" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-
-    *fOut << "#if defined(_WIN32)" << endl;
-    *fOut << "#define RESTRICT __restrict" << endl;
-    *fOut << "#else" << endl;
-    *fOut << "#define RESTRICT __restrict__" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-
-    // Libraries
-    printLibrary(*fOut);
-    printIncludeFile(*fOut);
-
     // Two's-complement wrapping integer arithmetic: signed overflow is UB in
     // C and newer compilers exploit it at -O2/-O3 (the integer noise LCG
     // miscompiles), so int add/sub/mul render as these helpers. The guard
@@ -273,6 +254,30 @@ void CCodeContainer::produceClass()
         *fOut << "#endif" << endl;
     }
     tab(n, *fOut);
+}
+
+void CCodeContainer::produceClass()
+{
+    int n = 0;
+
+    tab(n, *fOut);
+    *fOut << "#ifdef __cplusplus" << endl;
+    *fOut << "extern \"C\" {" << endl;
+    *fOut << "#endif" << endl;
+    tab(n, *fOut);
+
+    *fOut << "#if defined(_WIN32)" << endl;
+    *fOut << "#define RESTRICT __restrict" << endl;
+    *fOut << "#else" << endl;
+    *fOut << "#define RESTRICT __restrict__" << endl;
+    *fOut << "#endif" << endl;
+    tab(n, *fOut);
+
+    // Libraries
+    printLibrary(*fOut);
+    printIncludeFile(*fOut);
+
+    printArithmeticHelpers(n);
 
     if (gGlobal->gInlineTable) {
         // Sub containers are merged in the main class
@@ -675,6 +680,8 @@ void CScalarCodeContainer1::produceClass()
     // Libraries
     printLibrary(*fOut);
     printIncludeFile(*fOut);
+
+    printArithmeticHelpers(n);
 
     // Sub containers are merged in the main class
     faustassert(gGlobal->gInlineTable);
