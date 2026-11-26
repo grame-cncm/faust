@@ -196,6 +196,10 @@ class timed_dsp : public decorator_dsp {
                 // If needed, convert next_control in samples from begining of the buffer, possible moving to 0 (if negative)
                 if (convert_ts) {
                     next_control.fDate = convertUsecToSample(next_control.fDate);
+                    // Keep future timestamped controls queued for a later callback.
+                    if (next_control.fDate >= count) {
+                        break;
+                    }
                 }
                      
                 // Compute audio slice, keeping it in the [0, count - offset] range (the control date may be outside the buffer)

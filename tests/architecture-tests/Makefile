@@ -21,3 +21,13 @@ check-combiner-control:
 	  echo "DSP combiner control ($$precision)"; \
 	  "$$tmp/test" || status=1; \
 	done; exit $$status
+
+.PHONY: check-timed-controls
+check-timed-controls:
+	@set -eu; status=0; tmp=$$(mktemp -d); trap 'rm -rf "$$tmp"' EXIT; \
+	for precision in float double; do \
+	  $(CXX) $(CXXFLAGS) -std=c++11 -ffp-contract=off -DFAUSTFLOAT=$$precision \
+	    -I"$(ARCH)" timed-controls.cpp -o "$$tmp/test"; \
+	  echo "Timed controls ($$precision)"; \
+	  "$$tmp/test" || status=1; \
+	done; exit $$status
