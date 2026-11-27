@@ -656,6 +656,8 @@ static Tree simplifyToNormalFormAux(Tree LS)
 // Public API
 LIBFAUST_API Tree simplifyToNormalForm(Tree sig)
 {
+    // The signal API calls it in the caller's thread, not in a compilation thread
+    DefaultFloatEnv float_env;
     if (isList(sig)) {
         startTiming("simplifyToNormalForm");
         Tree t2 = sig->getProperty(gGlobal->NORMALFORM);
