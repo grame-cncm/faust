@@ -706,6 +706,12 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
             // that we need to convert back to box expressions
             vector<int> w1, w2, wr;
             if (sigList2vecInt(ls1, w1) && sigList2vecInt(ls2, w2) && sigList2vecInt(lsr, wr)) {
+                if (w1[0] < 0 || w2[0] < 0) {
+                    evalerror(getDefFileProp(exp), getDefLineProp(exp),
+                              "invalid route expression, the number of inputs and outputs "
+                              "cannot be negative",
+                              exp);
+                }
                 // Convert wr into a parallel boxes of ints b
                 Tree b = boxInt(wr[o3 - 1]);
                 for (int j = o3 - 2; j >= 0; j--) {
