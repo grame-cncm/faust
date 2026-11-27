@@ -1,2 +1,2 @@
-ma = library("maths.lib");
-process = ma.copysign(1.0, -0.0);
+my_copysign = ffunction(float copysignf|copysign|copysignl|copysignfx(float, float),<math.h>,"");
+process = my_copysign(1.0, -0.0);
