@@ -40,13 +40,13 @@ a constant in the precision of the program, and the languages without the C
 macro `INFINITY` use their own constants (`Inf32`, `f32::INFINITY`,
 `Float.POSITIVE_INFINITY`, `f32.POSITIVE_INFINITY`...). `--backends dlang`
 compiles the D code with `ldc2` (stubs replace the dplug imports), `--backends csharp`
-checks the generated C# names, `--backends asc` compiles the AssemblyScript code
-with `asc` and runs it with Node (`--asc`, `--node`); Rust needs Cargo with `libm` and `num-traits` (`--offline`
-for cached dependencies):
+and `--backends wast` check the generated C# and WAST names, `--backends asc` compiles
+the AssemblyScript code with `asc` and runs it with Node (`--asc`, `--node`); Rust needs
+Cargo with `libm` and `num-traits` (`--offline` for cached dependencies):
 
 ```sh
 python3 tests/compile-tests/nonfinite-constants.py --faust build/bin/faust
-python3 tests/compile-tests/nonfinite-constants.py --faust build/bin/faust --backends dlang csharp asc
+python3 tests/compile-tests/nonfinite-constants.py --faust build/bin/faust --backends dlang csharp asc wast
 ```
 
 ### Math functions out of their domain (Julia, Cmajor)
