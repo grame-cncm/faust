@@ -24,3 +24,15 @@ three times on the same instance. After processing nonzero input, `instanceClear
 wrapped DSP reset calls, control preservation, and internal sample rates.
 `ARCH` can select another checkout's architecture headers for baseline testing;
 `CXX` and `CXXFLAGS` select the host compiler and optional sanitizer flags.
+
+The `timed_dsp` scheduling regression runs with:
+
+```sh
+make -C tests/architecture-tests check-timed-controls
+```
+
+It queues timestamped control changes ahead of the current block and checks,
+in float and double, that each one is applied at its own sample in a later
+block, that events at a block boundary wait for the next callback, and that
+frame-relative timestamps still slice the block. On macOS the target links
+CoreAudio, which `timed-dsp.h` uses to read the clock (`TIMED_LDLIBS`).
