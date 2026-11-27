@@ -352,6 +352,32 @@ LES-FONCTIONS-MATHEMATIQUES-EN-LIGNE in faust-migration.
 python3 tests/compile-tests/inline-math-pairs.py --faust build/bin/faust
 ```
 
+### One loop of terms for the hosts of a family
+
+`family-term-loop.py` reads the ocpp code of eight programs, each a sum of
+terms of one shape that the compiler cuts in partial sums: a family with
+several hosts, where each host has a loop over its own members. When the
+member calls a function written without a call of the libm (`faustsin17f`,
+`faustcos17f`, `fausttanhf`), the terms of every host are stored by one loop
+over all the members, which a C++ compiler vectorizes across more members
+than a host has, and each host is summed from its terms, in the lanes and the
+order of its own loop. The script checks, in single precision, for 64 sines,
+64 cosines, 64 hyperbolic tangents, 10 sines and 48 sines: one array of terms
+of the size of the family; the loop over all the members written twice with
+the same body, for clang in plain loops of whole vectors (the multiples of 16
+members, then 8, then 4, then the members that remain) and in groups of four
+for the other compilers; one sum per host, the hosts reading every term once,
+in order. Under `-noim` and in
+double precision, and for a member without a call, with a call that has no
+inline version (`exp`) or with the sine and the cosine of one argument, each
+host keeps its own loop. The specifications are
+LES-FONCTIONS-MATHEMATIQUES-EN-LIGNE and LES-FAMILLES-DE-LA-FORME-DE-CALCUL
+in faust-migration.
+
+```sh
+python3 tests/compile-tests/family-term-loop.py --faust build/bin/faust
+```
+
 ### Smoothers of a control written by their error
 
 `smoother-error-form.py` compiles `si.smoo` of a slider, alone and feeding a
