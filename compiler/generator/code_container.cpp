@@ -449,6 +449,11 @@ void CodeContainer::processFIR(void)
     // ==========================================================================================
 
     if (gGlobal->gInlineTable) {
+        // Initialize the sample rate before inlined table generators use it.
+        for (const auto& it : fSubContainers) {
+            it->generateSR();
+        }
+
         // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and
         // 'fill' function call
         fStaticInitInstructions = inlineSubcontainersFunCalls(fStaticInitInstructions);
@@ -589,6 +594,11 @@ void CodeContainer::mergeSubContainers()
         // Merge the subcontainer in the main one
         fExtGlobalDeclarationInstructions->merge(it->fExtGlobalDeclarationInstructions);
         fGlobalDeclarationInstructions->merge(it->fGlobalDeclarationInstructions);
+        // Inlined subcontainers share the parent DSP's sample-rate field.
+        it->fDeclarationInstructions->fCode.remove_if([](StatementInst* inst) {
+            DeclareVarInst* decl = dynamic_cast<DeclareVarInst*>(inst);
+            return decl && decl->getName() == "fSampleRate";
+        });
         fDeclarationInstructions->merge(it->fDeclarationInstructions);
         fControlDeclarationInstructions->merge(it->fControlDeclarationInstructions);
         sub_ui->merge(it->fUserInterfaceInstructions);
