@@ -188,6 +188,13 @@ right), and the emitted code follows. Before the fix of September 2026,
 771 of 1332 programs came out differently from a g++ build and a clang
 build of the same commit.
 
+The gate checks a second property with the same witnesses : **one
+binary, two runs**. The emitted code must not depend on the addresses of
+the objects the compiler allocates, which change from one run to the next
+(address space layout randomisation, the allocator). A set of loops
+ordered by pointer, an address printed in a comment, a name or a node
+of a graph file taken from a pointer break it.
+
 **Why one build cannot check it.** The order the code fixes is left to
 right, clang's order : a developer who builds faust with clang produces
 the reference code whatever they write. Only a right-to-left compiler or
@@ -222,16 +229,31 @@ make -C tests/determinism binaries            # builds faust twice, with g++ and
                                               # (CXX_A=..., CXX_B=... to choose ; two full builds)
 make -C tests/determinism check               # the witnesses by both binaries, compared
 make -C tests/determinism check FAUST_A=/path/faust-1 FAUST_B=/path/faust-2
+make -C tests/determinism rerun FAUST=/path/faust   # one binary, twice : needs no second compiler
 make -C tests/determinism lint                # the static check, no second compiler needed
 ```
 
 `check` generates sixteen witness programs — chosen among those that
 diverged most before the fix, one per family of sites, and a few tiny
-ones for speed — under six option sets (`-lang cpp` and `-lang ocpp`,
-scalar and `-vec`, then `-ftz 2` and ocpp `-fir`) with both binaries, and
-compares the outputs byte for byte. It takes seconds once the binaries
-exist. Expected : every cell `same`, exit status 0. A `DIFF` means the
-emitted code depends on how faust was built ; the outputs are left in
+ones for speed — under eight option sets (`-lang cpp` and `-lang ocpp`,
+scalar and `-vec`, then `-ftz 2`, ocpp `-fir`, `-sch` and ocpp `-omp`)
+with both binaries, and compares the outputs byte for byte. Six more
+witnesses carry their own options, in a fourth column of
+`witnesses.txt` : `-lang sdf3` and `-lang vhdl`, which accept few
+programs, and the two graph files faust writes beside its output, `-tg`
+(the loops) and `-sg` (the signals). Each side generates them in a
+directory of its own, with `-O .`, and the two directories are compared
+file by file.
+
+What these options print is where an order or a name taken from heap
+addresses shows : `-sch` emits every task with the tasks it activates,
+ocpp `-omp` names every loop and its dependencies in comments, the graph
+files and the sdf3 and vhdl backends name their nodes. It differs between
+two runs of the *same* binary, so `rerun` (`check` with one binary on both
+sides) is a meaningful run, and the only one that needs no second C++
+compiler. It takes a few minutes once the binaries exist. Expected :
+every cell `same`, exit status 0. A `DIFF` means the emitted code depends
+on how faust was built, or on the run ; the outputs are left in
 `tests/determinism/out/{a,b}` for a diff. A generation that fails on both
 sides is not a verdict (exit status 2). The `-I` paths are relative so
 that the `compile_options` string the emitted code quotes is the same on
