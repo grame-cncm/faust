@@ -364,10 +364,12 @@ than a host has, and each host is summed from its terms, in the lanes and the
 order of its own loop. The script checks, in single precision, for 64 sines,
 64 cosines, 64 hyperbolic tangents, 10 sines and 48 sines: one array of terms
 of the size of the family; the loop over all the members written twice with
-the same body, for clang in plain loops of whole vectors (the multiples of 16
-members, then 8, then 4, then the members that remain) and in groups of four
-for the other compilers; one sum per host, the hosts reading every term once,
-in order. Under `-noim` and in
+the same body, in plain loops of whole vectors (the multiples of 16 members,
+then 8, then 4, then the members that remain) for clang and for a compiler
+told that no floating-point exception is observed (`__NO_TRAPPING_MATH__`,
+which gcc defines under `-fno-trapping-math`), and in groups of four for the
+other compilers; one sum per host, the hosts reading every term once, in
+order. Under `-noim` and in
 double precision, and for a member without a call, with a call that has no
 inline version (`exp`) or with the sine and the cosine of one argument, each
 host keeps its own loop. The specifications are

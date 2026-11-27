@@ -14,11 +14,13 @@ The code only is read, in ocpp :
 
 1. Several hosts and an inline sine, cosine or hyperbolic tangent : one array of terms, of the
    size of the family ; the loop over all the members written twice with the same body. For
-   clang, plain loops of whole vectors : the multiples of 16 members in one loop, then a loop
-   of 8, a loop of 4, and the members that remain, fewer than 4. For the other compilers,
-   groups of four, with the members beyond the last whole group in a loop of their own. One
-   sum per host, and the terms the hosts read are the terms of the array, each once, in
-   order ; no loop of a host computes a member.
+   clang, and for a compiler told that no floating-point exception is observed
+   (__NO_TRAPPING_MATH__, which gcc defines under -fno-trapping-math), plain loops of whole
+   vectors : the multiples of 16 members in one loop, then a loop of 8, a loop of 4, and the
+   members that remain, fewer than 4. For the other compilers, groups of four, with the
+   members beyond the last whole group in a loop of their own. One sum per host, and the
+   terms the hosts read are the terms of the array, each once, in order ; no loop of a host
+   computes a member.
 2. The same programs under -noim and in double precision, where every call stays : one loop
    per host, no array of terms.
 3. Several hosts and a member without a call, with a call that has no inline version (exp),
@@ -86,9 +88,9 @@ def joint(text, function):
     lines = [l.strip() for l in text.split("\n")]
     i = lines.index(f"float \tfFam0Tm[{P}];")
     # the loop over all the members, twice
-    if lines[i + 1] != "#if defined(__clang__)":
-        return "no text for clang after the array of terms"
-    # for clang : every whole vector of 16 in one loop, at most one loop of 8 and one of 4, the rest
+    if lines[i + 1] != "#if defined(__clang__) || defined(__NO_TRAPPING_MATH__)":
+        return "no text of plain loops, for clang and without floating-point exceptions, after the array of terms"
+    # the plain loops : every whole vector of 16 in one loop, at most one loop of 8 and one of 4, the rest
     bounds, c = [], 0
     for size in (16, 8, 4, 1):
         n = ((P - c) // size) * size if size in (16, 1) else (size if P - c >= size else 0)

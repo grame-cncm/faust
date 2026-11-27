@@ -927,14 +927,16 @@ void ScalarCompiler::emitFamily(Family& f)
     // or all the members in one masked vector, which costs more than the loops of the hosts.
     // The others get the members in groups of four, which gcc vectorizes where it leaves a
     // plain loop scalar (it does not vectorize the rounding of the function while a
-    // floating-point exception may be observed)
+    // floating-point exception may be observed). A compiler told that no floating-point
+    // exception is observed (-fno-trapping-math, which gcc reports by __NO_TRAPPING_MATH__)
+    // vectorizes the plain loops, and gets them : they are then its fastest text
     const bool        joint = plan.hosts.size() > 1 && g.inlineCalls > 0 && v.failed;
     const std::string terms = subst("fFam$0Tm", T(g.id));
     if (joint) {
         const std::string member = subst("$0 $1[c] = $2;$3", bodyCode, terms, term, shifts.str());
         const int         main   = (P / 4) * 4;
         fClass->addExecCode(Statement("", subst("$0 \t$1[$2];", g.ty, terms, T(P))));
-        fClass->addExecCode(Statement("", "#if defined(__clang__)"));
+        fClass->addExecCode(Statement("", "#if defined(__clang__) || defined(__NO_TRAPPING_MATH__)"));
         int from = 0;
         for (int size : {16, 8, 4, 1}) {
             // every whole vector of 16 in one loop, at most one loop of 8 and one of 4
