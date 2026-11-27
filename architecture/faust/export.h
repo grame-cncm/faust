@@ -41,7 +41,9 @@
     #ifdef FAUST_EXE
         #define FAUST_API
         #define LIBFAUST_API
-    #elif defined(FAUST_LIB)
+    #elif defined(FAUST_LIB) && !defined(FAUST_STATIC_LIB)
+        // Only the dynamic library exports its API: exporting from the static library would also export
+        // libfaust from every DLL that links it (e.g. plug-ins), and prevent unused code from being removed
         #define FAUST_API __declspec(dllexport)
         #define LIBFAUST_API __declspec(dllexport)
     #else
