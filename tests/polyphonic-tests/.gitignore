@@ -1,0 +1,9 @@
+voice-steal-repro
+legato-fade-repro
+bargraph-current-repro
+mcu-poly-test
+mcu-poly-test-nortti
+mcupolyvoice.h
+mcupolyeffect.h
+mcupolyvoicemem.h
+*.dSYM
