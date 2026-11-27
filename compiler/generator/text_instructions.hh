@@ -69,7 +69,7 @@ class TextInstVisitor : public InstVisitor {
     // A real given in double (a control's bounds), in the precision of the program
     std::string realLiteral(double val) const
     {
-        return (strcmp(ifloat(), "float") == 0) ? floatLiteral(float(val)) : doubleLiteral(val);
+        return (gGlobal->gFloatSize == 1) ? floatLiteral(float(val)) : doubleLiteral(val);
     }
 
     // To be adapted in subclasses
