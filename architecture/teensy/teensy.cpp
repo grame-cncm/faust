@@ -132,22 +132,38 @@ AudioFaust::AudioFaust() : AudioStream(FAUST_INPUTS, new audio_block_t*[FAUST_IN
     }
     
 #if MIDICTRL
+    // started on the first update(), see startMidi()
+    fMIDIHandler = nullptr;
+    fMIDIInterface = nullptr;
+#endif
+}
+
+#if MIDICTRL
+// The object is usually a global of the sketch, so its constructor runs
+// during static initialization, possibly before the GUI lists above are
+// constructed (the order across files is undefined): a MidiUI made there
+// registered in an unconstructed list and crashed before setup(). The
+// first update() runs after all of that.
+void AudioFaust::startMidi()
+{
     fMIDIHandler = new teensy_midi();
     fMIDIInterface = new MidiUI(fMIDIHandler);
     fDSP->buildUserInterface(fMIDIInterface);
     fMIDIInterface->run();
-#endif
 }
+#endif
 
 AudioFaust::~AudioFaust()
 {
+    int inputs = fDSP->getNumInputs();
+    int outputs = fDSP->getNumOutputs();
     delete fDSP;
     delete fUI;
-    for (int i = 0; i < fDSP->getNumInputs(); i++) {
+    for (int i = 0; i < inputs; i++) {
         delete[] fInChannel[i];
     }
     delete [] fInChannel;
-    for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+    for (int i = 0; i < outputs; i++) {
         delete[] fOutChannel[i];
     }
     delete [] fOutChannel;
@@ -161,6 +177,9 @@ template <int INPUTS, int OUTPUTS>
 void AudioFaust::updateImp(void)
 {
 #if MIDICTRL
+    if (!fMIDIInterface) {
+        startMidi();
+    }
     // Process the MIDI messages received by the Teensy
     fMIDIHandler->processMidi();
     // Synchronize all GUI controllers
