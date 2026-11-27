@@ -1,4 +1,4 @@
-% man(1) Version 2.95.3 (22-November-2026) | Faust man page
+% man(1) Version 2.95.4 (27-November-2026) | Faust man page
 
 NAME
 ====
@@ -227,6 +227,8 @@ Block diagram options:
   **-ps**        **--postscript**                 print block-diagram to a postscript file.
 
   **-svg**       **--svg**                        print block-diagram to a svg file.
+
+                                          the files go into the \<name>**-svg**/ directory beside the .dsp source (or in the -O directory).
 
   **-sd**        **--simplify-diagrams**          try to further simplify diagrams before drawing.
 
