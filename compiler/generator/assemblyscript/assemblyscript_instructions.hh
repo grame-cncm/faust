@@ -123,7 +123,7 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
             gMathLibTable["max_f"]      = "max<f32>";
             gMathLibTable["min_f"]      = "min<f32>";
             gMathLibTable["powf"]       = "Mathf.pow";
-            gMathLibTable["roundf"]     = "Mathf.round";
+            gMathLibTable["roundf"]     = "faust_roundf";
             gMathLibTable["sinf"]       = "Mathf.sin";
             gMathLibTable["sqrtf"]      = "Mathf.sqrt";
             gMathLibTable["tanf"]       = "Mathf.tan";
@@ -138,7 +138,7 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
             gMathLibTable["copysignf"]  = "copysign";
             gMathLibTable["fmodf"]      = "%";
             gMathLibTable["remainderf"] = "NativeMathf.rem";
-            gMathLibTable["rintf"]      = "Mathf.round";
+            gMathLibTable["rintf"]      = "nearest<f32>";
             gMathLibTable["fabs"]       = "Math.abs";
             gMathLibTable["acos"]       = "Math.acos";
             gMathLibTable["asin"]       = "Math.asin";
@@ -153,7 +153,7 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
             gMathLibTable["max_"]       = "max<f64>";
             gMathLibTable["min_"]       = "min<f64>";
             gMathLibTable["pow"]        = "Math.pow";
-            gMathLibTable["round"]      = "Math.round";
+            gMathLibTable["round"]      = "faust_round";
             gMathLibTable["sin"]        = "Math.sin";
             gMathLibTable["sqrt"]       = "Math.sqrt";
             gMathLibTable["tan"]        = "Math.tan";
@@ -168,7 +168,7 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
             gMathLibTable["copysign"]   = "copysign";
             gMathLibTable["fmod"]       = "%";
             gMathLibTable["remainder"]  = "NativeMath.rem";
-            gMathLibTable["rint"]       = "Math.round";
+            gMathLibTable["rint"]       = "nearest<f64>";
         }
     }
 

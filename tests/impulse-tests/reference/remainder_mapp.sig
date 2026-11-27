@@ -1,0 +1,19 @@
+// Size = 17
+ID_0 = W3;
+ID_1 = proj0(ID_0);
+ID_2 = ID_1';
+ID_3 = 1+ID_2;
+ID_4 = letrec(W3 = (ID_3));
+ID_5 = proj0(ID_4);
+ID_6 = ID_5@0;
+ID_7 = ID_6%64;
+ID_8 = -32+ID_7;
+ID_9 = float(ID_8);
+ID_10 = 0.25f*ID_9;
+ID_11 = remainder(ID_10, 1.0f);
+ID_12 = remainder(ID_10, 2.0f);
+ID_13 = remainder(ID_10, 4.0f);
+ID_14 = 9.2f*IN[0];
+ID_15 = -1.0f*ID_14;
+ID_16 = remainder(ID_15, 2.0f);
+SIG = (ID_11, ID_12, ID_13, ID_16);
