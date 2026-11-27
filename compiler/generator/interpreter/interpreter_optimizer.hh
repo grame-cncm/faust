@@ -1306,8 +1306,20 @@ struct FBCInstructionOptimizer {
             return cur_block->copy();
         }
 
+        // The loop below and the optimizers' rewrite() look at up to two instructions after 'cur' without checking
+        // for the end of the block (dereferencing end() is undefined, and asserts with checked iterators, e.g. MSVC
+        // Debug builds). So the block is padded with kReturn instructions, which match no rewrite pattern, while it is
+        // traversed: 'last' is the end of the actual instructions
+        static constexpr int kLookAhead = 2;
+        auto& instructions = cur_block->fInstructions;
+        const size_t size = instructions.size();
+        for (int i = 0; i < kLookAhead; i++) {
+            instructions.push_back(new FBCBasicInstruction<REAL>(FBCInstruction::kReturn));
+        }
+
         FBCBlockInstruction<REAL>* new_block = new FBCBlockInstruction<REAL>();
-        InstructionIT              next, cur = cur_block->fInstructions.begin();
+        InstructionIT              next, cur = instructions.begin();
+        const InstructionIT        last = instructions.begin() + size;
 
         do {
             FBCBasicInstruction<REAL>*& inst1 = *cur;
@@ -1347,7 +1359,12 @@ struct FBCInstructionOptimizer {
                 cur = next;
             }
 
-        } while (cur != cur_block->fInstructions.end());
+        } while (cur != last);
+
+        for (int i = 0; i < kLookAhead; i++) {
+            delete instructions.back();
+            instructions.pop_back();
+        }
 
         return new_block;
     }
