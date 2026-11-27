@@ -19,6 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
+#include <cmath>
 #include <map>
 #include <vector>
 
@@ -40,6 +41,13 @@ class ConstantPropagationAlgebra final : public TransformAlgebra {
    public:
     Tree cut(Tree orig) const override
     {
+        double value;
+        if (isSigReal(orig, &value) && value == 0 && std::signbit(value)) {
+            // A singleton zero interval does not retain the sign bit, which is observable by
+            // operations such as copysign. Keep a negative-zero source constant intact.
+            return nullptr;
+        }
+
         Type     tt = getCertifiedSigType(orig);
         interval I  = tt->getInterval();
         if (!I.isconst()) {
