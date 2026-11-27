@@ -20,6 +20,7 @@
 #include <sstream>
 
 #include "compile_scal.hh"
+#include "computeForm.hh"
 #include "computeSignals.hh"
 #include "floats.hh"
 #include "mixForm.hh"
@@ -672,6 +673,7 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
             args.push_back(famExpr(g, t->branch(k)));
             types.push_back(getCertifiedSigType(t->branch(k)));
         }
+        xtendedCodegen::CallSite site(isPairedCall(t));
         return keep(p->generateCode(fClass, args, types));
     }
     if (isSigFloatCast(t, x)) {

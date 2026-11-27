@@ -3120,6 +3120,7 @@ class LoopSplitEmitter {
                 acodes.push_back(operandCode(a));
                 types.push_back(getCertifiedSigType(t->branch(k)));
             }
+            xtendedCodegen::CallSite site(isPairedCall(t));
             o.op = newOp(p->generateCode(fClass, acodes, types), deps, false,
                          isCallPrim(p->name()), isInt);
             fOpOf[t] = o.op;
@@ -7755,6 +7756,7 @@ string ScalarCompiler::generateXtended(Tree sig)
         return generateMemoCall(sig, p, args, types);
     }
 
+    xtendedCodegen::CallSite site(isPairedCall(sig));
     if (p->needCache()) {
         return generateCacheCode(sig, p->generateCode(fClass, args, types));
     } else {
@@ -7800,6 +7802,7 @@ std::string ScalarCompiler::generateMemoCall(Tree sig, xtendedCodegen* p, std::v
         targs.push_back(temp);
     }
     xtendedCodegen::fNeedMemoHelpers = true;
+    xtendedCodegen::CallSite site(isPairedCall(sig));
     fClass->addExecCode(Statement(getConditionCode(sig), subst("if ($0) { $1$2 = $3; $4 = 1; }", cond, stores, val,
                                                                p->generateCode(fClass, targs, types), ok)));
     return generateCacheCode(sig, val);

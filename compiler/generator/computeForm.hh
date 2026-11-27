@@ -62,6 +62,7 @@ class ComputeForm {
     void                           lowerCompounds();
     void                           cutSlowPrefixes();
     static void                    markSettlingCalls(Tree L);
+    static void                    markPairedCalls(Tree L);
     static void                    censusSettlingCone(Tree L, const std::unordered_set<class xtended*>& costly);
 };
 
@@ -70,3 +71,10 @@ class ComputeForm {
 /// target and then stay constant. Its emission calls it again only when an argument changed since the
 /// previous sample (-nomc) : the same values, without the calls while the arguments stay constant
 bool isSettlingCall(Tree t);
+
+/// t is the sine or the cosine of an argument whose cosine or sine is also computed by the program.
+/// Both keep their calls of the libm, which the C++ compiler joins in one that computes the two
+/// values on one reduction of the argument (sincosf) : two inline versions would reduce it twice
+/// (-im, xtendedCodegen.hh). The generator of a table is not searched : it has a loop of its own
+/// and no call to join with those of the program
+bool isPairedCall(Tree t);

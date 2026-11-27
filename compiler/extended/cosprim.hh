@@ -65,6 +65,10 @@ class CosPrim : public xtendedCodegen {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
+        // the version without a call that the interval of the argument allows (xtendedCodegen.hh)
+        if (ValueInst* v = generateInlineMath(container, "cos", args, types)) {
+            return v;
+        }
         return generateFun(container, subst("cos$0", isuffix()), args, result, types);
     }
 
@@ -74,6 +78,10 @@ class CosPrim : public xtendedCodegen {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
+        const std::string v = inlineMathFunction("cos", types);
+        if (!v.empty()) {
+            return subst("$1($0)", args[0], v);
+        }
         return subst("cos$1($0)", args[0], isuffix());
     }
 

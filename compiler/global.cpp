@@ -3017,7 +3017,7 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-noim       --no-inline-math            call the libm for every mathematical function (by default, in C and C++, "
-            "single precision, sin and tanh are written without a call where the interval of the argument allows)."
+            "single precision, sin, cos and tanh are written without a call where the interval of the argument allows ; the sine and the cosine of one argument keep their calls)."
          << endl;
     sstr << tab
          << "-nost       --no-settled-regime         compute at every sample what depends only on smoothed controls (by "

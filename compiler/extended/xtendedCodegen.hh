@@ -187,13 +187,26 @@ class xtendedCodegen : public xtended {
     // of a function are listed from the cheapest to the most expensive
     enum InlineMath {
         kInlineSin17,  // sin, |x| <= 2^17
+        kInlineCos17,  // cos, |x| <= 2^17
         kInlineTanh,   // tanh, every float
         kInlineMathCount
     };
     // the rule of choice : the version of the function fun (sin, tanh...) for an argument of this
     // type, -1 when the call stays. Only the permanent bounds of the interval count. It reads the
-    // options and the type and nothing else : a node has the same version wherever it is computed
+    // options, the type and the site (CallSite) and nothing else : a node has the same version
+    // wherever it is computed
     static int inlineMathVersion(const std::string& fun, ConstTypes types);
+    // The site of a choice. The sine and the cosine of one argument keep their calls
+    // (isPairedCall, computeForm.hh) : an emitter declares, for the time of the generateCode of a
+    // node, whether the node is one of them. Without a declaration a node is not
+    static bool fPairedSite;
+    struct CallSite {
+        bool fOuter;
+        explicit CallSite(bool paired) : fOuter(fPairedSite) { fPairedSite = paired; }
+        ~CallSite() { fPairedSite = fOuter; }
+        CallSite(const CallSite&)            = delete;
+        CallSite& operator=(const CallSite&) = delete;
+    };
     // the name of the function of a version, which is then written before the classes
     // (fNeedInlineMath, cleared once written) ; the empty string when the call stays
     static std::string inlineMathFunction(const std::string& fun, ConstTypes types);

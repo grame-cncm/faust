@@ -2910,7 +2910,8 @@ ValueInst* InstructionsCompiler::generateXtended(Tree sig)
         return generateMemoCall(sig, p, args, types);
     }
 
-    ValueInst* res = p->generateCode(fContainer, args, getCertifiedSigType(sig), types);
+    xtendedCodegen::CallSite site(isPairedCall(sig));
+    ValueInst*               res = p->generateCode(fContainer, args, getCertifiedSigType(sig), types);
     if (p->needCache()) {
         return generateCacheCode(sig, res);
     } else {
@@ -2969,6 +2970,7 @@ ValueInst* InstructionsCompiler::generateMemoCall(Tree sig, xtendedCodegen* p, V
         i++;
     }
     xtendedCodegen::fNeedMemoHelpers = true;
+    xtendedCodegen::CallSite site(isPairedCall(sig));
     block->pushBackInst(IB::genStoreStructVar(val, p->generateCode(fContainer, targs, getCertifiedSigType(sig), types)));
     block->pushBackInst(IB::genStoreStructVar(ok, IB::genInt32NumInst(1)));
     pushComputeDSPMethod(IB::genControlInst(getConditionCode(sig), IB::genIfInst(cond, block)));

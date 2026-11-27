@@ -326,6 +326,32 @@ LES-TABLES-DU-PROGRAMME in faust-migration.
 python3 tests/compile-tests/tables-read-by-generators.py --faust build/bin/faust
 ```
 
+### The sine and the cosine of one argument
+
+`inline-math-pairs.py` reads the code of twelve programs in cpp, ocpp and c.
+In single precision, a sine, a cosine or a hyperbolic tangent whose argument
+has a bounded interval is written without a call of the libm (`faustsin17f`,
+`faustcos17f`, `fausttanhf`). The sine and the cosine of the same argument are
+the exception: both keep their calls, which the C++ compiler joins in one call
+that reduces the argument once for the two values (`sincosf`). The script
+counts, in each code, the calls of the inline versions and those of the libm:
+a pair at the sample rate, in one output or in two, and at the rate of the
+controls, keeps one call of the sine and one of the cosine; a sine alone, a
+cosine alone, and a sine and a cosine of two arguments are inline; next to a
+pair, the other sines and cosines and the hyperbolic tangent of the argument
+of the pair are inline. The generator of a table has a loop of its own: the
+sine of one table and the cosine of another, the two in one generator, and a
+sine of the program next to the cosine of a table are inline. A node has one
+version: the sine of a pair of the program, when a generator computes it too,
+keeps its call in the generator. Under `-noim` and in double precision every
+call stays; under `-vec`, with the loop variant that writes each loop once
+(`-lv 1`), the counts are those of the scalar code. The specification is
+LES-FONCTIONS-MATHEMATIQUES-EN-LIGNE in faust-migration.
+
+```sh
+python3 tests/compile-tests/inline-math-pairs.py --faust build/bin/faust
+```
+
 ### Smoothers of a control written by their error
 
 `smoother-error-form.py` compiles `si.smoo` of a slider, alone and feeding a

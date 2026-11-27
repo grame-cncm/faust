@@ -128,7 +128,8 @@ inline bool checkMax(const std::string& str)
 inline bool isFaustMinMaxHelper(const std::string& str)
 {
     return (str.rfind("faustmax", 0) == 0) || (str.rfind("faustmin", 0) == 0) || (str.rfind("faustfmod", 0) == 0) ||
-           (str.rfind("faustdiff", 0) == 0) || (str.rfind("faustsin", 0) == 0) || (str.rfind("fausttanh", 0) == 0);
+           (str.rfind("faustdiff", 0) == 0) || (str.rfind("faustsin", 0) == 0) || (str.rfind("faustcos", 0) == 0) ||
+           (str.rfind("fausttanh", 0) == 0);
 }
 
 inline bool checkMinMax(const std::string& str)

@@ -208,7 +208,7 @@ Code generation options:
 
   **-nomc**       **--no-call-memo**              call a costly function at every sample (by default, in C and C++, a call whose arguments settle, as a smoothed control, is made again only when an argument changed).
 
-  **-noim**       **--no-inline-math**            call the libm for every mathematical function (by default, in C and C++, single precision, sin and tanh are written without a call where the interval of the argument allows).
+  **-noim**       **--no-inline-math**            call the libm for every mathematical function (by default, in C and C++, single precision, sin, cos and tanh are written without a call where the interval of the argument allows ; the sine and the cosine of one argument keep their calls).
 
   **-nost**       **--no-settled-regime**         compute at every sample what depends only on smoothed controls (by default, in C, C++ and ocpp, it is computed once per block while every smoother has reached its target).
 

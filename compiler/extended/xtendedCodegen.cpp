@@ -47,9 +47,10 @@ bool xtendedCodegen::fNeedFmodHelpers   = false;
 bool xtendedCodegen::fNeedMemoHelpers   = false;
 
 bool xtendedCodegen::fNeedInlineMath[xtendedCodegen::kInlineMathCount] = {};
+bool xtendedCodegen::fPairedSite                                       = false;
 
 // the name of a version carries the function, the domain and the precision
-static const char* kInlineMathNames[xtendedCodegen::kInlineMathCount] = {"faustsin17f", "fausttanhf"};
+static const char* kInlineMathNames[xtendedCodegen::kInlineMathCount] = {"faustsin17f", "faustcos17f", "fausttanhf"};
 
 // the interval within [-b, b], by its permanent bounds : a bound that holds over the horizon of the
 // analysis only is read as absent
@@ -68,9 +69,17 @@ int xtendedCodegen::inlineMathVersion(const std::string& fun, ConstTypes types)
     if (gGlobal->getMathFunction(fun + "f") != fun + "f") {
         return -1;
     }
-    if (fun == "sin") {
+    if ((fun == "sin") || (fun == "cos")) {
+        // the sine and the cosine of one argument keep their calls, which the C++ compiler joins in
+        // one : a single reduction of the argument for the two values
+        if (fPairedSite) {
+            return -1;
+        }
         const interval i = types[0]->getInterval();
-        return heldWithin(i, 0x1p17) ? kInlineSin17 : -1;
+        if (!heldWithin(i, 0x1p17)) {
+            return -1;
+        }
+        return (fun == "sin") ? kInlineSin17 : kInlineCos17;
     }
     if (fun == "tanh") {
         return kInlineTanh;
@@ -141,6 +150,39 @@ static const char* kSin = R"(static inline float $0(float x)
     memcpy(&bn, &np, 4);
     /* the sign of the result : that of r, which the polynomial keeps, the parity of n and the sign of x */
     br ^= (bn << 31) ^ (bx & 0x80000000u);
+    memcpy(&t, &br, 4);
+    return copysignf(yc, t);
+}
+)";
+
+// cos : the reduction of the sine moved by pi/2. n is the integer nearest to a / pi + 1/2, and
+// r = a - (n - 1/2) * pi, in three parts, lies in [-pi/2, pi/2] : cos(a) is the sine of r with the
+// sign of the parity of n. n - 1/2 is exact, and the polynomial is that of the sine. Conforms for
+// |x| <= 2^17
+static const char* kCos = R"(static inline float $0(float x)
+{
+    const float a = fabsf(x);
+    const float n = rintf(fmaf(a, 0.318309873f, 0.5f));
+    const float h = n - 0.5f;
+    const float q = fmaf(-h, -8.74227766e-08f, fmaf(-h, 3.14159274f, a));
+    const float r = fmaf(-h, -3.43024902e-15f, q);
+    /* the polynomial on the argument less its third part of pi, which changes it by less than 2^-32 */
+    const float q2 = q * q;
+    float p = fmaf(2.61059586e-06f, q2, -0.000198119946f);
+    p = fmaf(p, q2, 0.0083331028f);
+    p = fmaf(p, q2, -0.166666612f);
+    const float y0 = fmaf(p, q2 * q, r);
+    /* next to pi/2 the polynomial may round above 1 : the magnitude is held to 1 (a NaN stays) */
+    const float ya = fabsf(y0);
+    const float yc = 1.0f < ya ? 1.0f : ya;
+    /* the parity of n : the low bit of n + 2^23, a sum that is exact for n < 2^23 ; no conversion to an integer */
+    const float np = n + 8388608.0f;
+    uint32_t br, bn;
+    float t;
+    memcpy(&br, &r, 4);
+    memcpy(&bn, &np, 4);
+    /* the sign of the result : that of r, which the polynomial keeps, and the parity of n */
+    br ^= (bn << 31);
     memcpy(&t, &br, 4);
     return copysignf(yc, t);
 }
@@ -232,6 +274,15 @@ void xtendedCodegen::printInlineMath(std::ostream& out)
             "   polynomial and the parts of pi are those of the AdvSIMD sinf of Arm Optimized Routines,\n"
             "   Copyright (c) 2019-2026, Arm Limited, SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception. */\n";
         printInlineVersion(out, kInlineMathNames[kInlineSin17], "FAUST_SIN17F", what.c_str(), kSin, "sinf");
+    }
+    if (fNeedInlineMath[kInlineCos17]) {
+        fNeedInlineMath[kInlineCos17] = false;
+        const std::string what =
+            std::string("/* The cosine of a float in [-131072, 131072], within 2 ulps, without a call of the libm.\n") + where +
+            " The coefficients of the\n"
+            "   polynomial and the parts of pi are those of the AdvSIMD sinf of Arm Optimized Routines,\n"
+            "   Copyright (c) 2019-2026, Arm Limited, SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception. */\n";
+        printInlineVersion(out, kInlineMathNames[kInlineCos17], "FAUST_COS17F", what.c_str(), kCos, "cosf");
     }
     if (fNeedInlineMath[kInlineTanh]) {
         fNeedInlineMath[kInlineTanh] = false;

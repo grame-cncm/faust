@@ -258,6 +258,10 @@ void ComputeForm::lower(LaneOrder order, bool families)
         // the costly calls whose arguments settle, called again only when one changed (-nomc)
         markSettlingCalls(fProgram);
     }
+    if (gGlobal->gInlineMath) {
+        // the sine and the cosine of one argument, which keep their calls (-noim keeps every call)
+        markPairedCalls(fProgram);
+    }
 }
 
 namespace {
@@ -373,6 +377,65 @@ void ComputeForm::markSettlingCalls(Tree L)
     }
     if (getenv("FAUST_TRACE_SETTLE")) {
         censusSettlingCone(L, costly);
+    }
+}
+
+static Tree pairedCallKey()
+{
+    static Tree key = tree(symbol("PAIREDCALL"));
+    return key;
+}
+
+bool isPairedCall(Tree t)
+{
+    Tree v;
+    return getProperty(t, pairedCallKey(), v);
+}
+
+void ComputeForm::markPairedCalls(Tree L)
+{
+    // the sine and the cosine of each argument : a node is the only sine, or the only cosine, of its
+    // argument. The tables are read by key only, and the marks do not depend on the order of the visit
+    std::unordered_map<Tree, Tree> sines, cosines;  // argument -> the node
+    std::unordered_set<Tree>       seen;
+    std::vector<Tree>              work{L};
+    while (!work.empty()) {
+        Tree t = work.back();
+        work.pop_back();
+        if (!seen.insert(t).second) {
+            continue;
+        }
+        Tree var, body, content;
+        if (isRec(t, var, body)) {
+            if (body != nullptr) work.push_back(body);
+            continue;
+        }
+        if (isSigGen(t, content)) {
+            // the generator of a table is compiled apart, in a loop of its own, where no call of the
+            // program can be joined with one of its calls : its sines and cosines make no pair
+            continue;
+        }
+        for (Tree b : t->branches()) work.push_back(b);
+        xtended* p = (xtended*)sigXtendedData(t);
+        if (p == gGlobal->gSinPrim) {
+            sines[t->branch(0)] = t;
+        } else if (p == gGlobal->gCosPrim) {
+            cosines[t->branch(0)] = t;
+        }
+    }
+    int pairs = 0;
+    Tree key  = pairedCallKey();
+    for (const auto& s : sines) {
+        auto c = cosines.find(s.first);
+        if (c != cosines.end()) {
+            setProperty(s.second, key, key);
+            setProperty(c->second, key, key);
+            pairs++;
+        }
+    }
+    if (getenv("FAUST_TRACE_PAIRS")) {
+        std::cerr << "PAIRS-TRACE sines " << sines.size() << " cosines " << cosines.size() << " pairs " << pairs
+                  << std::endl;
     }
 }
 
